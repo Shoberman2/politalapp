@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:www.wendyandrade.co)",
+      "Bash(npm run dev)",
+      "Bash(curl:*)",
+      "Bash(open http://localhost:5173/)",
+      "Bash(npx tsc:*)",
+      "Bash(lsof:*)",
+      "Bash(node /private/tmp/claude-503/-Users-shoberman-politicalapp/c3d0f1df-f410-4165-8846-566a6fd433e7/scratchpad/test-congress-api.js:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "WebSearch",
+      "WebFetch(domain:geocoding.geo.census.gov)",
+      "WebFetch(domain:www.geocod.io)"
+    ]
+  }
+}

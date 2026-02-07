@@ -1,0 +1,129 @@
+# =============================================================================
+# Political Vote Tracker - Daily ETL Pipeline
+# =============================================================================
+# Runs the ETL pipeline daily to sync vote data from Congress.gov to Supabase.
+#
+# Schedule: Daily at 6:00 AM UTC (1:00 AM EST / 10:00 PM PST)
+# Manual trigger: Workflow dispatch with optional parameters
+#
+# Required Secrets:
+#   CONGRESS_API_KEY          - Congress.gov API key
+#   SUPABASE_URL              - Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY - Supabase service role key
+#   OPENAI_API_KEY            - (Optional) For AI bill summaries
+
+name: Daily ETL Pipeline
+
+on:
+  # Run daily at 6:00 AM UTC
+  schedule:
+    - cron: '0 6 * * *'
+
+  # Allow manual triggers
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'Number of days of vote history to fetch'
+        required: false
+        default: '7'
+        type: string
+      dry_run:
+        description: 'Run in dry-run mode (no DB writes)'
+        required: false
+        default: false
+        type: boolean
+      skip_enrich:
+        description: 'Skip AI enrichment step'
+        required: false
+        default: false
+        type: boolean
+
+# Prevent concurrent runs
+concurrency:
+  group: etl-pipeline
+  cancel-in-progress: false
+
+jobs:
+  etl:
+    name: Run ETL Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ETL Pipeline
+        env:
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ETL_DAYS_BACK: ${{ github.event.inputs.days_back || '7' }}
+          ETL_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          ARGS=""
+
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+
+          if [ "${{ github.event.inputs.skip_enrich }}" = "true" ]; then
+            ARGS="$ARGS --skip-enrich"
+          fi
+
+          if [ -n "${{ github.event.inputs.days_back }}" ]; then
+            ARGS="$ARGS --days ${{ github.event.inputs.days_back }}"
+          fi
+
+          echo "Running: npm run etl -- $ARGS"
+          npm run etl -- $ARGS
+
+      - name: Report Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ ETL pipeline completed successfully"
+          else
+            echo "❌ ETL pipeline failed"
+          fi
+
+  # Separate job for weekly full sync (more days)
+  weekly-full-sync:
+    name: Weekly Full Sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Only run on Sundays
+    if: github.event_name == 'schedule' && github.event.schedule == '0 6 * * 0'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Full Sync (30 days)
+        env:
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ETL_DAYS_BACK: '30'
+          ETL_MAX_VOTES: '500'
+        run: npm run etl -- --days 30 --verbose

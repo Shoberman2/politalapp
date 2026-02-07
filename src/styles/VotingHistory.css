@@ -1,0 +1,365 @@
+.voting-history {
+  background: white;
+  border-radius: 4px;
+  padding: 2rem;
+  margin-top: 2rem;
+  transition: all 0.4s ease;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.history-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  color: #514e4c;
+  font-family: 'Roboto Flex', sans-serif;
+  font-weight: 400;
+}
+
+.bill-count {
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
+  color: #514e4c;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 0;
+  border: 1px solid #514e4c;
+}
+
+.voting-history-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-bill {
+  height: 100px;
+  background: linear-gradient(90deg, #f5f5f5 25%, #ebebeb 50%, #f5f5f5 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.voting-history-error,
+.voting-history-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #7a7775;
+}
+
+.voting-history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.voting-history-empty svg {
+  opacity: 0.3;
+}
+
+.voting-history-empty p {
+  font-size: 1.05rem;
+}
+
+.bills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bill-item {
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+}
+
+.bill-item:hover {
+  border-color: #514e4c;
+  box-shadow: 0 4px 20px rgba(81, 78, 76, 0.1);
+}
+
+.bill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem;
+  cursor: pointer;
+  gap: 1rem;
+  transition: background 0.2s ease;
+}
+
+.bill-header:hover {
+  background: #f5f5f5;
+}
+
+.bill-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.bill-type-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: #514e4c;
+}
+
+.bill-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #514e4c;
+  line-height: 1.4;
+  margin: 0;
+  font-family: 'Roboto Flex', sans-serif;
+}
+
+.bill-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #7a7775;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+.bill-action svg {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.action-date {
+  font-weight: 500;
+  color: #7a7775;
+}
+
+.expand-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(81, 78, 76, 0.25);
+  border-radius: 0;
+  background: white;
+  color: #514e4c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.expand-button:hover {
+  background: #514e4c;
+  color: white;
+  border-color: #514e4c;
+  transform: scale(1.05);
+}
+
+.expand-button svg {
+  transition: transform 0.3s ease;
+}
+
+.expand-button.expanded svg {
+  transform: rotate(180deg);
+}
+
+.bill-explanation {
+  padding: 1.5rem;
+  background: #f5f5f5;
+  border-top: 1px solid rgba(81, 78, 76, 0.15);
+  animation: expandDown 0.3s ease-out;
+}
+
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #514e4c;
+  color: white;
+  border-radius: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.explanation-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+}
+
+.explanation-text {
+  color: #514e4c;
+  line-height: 1.7;
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.key-points {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(81, 78, 76, 0.15);
+}
+
+.key-points h5 {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #514e4c;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.key-points ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.key-points li {
+  padding-left: 1.5rem;
+  position: relative;
+  margin-bottom: 0.75rem;
+  color: #514e4c;
+  line-height: 1.6;
+}
+
+.key-points li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #514e4c;
+  font-weight: 600;
+}
+
+.explanation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #514e4c;
+  font-weight: 500;
+}
+
+.loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(81, 78, 76, 0.1);
+  border-top: 2px solid #514e4c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .voting-history {
+    padding: 1.5rem;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .history-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .bill-header {
+    padding: 1rem;
+  }
+
+  .bill-title-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .bill-title {
+    font-size: 0.95rem;
+  }
+
+  .bill-action {
+    font-size: 0.85rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .expand-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .bill-explanation {
+    padding: 1rem;
+  }
+
+  .explanation-content {
+    padding: 1rem;
+  }
+}

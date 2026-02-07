@@ -1,0 +1,146 @@
+.politician-card {
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+}
+
+.politician-card:hover {
+  border-color: #514e4c;
+  box-shadow: 0 4px 15px rgba(81, 78, 76, 0.1);
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card-photo {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(81, 78, 76, 0.1);
+}
+
+.card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  background: #514e4c;
+}
+
+.card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #514e4c;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Roboto Flex', sans-serif;
+}
+
+.card-role {
+  font-size: 0.75rem;
+  color: #7a7775;
+  margin: 0 0 0.15rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-location {
+  font-size: 0.85rem;
+  color: #514e4c;
+  margin: 0;
+  font-weight: 500;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.card-party {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.favorite-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #a8a6a4;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.favorite-btn:hover {
+  color: var(--accent-emphasis);
+  transform: scale(1.15);
+}
+
+.favorite-btn.active {
+  color: var(--accent-emphasis);
+}
+
+.favorite-btn.active svg {
+  filter: drop-shadow(0 2px 4px rgba(236, 208, 111, 0.4));
+}
+
+@media (max-width: 480px) {
+  .card-photo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .card-name {
+    font-size: 0.95rem;
+  }
+
+  .card-party {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+}
