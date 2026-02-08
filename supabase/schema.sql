@@ -146,115 +146,7 @@ END $$;
 
 
 -- =============================================================================
--- 5. USER PROFILES TABLE (Supabase Auth integration)
--- =============================================================================
--- Extends Supabase Auth with app-specific user data.
--- Automatically created when a user signs up via a trigger.
-
-CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT,
-  name TEXT,
-  state TEXT,                         -- User's state (two-letter code)
-  district TEXT,                      -- User's congressional district
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
-
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own profile
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can view own profile'
-  ) THEN
-    CREATE POLICY "Users can view own profile"
-      ON profiles FOR SELECT
-      USING (auth.uid() = id);
-  END IF;
-END $$;
-
--- Users can update their own profile
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can update own profile'
-  ) THEN
-    CREATE POLICY "Users can update own profile"
-      ON profiles FOR UPDATE
-      USING (auth.uid() = id)
-      WITH CHECK (auth.uid() = id);
-  END IF;
-END $$;
-
--- Users can insert their own profile (for the trigger)
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can insert own profile'
-  ) THEN
-    CREATE POLICY "Users can insert own profile"
-      ON profiles FOR INSERT
-      WITH CHECK (auth.uid() = id);
-  END IF;
-END $$;
-
-
--- =============================================================================
--- 6. USER FAVORITES TABLE
--- =============================================================================
--- Tracks which politicians a user is following.
-
-CREATE TABLE IF NOT EXISTS user_favorites (
-  id BIGSERIAL PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  politician_id TEXT NOT NULL REFERENCES politicians(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-
-  UNIQUE(user_id, politician_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_favorites_user ON user_favorites(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_favorites_politician ON user_favorites(politician_id);
-
-ALTER TABLE user_favorites ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own favorites
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'user_favorites' AND policyname = 'Users can view own favorites'
-  ) THEN
-    CREATE POLICY "Users can view own favorites"
-      ON user_favorites FOR SELECT
-      USING (auth.uid() = user_id);
-  END IF;
-END $$;
-
--- Users can add their own favorites
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'user_favorites' AND policyname = 'Users can insert own favorites'
-  ) THEN
-    CREATE POLICY "Users can insert own favorites"
-      ON user_favorites FOR INSERT
-      WITH CHECK (auth.uid() = user_id);
-  END IF;
-END $$;
-
--- Users can delete their own favorites
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'user_favorites' AND policyname = 'Users can delete own favorites'
-  ) THEN
-    CREATE POLICY "Users can delete own favorites"
-      ON user_favorites FOR DELETE
-      USING (auth.uid() = user_id);
-  END IF;
-END $$;
-
-
--- =============================================================================
--- 7. HELPER FUNCTIONS & TRIGGERS
+-- 5. HELPER FUNCTIONS & TRIGGERS
 -- =============================================================================
 
 -- Auto-update updated_at timestamp
@@ -279,36 +171,9 @@ CREATE TRIGGER update_bills_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
-CREATE TRIGGER update_profiles_updated_at
-  BEFORE UPDATE ON profiles
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
-
--- Auto-create profile when a new user signs up via Supabase Auth
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, name)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1))
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Drop and recreate the trigger to avoid duplicates
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW
-  EXECUTE FUNCTION handle_new_user();
-
 
 -- =============================================================================
--- 8. VIEWS
+-- 6. VIEWS
 -- =============================================================================
 
 -- Recent votes with politician and bill info
@@ -354,7 +219,7 @@ GROUP BY p.id, p.name, p.chamber, p.state, p.district, p.party;
 
 
 -- =============================================================================
--- 9. RPC FUNCTIONS
+-- 7. RPC FUNCTIONS
 -- =============================================================================
 
 -- Get representatives for a state + optional district
@@ -428,7 +293,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- =============================================================================
--- 10. GRANT PERMISSIONS
+-- 8. GRANT PERMISSIONS
 -- =============================================================================
 
 -- Public read access (anon role = unauthenticated frontend users)
@@ -441,26 +306,10 @@ GRANT SELECT ON politician_vote_summary TO anon;
 GRANT EXECUTE ON FUNCTION get_representatives(TEXT, TEXT) TO anon;
 GRANT EXECUTE ON FUNCTION get_politician_votes(TEXT, INT) TO anon;
 
--- Authenticated users can read public data + manage their own data
-GRANT SELECT ON politicians TO authenticated;
-GRANT SELECT ON bills TO authenticated;
-GRANT SELECT ON votes TO authenticated;
-GRANT SELECT ON bill_articles TO authenticated;
-GRANT SELECT ON recent_votes_with_details TO authenticated;
-GRANT SELECT ON politician_vote_summary TO authenticated;
-GRANT EXECUTE ON FUNCTION get_representatives(TEXT, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_politician_votes(TEXT, INT) TO authenticated;
-GRANT SELECT, INSERT, UPDATE ON profiles TO authenticated;
-GRANT SELECT, INSERT, DELETE ON user_favorites TO authenticated;
-GRANT USAGE, SELECT ON SEQUENCE user_favorites_id_seq TO authenticated;
-
 -- ETL / service role gets full access to data tables
 GRANT ALL ON politicians TO service_role;
 GRANT ALL ON bills TO service_role;
 GRANT ALL ON votes TO service_role;
 GRANT ALL ON bill_articles TO service_role;
-GRANT ALL ON profiles TO service_role;
-GRANT ALL ON user_favorites TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE votes_id_seq TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE bill_articles_id_seq TO service_role;
-GRANT USAGE, SELECT ON SEQUENCE user_favorites_id_seq TO service_role;

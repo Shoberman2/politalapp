@@ -47,8 +47,7 @@ function Landing() {
           <a href="#about">About</a>
         </div>
         <div className="nav-cta">
-          <button onClick={() => navigate('/login')} className="nav-btn-secondary">Sign In</button>
-          <button onClick={() => navigate('/signup')} className="nav-btn-primary">Get Started</button>
+          <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">Get Started</button>
         </div>
       </nav>
 
@@ -68,17 +67,14 @@ function Landing() {
             and hold your elected officials accountable.
           </p>
           <div className="hero-cta">
-            <button onClick={() => navigate('/signup')} className="btn-primary">
-              Get Started Free
+            <button onClick={() => navigate('/my-representative')} className="btn-primary">
+              Get Started
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
-            <button onClick={() => navigate('/login')} className="btn-secondary">
-              Sign In
-            </button>
           </div>
-          <p className="hero-note">No credit card required. Free forever.</p>
+          <p className="hero-note">Free and open to everyone.</p>
         </div>
         <div className="scroll-indicator">
           <span>Scroll to explore</span>
@@ -300,10 +296,10 @@ function Landing() {
         <div className="section-container">
           <div className="cta-content">
             <h2>Ready to take control?</h2>
-            <p>Join citizens across America who are staying informed and holding their representatives accountable.</p>
+            <p>Stay informed and hold your representatives accountable.</p>
             <div className="cta-buttons">
-              <button onClick={() => navigate('/signup')} className="btn-primary btn-large">
-                Create Free Account
+              <button onClick={() => navigate('/my-representative')} className="btn-primary btn-large">
+                Get Started
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -327,13 +323,8 @@ function Landing() {
             <div className="footer-column">
               <h4>Product</h4>
               <button onClick={() => navigate('/bills')}>Bills</button>
-              <button onClick={() => navigate('/politicians')}>Politicians</button>
-              <button onClick={() => navigate('/my-politician')}>My Representatives</button>
-            </div>
-            <div className="footer-column">
-              <h4>Account</h4>
-              <button onClick={() => navigate('/signup')}>Sign Up</button>
-              <button onClick={() => navigate('/login')}>Sign In</button>
+              <button onClick={() => navigate('/all')}>Politicians</button>
+              <button onClick={() => navigate('/my-representative')}>My Representatives</button>
             </div>
           </div>
           <div className="footer-bottom">
