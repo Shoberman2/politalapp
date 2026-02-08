@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Navigation from './components/Navigation'
 import Landing from './components/Landing'
 import MyPolitician from './components/MyPolitician'
@@ -22,6 +23,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Analytics />
     </div>
   )
 }
