@@ -10,6 +10,7 @@ import Profile from './components/Profile'
 import BillsPage from './components/BillsPage'
 import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
+import { Analytics } from '@vercel/analytics/react'
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
@@ -86,6 +87,7 @@ function App() {
           />
         </Routes>
       </main>
+      <Analytics />
     </div>
   )
 }
