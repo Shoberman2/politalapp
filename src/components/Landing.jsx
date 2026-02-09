@@ -42,9 +42,7 @@ function Landing() {
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
         <div className="nav-logo">VoteTrack</div>
         <div className="nav-links">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#about">About</a>
+          <a href="#about">About Us</a>
         </div>
         <div className="nav-cta">
           <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">Get Started</button>

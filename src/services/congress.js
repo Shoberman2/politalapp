@@ -382,36 +382,82 @@ export const getBillActions = async (congress, billType, billNumber) => {
   }
 }
 
+export const getVoteTalliesFromActions = async (actions) => {
+  try {
+    if (!actions || actions.length === 0) return []
+
+    // Find actions that have recordedVotes (roll call votes)
+    const actionsWithVotes = actions.filter(
+      action => action.recordedVotes && action.recordedVotes.length > 0
+    )
+
+    if (actionsWithVotes.length === 0) return []
+
+    const tallies = []
+
+    for (const action of actionsWithVotes) {
+      for (const recordedVote of action.recordedVotes) {
+        try {
+          // recordedVote.url is typically a full URL to the vote detail
+          // e.g., https://api.congress.gov/v3/vote/118/house/123
+          const voteUrl = recordedVote.url
+          if (!voteUrl) continue
+
+          // Fetch via our congressApi instance (adds api_key and format params)
+          const relativePath = voteUrl.replace('https://api.congress.gov/v3', '')
+          const response = await congressApi.get(relativePath)
+          const voteDetail = response.data?.vote
+
+          if (voteDetail) {
+            tallies.push({
+              chamber: recordedVote.chamber || voteDetail.chamber || '',
+              date: recordedVote.date || voteDetail.date || action.actionDate,
+              rollNumber: recordedVote.rollNumber || voteDetail.rollNumber,
+              result: voteDetail.result || recordedVote.result || '',
+              totalYea: voteDetail.totalYea ?? voteDetail.yea?.total ?? 0,
+              totalNay: voteDetail.totalNay ?? voteDetail.nay?.total ?? 0,
+              totalNotVoting: voteDetail.totalNotVoting ?? voteDetail.notVoting?.total ?? 0,
+              totalPresent: voteDetail.totalPresent ?? voteDetail.present?.total ?? 0,
+              question: voteDetail.question || ''
+            })
+          }
+        } catch (voteErr) {
+          console.warn('[Congress API] Error fetching vote tally:', voteErr.message)
+        }
+      }
+    }
+
+    return tallies
+  } catch (error) {
+    console.error('[Congress API] Error getting vote tallies:', error.message)
+    return []
+  }
+}
+
 export const explainBillWithAI = async (billTitle, billSummary, billText = '') => {
   try {
     const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
     if (!OPENAI_API_KEY) {
-      // Fallback to placeholder if no API key
+      const fallbackText = `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`
       return {
-        explanation: `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`,
-        keyPoints: [
-          'AI explanation requires OpenAI API key',
-          'Add VITE_OPENAI_API_KEY to your .env file',
-          'Get an API key from platform.openai.com'
-        ],
+        explanation: fallbackText,
+        paragraphs: [fallbackText, 'AI explanation requires an OpenAI API key. Add VITE_OPENAI_API_KEY to your .env file to enable AI-powered explanations.'],
         isPlaceholder: true
       }
     }
 
     const prompt = `You are a nonpartisan expert at explaining U.S. legislation in plain language.
 
-Explain this bill clearly and concisely for an average citizen:
+Explain this bill clearly for an average citizen:
 
 Title: ${billTitle}
 ${billSummary ? `Summary: ${billSummary}` : ''}
 ${billText ? `Bill Text (excerpt): ${billText.slice(0, 2000)}` : ''}
 
-Provide:
-1. A 2-3 sentence plain English explanation of what this bill does
-2. 3-5 key points about the bill's main provisions
-3. Who would be most affected by this bill
-
+Write at least 2 full paragraphs in plain English explaining what this bill does, why it matters, and who it affects.
+Do NOT use numbered lists or bullet points. Write in flowing paragraph form only.
+Do NOT include any source citations, references, footnotes, or URLs.
 Keep your response factual and balanced. Avoid political bias.`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -421,9 +467,9 @@ Keep your response factual and balanced. Avoid political bias.`
         'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 800,
+        max_tokens: 1500,
         temperature: 0.7
       })
     })
@@ -435,67 +481,33 @@ Keep your response factual and balanced. Avoid political bias.`
     const data = await response.json()
     const aiResponse = data.choices[0]?.message?.content || ''
 
-    // Parse the AI response
-    const lines = aiResponse.split('\n').filter(line => line.trim())
+    // Strip any URLs/citations that slip through
+    const cleaned = aiResponse
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\[\d+\]/g, '')
+      .replace(/\(source:.*?\)/gi, '')
+      .trim()
 
-    // Extract explanation (first paragraph)
-    let explanation = ''
-    let keyPoints = []
-    let affectedGroups = ''
+    // Split into paragraphs on double newlines
+    const paragraphs = cleaned
+      .split(/\n\s*\n/)
+      .map(p => p.replace(/\n/g, ' ').trim())
+      .filter(p => p.length > 0)
 
-    let currentSection = 'explanation'
-
-    for (const line of lines) {
-      const trimmedLine = line.trim()
-
-      if (trimmedLine.toLowerCase().includes('key point') ||
-          trimmedLine.match(/^\d+\.\s/) ||
-          trimmedLine.startsWith('•') ||
-          trimmedLine.startsWith('-')) {
-        currentSection = 'keyPoints'
-      }
-
-      if (trimmedLine.toLowerCase().includes('affected') ||
-          trimmedLine.toLowerCase().includes('impact')) {
-        currentSection = 'affected'
-      }
-
-      if (currentSection === 'explanation' && !trimmedLine.match(/^(key|who|\d+\.)/i)) {
-        explanation += (explanation ? ' ' : '') + trimmedLine
-      } else if (currentSection === 'keyPoints') {
-        const point = trimmedLine.replace(/^[\d•\-\*]+\.?\s*/, '').trim()
-        if (point && !point.toLowerCase().startsWith('key point')) {
-          keyPoints.push(point)
-        }
-      } else if (currentSection === 'affected') {
-        affectedGroups += (affectedGroups ? ' ' : '') + trimmedLine
-      }
-    }
-
-    // Fallback if parsing didn't work well
-    if (!explanation && aiResponse) {
-      explanation = aiResponse.split('\n\n')[0] || aiResponse.slice(0, 500)
-    }
-
-    if (keyPoints.length === 0) {
-      keyPoints = ['See full AI explanation above for details']
-    }
+    const explanation = paragraphs[0] || `This bill addresses ${billTitle}.`
 
     return {
-      explanation: explanation || `This bill addresses ${billTitle}.`,
-      keyPoints: keyPoints.slice(0, 5),
-      affectedGroups: affectedGroups || 'Various stakeholders depending on the bill\'s provisions',
+      explanation,
+      paragraphs,
       fullResponse: aiResponse,
       isPlaceholder: false
     }
   } catch (error) {
     console.error('Error explaining bill with AI:', error)
+    const fallbackText = `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`
     return {
-      explanation: `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`,
-      keyPoints: [
-        'AI explanation temporarily unavailable',
-        'Please try again later'
-      ],
+      explanation: fallbackText,
+      paragraphs: [fallbackText, 'AI explanation temporarily unavailable. Please try again later.'],
       isPlaceholder: true,
       error: error.message
     }

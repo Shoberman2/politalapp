@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { getBillDetails, getBillText, getBillActions, getBillCosponsors, explainBillWithAI } from '../services/congress'
+import { getBillDetails, getBillText, getBillActions, getBillCosponsors, explainBillWithAI, getVoteTalliesFromActions } from '../services/congress'
 import '../styles/BillDetail.css'
 
 function BillDetail() {
@@ -13,6 +13,9 @@ function BillDetail() {
   const [cosponsors, setCosponsors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const [voteTallies, setVoteTallies] = useState([])
+  const [talliesLoading, setTalliesLoading] = useState(false)
 
   const [aiExplanation, setAiExplanation] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
@@ -38,6 +41,13 @@ function BillDetail() {
       setActions(actionsData)
       setCosponsors(cosponsorsData)
       setError(null)
+
+      // Fetch vote tallies from actions (non-blocking)
+      setTalliesLoading(true)
+      getVoteTalliesFromActions(actionsData)
+        .then(tallies => setVoteTallies(tallies))
+        .catch(err => console.error('Error loading vote tallies:', err))
+        .finally(() => setTalliesLoading(false))
     } catch (err) {
       setError('Failed to load bill details. Please try again.')
       console.error('Error loading bill:', err)
@@ -160,6 +170,71 @@ function BillDetail() {
         </div>
       </div>
 
+      {voteTallies.length > 0 && (
+        <section className="bill-section vote-tallies-section">
+          <h2>Vote Results</h2>
+          <div className="vote-tallies-list">
+            {voteTallies.map((tally, index) => {
+              const total = tally.totalYea + tally.totalNay
+              const yeaPct = total > 0 ? (tally.totalYea / total) * 100 : 0
+              const nayPct = total > 0 ? (tally.totalNay / total) * 100 : 0
+              const passed = tally.result?.toLowerCase().includes('passed') ||
+                             tally.result?.toLowerCase().includes('agreed')
+
+              return (
+                <div key={index} className="vote-tally-card">
+                  <div className="tally-header">
+                    <span className="tally-chamber-badge">
+                      {tally.chamber || 'Congress'}
+                    </span>
+                    {tally.date && (
+                      <span className="tally-date">{formatDate(tally.date)}</span>
+                    )}
+                    <span className={`tally-result-badge ${passed ? 'passed' : 'failed'}`}>
+                      {tally.result || 'N/A'}
+                    </span>
+                  </div>
+                  {tally.question && (
+                    <p className="tally-question">{tally.question}</p>
+                  )}
+                  <div className="tally-bar-container">
+                    <div className="tally-bar">
+                      <div
+                        className="tally-bar-yea"
+                        style={{ width: `${yeaPct}%` }}
+                      />
+                      <div
+                        className="tally-bar-nay"
+                        style={{ width: `${nayPct}%` }}
+                      />
+                    </div>
+                    <div className="tally-counts">
+                      <span className="tally-yea-count">Yea: {tally.totalYea}</span>
+                      <span className="tally-nay-count">Nay: {tally.totalNay}</span>
+                      {tally.totalNotVoting > 0 && (
+                        <span className="tally-notvoting-count">Not Voting: {tally.totalNotVoting}</span>
+                      )}
+                      {tally.totalPresent > 0 && (
+                        <span className="tally-present-count">Present: {tally.totalPresent}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {talliesLoading && (
+        <section className="bill-section">
+          <div className="section-loading-inline">
+            <div className="loading-spinner"></div>
+            <p>Loading vote results...</p>
+          </div>
+        </section>
+      )}
+
       {bill.summaries && bill.summaries.length > 0 && (
         <section className="bill-section">
           <h2>Official Summary</h2>
@@ -201,26 +276,14 @@ function BillDetail() {
 
             <div className="explanation-text">
               <h3>Plain English Explanation</h3>
-              <p>{aiExplanation.explanation}</p>
+              {aiExplanation.paragraphs && aiExplanation.paragraphs.length > 0 ? (
+                aiExplanation.paragraphs.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))
+              ) : (
+                <p>{aiExplanation.explanation}</p>
+              )}
             </div>
-
-            {aiExplanation.keyPoints && aiExplanation.keyPoints.length > 0 && (
-              <div className="key-points">
-                <h3>Key Points</h3>
-                <ul>
-                  {aiExplanation.keyPoints.map((point, index) => (
-                    <li key={index}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {aiExplanation.affectedGroups && (
-              <div className="affected-groups">
-                <h3>Who Is Affected</h3>
-                <p>{aiExplanation.affectedGroups}</p>
-              </div>
-            )}
           </div>
         )}
       </section>
@@ -323,14 +386,13 @@ function BillDetail() {
         </section>
       )}
 
-      <div className="bill-external-link">
+      <div className="bill-source-link">
         <a
           href={bill.url || `https://www.congress.gov/bill/${congress}th-congress/${billType.toLowerCase()}/${number}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="congress-link"
         >
-          View Full Bill on Congress.gov →
+          Source: Congress.gov
         </a>
       </div>
     </div>

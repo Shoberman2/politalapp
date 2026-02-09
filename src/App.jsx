@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Navigation from './components/Navigation'
 import Landing from './components/Landing'
@@ -9,9 +9,12 @@ import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
 
 function App() {
+  const location = useLocation()
+  const isLanding = location.pathname === '/'
+
   return (
     <div className="app">
-      <Navigation />
+      {!isLanding && <Navigation />}
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Landing />} />
