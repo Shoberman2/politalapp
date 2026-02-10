@@ -102,7 +102,7 @@
   font-size: 3.5rem;
   font-weight: 400;
   background: #514e4c;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .politician-info-side {
@@ -116,7 +116,7 @@
   font-weight: 400;
   color: #514e4c;
   margin: 0 0 0.75rem 0;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .party-badge-large {
@@ -223,7 +223,7 @@
   margin: 0 0 1.5rem 0;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(81, 78, 76, 0.15);
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
 }
 
@@ -233,7 +233,7 @@
   margin: 1.5rem 0 1rem 0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
 }
 
@@ -447,7 +447,7 @@
   font-size: 1.75rem;
   font-weight: 400;
   color: #514e4c;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .stat-value.small {

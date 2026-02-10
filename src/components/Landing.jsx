@@ -8,12 +8,10 @@ function Landing() {
   const [introExiting, setIntroExiting] = useState(false)
 
   useEffect(() => {
-    // Start exit animation after 4 seconds
     const exitTimer = setTimeout(() => {
       setIntroExiting(true)
     }, 4000)
 
-    // Complete intro after exit animation (1s)
     const completeTimer = setTimeout(() => {
       setIntroComplete(true)
     }, 5000)
@@ -42,10 +40,14 @@ function Landing() {
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
         <div className="nav-logo">VoteTrack</div>
         <div className="nav-links">
-          <a href="#about">About Us</a>
+          <a href="#about">Representatives</a>
+          <a href="#features">Bills</a>
+          <a href="#how-it-works">Tracker</a>
         </div>
         <div className="nav-cta">
-          <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">Get Started</button>
+          <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">
+            Explore Representatives &rsaquo;
+          </button>
         </div>
       </nav>
 
@@ -57,8 +59,8 @@ function Landing() {
         </div>
         <div className="hero-content">
           <h1 className="hero-title">
-            <span className="hero-line-1">Take Control</span>
-            <span className="hero-line-2">Stay in the Know</span>
+            <span className="hero-line-1">Know Your</span>
+            <span className="hero-line-2">Congress</span>
           </h1>
           <p className="hero-subtitle">
             Track how your representatives vote, understand complex legislation,
@@ -66,7 +68,7 @@ function Landing() {
           </p>
           <div className="hero-cta">
             <button onClick={() => navigate('/my-representative')} className="btn-primary">
-              Get Started
+              Explore Representatives
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
@@ -107,11 +109,11 @@ function Landing() {
         </div>
       </section>
 
-      {/* Value Proposition / About */}
+      {/* Explore Congress Collection Cards */}
       <section className="value-prop" id="about">
         <div className="section-container">
-          <div className="section-header">
-            <span className="section-label">Why VoteTrack</span>
+          <div className="section-header section-header-center">
+            <span className="section-label">Explore Congress</span>
             <h2 className="section-title">Democracy demands transparency</h2>
             <p className="section-description">
               Every vote your representatives cast affects your life. We make that information
@@ -119,34 +121,29 @@ function Landing() {
             </p>
           </div>
           <div className="value-grid">
-            <div className="value-card">
-              <div className="value-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-              </div>
-              <h3>Real-Time Updates</h3>
-              <p>Get instant notifications when your representatives vote. Never miss an important decision.</p>
+            <div className="value-card" onClick={() => navigate('/my-representative')}>
+              <div className="value-card-number">01</div>
+              <h3>Find Your Rep</h3>
+              <p>Enter your address and discover who represents you in Congress.</p>
+              <span className="value-card-link">Explore &rsaquo;</span>
             </div>
-            <div className="value-card">
-              <div className="value-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                </svg>
-              </div>
-              <h3>Plain English</h3>
-              <p>AI-powered explanations translate complex legislation into language anyone can understand.</p>
+            <div className="value-card" onClick={() => navigate('/bills')}>
+              <div className="value-card-number">02</div>
+              <h3>Browse Bills</h3>
+              <p>Search and track thousands of congressional bills with AI explanations.</p>
+              <span className="value-card-link">Explore &rsaquo;</span>
             </div>
-            <div className="value-card">
-              <div className="value-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </div>
-              <h3>Official Data</h3>
-              <p>Direct from Congress.gov and official government sources. No spin, no bias—just facts.</p>
+            <div className="value-card" onClick={() => navigate('/all')}>
+              <div className="value-card-number">03</div>
+              <h3>Track Votes</h3>
+              <p>See how every member of Congress votes on legislation that matters.</p>
+              <span className="value-card-link">Explore &rsaquo;</span>
+            </div>
+            <div className="value-card" onClick={() => navigate('/shutdown-tracker')}>
+              <div className="value-card-number">04</div>
+              <h3>Shutdown Status</h3>
+              <p>Monitor government shutdown risk with live data and historical context.</p>
+              <span className="value-card-link">Explore &rsaquo;</span>
             </div>
           </div>
         </div>
@@ -155,7 +152,7 @@ function Landing() {
       {/* How It Works */}
       <section className="how-it-works" id="how-it-works">
         <div className="section-container">
-          <div className="section-header">
+          <div className="section-header section-header-center">
             <span className="section-label">How It Works</span>
             <h2 className="section-title">Three steps to informed citizenship</h2>
           </div>
@@ -165,20 +162,10 @@ function Landing() {
               <h3>Find Your Representatives</h3>
               <p>Enter your address and we'll identify your senators and house representative automatically.</p>
             </div>
-            <div className="step-connector">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </div>
             <div className="step-card">
               <div className="step-number">02</div>
               <h3>Track Their Votes</h3>
               <p>See every vote they cast, bills they sponsor, and positions they take on key issues.</p>
-            </div>
-            <div className="step-connector">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
             </div>
             <div className="step-card">
               <div className="step-number">03</div>
@@ -192,7 +179,7 @@ function Landing() {
       {/* Features Deep Dive */}
       <section className="features" id="features">
         <div className="section-container">
-          <div className="section-header">
+          <div className="section-header section-header-center">
             <span className="section-label">Features</span>
             <h2 className="section-title">Everything you need to stay informed</h2>
           </div>
@@ -295,9 +282,7 @@ function Landing() {
         <div className="section-container">
           <div className="proof-content">
             <div className="proof-quote">
-              <svg className="quote-icon" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11 7H7a4 4 0 0 0-4 4v8h10v-8a4 4 0 0 0-4-4H7zm12 0h-4a4 4 0 0 0-4 4v8h10v-8a4 4 0 0 0-4-4h-2z" opacity="0.2"/>
-              </svg>
+              <div className="proof-gold-line"></div>
               <blockquote>
                 "An informed citizenry is at the heart of a dynamic democracy."
               </blockquote>
@@ -311,11 +296,11 @@ function Landing() {
       <section className="final-cta">
         <div className="section-container">
           <div className="cta-content">
-            <h2>Ready to take control?</h2>
+            <h2>Ready to Engage?</h2>
             <p>Stay informed and hold your representatives accountable.</p>
             <div className="cta-buttons">
-              <button onClick={() => navigate('/my-representative')} className="btn-primary btn-large">
-                Get Started
+              <button onClick={() => navigate('/my-representative')} className="btn-primary btn-gold btn-large">
+                Explore Representatives
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -331,21 +316,31 @@ function Landing() {
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-container">
-          <div className="footer-brand">
-            <span className="footer-logo">VoteTrack</span>
-            <p>Making democracy accessible.</p>
-          </div>
-          <div className="footer-links">
-            <div className="footer-column">
-              <h4>Product</h4>
-              <button onClick={() => navigate('/bills')}>Bills</button>
-              <button onClick={() => navigate('/all')}>Politicians</button>
-              <button onClick={() => navigate('/my-representative')}>My Representatives</button>
-              <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
+          <div className="footer-top">
+            <div className="footer-brand">
+              <span className="footer-logo">VoteTrack</span>
+              <p>Making democracy accessible.</p>
+            </div>
+            <div className="footer-links">
+              <div className="footer-column">
+                <h4>Explore</h4>
+                <button onClick={() => navigate('/my-representative')}>My Representatives</button>
+                <button onClick={() => navigate('/all')}>All Politicians</button>
+              </div>
+              <div className="footer-column">
+                <h4>Resources</h4>
+                <button onClick={() => navigate('/bills')}>Bills</button>
+                <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
+              </div>
+              <div className="footer-column">
+                <h4>Data</h4>
+                <span className="footer-text">Congress.gov</span>
+                <span className="footer-text">US Census Bureau</span>
+              </div>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2024 VoteTrack. Data sourced from Congress.gov</p>
+            <p>&copy; 2026 VoteTrack. Data sourced from Congress.gov</p>
           </div>
         </div>
       </footer>

@@ -114,7 +114,7 @@
   color: #514e4c;
   line-height: 1.3;
   margin-bottom: 1.5rem;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .bill-status-row {
@@ -182,7 +182,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(81, 78, 76, 0.15);
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
 }
 
@@ -489,7 +489,7 @@
   color: #514e4c;
   text-decoration: none;
   transition: color 0.2s ease;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .sponsor-name-link:hover {

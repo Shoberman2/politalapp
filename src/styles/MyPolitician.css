@@ -14,7 +14,7 @@
   font-weight: 400;
   color: #514e4c;
   margin: 0 0 0.5rem 0;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .page-header p {
@@ -208,7 +208,7 @@
   font-size: 1.75rem;
   color: #514e4c;
   margin: 0 0 0.5rem 0;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .results-subtitle {
@@ -229,7 +229,7 @@
   border-bottom: 1px solid rgba(81, 78, 76, 0.15);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
 }
 
@@ -254,7 +254,7 @@
   font-size: 1.75rem;
   color: #514e4c;
   margin: 0 0 0.5rem 0;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 400;
 }
 

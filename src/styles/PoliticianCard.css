@@ -58,7 +58,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Roboto Flex', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .card-role {
