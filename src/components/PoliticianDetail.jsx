@@ -331,8 +331,8 @@ function PoliticianDetail() {
                 <tr>
                   <th>Date</th>
                   <th>Bill</th>
-                  <th>Description</th>
                   <th>Vote</th>
+                  <th>Description</th>
                   <th>Result</th>
                 </tr>
               </thead>
@@ -358,20 +358,20 @@ function PoliticianDetail() {
                         'N/A'
                       )}
                     </td>
-                    <td className="vote-description">
-                      <span
-                        className="description-text"
-                        title={vote.billTitle || vote.description || ''}
-                      >
-                        {vote.question || vote.description || vote.billTitle || 'Vote'}
-                      </span>
-                    </td>
                     <td>
                       <span
                         className={`vote-badge ${getVoteClass(vote.position)} has-tooltip`}
                         title={getVoteTooltip(vote.position)}
                       >
                         {vote.position || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="vote-description">
+                      <span
+                        className="description-text"
+                        title={vote.billTitle || vote.description || ''}
+                      >
+                        {vote.question || vote.description || vote.billTitle || 'Vote'}
                       </span>
                     </td>
                     <td className="vote-result">
