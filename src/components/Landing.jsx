@@ -268,6 +268,24 @@ function Landing() {
                 <li>Party alignment stats</li>
               </ul>
             </div>
+            <div className="feature-card">
+              <div className="feature-header">
+                <div className="feature-icon-wrap">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <h3>Shutdown Tracker</h3>
+              </div>
+              <p>Monitor government shutdown risk with live countdown timers, appropriations bill progress, and historical context.</p>
+              <ul className="feature-list">
+                <li>Live risk assessment</li>
+                <li>Funding deadline countdown</li>
+                <li>Historical shutdown data</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -323,6 +341,7 @@ function Landing() {
               <button onClick={() => navigate('/bills')}>Bills</button>
               <button onClick={() => navigate('/all')}>Politicians</button>
               <button onClick={() => navigate('/my-representative')}>My Representatives</button>
+              <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
             </div>
           </div>
           <div className="footer-bottom">

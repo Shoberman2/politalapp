@@ -1,0 +1,537 @@
+.shutdown-tracker {
+  min-height: 100vh;
+  background: #fafaf9;
+  padding: 2rem;
+}
+
+.shutdown-tracker__container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Header */
+.shutdown-tracker__header {
+  margin-bottom: 2rem;
+}
+
+.shutdown-tracker__header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.shutdown-tracker__header p {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Loading & Error */
+.shutdown-loading,
+.shutdown-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1rem;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #514e4c;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.retry-btn {
+  padding: 0.5rem 1.5rem;
+  background: #514e4c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #3a3836;
+}
+
+/* Status Card */
+.shutdown-status-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.status-card__header h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge--funded { background: #dcfce7; color: #166534; }
+.status-badge--low { background: #f3f4f6; color: #374151; }
+.status-badge--moderate { background: #fef3c7; color: #92400e; }
+.status-badge--high { background: #fed7aa; color: #9a3412; }
+.status-badge--critical { background: #fecaca; color: #991b1b; }
+.status-badge--shutdown { background: #dc2626; color: #ffffff; }
+
+.status-card__summary {
+  color: #4b5563;
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+/* Risk Meter */
+.risk-meter__track {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.risk-meter__fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+.risk-meter__fill--funded { background: #16a34a; }
+.risk-meter__fill--low { background: #6b7280; }
+.risk-meter__fill--moderate { background: #d97706; }
+.risk-meter__fill--high { background: #ea580c; }
+.risk-meter__fill--critical { background: #dc2626; }
+.risk-meter__fill--shutdown { background: #991b1b; }
+
+.risk-meter__labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+/* Countdown */
+.shutdown-countdown {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.shutdown-countdown h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.countdown__units {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.countdown__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown__number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.countdown__label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.countdown__expired {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #dc2626;
+  padding: 1rem 0;
+}
+
+.countdown__description {
+  color: #4b5563;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Bills Grid */
+.shutdown-bills {
+  margin-bottom: 1.5rem;
+}
+
+.shutdown-bills h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.bills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.bill-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.bill-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.bill-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bill-card__short {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.bill-card__status {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bill-card__name {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Progress Summary */
+.shutdown-progress {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.shutdown-progress h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.progress-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.progress-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-stat__number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.progress-stat__label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.progress-bar__track {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.progress-bar__label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* API Bills */
+.shutdown-api-bills {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.shutdown-api-bills h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.section-note {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0 0 1rem 0;
+}
+
+.api-bills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.api-bill-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.85rem;
+}
+
+.api-bill-item:last-child {
+  border-bottom: none;
+}
+
+.api-bill-item__type {
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.api-bill-item__title {
+  flex: 1;
+  color: #4b5563;
+}
+
+.api-bill-item__action {
+  color: #9ca3af;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Historical Timeline */
+.shutdown-history {
+  margin-bottom: 2rem;
+}
+
+.shutdown-history h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.history-timeline {
+  margin-top: 1rem;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+}
+
+.timeline-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  background: #514e4c;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+}
+
+.timeline-line {
+  width: 2px;
+  flex: 1;
+  background: #e5e7eb;
+  margin-top: 0.25rem;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-bottom: 1.5rem;
+}
+
+.timeline-dates {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-duration {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  background: #f3f4f6;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.timeline-details strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-details p {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.5;
+}
+
+.timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Animation */
+.fadeInUp {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .shutdown-tracker {
+    padding: 1rem;
+  }
+
+  .shutdown-tracker__header h1 {
+    font-size: 1.5rem;
+  }
+
+  .bills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .countdown__units {
+    gap: 1.5rem;
+  }
+
+  .countdown__number {
+    font-size: 2rem;
+  }
+
+  .progress-stats {
+    gap: 1rem;
+  }
+
+  .progress-stat__number {
+    font-size: 1.5rem;
+  }
+
+  .timeline-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .api-bill-item {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .api-bill-item__action {
+    white-space: normal;
+  }
+}

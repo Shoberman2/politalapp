@@ -7,6 +7,8 @@ import AllPoliticians from './components/AllPoliticians'
 import BillsPage from './components/BillsPage'
 import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
+import ShutdownBanner from './components/ShutdownBanner'
+import ShutdownTracker from './components/ShutdownTracker'
 
 function App() {
   const location = useLocation()
@@ -14,6 +16,7 @@ function App() {
 
   return (
     <div className="app">
+      {!isLanding && <ShutdownBanner />}
       {!isLanding && <Navigation />}
       <main className="main-content">
         <Routes>
@@ -23,6 +26,7 @@ function App() {
           <Route path="/bills" element={<BillsPage />} />
           <Route path="/bill/:congress/:billType/:number" element={<BillDetail />} />
           <Route path="/politician/:bioguideId" element={<PoliticianDetail />} />
+          <Route path="/shutdown-tracker" element={<ShutdownTracker />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

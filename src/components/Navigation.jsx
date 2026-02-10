@@ -30,6 +30,12 @@ function Navigation() {
           >
             Bills
           </NavLink>
+          <NavLink
+            to="/shutdown-tracker"
+            className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+          >
+            Shutdown Tracker
+          </NavLink>
         </div>
       </div>
     </nav>
