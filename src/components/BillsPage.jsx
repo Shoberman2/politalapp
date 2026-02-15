@@ -8,7 +8,7 @@ function BillsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [congressFilter, setCongressFilter] = useState('118')
+  const [congressFilter, setCongressFilter] = useState('119')
   const [billTypeFilter, setBillTypeFilter] = useState('all')
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -130,6 +130,7 @@ function BillsPage() {
           onChange={(e) => setCongressFilter(e.target.value)}
           className="bills-filter-select"
         >
+          <option value="119">119th Congress (2025-2027)</option>
           <option value="118">118th Congress (2023-2024)</option>
           <option value="117">117th Congress (2021-2022)</option>
           <option value="116">116th Congress (2019-2020)</option>
@@ -194,7 +195,7 @@ function BillsPage() {
           <p>No bills found matching your criteria</p>
           <button className="reset-filters-button" onClick={() => {
             setSearchTerm('')
-            setCongressFilter('118')
+            setCongressFilter('119')
             setBillTypeFilter('all')
           }}>
             Reset Filters

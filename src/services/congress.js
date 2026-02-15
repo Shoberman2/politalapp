@@ -117,7 +117,7 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
     const currentTerm = terms[terms.length - 1]
     const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
     const chamber = chamberRaw.includes('senate') ? 'Senate' : 'House'
-    const currentCongress = 118
+    const currentCongress = 119
 
     console.log(`[Congress API] Member chamber: ${chamber}, Congress: ${currentCongress}`)
 
@@ -322,7 +322,7 @@ export const getAllCurrentMembers = async () => {
 
 export const searchBills = async (options = {}) => {
   try {
-    const { query, congress = 118, billType, limit = 20, offset = 0 } = options
+    const { query, congress = 119, billType, limit = 20, offset = 0 } = options
 
     const params = {
       limit,
