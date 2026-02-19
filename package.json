@@ -13,6 +13,7 @@
     "etl:verbose": "npx tsx etl/run.ts --verbose"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.7.0",
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/analytics": "^1.6.1",
     "axios": "^1.6.7",

@@ -86,9 +86,30 @@ function BillCard({ bill, onSponsorClick }) {
     }
   }
 
+  const getStatusBadge = () => {
+    const latestAction = (bill.latestAction?.text || '').toLowerCase()
+    if (latestAction.includes('became public law') || latestAction.includes('signed by president')) {
+      return { label: 'Enacted', className: 'status-enacted' }
+    }
+    if (latestAction.includes('passed house') && latestAction.includes('passed senate')) {
+      return { label: 'Passed Both', className: 'status-passed-both' }
+    }
+    if (latestAction.includes('passed house') || latestAction.includes('passed senate')) {
+      return { label: 'Passed', className: 'status-passed' }
+    }
+    if (latestAction.includes('committee')) {
+      return { label: 'In Committee', className: 'status-committee' }
+    }
+    if (latestAction.includes('introduced')) {
+      return { label: 'Introduced', className: 'status-introduced' }
+    }
+    return { label: 'In Progress', className: 'status-progress' }
+  }
+
   const sponsor = bill.sponsors?.[0] || bill.sponsor
   const sponsorName = sponsor?.fullName || sponsor?.name || 'Unknown Sponsor'
   const sponsorBioguideId = sponsor?.bioguideId
+  const status = getStatusBadge()
 
   return (
     <div className="bill-card" onClick={handleCardClick}>
@@ -102,9 +123,18 @@ function BillCard({ bill, onSponsorClick }) {
         <span className="bill-number">
           {bill.type?.toUpperCase()}.{bill.number}
         </span>
+        <span className={`bill-status-badge ${status.className}`}>
+          {status.label}
+        </span>
       </div>
 
       <h3 className="bill-title">{simplifyTitle(bill.title)}</h3>
+
+      {bill.introducedDate && (
+        <div className="bill-introduced">
+          Introduced {formatDate(bill.introducedDate)}
+        </div>
+      )}
 
       <div className="bill-meta">
         {bill.latestAction && (

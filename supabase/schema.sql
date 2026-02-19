@@ -313,3 +313,73 @@ GRANT ALL ON votes TO service_role;
 GRANT ALL ON bill_articles TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE votes_id_seq TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE bill_articles_id_seq TO service_role;
+
+
+-- =============================================================================
+-- 9. PROFILES TABLE (Auth + Stripe Subscriptions)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  stripe_customer_id TEXT,
+  subscription_status TEXT DEFAULT 'inactive', -- 'active', 'inactive', 'canceled', 'past_due'
+  subscription_id TEXT,
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own profile
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can read own profile'
+  ) THEN
+    CREATE POLICY "Users can read own profile"
+      ON profiles FOR SELECT
+      USING (auth.uid() = id);
+  END IF;
+END $$;
+
+-- Users can update their own profile
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Users can update own profile'
+  ) THEN
+    CREATE POLICY "Users can update own profile"
+      ON profiles FOR UPDATE
+      USING (auth.uid() = id)
+      WITH CHECK (auth.uid() = id);
+  END IF;
+END $$;
+
+-- Service role full access (for webhooks)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'profiles' AND policyname = 'Service role full access on profiles'
+  ) THEN
+    CREATE POLICY "Service role full access on profiles"
+      ON profiles FOR ALL
+      USING (auth.role() = 'service_role');
+  END IF;
+END $$;
+
+GRANT SELECT ON profiles TO authenticated;
+GRANT ALL ON profiles TO service_role;
+
+-- Auto-create profile on user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email)
+  VALUES (NEW.id, NEW.email);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

@@ -229,6 +229,7 @@ export const SHUTDOWN_HISTORY = [
 export const FUNDING_DEADLINES = {
   fiscalYear: 2026,
   congress: 119,
+  lastUpdated: '2026-02-19',
   deadlines: [
     {
       date: '2025-03-14',
@@ -243,28 +244,43 @@ export const FUNDING_DEADLINES = {
     {
       date: '2025-12-20',
       description: 'FY2026 Continuing Resolution expires',
-      status: 'active'
+      status: 'passed'
     },
     {
       date: '2026-03-14',
-      description: 'FY2026 CR extension deadline (if extended)',
+      description: 'FY2026 CR extension deadline',
+      status: 'active'
+    },
+    {
+      date: '2026-09-30',
+      description: 'End of FY2026 — all funding expires without full-year bills',
       status: 'upcoming'
     }
   ],
   appropriationsBills: [
-    { name: 'Agriculture, Rural Development, Food and Drug Administration', shortName: 'Agriculture', status: 'not_introduced', searchTerms: ['agriculture appropriation', 'rural development appropriation'] },
-    { name: 'Commerce, Justice, Science', shortName: 'Commerce-Justice-Science', status: 'not_introduced', searchTerms: ['commerce justice science appropriation'] },
-    { name: 'Defense', shortName: 'Defense', status: 'not_introduced', searchTerms: ['defense appropriation', 'department of defense appropriation'] },
-    { name: 'Energy and Water Development', shortName: 'Energy-Water', status: 'not_introduced', searchTerms: ['energy water appropriation', 'energy and water development'] },
-    { name: 'Financial Services and General Government', shortName: 'Financial Services', status: 'not_introduced', searchTerms: ['financial services appropriation', 'general government appropriation'] },
-    { name: 'Homeland Security', shortName: 'Homeland Security', status: 'not_introduced', searchTerms: ['homeland security appropriation'] },
-    { name: 'Interior, Environment', shortName: 'Interior-Environment', status: 'not_introduced', searchTerms: ['interior environment appropriation'] },
-    { name: 'Labor, Health and Human Services, Education', shortName: 'Labor-HHS-Education', status: 'not_introduced', searchTerms: ['labor health human services appropriation', 'labor hhs education'] },
-    { name: 'Legislative Branch', shortName: 'Legislative Branch', status: 'not_introduced', searchTerms: ['legislative branch appropriation'] },
-    { name: 'Military Construction, Veterans Affairs', shortName: 'MilCon-VA', status: 'not_introduced', searchTerms: ['military construction appropriation', 'veterans affairs appropriation'] },
-    { name: 'State, Foreign Operations', shortName: 'State-Foreign Ops', status: 'not_introduced', searchTerms: ['state foreign operations appropriation'] },
-    { name: 'Transportation, Housing and Urban Development', shortName: 'Transportation-HUD', status: 'not_introduced', searchTerms: ['transportation hud appropriation', 'housing urban development appropriation'] }
+    { name: 'Agriculture, Rural Development, Food and Drug Administration', shortName: 'Agriculture', status: 'cr', searchTerms: ['agriculture appropriation', 'rural development appropriation'] },
+    { name: 'Commerce, Justice, Science', shortName: 'Commerce-Justice-Science', status: 'cr', searchTerms: ['commerce justice science appropriation'] },
+    { name: 'Defense', shortName: 'Defense', status: 'cr', searchTerms: ['defense appropriation', 'department of defense appropriation'] },
+    { name: 'Energy and Water Development', shortName: 'Energy-Water', status: 'cr', searchTerms: ['energy water appropriation', 'energy and water development'] },
+    { name: 'Financial Services and General Government', shortName: 'Financial Services', status: 'cr', searchTerms: ['financial services appropriation', 'general government appropriation'] },
+    { name: 'Homeland Security', shortName: 'Homeland Security', status: 'cr', searchTerms: ['homeland security appropriation'] },
+    { name: 'Interior, Environment', shortName: 'Interior-Environment', status: 'cr', searchTerms: ['interior environment appropriation'] },
+    { name: 'Labor, Health and Human Services, Education', shortName: 'Labor-HHS-Education', status: 'cr', searchTerms: ['labor health human services appropriation', 'labor hhs education'] },
+    { name: 'Legislative Branch', shortName: 'Legislative Branch', status: 'cr', searchTerms: ['legislative branch appropriation'] },
+    { name: 'Military Construction, Veterans Affairs', shortName: 'MilCon-VA', status: 'cr', searchTerms: ['military construction appropriation', 'veterans affairs appropriation'] },
+    { name: 'State, Foreign Operations', shortName: 'State-Foreign Ops', status: 'cr', searchTerms: ['state foreign operations appropriation'] },
+    { name: 'Transportation, Housing and Urban Development', shortName: 'Transportation-HUD', status: 'cr', searchTerms: ['transportation hud appropriation', 'housing urban development appropriation'] }
   ]
+}
+
+// Risk level explainers
+export const RISK_EXPLAINERS = {
+  funded: 'All 12 appropriations bills have been signed into law. The government is fully funded for the fiscal year with no shutdown risk.',
+  low: 'While not all appropriations bills are signed, there is significant time before the next funding deadline. Congress has room to negotiate.',
+  moderate: 'The funding deadline is approaching and several bills remain unsigned. Congress needs to act to avoid disruption.',
+  high: 'The funding deadline is very close with most bills unsigned. A continuing resolution or omnibus bill may be needed to prevent a shutdown.',
+  critical: 'A government shutdown is imminent unless Congress acts immediately. Essential services could be disrupted within days.',
+  shutdown: 'Funding has lapsed. Non-essential government functions are suspended. Federal employees may be furloughed.'
 }
 
 // In-memory cache for API results

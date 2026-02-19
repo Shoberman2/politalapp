@@ -541,8 +541,12 @@ html {
 
 .value-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+}
+
+.value-card:last-child {
+  grid-column: 2 / 3;
 }
 
 .value-card {
@@ -1086,6 +1090,10 @@ html {
   .value-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .value-card:last-child {
+    grid-column: auto;
   }
 
   .value-card {

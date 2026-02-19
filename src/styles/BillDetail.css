@@ -168,6 +168,49 @@
   font-size: 0.95rem;
 }
 
+/* Key Facts */
+.bill-key-facts {
+  background: #f8f7f5;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.key-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.25rem;
+}
+
+.key-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.key-fact-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a7775;
+}
+
+.key-fact-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #514e4c;
+}
+
+.key-fact-link {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.key-fact-link:hover {
+  text-decoration: underline;
+}
+
 .bill-section {
   background: white;
   border-radius: 4px;
@@ -610,6 +653,28 @@
   background: #514e4c;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.marker-dot--enacted {
+  background: #16a34a;
+  width: 14px;
+  height: 14px;
+}
+
+.marker-dot--passed {
+  background: #2563eb;
+}
+
+.marker-dot--committee {
+  background: #d97706;
+}
+
+.marker-dot--introduced {
+  background: #6b7280;
+}
+
+.marker-dot--referred {
+  background: #7c3aed;
 }
 
 .marker-line {

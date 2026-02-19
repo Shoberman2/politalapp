@@ -462,6 +462,62 @@
   letter-spacing: 0.5px;
 }
 
+/* Committees Section */
+.committees-section {
+  margin-bottom: 1.5rem;
+}
+
+.committees-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.committee-card {
+  background: #f5f5f5;
+  border: 1px solid rgba(81, 78, 76, 0.1);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.committee-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #514e4c;
+}
+
+.committee-financials {
+  display: flex;
+  gap: 2rem;
+}
+
+.committee-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.committee-stat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a7775;
+}
+
+.committee-stat-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #514e4c;
+}
+
+/* Top Individual Donors */
+.top-donors-section {
+  margin-top: 1.5rem;
+}
+
 /* Corporate Donors Section */
 .corporate-donors-section {
   margin-bottom: 2rem;

@@ -1,18 +1,25 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import '../styles/Navigation.css'
 
 function Navigation() {
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/')
+  }
 
   return (
     <>
       <div className="announcement-bar">
-        <span>Free access to congressional voting data &mdash; powered by Congress.gov</span>
+        <span>Congressional voting data &mdash; powered by Congress.gov</span>
       </div>
       <nav className="navigation">
         <div className="nav-container">
           <div className="nav-brand" onClick={() => navigate('/')}>
-            <h1 className="brand-name">VoteTrack</h1>
+            <h1 className="brand-name">BallotWatch</h1>
           </div>
 
           <div className="nav-tabs">
@@ -41,6 +48,14 @@ function Navigation() {
               Shutdown Tracker
             </NavLink>
           </div>
+
+          {user && (
+            <div className="nav-auth">
+              <button className="nav-signout" onClick={handleSignOut}>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </nav>
     </>

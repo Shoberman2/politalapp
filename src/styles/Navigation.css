@@ -98,6 +98,30 @@
   display: none;
 }
 
+/* Auth */
+.nav-auth {
+  flex-shrink: 0;
+}
+
+.nav-signout {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: 1px solid rgba(26, 26, 26, 0.2);
+  color: #6b6b6b;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+}
+
+.nav-signout:hover {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
+}
+
 @media (max-width: 768px) {
   .announcement-bar {
     display: none;

@@ -4,6 +4,7 @@ import {
   getCountdown,
   FUNDING_DEADLINES,
   SHUTDOWN_HISTORY,
+  RISK_EXPLAINERS,
   fetchAppropriationsBills
 } from '../services/shutdown'
 import '../styles/ShutdownTracker.css'
@@ -102,6 +103,8 @@ function ShutdownTracker() {
   const billsPassedBoth = bills.filter(b => b.status === 'passed_both').length
   const billsPassedOne = bills.filter(b => b.status === 'passed_one').length
 
+  const billsCR = bills.filter(b => b.status === 'cr').length
+
   return (
     <div className="shutdown-tracker fadeInUp">
       <div className="shutdown-tracker__container">
@@ -109,6 +112,11 @@ function ShutdownTracker() {
         <header className="shutdown-tracker__header">
           <h1>Government Shutdown Tracker</h1>
           <p>Tracking federal funding status and appropriations progress for FY{FUNDING_DEADLINES.fiscalYear}</p>
+          {FUNDING_DEADLINES.lastUpdated && (
+            <div className="last-updated">
+              Last updated: {new Date(FUNDING_DEADLINES.lastUpdated + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
+          )}
         </header>
 
         {/* Status Card */}
@@ -133,6 +141,11 @@ function ShutdownTracker() {
                 <span>High Risk</span>
               </div>
             </div>
+            {RISK_EXPLAINERS[risk.level] && (
+              <div className="risk-explainer">
+                <strong>What does this mean?</strong> {RISK_EXPLAINERS[risk.level]}
+              </div>
+            )}
           </section>
         )}
 
@@ -149,10 +162,12 @@ function ShutdownTracker() {
                     <span className="countdown__number">{countdown.days}</span>
                     <span className="countdown__label">Days</span>
                   </div>
+                  <span className="countdown__separator">:</span>
                   <div className="countdown__unit">
                     <span className="countdown__number">{countdown.hours}</span>
                     <span className="countdown__label">Hours</span>
                   </div>
+                  <span className="countdown__separator">:</span>
                   <div className="countdown__unit">
                     <span className="countdown__number">{countdown.minutes}</span>
                     <span className="countdown__label">Minutes</span>
@@ -168,27 +183,6 @@ function ShutdownTracker() {
           </section>
         )}
 
-        {/* Appropriations Bills Grid */}
-        <section className="shutdown-bills">
-          <h2>FY{FUNDING_DEADLINES.fiscalYear} Appropriations Bills</h2>
-          <div className="bills-grid">
-            {bills.map((bill, i) => (
-              <div key={i} className="bill-card">
-                <div className="bill-card__header">
-                  <h3 className="bill-card__short">{bill.shortName}</h3>
-                  <span
-                    className="bill-card__status"
-                    style={{ background: statusColors[bill.status] || '#9ca3af' }}
-                  >
-                    {statusLabels[bill.status] || bill.status}
-                  </span>
-                </div>
-                <p className="bill-card__name">{bill.name}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* Progress Summary */}
         <section className="shutdown-progress">
           <h2>Legislative Progress</h2>
@@ -199,11 +193,15 @@ function ShutdownTracker() {
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedBoth}</span>
-              <span className="progress-stat__label">of 12 Passed Both Chambers</span>
+              <span className="progress-stat__label">Passed Both Chambers</span>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedOne}</span>
-              <span className="progress-stat__label">of 12 Passed One Chamber</span>
+              <span className="progress-stat__label">Passed One Chamber</span>
+            </div>
+            <div className="progress-stat">
+              <span className="progress-stat__number">{billsCR}</span>
+              <span className="progress-stat__label">Covered by CR</span>
             </div>
           </div>
           <div className="progress-bar">
@@ -211,6 +209,27 @@ function ShutdownTracker() {
               <div className="progress-bar__fill" style={{ width: `${(billsSigned / 12) * 100}%` }}></div>
             </div>
             <span className="progress-bar__label">{billsSigned}/12 bills signed</span>
+          </div>
+        </section>
+
+        {/* Appropriations Bills Grid */}
+        <section className="shutdown-bills">
+          <h2>FY{FUNDING_DEADLINES.fiscalYear} Appropriations Bills</h2>
+          <div className="approp-bills-grid">
+            {bills.map((bill, i) => (
+              <div key={i} className={`approp-bill-card approp-bill-card--${bill.status}`}>
+                <div className="approp-bill-card__header">
+                  <h3 className="approp-bill-card__short">{bill.shortName}</h3>
+                  <span
+                    className="approp-bill-card__status"
+                    style={{ background: statusColors[bill.status] || '#9ca3af' }}
+                  >
+                    {statusLabels[bill.status] || bill.status}
+                  </span>
+                </div>
+                <p className="approp-bill-card__name">{bill.name}</p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -231,6 +250,30 @@ function ShutdownTracker() {
           </section>
         )}
 
+        {/* Funding Deadline Timeline */}
+        <section className="shutdown-deadlines">
+          <h2>FY{FUNDING_DEADLINES.fiscalYear} Funding Deadlines</h2>
+          <div className="deadlines-timeline">
+            {FUNDING_DEADLINES.deadlines.map((deadline, i) => (
+              <div key={i} className={`deadline-item deadline-item--${deadline.status}`}>
+                <div className="deadline-connector">
+                  <div className={`deadline-dot deadline-dot--${deadline.status}`}></div>
+                  {i < FUNDING_DEADLINES.deadlines.length - 1 && <div className="deadline-line"></div>}
+                </div>
+                <div className="deadline-content">
+                  <span className="deadline-date">
+                    {new Date(deadline.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className={`deadline-status-tag deadline-status-tag--${deadline.status}`}>
+                    {deadline.status === 'passed' ? 'Passed' : deadline.status === 'active' ? 'Active' : 'Upcoming'}
+                  </span>
+                  <p className="deadline-desc">{deadline.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Historical Shutdowns Timeline */}
         <section className="shutdown-history">
           <h2>Historical Government Shutdowns</h2>
@@ -239,10 +282,11 @@ function ShutdownTracker() {
             {SHUTDOWN_HISTORY.map((shutdown, i) => {
               const start = new Date(shutdown.startDate + 'T00:00:00')
               const end = new Date(shutdown.endDate + 'T00:00:00')
+              const isLong = shutdown.durationDays >= 10
               return (
-                <div key={i} className="timeline-item">
+                <div key={i} className={`timeline-item ${isLong ? 'timeline-item--major' : ''}`}>
                   <div className="timeline-connector">
-                    <div className="timeline-dot"></div>
+                    <div className={`timeline-dot ${isLong ? 'timeline-dot--major' : ''}`}></div>
                     {i < SHUTDOWN_HISTORY.length - 1 && <div className="timeline-line"></div>}
                   </div>
                   <div className="timeline-content">
@@ -250,7 +294,9 @@ function ShutdownTracker() {
                       {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       {' '}&ndash;{' '}
                       {end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      <span className="timeline-duration">{shutdown.durationDays} day{shutdown.durationDays !== 1 ? 's' : ''}</span>
+                      <span className={`timeline-duration ${isLong ? 'timeline-duration--major' : ''}`}>
+                        {shutdown.durationDays} day{shutdown.durationDays !== 1 ? 's' : ''}
+                      </span>
                     </div>
                     <div className="timeline-details">
                       <strong>{shutdown.cause}</strong>

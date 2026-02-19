@@ -1,0 +1,220 @@
+.pricing-page {
+  min-height: 100vh;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.pricing-card {
+  width: 100%;
+  max-width: 440px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+
+.pricing-header {
+  margin-bottom: 2rem;
+}
+
+.pricing-header h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.75rem;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.pricing-header p {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.pricing-label {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #c9a96e;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 1rem;
+}
+
+.pricing-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.pricing-dollar {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+.pricing-number {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 5rem;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.pricing-period {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+}
+
+.pricing-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* Features List */
+.pricing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+  text-align: left;
+}
+
+.pricing-features li {
+  padding: 0.65rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.pricing-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #c9a96e;
+  border-radius: 50%;
+}
+
+.pricing-features li:last-child {
+  border-bottom: none;
+}
+
+/* Subscribe Button */
+.pricing-subscribe-btn {
+  width: 100%;
+  padding: 1.1rem;
+  background: #c9a96e;
+  color: #0a0a0a;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.pricing-subscribe-btn:hover:not(:disabled) {
+  background: #b08d4f;
+}
+
+.pricing-subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pricing-btn {
+  width: 100%;
+  padding: 1rem;
+  background: #c9a96e;
+  color: #0a0a0a;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: background 0.2s ease;
+}
+
+.pricing-btn:hover {
+  background: #b08d4f;
+}
+
+.pricing-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 1rem 0 0 0;
+}
+
+.pricing-error {
+  padding: 0.75rem 1rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+.pricing-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pricing-email {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pricing-signout,
+.pricing-auth-link {
+  background: none;
+  border: none;
+  color: #c9a96e;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.pricing-signout:hover,
+.pricing-auth-link:hover {
+  color: #b08d4f;
+}
+
+@media (max-width: 480px) {
+  .pricing-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .pricing-number {
+    font-size: 4rem;
+  }
+}

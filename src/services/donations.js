@@ -86,38 +86,41 @@ const getLastName = (name) => {
   return parts[parts.length - 1]
 }
 
-// Get candidate ID from FEC by name
+// Get candidate ID from FEC by name — tries multiple name formats for reliable matching
 export const searchCandidateByName = async (name, state = '') => {
   try {
     const searchName = normalizeNameForSearch(name)
     const lastName = getLastName(name)
+    // Extract first name from normalized "FirstName LastName"
+    const parts = searchName.split(' ')
+    const firstName = parts.length > 1 ? parts[0] : ''
 
-    console.log(`[Donations API] Searching FEC for candidate: "${searchName}" (last name: ${lastName})`)
+    console.log(`[Donations API] Searching FEC for candidate: "${searchName}" (first: ${firstName}, last: ${lastName})`)
 
-    // Try full name search first
-    let response = await fecApi.get('/candidates/search/', {
-      params: {
-        q: searchName,
-        per_page: 10,
-        is_active_candidate: true
-      }
-    })
+    // Build search variants in order of specificity
+    const searchVariants = [
+      searchName,                               // "John Smith"
+      `${lastName}, ${firstName}`,              // "Smith, John" (FEC format)
+      `${lastName} ${firstName}`,               // "Smith John"
+      lastName                                   // "Smith" (broadest)
+    ].filter(Boolean)
 
-    let candidates = response.data.results || []
-    console.log(`[Donations API] Full name search found ${candidates.length} candidates`)
+    let candidates = []
 
-    // If no results, try with just last name
-    if (candidates.length === 0 && lastName) {
-      console.log(`[Donations API] Trying last name search: ${lastName}`)
-      response = await fecApi.get('/candidates/search/', {
+    for (const variant of searchVariants) {
+      if (candidates.length > 0) break
+
+      console.log(`[Donations API] Trying search variant: "${variant}"`)
+      const response = await fecApi.get('/candidates/search/', {
         params: {
-          q: lastName,
+          q: variant,
           per_page: 20,
           is_active_candidate: true
         }
       })
+
       candidates = response.data.results || []
-      console.log(`[Donations API] Last name search found ${candidates.length} candidates`)
+      console.log(`[Donations API] Variant "${variant}" found ${candidates.length} candidates`)
     }
 
     // Filter by state if provided

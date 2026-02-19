@@ -70,8 +70,11 @@ export const getCurrentMembers = async (chamber = 'house') => {
     console.log(`[Congress API] Filtered ${chamber} members: ${members.length}`)
 
     // Normalize the data structure
+    const partyAbbr = { 'democratic': 'D', 'republican': 'R', 'independent': 'I' }
     return members.map(member => {
       const currentTerm = member.terms?.item?.[member.terms.item.length - 1]
+      const rawParty = (member.partyName || currentTerm?.party || '').toLowerCase()
+      const partyCode = partyAbbr[rawParty] || rawParty.charAt(0).toUpperCase()
       return {
         bioguideId: member.bioguideId,
         name: member.name,
@@ -79,7 +82,7 @@ export const getCurrentMembers = async (chamber = 'house') => {
         lastName: member.lastName || '',
         state: member.state || currentTerm?.state,
         district: currentTerm?.district,
-        party: member.partyName || currentTerm?.party,
+        party: partyCode,
         partyName: member.partyName || currentTerm?.party,
         chamber: chamber,
         url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
@@ -292,10 +295,13 @@ export const getAllCurrentMembers = async () => {
     console.log(`[Congress API] Total members received: ${allMembers.length}`)
 
     // Process and normalize member data
+    const partyAbbr = { 'democratic': 'D', 'republican': 'R', 'independent': 'I' }
     const processed = allMembers.map(member => {
       const currentTerm = member.terms?.item?.[member.terms.item.length - 1]
       const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
       const chamber = chamberRaw.includes('senate') ? 'senate' : 'house'
+      const rawParty = (member.partyName || currentTerm?.party || '').toLowerCase()
+      const party = partyAbbr[rawParty] || rawParty.charAt(0).toUpperCase()
 
       return {
         bioguideId: member.bioguideId,
@@ -304,7 +310,7 @@ export const getAllCurrentMembers = async () => {
         lastName: member.lastName || '',
         state: member.state || currentTerm?.state,
         district: currentTerm?.district,
-        party: member.partyName || currentTerm?.party,
+        party: party,
         partyName: member.partyName || currentTerm?.party,
         chamber: chamber,
         url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,

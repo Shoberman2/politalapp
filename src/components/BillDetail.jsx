@@ -170,6 +170,50 @@ function BillDetail() {
         </div>
       </div>
 
+      {/* Key Facts */}
+      <section className="bill-key-facts">
+        <div className="key-facts-grid">
+          {sponsor && (
+            <div className="key-fact">
+              <span className="key-fact-label">Sponsor</span>
+              <Link to={`/politician/${sponsor.bioguideId}`} className="key-fact-value key-fact-link">
+                {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
+              </Link>
+            </div>
+          )}
+          {bill.introducedDate && (
+            <div className="key-fact">
+              <span className="key-fact-label">Introduced</span>
+              <span className="key-fact-value">{formatDate(bill.introducedDate)}</span>
+            </div>
+          )}
+          {cosponsors.length > 0 && (
+            <div className="key-fact">
+              <span className="key-fact-label">Cosponsors</span>
+              <span className="key-fact-value">{cosponsors.length}</span>
+            </div>
+          )}
+          {bill.policyArea?.name && (
+            <div className="key-fact">
+              <span className="key-fact-label">Policy Area</span>
+              <span className="key-fact-value">{bill.policyArea.name}</span>
+            </div>
+          )}
+          {bill.committees?.count > 0 && (
+            <div className="key-fact">
+              <span className="key-fact-label">Committees</span>
+              <span className="key-fact-value">{bill.committees.count}</span>
+            </div>
+          )}
+          {actions.length > 0 && (
+            <div className="key-fact">
+              <span className="key-fact-label">Actions</span>
+              <span className="key-fact-value">{actions.length}</span>
+            </div>
+          )}
+        </div>
+      </section>
+
       {voteTallies.length > 0 && (
         <section className="bill-section vote-tallies-section">
           <h2>Vote Results</h2>
@@ -356,21 +400,31 @@ function BillDetail() {
         <section className="bill-section">
           <h2>Actions Timeline</h2>
           <div className="actions-timeline">
-            {actions.slice(0, 15).map((action, index) => (
-              <div key={index} className="action-item">
-                <div className="action-marker">
-                  <div className="marker-dot"></div>
-                  {index < actions.slice(0, 15).length - 1 && <div className="marker-line"></div>}
+            {actions.slice(0, 15).map((action, index) => {
+              const text = (action.text || '').toLowerCase()
+              let actionType = 'default'
+              if (text.includes('signed by president') || text.includes('became public law')) actionType = 'enacted'
+              else if (text.includes('passed') || text.includes('agreed to')) actionType = 'passed'
+              else if (text.includes('committee')) actionType = 'committee'
+              else if (text.includes('introduced')) actionType = 'introduced'
+              else if (text.includes('referred')) actionType = 'referred'
+
+              return (
+                <div key={index} className={`action-item action-item--${actionType}`}>
+                  <div className="action-marker">
+                    <div className={`marker-dot marker-dot--${actionType}`}></div>
+                    {index < actions.slice(0, 15).length - 1 && <div className="marker-line"></div>}
+                  </div>
+                  <div className="action-content">
+                    <span className="action-date">{formatDate(action.actionDate)}</span>
+                    <p className="action-text">{action.text}</p>
+                    {action.actionCode && (
+                      <span className="action-code">Code: {action.actionCode}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="action-content">
-                  <span className="action-date">{formatDate(action.actionDate)}</span>
-                  <p className="action-text">{action.text}</p>
-                  {action.actionCode && (
-                    <span className="action-code">Code: {action.actionCode}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
             {actions.length > 15 && (
               <div className="more-actions">
                 <a

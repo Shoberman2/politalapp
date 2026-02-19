@@ -404,11 +404,41 @@ function PoliticianDetail() {
                 <span className="stat-value">{formatCurrency(donations.totalRaised)}</span>
                 <span className="stat-label">Total Raised</span>
               </div>
+              {donations.committees?.[0]?.disbursements > 0 && (
+                <div className="funding-stat">
+                  <span className="stat-value">{formatCurrency(donations.committees[0].disbursements)}</span>
+                  <span className="stat-label">Total Spent</span>
+                </div>
+              )}
               <div className="funding-stat corporate-stat">
                 <span className="stat-value">{donations.corporateCount || 0}</span>
                 <span className="stat-label">Major Corporate Donors</span>
               </div>
             </div>
+
+            {/* Committee Financial Details */}
+            {donations.committees && donations.committees.length > 0 && (
+              <div className="committees-section">
+                <h3>Campaign Committees</h3>
+                <div className="committees-grid">
+                  {donations.committees.map((committee, index) => (
+                    <div key={index} className="committee-card">
+                      <span className="committee-name">{committee.name}</span>
+                      <div className="committee-financials">
+                        <span className="committee-stat">
+                          <span className="committee-stat-label">Receipts</span>
+                          <span className="committee-stat-value">{formatCurrency(committee.receipts)}</span>
+                        </span>
+                        <span className="committee-stat">
+                          <span className="committee-stat-label">Disbursements</span>
+                          <span className="committee-stat-value">{formatCurrency(committee.disbursements)}</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Corporate Donors Section */}
             {donations.corporateDonors && donations.corporateDonors.length > 0 ? (
@@ -426,6 +456,40 @@ function PoliticianDetail() {
               </div>
             ) : (
               <p className="no-corporate-message">No major corporate donations found</p>
+            )}
+
+            {/* Top Individual Donors Table */}
+            {donations.donors && donations.donors.length > 0 && (
+              <div className="top-donors-section">
+                <h3>Top Individual Donors</h3>
+                <div className="donors-table-container">
+                  <table className="donors-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Occupation</th>
+                        <th>Employer</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {donations.donors.slice(0, 15).map((donor, index) => (
+                        <tr key={index} className={donor.isCorporate ? 'corporate-row' : ''}>
+                          <td className="donor-rank">{index + 1}</td>
+                          <td className="donor-name">
+                            {donor.name}
+                            {donor.isCorporate && <span className="corp-badge">Corp</span>}
+                          </td>
+                          <td className="donor-occupation">{donor.occupation || '—'}</td>
+                          <td className="donor-occupation">{donor.employer || '—'}</td>
+                          <td className="donor-amount">{formatCurrency(donor.totalAmount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
 
             <div className="funding-source">
