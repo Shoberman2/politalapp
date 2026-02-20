@@ -1,4 +1,4 @@
-# VoteTrack - Congressional Voting Tracker
+# BallotWatch - Congressional Voting Tracker
 
 A beautiful, modern React web application for tracking congressional votes and legislative activity. View your representative based on your state and district, or browse all members of Congress with powerful filtering and search capabilities. Features AI-powered explanations of bills in plain language.
 

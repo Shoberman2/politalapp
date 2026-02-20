@@ -38,7 +38,7 @@ function Landing() {
 
       {/* Sticky Navigation Bar */}
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
-        <div className="nav-logo">VoteTrack</div>
+        <div className="nav-logo">BallotWatch</div>
         <div className="nav-links">
           <a href="#about">Representatives</a>
           <a href="#features">Bills</a>
@@ -318,7 +318,7 @@ function Landing() {
         <div className="footer-container">
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-logo">VoteTrack</span>
+              <span className="footer-logo">BallotWatch</span>
               <p>Free congressional voting tracker — making democracy accessible to every American.</p>
             </div>
             <div className="footer-links">
@@ -340,7 +340,7 @@ function Landing() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2026 VoteTrack. Data sourced from Congress.gov</p>
+            <p>&copy; 2026 BallotWatch. Data sourced from Congress.gov</p>
           </div>
         </div>
       </footer>
