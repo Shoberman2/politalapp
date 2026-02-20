@@ -1,42 +1,13 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import '../styles/Pricing.css'
 
 function Pricing() {
   const { user, isSubscribed, signOut } = useAuth()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
-  const handleSubscribe = async () => {
-    if (!user) {
-      navigate('/auth')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
-        body: { returnUrl: window.location.origin + '/pricing' }
-      })
-
-      if (fnError) throw fnError
-
-      if (data?.url) {
-        window.location.href = data.url
-      } else {
-        setError('Could not create checkout session. Please try again.')
-      }
-    } catch (err) {
-      console.error('[Pricing] Checkout error:', err)
-      setError('Failed to start checkout. Please try again later.')
-    } finally {
-      setLoading(false)
-    }
+  const handleSubscribe = () => {
+    window.location.href = 'https://buy.stripe.com/5kQ3cwgEsglY8GXccmcjS08'
   }
 
   if (isSubscribed) {
@@ -77,14 +48,11 @@ function Pricing() {
           <li>Government shutdown risk tracker</li>
         </ul>
 
-        {error && <div className="pricing-error">{error}</div>}
-
         <button
           className="pricing-subscribe-btn"
           onClick={handleSubscribe}
-          disabled={loading}
         >
-          {loading ? 'Redirecting to checkout...' : 'Subscribe Now'}
+          Subscribe Now
         </button>
 
         <p className="pricing-note">
