@@ -1,15 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+// import { useAuth } from '../context/AuthContext'
 import '../styles/Navigation.css'
 
 function Navigation() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  // const { user, signOut } = useAuth()
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
+  // const handleSignOut = async () => {
+  //   await signOut()
+  //   navigate('/')
+  // }
 
   return (
     <>
@@ -49,13 +49,14 @@ function Navigation() {
             </NavLink>
           </div>
 
-          {user && (
+          {/* Auth UI disabled for now */}
+          {/* {user && (
             <div className="nav-auth">
               <button className="nav-signout" onClick={handleSignOut}>
                 Sign Out
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </nav>
     </>

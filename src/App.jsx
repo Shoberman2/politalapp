@@ -2,8 +2,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Navigation from './components/Navigation'
 import Landing from './components/Landing'
-import Auth from './components/Auth'
-import Pricing from './components/Pricing'
+// import Auth from './components/Auth'
+// import Pricing from './components/Pricing'
 import ProtectedRoute from './components/ProtectedRoute'
 import MyPolitician from './components/MyPolitician'
 import AllPoliticians from './components/AllPoliticians'
@@ -16,9 +16,7 @@ import ShutdownTracker from './components/ShutdownTracker'
 function App() {
   const location = useLocation()
   const isLanding = location.pathname === '/'
-  const isAuthPage = location.pathname === '/auth'
-  const isPricingPage = location.pathname === '/pricing'
-  const hideChrome = isLanding || isAuthPage || isPricingPage
+  const hideChrome = isLanding
 
   return (
     <div className="app">
@@ -28,10 +26,10 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/pricing" element={<Pricing />} />
+          {/* <Route path="/auth" element={<Auth />} /> */}
+          {/* <Route path="/pricing" element={<Pricing />} /> */}
 
-          {/* Protected routes */}
+          {/* App routes */}
           <Route path="/my-representative" element={
             <ProtectedRoute><MyPolitician /></ProtectedRoute>
           } />

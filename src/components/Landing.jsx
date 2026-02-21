@@ -241,8 +241,8 @@ function Landing() {
                   </div>
                 </li>
               </ul>
-              <button onClick={() => navigate('/pricing')} className="btn-primary">
-                Get Full Access — $2/mo
+              <button onClick={() => navigate('/my-representative')} className="btn-primary">
+                Explore the Database
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
