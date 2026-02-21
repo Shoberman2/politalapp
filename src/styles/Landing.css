@@ -654,6 +654,93 @@ html {
 }
 
 /* ========================================
+   PREMIUM DATABASE
+   ======================================== */
+.premium-db {
+  background: #0a0a0a;
+}
+
+.premium-db-layout {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.premium-db-content .section-title {
+  color: #ffffff;
+}
+
+.premium-db-content .section-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 3rem;
+}
+
+.premium-db-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 3rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.premium-db-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.premium-db-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 169, 110, 0.1);
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  color: #c9a96e;
+}
+
+.premium-db-list li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.premium-db-list li strong {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.premium-db-list li span {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .premium-db-list li {
+    gap: 0.75rem;
+  }
+
+  .premium-db-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .premium-db-list li strong {
+    font-size: 0.9rem;
+  }
+
+  .premium-db-list li span {
+    font-size: 0.85rem;
+  }
+}
+
+/* ========================================
    FEATURES
    ======================================== */
 .features {

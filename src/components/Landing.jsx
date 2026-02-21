@@ -78,7 +78,7 @@ function Landing() {
               </svg>
             </button>
           </div>
-          <p className="hero-note">Free congressional voting tracker — open to everyone.</p>
+          <p className="hero-note">Premium congressional intelligence — powered by official government data.</p>
         </div>
         <div className="scroll-indicator">
           <span>Scroll to explore</span>
@@ -107,8 +107,8 @@ function Landing() {
           </div>
           <div className="trust-divider"></div>
           <div className="trust-item">
-            <span className="trust-number">Free</span>
-            <span className="trust-label">Always & Forever</span>
+            <span className="trust-number">$2</span>
+            <span className="trust-label">Per Month</span>
           </div>
         </div>
       </section>
@@ -175,6 +175,78 @@ function Landing() {
               <div className="step-number">03</div>
               <h3>Hold Congress Accountable</h3>
               <p>Track how your elected officials vote on issues that matter to you — from healthcare and defense to taxes and spending bills.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Database */}
+      <section className="premium-db" id="database">
+        <div className="section-container">
+          <div className="premium-db-layout">
+            <div className="premium-db-content">
+              <span className="section-label">Premium Database</span>
+              <h2 className="section-title">Congressional data you won't find anywhere else</h2>
+              <p className="section-description">
+                BallotWatch aggregates data from Congress.gov, the U.S. Census Bureau, the FEC, and more into
+                one searchable platform. Every vote, every bill, every dollar — organized and updated continuously.
+              </p>
+              <ul className="premium-db-list">
+                <li>
+                  <span className="premium-db-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <strong>10,000+ Bills Indexed</strong>
+                    <span>Every piece of legislation from the 119th Congress, searchable and explained in plain English by AI.</span>
+                  </div>
+                </li>
+                <li>
+                  <span className="premium-db-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <strong>Complete Roll Call Records</strong>
+                    <span>Every yea, nay, and abstention for all 535 members — with party-line analysis and voting trends.</span>
+                  </div>
+                </li>
+                <li>
+                  <span className="premium-db-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <strong>Campaign Finance Data</strong>
+                    <span>FEC donation records linked to each representative so you can follow the money behind every vote.</span>
+                  </div>
+                </li>
+                <li>
+                  <span className="premium-db-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <strong>Real-Time Updates</strong>
+                    <span>Data sourced directly from official government APIs and refreshed continuously throughout the day.</span>
+                  </div>
+                </li>
+              </ul>
+              <button onClick={() => navigate('/pricing')} className="btn-primary">
+                Get Full Access — $2/mo
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
@@ -323,7 +395,7 @@ function Landing() {
           <div className="footer-top">
             <div className="footer-brand">
               <span className="footer-logo">BallotWatch</span>
-              <p>Free congressional voting tracker — making democracy accessible to every American.</p>
+              <p>Premium congressional intelligence — making democracy accessible to every American.</p>
             </div>
             <div className="footer-links">
               <div className="footer-column">
