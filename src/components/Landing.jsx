@@ -4,16 +4,20 @@ import '../styles/Landing.css'
 
 function Landing() {
   const navigate = useNavigate()
-  const [introComplete, setIntroComplete] = useState(false)
-  const [introExiting, setIntroExiting] = useState(false)
+  const hasSeenIntro = sessionStorage.getItem('hasSeenIntro')
+  const [introComplete, setIntroComplete] = useState(!!hasSeenIntro)
+  const [introExiting, setIntroExiting] = useState(!!hasSeenIntro)
 
   useEffect(() => {
+    if (hasSeenIntro) return
+
     const exitTimer = setTimeout(() => {
       setIntroExiting(true)
     }, 4000)
 
     const completeTimer = setTimeout(() => {
       setIntroComplete(true)
+      sessionStorage.setItem('hasSeenIntro', 'true')
     }, 5000)
 
     return () => {

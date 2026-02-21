@@ -33,7 +33,7 @@ function Auth() {
         if (error) {
           setError(error.message)
         } else {
-          setMessage('Check your email for a confirmation link.')
+          navigate('/my-representative')
         }
       }
     } catch (err) {
