@@ -561,3 +561,51 @@ export const clearSavedLocation = () => {
   localStorage.removeItem('userState')
   localStorage.removeItem('userDistrict')
 }
+
+// Search for US addresses using Nominatim (OpenStreetMap) API
+// Free, no API key required, CORS-enabled
+export const searchAddress = async (query) => {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      countrycodes: 'us',
+      format: 'json',
+      addressdetails: '1',
+      limit: '5'
+    })
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      { headers: { 'Accept': 'application/json' } }
+    )
+
+    if (!response.ok) return []
+
+    const results = await response.json()
+
+    return results
+      .filter(r => r.address)
+      .map(r => {
+        const a = r.address
+        const road = [a.house_number, a.road].filter(Boolean).join(' ')
+        const city = a.city || a.town || a.village || a.hamlet || ''
+        const stateName = a.state || ''
+        const stateAbbr = normalizeState(stateName) || ''
+        const zip = a.postcode || ''
+
+        const parts = [road, city, stateAbbr, zip].filter(Boolean)
+
+        return {
+          display: parts.join(', '),
+          street: road,
+          city,
+          state: stateAbbr,
+          zip
+        }
+      })
+      .filter(r => r.street && r.state)
+  } catch (error) {
+    console.error('[District API] Nominatim search error:', error)
+    return []
+  }
+}
