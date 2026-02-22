@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   calculateShutdownRisk,
   getCountdown,
@@ -97,6 +97,25 @@ function ShutdownTracker() {
       </div>
     )
   }
+
+  const [showCRTooltip, setShowCRTooltip] = useState(false)
+  const crTooltipRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (crTooltipRef.current && !crTooltipRef.current.contains(e.target)) {
+        setShowCRTooltip(false)
+      }
+    }
+    if (showCRTooltip) {
+      document.addEventListener('touchstart', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCRTooltip])
 
   const bills = FUNDING_DEADLINES.appropriationsBills
   const billsSigned = bills.filter(b => b.status === 'signed').length
@@ -201,7 +220,19 @@ function ShutdownTracker() {
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsCR}</span>
-              <span className="progress-stat__label">Covered by CR</span>
+              <span
+                className="progress-stat__label cr-label"
+                ref={crTooltipRef}
+                onClick={() => setShowCRTooltip(prev => !prev)}
+              >
+                Covered by CR
+                <span className="cr-info-icon">?</span>
+                {showCRTooltip && (
+                  <span className="cr-tooltip">
+                    A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven't been passed by the deadline.
+                  </span>
+                )}
+              </span>
             </div>
           </div>
           <div className="progress-bar">
@@ -223,6 +254,7 @@ function ShutdownTracker() {
                   <span
                     className="approp-bill-card__status"
                     style={{ background: statusColors[bill.status] || '#9ca3af' }}
+                    title={bill.status === 'cr' ? 'A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven\'t been passed.' : undefined}
                   >
                     {statusLabels[bill.status] || bill.status}
                   </span>

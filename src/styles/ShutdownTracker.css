@@ -710,3 +710,73 @@
     gap: 0.25rem;
   }
 }
+
+/* CR Tooltip */
+.cr-label {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cr-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #d1d5db;
+  color: #374151;
+  font-size: 0.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cr-label:hover .cr-info-icon {
+  background: #9ca3af;
+  color: #fff;
+}
+
+.cr-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #f9fafb;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  width: 280px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.cr-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+}
+
+@media (max-width: 768px) {
+  .cr-tooltip {
+    left: 0;
+    transform: none;
+    width: 250px;
+  }
+
+  .cr-tooltip::after {
+    left: 20px;
+    transform: none;
+  }
+}

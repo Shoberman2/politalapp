@@ -24,7 +24,6 @@
   margin: 0 auto;
   padding: 1.25rem 2rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 2rem;
 }
@@ -34,6 +33,7 @@
   align-items: center;
   gap: 1rem;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-name {
@@ -47,6 +47,8 @@
 
 .nav-tabs {
   display: flex;
+  flex: 1;
+  justify-content: center;
   gap: 0.25rem;
 }
 
