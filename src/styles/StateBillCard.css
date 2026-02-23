@@ -1,0 +1,390 @@
+.state-bill-card {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  overflow: hidden;
+}
+
+.state-bill-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  border-color: #514e4c;
+}
+
+.state-bill-card.expanded {
+  border-color: #514e4c;
+}
+
+.state-bill-card-main {
+  padding: 1.5rem;
+  cursor: pointer;
+}
+
+.state-bill-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.state-bill-number-badge {
+  padding: 0.35rem 0.75rem;
+  background: #514e4c;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.state-bill-status-badge {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+}
+
+.state-bill-status-badge.status-introduced {
+  background: #f5f5f5;
+  color: #6b7280;
+  border-color: rgba(107, 114, 128, 0.25);
+}
+
+.state-bill-status-badge.status-active {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: rgba(30, 64, 175, 0.25);
+}
+
+.state-bill-status-badge.status-enrolled {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.25);
+}
+
+.state-bill-status-badge.status-passed {
+  background: #f0f7ed;
+  color: #4a6741;
+  border-color: rgba(74, 103, 65, 0.25);
+}
+
+.state-bill-status-badge.status-vetoed {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: rgba(153, 27, 27, 0.25);
+}
+
+.state-bill-status-badge.status-failed {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: rgba(153, 27, 27, 0.25);
+}
+
+.state-bill-status-badge.status-default {
+  background: #f5f5f5;
+  color: #7a7775;
+  border-color: rgba(81, 78, 76, 0.2);
+}
+
+.ai-impact-badge {
+  margin-left: auto;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #d4a843, #c49a38);
+  color: white;
+  letter-spacing: 0.3px;
+}
+
+.state-bill-expand-icon {
+  color: #7a7775;
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.state-bill-card:hover .state-bill-expand-icon {
+  color: #514e4c;
+}
+
+.state-bill-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #514e4c;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.state-bill-card.expanded .state-bill-title {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.ai-relevance-note {
+  font-size: 0.85rem;
+  color: #7a7775;
+  font-style: italic;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.state-bill-date {
+  font-size: 0.8rem;
+  color: #a8a6a4;
+}
+
+/* Detail panel */
+.state-bill-detail-panel {
+  padding: 0 1.5rem 1.5rem;
+  border-top: 1px solid rgba(81, 78, 76, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+.state-bill-detail-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0 0;
+  color: #7a7775;
+  font-size: 0.9rem;
+}
+
+.state-bill-detail-error {
+  padding: 1.5rem 0 0;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7a7775;
+  margin-bottom: 0.5rem;
+}
+
+.state-bill-description {
+  padding-top: 1.25rem;
+}
+
+.state-bill-description p {
+  font-size: 0.95rem;
+  color: #514e4c;
+  line-height: 1.6;
+}
+
+.state-bill-sponsors {
+  padding-top: 1.25rem;
+}
+
+.sponsor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sponsor-chip {
+  padding: 0.35rem 0.75rem;
+  background: #f5f5f5;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  font-size: 0.85rem;
+  color: #514e4c;
+  font-weight: 500;
+}
+
+.state-bill-history {
+  padding-top: 1.25rem;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-list li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(81, 78, 76, 0.08);
+  font-size: 0.85rem;
+  align-items: baseline;
+}
+
+.history-list li:last-child {
+  border-bottom: none;
+}
+
+.history-date {
+  color: #a8a6a4;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.history-chamber {
+  color: #7a7775;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.history-action {
+  color: #514e4c;
+  line-height: 1.4;
+}
+
+/* Actions row */
+.state-bill-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  align-items: center;
+}
+
+.explain-bill-button {
+  padding: 0.6rem 1.25rem;
+  background: var(--accent-emphasis, #d4a843);
+  color: white;
+  border: 1px solid var(--accent-emphasis, #d4a843);
+  border-radius: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.explain-bill-button:hover:not(:disabled) {
+  background: var(--accent-emphasis-dark, #c49a38);
+  border-color: var(--accent-emphasis-dark, #c49a38);
+}
+
+.explain-bill-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.source-link {
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: #514e4c;
+  border: 1px solid rgba(81, 78, 76, 0.3);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.source-link:hover {
+  border-color: #514e4c;
+  background: rgba(81, 78, 76, 0.05);
+}
+
+/* AI Explanation */
+.state-bill-explanation {
+  padding-top: 1.25rem;
+}
+
+.state-bill-explanation p {
+  font-size: 0.95rem;
+  color: #514e4c;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+}
+
+.state-bill-explanation p:last-child {
+  margin-bottom: 0;
+}
+
+.state-bill-explanation.placeholder p {
+  color: #7a7775;
+  font-style: italic;
+}
+
+/* Spinner (matches existing) */
+.state-bill-card .loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.state-bill-detail-loading .loading-spinner-small {
+  border: 2px solid rgba(81, 78, 76, 0.2);
+  border-top: 2px solid #514e4c;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .state-bill-card-main {
+    padding: 1.25rem;
+  }
+
+  .state-bill-detail-panel {
+    padding: 0 1.25rem 1.25rem;
+  }
+
+  .state-bill-title {
+    font-size: 0.95rem;
+  }
+
+  .state-bill-card-header {
+    flex-wrap: wrap;
+  }
+
+  .history-list li {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .state-bill-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .explain-bill-button,
+  .source-link {
+    text-align: center;
+    justify-content: center;
+  }
+}
