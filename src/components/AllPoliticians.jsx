@@ -125,8 +125,8 @@ function AllPoliticians() {
           className="filter-select"
         >
           <option value="all">All Chambers</option>
-          <option value="house">House</option>
-          <option value="senate">Senate</option>
+          <option value="house">House of Representatives (435 members)</option>
+          <option value="senate">Senate (100 members)</option>
         </select>
 
         <select

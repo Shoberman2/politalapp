@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   calculateShutdownRisk,
   getCountdown,
@@ -7,6 +7,7 @@ import {
   RISK_EXPLAINERS,
   fetchAppropriationsBills
 } from '../services/shutdown'
+import { InfoTip } from './Tooltip'
 import '../styles/ShutdownTracker.css'
 
 function ShutdownTracker() {
@@ -15,8 +16,6 @@ function ShutdownTracker() {
   const [apiBills, setApiBills] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showCRTooltip, setShowCRTooltip] = useState(false)
-  const crTooltipRef = useRef(null)
 
   const loadData = async () => {
     try {
@@ -56,22 +55,6 @@ function ShutdownTracker() {
     return () => clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (crTooltipRef.current && !crTooltipRef.current.contains(e.target)) {
-        setShowCRTooltip(false)
-      }
-    }
-    if (showCRTooltip) {
-      document.addEventListener('touchstart', handleClickOutside)
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => {
-      document.removeEventListener('touchstart', handleClickOutside)
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showCRTooltip])
-
   const statusLabels = {
     signed: 'Signed into Law',
     passed_both: 'Passed Both Chambers',
@@ -81,6 +64,17 @@ function ShutdownTracker() {
     cr: 'Covered by CR',
     not_introduced: 'Not Yet Introduced',
     lapsed: 'Funding Lapsed'
+  }
+
+  const statusTooltips = {
+    signed: 'This bill has been passed by Congress and signed by the President into law.',
+    passed_both: 'Passed both the House and Senate. Awaiting the President\'s signature.',
+    passed_one: 'Passed either the House or Senate. Still needs to pass the other chamber.',
+    committee: 'Being reviewed by a congressional committee before a full vote.',
+    introduced: 'Formally submitted to Congress but not yet reviewed by a committee.',
+    cr: 'Covered by a Continuing Resolution — a temporary measure that funds the government at last year\'s spending levels.',
+    not_introduced: 'No bill has been introduced yet for this area of spending.',
+    lapsed: 'Funding has expired. This part of the government is unfunded.'
   }
 
   const statusColors = {
@@ -129,7 +123,7 @@ function ShutdownTracker() {
         {/* Header */}
         <header className="shutdown-tracker__header">
           <h1>Government Shutdown Tracker</h1>
-          <p>Tracking federal funding status and appropriations progress for FY{FUNDING_DEADLINES.fiscalYear}</p>
+          <p>Tracking federal funding status and <InfoTip text="Appropriations bills are the 12 annual spending bills Congress must pass to fund the federal government. If they aren't passed by the deadline, the government shuts down.">appropriations</InfoTip> progress for <InfoTip text="Fiscal Year — the federal government's budget year, which runs from October 1 to September 30.">FY{FUNDING_DEADLINES.fiscalYear}</InfoTip></p>
           {FUNDING_DEADLINES.lastUpdated && (
             <div className="last-updated">
               Last updated: {new Date(FUNDING_DEADLINES.lastUpdated + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -211,27 +205,15 @@ function ShutdownTracker() {
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedBoth}</span>
-              <span className="progress-stat__label">Passed Both Chambers</span>
+              <InfoTip tag="span" text="The House of Representatives and the Senate are the two chambers of Congress. A bill must pass both to become law." className="progress-stat__label">Passed Both Chambers</InfoTip>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedOne}</span>
-              <span className="progress-stat__label">Passed One Chamber</span>
+              <InfoTip tag="span" text="This bill has passed either the House or the Senate, but still needs to pass the other chamber." className="progress-stat__label">Passed One Chamber</InfoTip>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsCR}</span>
-              <span
-                className="progress-stat__label cr-label"
-                ref={crTooltipRef}
-                onClick={() => setShowCRTooltip(prev => !prev)}
-              >
-                Covered by CR
-                <span className="cr-info-icon">?</span>
-                {showCRTooltip && (
-                  <span className="cr-tooltip">
-                    A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven't been passed by the deadline.
-                  </span>
-                )}
-              </span>
+              <InfoTip tag="span" text="A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven't been passed by the deadline." className="progress-stat__label">Covered by CR</InfoTip>
             </div>
           </div>
           <div className="progress-bar">
@@ -244,7 +226,7 @@ function ShutdownTracker() {
 
         {/* Appropriations Bills Grid */}
         <section className="shutdown-bills">
-          <h2>FY{FUNDING_DEADLINES.fiscalYear} Appropriations Bills</h2>
+          <h2>FY{FUNDING_DEADLINES.fiscalYear} <InfoTip text="The 12 annual spending bills that Congress must pass to fund every federal agency and program.">Appropriations Bills</InfoTip></h2>
           <div className="approp-bills-grid">
             {bills.map((bill, i) => (
               <div key={i} className={`approp-bill-card approp-bill-card--${bill.status}`}>
@@ -253,7 +235,7 @@ function ShutdownTracker() {
                   <span
                     className="approp-bill-card__status"
                     style={{ background: statusColors[bill.status] || '#9ca3af' }}
-                    title={bill.status === 'cr' ? 'A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven\'t been passed.' : undefined}
+                    title={statusTooltips[bill.status] || ''}
                   >
                     {statusLabels[bill.status] || bill.status}
                   </span>

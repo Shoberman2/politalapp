@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getMemberDetails, getMemberVotes } from '../services/congress'
 import { getDonationsByPoliticianName, formatCurrency } from '../services/donations'
+import { InfoTip } from './Tooltip'
 import '../styles/PoliticianDetail.css'
 
 function PoliticianDetail() {
@@ -249,7 +250,7 @@ function PoliticianDetail() {
           <table className="info-table">
             <tbody>
               <tr>
-                <th>Chamber</th>
+                <th><InfoTip text="Congress has two chambers: the House of Representatives (435 members, based on population) and the Senate (100 members, 2 per state).">Chamber</InfoTip></th>
                 <td>{chamber || 'N/A'}</td>
               </tr>
               <tr>
@@ -258,7 +259,7 @@ function PoliticianDetail() {
               </tr>
               {district && (
                 <tr>
-                  <th>District</th>
+                  <th><InfoTip text="A congressional district is a geographic area within a state represented by one House member. Each state is divided into districts based on population.">District</InfoTip></th>
                   <td>{district}</td>
                 </tr>
               )}
@@ -391,7 +392,7 @@ function PoliticianDetail() {
 
       {/* Campaign Funding Section */}
       <section className="detail-section funding-section">
-        <h2>Campaign Funding</h2>
+        <h2><InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Campaign Funding</InfoTip></h2>
         {donationsLoading ? (
           <div className="section-loading">
             <div className="loading-spinner"></div>
@@ -419,18 +420,18 @@ function PoliticianDetail() {
             {/* Committee Financial Details */}
             {donations.committees && donations.committees.length > 0 && (
               <div className="committees-section">
-                <h3>Campaign Committees</h3>
+                <h3><InfoTip text="Official fundraising organizations registered with the FEC to raise and spend money on behalf of a candidate.">Campaign Committees</InfoTip></h3>
                 <div className="committees-grid">
                   {donations.committees.map((committee, index) => (
                     <div key={index} className="committee-card">
                       <span className="committee-name">{committee.name}</span>
                       <div className="committee-financials">
                         <span className="committee-stat">
-                          <span className="committee-stat-label">Receipts</span>
+                          <span className="committee-stat-label" title="Total money received — includes individual donations, PAC contributions, and transfers">Receipts</span>
                           <span className="committee-stat-value">{formatCurrency(committee.receipts)}</span>
                         </span>
                         <span className="committee-stat">
-                          <span className="committee-stat-label">Disbursements</span>
+                          <span className="committee-stat-label" title="Total money spent — includes advertising, staff salaries, travel, and campaign operations">Disbursements</span>
                           <span className="committee-stat-value">{formatCurrency(committee.disbursements)}</span>
                         </span>
                       </div>

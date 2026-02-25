@@ -95,6 +95,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
               background: getPartyGradient(partyAbbr),
               boxShadow: `0 2px 10px ${getPartyColor(partyAbbr)}40`
             }}
+            title={partyAbbr === 'D' ? 'Democrat' : partyAbbr === 'R' ? 'Republican' : partyAbbr === 'I' ? 'Independent' : partyAbbr}
           >
             {partyAbbr}
           </div>

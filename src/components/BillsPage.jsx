@@ -143,14 +143,14 @@ function BillsPage() {
           className="bills-filter-select"
         >
           <option value="all">All Bill Types</option>
-          <option value="hr">House Bills (H.R.)</option>
-          <option value="s">Senate Bills (S.)</option>
-          <option value="hjres">House Joint Resolutions</option>
-          <option value="sjres">Senate Joint Resolutions</option>
-          <option value="hconres">House Concurrent Resolutions</option>
-          <option value="sconres">Senate Concurrent Resolutions</option>
-          <option value="hres">House Resolutions</option>
-          <option value="sres">Senate Resolutions</option>
+          <option value="hr">House Bills (H.R.) — originate in the House</option>
+          <option value="s">Senate Bills (S.) — originate in the Senate</option>
+          <option value="hjres">House Joint Resolutions — force of law, used for amendments</option>
+          <option value="sjres">Senate Joint Resolutions — force of law, used for amendments</option>
+          <option value="hconres">House Concurrent Resolutions — non-binding, both chambers</option>
+          <option value="sconres">Senate Concurrent Resolutions — non-binding, both chambers</option>
+          <option value="hres">House Resolutions — internal House matters only</option>
+          <option value="sres">Senate Resolutions — internal Senate matters only</option>
         </select>
       </div>
 

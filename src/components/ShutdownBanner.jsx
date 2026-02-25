@@ -57,7 +57,7 @@ function ShutdownBanner() {
       <div className="shutdown-banner__content">
         <span className="shutdown-banner__icon">{levelIcons[risk.level] || '\u2139\uFE0F'}</span>
         <span className="shutdown-banner__text">
-          <strong>Gov't Shutdown Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}</strong>
+          <strong title="A government shutdown happens when Congress fails to pass funding bills by the deadline, forcing federal agencies to close or reduce operations.">Gov't Shutdown Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}</strong>
           {countdownText && <span className="shutdown-banner__countdown"> &mdash; {countdownText}</span>}
         </span>
         <Link to="/shutdown-tracker" className="shutdown-banner__link">Details</Link>

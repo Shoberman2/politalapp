@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, explainBillWithAI, getVoteTalliesFromActions } from '../services/congress'
+import { InfoTip } from './Tooltip'
 import '../styles/BillDetail.css'
 
 function BillDetail() {
@@ -222,7 +223,7 @@ function BillDetail() {
 
       {voteTallies.length > 0 && (
         <section className="bill-section vote-tallies-section">
-          <h2>Vote Results</h2>
+          <h2><InfoTip text="A roll call vote is when each member of Congress individually records their vote — yea (yes), nay (no), present (abstain), or not voting.">Vote Results</InfoTip></h2>
           <div className="vote-tallies-list">
             {voteTallies.map((tally, index) => {
               const total = tally.totalYea + tally.totalNay
@@ -259,13 +260,13 @@ function BillDetail() {
                       />
                     </div>
                     <div className="tally-counts">
-                      <span className="tally-yea-count">Yea: {tally.totalYea}</span>
-                      <span className="tally-nay-count">Nay: {tally.totalNay}</span>
+                      <span className="tally-yea-count" title="Voted YES — in favor of the measure">Yea: {tally.totalYea}</span>
+                      <span className="tally-nay-count" title="Voted NO — against the measure">Nay: {tally.totalNay}</span>
                       {tally.totalNotVoting > 0 && (
-                        <span className="tally-notvoting-count">Not Voting: {tally.totalNotVoting}</span>
+                        <span className="tally-notvoting-count" title="Did not cast a vote on this measure">Not Voting: {tally.totalNotVoting}</span>
                       )}
                       {tally.totalPresent > 0 && (
-                        <span className="tally-present-count">Present: {tally.totalPresent}</span>
+                        <span className="tally-present-count" title="Was present in the chamber but chose not to vote yes or no — often used as a form of protest or abstention">Present: {tally.totalPresent}</span>
                       )}
                     </div>
                   </div>
@@ -339,7 +340,7 @@ function BillDetail() {
       </section>
 
       <section className="bill-section">
-        <h2>Sponsors</h2>
+        <h2><InfoTip text="The sponsor is the member of Congress who wrote and introduced the bill. Cosponsors are other members who formally endorse it.">Sponsors</InfoTip></h2>
         <div className="sponsors-list">
           {sponsor && (
             <div className="sponsor-item primary-sponsor">
@@ -404,7 +405,7 @@ function BillDetail() {
 
       {actions.length > 0 && (
         <section className="bill-section">
-          <h2>Actions Timeline</h2>
+          <h2><InfoTip text="Actions are the official steps a bill goes through — from being introduced, to committee review, floor votes, and potentially being signed into law.">Actions Timeline</InfoTip></h2>
           <div className="actions-timeline">
             {actions.slice(0, 15).map((action, index) => {
               const text = (action.text || '').toLowerCase()
