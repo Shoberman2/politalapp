@@ -179,36 +179,42 @@ function BillDetail() {
               <Link to={`/politician/${sponsor.bioguideId}`} className="key-fact-value key-fact-link">
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
               </Link>
+              <span className="key-fact-desc">The member of Congress who introduced this bill</span>
             </div>
           )}
           {bill.introducedDate && (
             <div className="key-fact">
               <span className="key-fact-label">Introduced</span>
               <span className="key-fact-value">{formatDate(bill.introducedDate)}</span>
+              <span className="key-fact-desc">Date the bill was formally submitted to Congress</span>
             </div>
           )}
           {cosponsors.length > 0 && (
             <div className="key-fact">
               <span className="key-fact-label">Cosponsors</span>
               <span className="key-fact-value">{cosponsors.length}</span>
+              <span className="key-fact-desc">Members who publicly support this bill</span>
             </div>
           )}
           {bill.policyArea?.name && (
             <div className="key-fact">
               <span className="key-fact-label">Policy Area</span>
               <span className="key-fact-value">{bill.policyArea.name}</span>
+              <span className="key-fact-desc">The primary topic or subject of this legislation</span>
             </div>
           )}
           {bill.committees?.count > 0 && (
             <div className="key-fact">
               <span className="key-fact-label">Committees</span>
               <span className="key-fact-value">{bill.committees.count}</span>
+              <span className="key-fact-desc">Groups of members assigned to review and refine the bill before a full vote</span>
             </div>
           )}
           {actions.length > 0 && (
             <div className="key-fact">
               <span className="key-fact-label">Actions</span>
               <span className="key-fact-value">{actions.length}</span>
+              <span className="key-fact-desc">Official steps taken on this bill (introductions, referrals, votes, etc.)</span>
             </div>
           )}
         </div>

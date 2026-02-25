@@ -18,25 +18,23 @@ function BillCard({ bill, onSponsorClick }) {
     return colors[type?.toLowerCase()] || '#6b7280'
   }
 
-  const getBillTypeName = (type) => {
-    const names = {
-      hr: 'House Bill',
-      s: 'Senate Bill',
-      hjres: 'Joint Resolution',
-      sjres: 'Joint Resolution',
-      hconres: 'Resolution',
-      sconres: 'Resolution',
-      hres: 'Resolution',
-      sres: 'Resolution'
+  const getBillTypeInfo = (type) => {
+    const info = {
+      hr: { name: 'House Bill', desc: 'A bill originating in the House of Representatives' },
+      s: { name: 'Senate Bill', desc: 'A bill originating in the Senate' },
+      hjres: { name: 'House Joint Resolution', desc: 'A joint resolution from the House — has the force of law, often used for constitutional amendments' },
+      sjres: { name: 'Senate Joint Resolution', desc: 'A joint resolution from the Senate — has the force of law, often used for constitutional amendments' },
+      hconres: { name: 'House Concurrent Resolution', desc: 'Expresses the position of both chambers but does not have the force of law' },
+      sconres: { name: 'Senate Concurrent Resolution', desc: 'Expresses the position of both chambers but does not have the force of law' },
+      hres: { name: 'House Simple Resolution', desc: 'Addresses matters within the House only — does not become law' },
+      sres: { name: 'Senate Simple Resolution', desc: 'Addresses matters within the Senate only — does not become law' }
     }
-    return names[type?.toLowerCase()] || type
+    return info[type?.toLowerCase()] || { name: type, desc: '' }
   }
 
-  // Simplify long bill titles
   const simplifyTitle = (title) => {
     if (!title) return 'Untitled Bill'
 
-    // Remove common verbose prefixes
     let simplified = title
       .replace(/^A bill to /i, '')
       .replace(/^To /i, '')
@@ -48,10 +46,8 @@ function BillCard({ bill, onSponsorClick }) {
       .replace(/, and for other purposes\.?$/i, '')
       .replace(/\.$/i, '')
 
-    // Capitalize first letter
     simplified = simplified.charAt(0).toUpperCase() + simplified.slice(1)
 
-    // Truncate if still too long
     if (simplified.length > 150) {
       simplified = simplified.substring(0, 147) + '...'
     }
@@ -86,30 +82,33 @@ function BillCard({ bill, onSponsorClick }) {
     }
   }
 
-  const getStatusBadge = () => {
+  const getStatusInfo = () => {
     const latestAction = (bill.latestAction?.text || '').toLowerCase()
     if (latestAction.includes('became public law') || latestAction.includes('signed by president')) {
-      return { label: 'Enacted', className: 'status-enacted' }
+      return { label: 'Enacted', className: 'status-enacted', desc: 'Signed into law by the President' }
     }
     if (latestAction.includes('passed house') && latestAction.includes('passed senate')) {
-      return { label: 'Passed Both', className: 'status-passed-both' }
+      return { label: 'Passed Both', className: 'status-passed-both', desc: 'Passed both the House and Senate' }
     }
     if (latestAction.includes('passed house') || latestAction.includes('passed senate')) {
-      return { label: 'Passed', className: 'status-passed' }
+      return { label: 'Passed', className: 'status-passed', desc: 'Passed one chamber, awaiting the other' }
     }
     if (latestAction.includes('committee')) {
-      return { label: 'In Committee', className: 'status-committee' }
+      return { label: 'In Committee', className: 'status-committee', desc: 'Being reviewed by a congressional committee' }
     }
     if (latestAction.includes('introduced')) {
-      return { label: 'Introduced', className: 'status-introduced' }
+      return { label: 'Introduced', className: 'status-introduced', desc: 'Newly introduced, not yet assigned to committee' }
     }
-    return { label: 'In Progress', className: 'status-progress' }
+    return { label: 'In Progress', className: 'status-progress', desc: 'Moving through the legislative process' }
   }
 
   const sponsor = bill.sponsors?.[0] || bill.sponsor
-  const sponsorName = sponsor?.fullName || sponsor?.name || 'Unknown Sponsor'
+  const sponsorName = sponsor
+    ? (sponsor.fullName || sponsor.name || `${sponsor.firstName || ''} ${sponsor.lastName || ''}`.trim())
+    : null
   const sponsorBioguideId = sponsor?.bioguideId
-  const status = getStatusBadge()
+  const status = getStatusInfo()
+  const typeInfo = getBillTypeInfo(bill.type)
 
   return (
     <div className="bill-card" onClick={handleCardClick}>
@@ -117,18 +116,21 @@ function BillCard({ bill, onSponsorClick }) {
         <span
           className="bill-type-badge"
           style={{ backgroundColor: getBillTypeColor(bill.type) }}
+          title={typeInfo.desc}
         >
           {bill.type?.toUpperCase()}
         </span>
-        <span className="bill-number">
+        <span className="bill-number" title={typeInfo.name}>
           {bill.type?.toUpperCase()}.{bill.number}
         </span>
-        <span className={`bill-status-badge ${status.className}`}>
+        <span className={`bill-status-badge ${status.className}`} title={status.desc}>
           {status.label}
         </span>
       </div>
 
       <h3 className="bill-title">{simplifyTitle(bill.title)}</h3>
+
+      <div className="bill-type-desc">{typeInfo.name}</div>
 
       {bill.introducedDate && (
         <div className="bill-introduced">
@@ -148,13 +150,19 @@ function BillCard({ bill, onSponsorClick }) {
 
       <div className="bill-footer">
         <div className="bill-sponsor">
-          <span className="sponsor-label">Sponsor:</span>
-          <button
-            className="sponsor-link"
-            onClick={(e) => handleSponsorClick(e, sponsorBioguideId)}
-          >
-            {sponsorName}
-          </button>
+          {sponsorName ? (
+            <>
+              <span className="sponsor-label">Sponsor:</span>
+              <button
+                className="sponsor-link"
+                onClick={(e) => handleSponsorClick(e, sponsorBioguideId)}
+              >
+                {sponsorName}
+              </button>
+            </>
+          ) : (
+            <span className="sponsor-label">Sponsor info on detail page</span>
+          )}
         </div>
         <span className="bill-congress">
           {bill.congress}th Congress

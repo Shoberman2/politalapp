@@ -87,6 +87,13 @@
   border-color: rgba(81, 78, 76, 0.2);
 }
 
+.bill-type-desc {
+  font-size: 0.75rem;
+  color: #7a7775;
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
 .bill-introduced {
   font-size: 0.8rem;
   color: #7a7775;

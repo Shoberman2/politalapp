@@ -358,8 +358,21 @@ export const searchBills = async (options = {}) => {
       )
     }
 
+    // The list endpoint doesn't include sponsor data — fetch detail for each bill
+    const enriched = await Promise.all(
+      bills.map(async (bill) => {
+        try {
+          const type = bill.type?.toLowerCase()
+          const detail = await congressApi.get(`/bill/${bill.congress}/${type}/${bill.number}`)
+          return { ...bill, sponsors: detail.data.bill?.sponsors || [] }
+        } catch {
+          return bill
+        }
+      })
+    )
+
     return {
-      bills,
+      bills: enriched,
       pagination: response.data.pagination || { count: bills.length }
     }
   } catch (error) {
