@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import articles from '../data/articles'
+import SEO from './SEO'
 import '../styles/Landing.css'
 
 function Landing() {
@@ -29,6 +30,11 @@ function Landing() {
 
   return (
     <div className="landing">
+      <SEO
+        title="Track Your Congress"
+        description="Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status."
+        path="/"
+      />
       {/* Intro Quote Screen */}
       {!introComplete && (
         <div className={`intro-screen ${introExiting ? 'intro-exiting' : ''}`}>
@@ -43,7 +49,10 @@ function Landing() {
 
       {/* Sticky Navigation Bar */}
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
-        <div className="nav-logo">BallotWatch</div>
+        <div className="nav-logo">
+          <img src="/capitol-logo.png" alt="" className="landing-nav-logo-img" />
+          BallotWatch
+        </div>
         <div className="nav-links">
           <a href="#about">Representatives</a>
           <a href="#features">Bills</a>
@@ -435,7 +444,10 @@ function Landing() {
         <div className="footer-container">
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-logo">BallotWatch</span>
+              <span className="footer-logo">
+                <img src="/capitol-logo.png" alt="" className="footer-logo-img" />
+                BallotWatch
+              </span>
               <p>Premium congressional intelligence — making democracy accessible to every American.</p>
             </div>
             <div className="footer-links">
@@ -452,7 +464,7 @@ function Landing() {
               </div>
               <div className="footer-column">
                 <h4>Articles</h4>
-                {articles.slice(0, 5).map(article => (
+                {articles.slice(0, 3).map(article => (
                   <button key={article.slug} onClick={() => navigate(`/blog/${article.slug}`)}>{article.title}</button>
                 ))}
               </div>

@@ -125,6 +125,14 @@ html {
   font-weight: 400;
   color: #ffffff;
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.landing-nav-logo-img {
+  height: 24px;
+  width: auto;
 }
 
 .nav-links {
@@ -1051,6 +1059,7 @@ html {
 
 .footer-brand {
   flex-shrink: 0;
+  max-width: 280px;
 }
 
 .footer-logo {
@@ -1058,8 +1067,15 @@ html {
   font-size: 1.5rem;
   font-weight: 400;
   color: #ffffff;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.footer-logo-img {
+  height: 22px;
+  width: auto;
 }
 
 .footer-brand p {
@@ -1071,12 +1087,17 @@ html {
 
 .footer-links {
   display: flex;
-  gap: 4rem;
+  gap: 3rem;
 }
 
 .footer-column {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.footer-column:nth-child(3) {
+  max-width: 240px;
 }
 
 .footer-column h4 {
@@ -1100,6 +1121,10 @@ html {
   cursor: pointer;
   transition: color 0.2s ease;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .footer-column button:hover {

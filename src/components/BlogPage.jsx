@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import articles from '../data/articles'
+import SEO from './SEO'
 import '../styles/BlogPage.css'
 
 function BlogPage() {
@@ -27,6 +28,11 @@ function BlogPage() {
 
   return (
     <div className="blog-page">
+      <SEO
+        title="Blog"
+        description="Civic education articles explaining how Congress works, legislation tracking, campaign finance, and government accountability."
+        path="/blog"
+      />
       <div className="blog-header">
         <h1>Blog</h1>
         <p className="blog-subtitle">Nonpartisan explainers on how Congress works, who represents you, and why it matters</p>

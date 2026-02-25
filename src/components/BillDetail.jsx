@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, explainBillWithAI, getVoteTalliesFromActions } from '../services/congress'
 import { InfoTip } from './Tooltip'
+import SEO from './SEO'
 import '../styles/BillDetail.css'
 
 function BillDetail() {
@@ -149,6 +150,11 @@ function BillDetail() {
 
   return (
     <div className="bill-detail">
+      <SEO
+        title={bill.title || 'Bill Details'}
+        description={`${bill.title || 'Bill'} — ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
+        path={`/bill/${congress}/${billType}/${number}`}
+      />
       <button className="back-link" onClick={() => navigate('/bills')}>
         ← Back to Bills
       </button>

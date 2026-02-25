@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
+import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
 import '../styles/AllPoliticians.css'
 
@@ -108,6 +109,11 @@ function AllPoliticians() {
 
   return (
     <div className="all-politicians">
+      <SEO
+        title="All Members of Congress"
+        description="Browse all 535 members of the U.S. Congress. Filter by chamber, party, and state. View voting records and profiles."
+        path="/all"
+      />
       <h2>All Politicians</h2>
 
       <div className="filters">

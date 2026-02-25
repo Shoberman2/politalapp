@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import articles from '../data/articles'
+import SEO from './SEO'
 import '../styles/ArticlePage.css'
 
 function ArticlePage() {
@@ -37,6 +38,18 @@ function ArticlePage() {
 
   return (
     <div className="article-page">
+      <SEO
+        title={article.title}
+        description={article.excerpt}
+        path={`/blog/${article.slug}`}
+        type="article"
+        article={{
+          headline: article.title,
+          datePublished: article.date,
+          author: article.author,
+          description: article.excerpt
+        }}
+      />
       <button className="back-link" onClick={() => navigate('/blog')}>
         ← Back to Blog
       </button>

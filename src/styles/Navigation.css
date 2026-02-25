@@ -41,6 +41,12 @@
   flex: 0 0 160px;
 }
 
+.brand-logo {
+  height: 28px;
+  width: auto;
+  filter: brightness(0);
+}
+
 .brand-name {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.75rem;

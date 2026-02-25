@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getMemberDetails, getMemberVotes } from '../services/congress'
 import { getDonationsByPoliticianName, formatCurrency } from '../services/donations'
 import { InfoTip } from './Tooltip'
+import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
 
 function PoliticianDetail() {
@@ -214,6 +215,11 @@ function PoliticianDetail() {
 
   return (
     <div className="politician-detail">
+      <SEO
+        title={`${displayName} — Voting Record`}
+        description={`View ${displayName}'s congressional voting record, sponsored legislation, and campaign finance data.`}
+        path={`/politician/${bioguideId}`}
+      />
       <button className="back-link" onClick={() => navigate('/all')}>
         ← Back to All Politicians
       </button>

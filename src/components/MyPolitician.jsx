@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
+import SEO from './SEO'
 import {
   getAllRepresentativesForLocation,
   getCongressionalDistrict,
@@ -116,6 +117,11 @@ function MyPolitician() {
 
   return (
     <div className="my-politician">
+      <SEO
+        title="Find My Representative"
+        description="Look up your U.S. senators and house representative by address. Find out who represents you in Congress."
+        path="/my-representative"
+      />
       <div className="page-header">
         <h1>Find Your Representatives</h1>
         <p>Enter your address to find your House Representative and Senators</p>

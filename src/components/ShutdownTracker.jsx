@@ -8,6 +8,7 @@ import {
   fetchAppropriationsBills
 } from '../services/shutdown'
 import { InfoTip } from './Tooltip'
+import SEO from './SEO'
 import '../styles/ShutdownTracker.css'
 
 function ShutdownTracker() {
@@ -119,6 +120,11 @@ function ShutdownTracker() {
 
   return (
     <div className="shutdown-tracker fadeInUp">
+      <SEO
+        title="Government Shutdown Tracker"
+        description="Track the current risk of a U.S. government shutdown. View funding deadlines, appropriations bill status, and shutdown history."
+        path="/shutdown-tracker"
+      />
       <div className="shutdown-tracker__container">
         {/* Header */}
         <header className="shutdown-tracker__header">

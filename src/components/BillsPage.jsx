@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import BillCard from './BillCard'
+import SEO from './SEO'
 import { searchBills } from '../services/congress'
 import '../styles/BillsPage.css'
 
@@ -111,6 +112,11 @@ function BillsPage() {
 
   return (
     <div className="bills-page">
+      <SEO
+        title="Congressional Bill Tracker"
+        description="Browse and search legislation from the U.S. Congress. Track bills, read AI-powered explanations, and follow the legislative process."
+        path="/bills"
+      />
       <div className="bills-header">
         <h1>Congressional Bills</h1>
         <p className="bills-subtitle">Browse and search legislation from the U.S. Congress</p>
