@@ -80,16 +80,19 @@ function Landing() {
           </div>
           <p className="hero-note">Premium congressional intelligence — powered by official government data.</p>
         </div>
-        <div className="scroll-indicator">
+        <button
+          className="scroll-indicator"
+          onClick={() => document.getElementById('explore-start')?.scrollIntoView({ behavior: 'smooth' })}
+        >
           <span>Scroll to explore</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12l7 7 7-7"/>
           </svg>
-        </div>
+        </button>
       </section>
 
       {/* Trust Bar */}
-      <section className="trust-bar">
+      <section className="trust-bar" id="explore-start">
         <div className="trust-container">
           <div className="trust-item">
             <span className="trust-number">535</span>

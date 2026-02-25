@@ -418,6 +418,15 @@ html {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   animation: bounce 2s ease-in-out infinite;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  transition: color 0.3s ease;
+}
+
+.scroll-indicator:hover {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 @keyframes bounce {
