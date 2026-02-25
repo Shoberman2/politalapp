@@ -12,7 +12,7 @@ import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
 import ShutdownBanner from './components/ShutdownBanner'
 import ShutdownTracker from './components/ShutdownTracker'
-import StateBillsPage from './components/StateBillsPage'
+// import StateBillsPage from './components/StateBillsPage'
 
 function App() {
   const location = useLocation()
@@ -46,9 +46,9 @@ function App() {
           <Route path="/politician/:bioguideId" element={
             <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
           } />
-          <Route path="/state-bills" element={
+          {/* <Route path="/state-bills" element={
             <ProtectedRoute><StateBillsPage /></ProtectedRoute>
-          } />
+          } /> */}
           <Route path="/shutdown-tracker" element={
             <ProtectedRoute><ShutdownTracker /></ProtectedRoute>
           } />
