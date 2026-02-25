@@ -76,21 +76,12 @@ function StateBillCard({ bill }) {
           <span className={`state-bill-status-badge ${getStatusClass(bill.status)}`}>
             {bill.status}
           </span>
-          {bill.aiScore && (
-            <span className="ai-impact-badge" title="AI Impact Score">
-              {bill.aiScore}/10
-            </span>
-          )}
           <span className="state-bill-expand-icon">
             {expanded ? '\u2212' : '+'}
           </span>
         </div>
 
         <h3 className="state-bill-title">{bill.title}</h3>
-
-        {bill.aiReason && (
-          <p className="ai-relevance-note">{bill.aiReason}</p>
-        )}
 
         {bill.last_action_date && (
           <div className="state-bill-date">

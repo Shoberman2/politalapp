@@ -14,7 +14,6 @@ const CACHE_TTLS = {
   billDetails: 7 * 24 * 60 * 60 * 1000, // 7 days
   search: 6 * 60 * 60 * 1000,        // 6 hours
   aiSummary: 30 * 24 * 60 * 60 * 1000,  // 30 days
-  aiRanking: 24 * 60 * 60 * 1000,    // 24 hours
   sessionList: 7 * 24 * 60 * 60 * 1000  // 7 days
 }
 
@@ -278,91 +277,6 @@ const aiRequest = async (prompt, maxTokens = 1000) => {
   return data.choices[0]?.message?.content || ''
 }
 
-// AI Search: natural language → keywords → LegiScan search → AI ranks results
-export const aiSearchStateBills = async (state, naturalQuery) => {
-  if (!OPENAI_API_KEY) {
-    // Fallback: direct LegiScan search with the raw query
-    return {
-      bills: await searchStateBills(state, naturalQuery),
-      aiMessage: null,
-      isAI: false
-    }
-  }
-
-  try {
-    // Step 1: Extract search keywords from natural language
-    const keywordPrompt = `Extract 2-4 concise search keywords from this question about state legislation. Return ONLY the keywords separated by spaces, nothing else.
-
-Question: "${naturalQuery}"`
-
-    const keywords = await aiRequest(keywordPrompt, 60)
-    console.log(`[StateBills AI] Extracted keywords: "${keywords}" from "${naturalQuery}"`)
-
-    // Step 2: Search LegiScan with extracted keywords
-    const bills = await searchStateBills(state, keywords?.trim() || naturalQuery)
-
-    if (bills.length === 0) {
-      return {
-        bills: [],
-        aiMessage: `No bills found matching "${naturalQuery}". Try different search terms.`,
-        isAI: true
-      }
-    }
-
-    // Step 3: AI ranks and annotates results by relevance
-    const billSummaries = bills.slice(0, 20).map((b, i) =>
-      `${i}: ${b.number} - ${b.title}`
-    ).join('\n')
-
-    const rankPrompt = `A user searched for state legislation with this question: "${naturalQuery}"
-
-Here are the search results. For each bill, rate its relevance to the user's question (1-10) and write a one-sentence reason why it's relevant or not. Return valid JSON as an array of objects with keys: index (number), score (1-10), reason (string). Only include the top 10 most relevant bills sorted by score descending.
-
-Bills:
-${billSummaries}`
-
-    const rankRaw = await aiRequest(rankPrompt, 1500)
-
-    let ranked
-    try {
-      // Extract JSON from response (handle markdown code blocks)
-      const jsonStr = rankRaw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
-      ranked = JSON.parse(jsonStr)
-    } catch {
-      // If AI response isn't valid JSON, return bills without ranking
-      return {
-        bills,
-        aiMessage: `Found ${bills.length} bills related to "${naturalQuery}".`,
-        isAI: true
-      }
-    }
-
-    // Map rankings back to bills
-    const rankedBills = ranked
-      .filter(r => r.index >= 0 && r.index < bills.length)
-      .map(r => ({
-        ...bills[r.index],
-        aiScore: r.score,
-        aiReason: r.reason
-      }))
-      .sort((a, b) => b.aiScore - a.aiScore)
-
-    return {
-      bills: rankedBills,
-      aiMessage: `Found ${rankedBills.length} bills related to "${naturalQuery}", ranked by relevance.`,
-      isAI: true
-    }
-  } catch (error) {
-    console.error('[StateBills AI] Search error:', error)
-    // Fallback to direct search
-    return {
-      bills: await searchStateBills(state, naturalQuery),
-      aiMessage: 'AI ranking unavailable. Showing standard search results.',
-      isAI: false
-    }
-  }
-}
-
 // AI Summary: on-demand plain English explanation of a state bill
 export const explainStateBillWithAI = async (bill) => {
   const cacheKey = `sb_ai_explain_${bill.bill_id}`
@@ -422,49 +336,3 @@ Keep your response factual and balanced. Avoid political bias.`
   }
 }
 
-// AI Relevance Ranking: batch rank bills by impact
-export const rankBillsByRelevance = async (state, bills) => {
-  const cacheKey = `sb_ai_rank_${state}_${bills.length}`
-  const cached = cacheGet(cacheKey)
-  if (cached) return cached
-
-  if (!OPENAI_API_KEY || bills.length === 0) return bills
-
-  try {
-    // Only rank the first 30 bills to keep costs low
-    const toRank = bills.slice(0, 30)
-    const billList = toRank.map((b, i) =>
-      `${i}: ${b.number} - ${b.title}`
-    ).join('\n')
-
-    const prompt = `Rate each of these state bills on how impactful they are to everyday citizens (1-10 scale). Return valid JSON as an array of objects with keys: index (number), score (1-10), reason (one short sentence on why it matters or doesn't).
-
-Bills:
-${billList}`
-
-    const raw = await aiRequest(prompt, 2000)
-    const jsonStr = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
-    const rankings = JSON.parse(jsonStr)
-
-    const rankedBills = toRank.map((bill, i) => {
-      const rank = rankings.find(r => r.index === i)
-      return {
-        ...bill,
-        aiScore: rank?.score || null,
-        aiReason: rank?.reason || null
-      }
-    })
-
-    // Append any unranked bills at the end
-    const result = [
-      ...rankedBills.sort((a, b) => (b.aiScore || 0) - (a.aiScore || 0)),
-      ...bills.slice(30)
-    ]
-
-    cacheSet(cacheKey, result, CACHE_TTLS.aiRanking)
-    return result
-  } catch (error) {
-    console.error('[StateBills AI] Ranking error:', error)
-    return bills
-  }
-}

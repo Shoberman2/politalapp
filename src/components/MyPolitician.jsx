@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
 import {
   getAllRepresentativesForLocation,
   getCongressionalDistrict,
   getDistrictsByState,
-  searchAddress
+  getDistrictFromAddress
 } from '../services/district'
 import {
   saveUserAddress,
@@ -17,24 +17,22 @@ import '../styles/MyPolitician.css'
 function MyPolitician() {
   const savedAddress = getUserAddress()
 
+  const [address, setAddress] = useState(
+    savedAddress?.street
+      ? [savedAddress.street, savedAddress.city, savedAddress.state, savedAddress.zip].filter(Boolean).join(', ')
+      : ''
+  )
   const [formData, setFormData] = useState({
     street: savedAddress?.street || '',
     city: savedAddress?.city || '',
     state: savedAddress?.state || '',
     zip: savedAddress?.zip || ''
   })
-
-  const [addressQuery, setAddressQuery] = useState('')
-  const [suggestions, setSuggestions] = useState([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [addressConfirmed, setAddressConfirmed] = useState(!!savedAddress?.street)
   const [representatives, setRepresentatives] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [hasSearched, setHasSearched] = useState(!!savedAddress?.state)
   const [favorites, setFavorites] = useState([])
-  const debounceRef = useRef(null)
-  const suggestionsRef = useRef(null)
 
   // Load favorites on mount
   useEffect(() => {
@@ -44,69 +42,45 @@ function MyPolitician() {
   // Auto-load representatives if we have saved address
   useEffect(() => {
     if (savedAddress?.street && savedAddress?.state) {
-      findRepresentatives()
+      findRepresentatives(savedAddress)
     }
   }, [])
 
-  // Close suggestions on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
-        setShowSuggestions(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // Refresh favorites when representatives change (user may have favorited from results)
   const refreshFavorites = () => {
     setFavorites(getFavorites())
   }
 
-  const handleAddressInput = useCallback((e) => {
-    const value = e.target.value
-    setAddressQuery(value)
+  // Parse a full address string into components
+  const parseAddress = (fullAddress) => {
+    // Expected format: "123 Main St, City, ST 12345" or similar
+    const parts = fullAddress.split(',').map(p => p.trim())
 
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    if (value.length < 3) {
-      setSuggestions([])
-      setShowSuggestions(false)
-      return
+    if (parts.length >= 3) {
+      const street = parts[0]
+      const city = parts[1]
+      // Last part might be "ST 12345" or "State 12345"
+      const lastPart = parts[parts.length - 1]
+      const stateZipMatch = lastPart.match(/^([A-Za-z]{2})\s*(\d{5})?/)
+      const state = stateZipMatch ? stateZipMatch[1].toUpperCase() : ''
+      const zip = stateZipMatch ? (stateZipMatch[2] || '') : ''
+      return { street, city, state, zip }
+    } else if (parts.length === 2) {
+      const street = parts[0]
+      const lastPart = parts[1]
+      const stateZipMatch = lastPart.match(/^(.+?)\s+([A-Za-z]{2})\s*(\d{5})?$/)
+      if (stateZipMatch) {
+        return { street, city: stateZipMatch[1], state: stateZipMatch[2].toUpperCase(), zip: stateZipMatch[3] || '' }
+      }
+      return { street, city: '', state: '', zip: '' }
     }
 
-    debounceRef.current = setTimeout(async () => {
-      const results = await searchAddress(value)
-      setSuggestions(results)
-      setShowSuggestions(results.length > 0)
-    }, 300)
-  }, [])
-
-  const handleSelectSuggestion = (suggestion) => {
-    setFormData({
-      street: suggestion.street,
-      city: suggestion.city,
-      state: suggestion.state,
-      zip: suggestion.zip
-    })
-    setAddressQuery(suggestion.display)
-    setSuggestions([])
-    setShowSuggestions(false)
-    setAddressConfirmed(true)
+    return { street: fullAddress, city: '', state: '', zip: '' }
   }
 
-  const handleChangeAddress = () => {
-    setAddressQuery('')
-    setFormData({ street: '', city: '', state: '', zip: '' })
-    setAddressConfirmed(false)
-    setSuggestions([])
-    setShowSuggestions(false)
-  }
-
-  const findRepresentatives = async () => {
-    if (!formData.street || !formData.state) {
-      setError('Please select an address from the suggestions')
+  const findRepresentatives = async (addressData) => {
+    const data = addressData || formData
+    if (!data.street || !data.state) {
+      setError('Please enter a full address (e.g. 123 Main St, City, ST 12345)')
       return
     }
 
@@ -115,25 +89,23 @@ function MyPolitician() {
     setHasSearched(true)
 
     try {
-      console.log(`[MyPolitician] Looking up representatives for: ${formData.street}, ${formData.city}, ${formData.state} ${formData.zip}`)
+      console.log(`[MyPolitician] Looking up representatives for: ${data.street}, ${data.city}, ${data.state} ${data.zip}`)
 
       // Save address
-      saveUserAddress(formData)
+      saveUserAddress(data)
 
-      const stateAbbr = formData.state
+      const stateAbbr = data.state
 
       // Try Census Geocoder to get the exact congressional district
       const districtInfo = await getCongressionalDistrict(
-        formData.street, formData.city, stateAbbr, formData.zip
+        data.street, data.city, stateAbbr, data.zip
       )
 
       if (districtInfo?.district) {
-        // Got the district — fetch House rep + Senators from Congress.gov
         console.log(`[MyPolitician] Census Geocoder found district: ${districtInfo.state}-${districtInfo.district}`)
         const reps = await getAllRepresentativesForLocation(districtInfo.state, districtInfo.district)
         setRepresentatives(reps)
       } else {
-        // Fallback: Census Geocoder couldn't resolve district, use state-based lookup
         console.log('[MyPolitician] Census Geocoder returned no district, using state-based fallback')
 
         const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
@@ -149,7 +121,6 @@ function MyPolitician() {
             const allReps = await getAllRepresentativesForLocation(stateAbbr, districts[0])
             setRepresentatives(allReps)
           } else {
-            // Multiple districts — show senators and prompt for district
             const allReps = await getAllRepresentativesForLocation(stateAbbr, null)
             const senators = allReps.filter(r => r.chamber === 'senate')
             setRepresentatives(senators)
@@ -171,23 +142,19 @@ function MyPolitician() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    findRepresentatives()
+    const parsed = parseAddress(address)
+    setFormData(parsed)
+    findRepresentatives(parsed)
   }
 
   const handleReset = () => {
     clearUserAddress()
+    setAddress('')
     setFormData({ street: '', city: '', state: '', zip: '' })
-    setAddressQuery('')
-    setAddressConfirmed(false)
-    setSuggestions([])
-    setShowSuggestions(false)
     setRepresentatives([])
     setHasSearched(false)
     setError(null)
   }
-
-  const displayAddress = [formData.street, formData.city, formData.state, formData.zip]
-    .filter(Boolean).join(', ')
 
   return (
     <div className="my-politician">
@@ -198,43 +165,18 @@ function MyPolitician() {
 
       <div className="address-card">
         <form onSubmit={handleSubmit} className="address-form">
-          {!addressConfirmed ? (
-            <div className="autocomplete-wrapper" ref={suggestionsRef}>
-              <input
-                type="text"
-                value={addressQuery}
-                onChange={handleAddressInput}
-                placeholder="Start typing your address..."
-                className="form-input autocomplete-input"
-                autoComplete="off"
-              />
-              {showSuggestions && (
-                <ul className="suggestions-dropdown">
-                  {suggestions.map((s, i) => (
-                    <li
-                      key={i}
-                      className="suggestion-item"
-                      onClick={() => handleSelectSuggestion(s)}
-                    >
-                      {s.display}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : (
-            <div className="confirmed-address">
-              <span className="confirmed-address-text">{displayAddress}</span>
-              <button type="button" className="btn-change" onClick={handleChangeAddress}>
-                Change
-              </button>
-            </div>
-          )}
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="123 Main St, City, ST 12345"
+            className="form-input autocomplete-input"
+          />
 
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-actions">
-            <button type="submit" className="btn-primary" disabled={loading || !addressConfirmed}>
+            <button type="submit" className="btn-primary" disabled={loading || !address.trim()}>
               {loading ? 'Finding...' : 'Find My Representatives'}
             </button>
             {hasSearched && (
@@ -274,10 +216,9 @@ function MyPolitician() {
         <div className="representatives-results">
           <h2>Your Representatives</h2>
           <p className="results-subtitle">
-            Representing {formData.street}, {formData.city}, {formData.state} {formData.zip}
+            Representing {formData.street}{formData.city ? `, ${formData.city}` : ''}, {formData.state} {formData.zip}
           </p>
 
-          {/* House Representative */}
           {representatives.filter(r => r.chamber === 'house').length > 0 && (
             <div className="rep-section">
               <h3>House of Representatives</h3>
@@ -289,7 +230,6 @@ function MyPolitician() {
             </div>
           )}
 
-          {/* Senators */}
           {representatives.filter(r => r.chamber === 'senate').length > 0 && (
             <div className="rep-section">
               <h3>U.S. Senate</h3>

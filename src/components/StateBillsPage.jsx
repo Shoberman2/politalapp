@@ -3,8 +3,7 @@ import StateBillCard from './StateBillCard'
 import { US_STATES, getSavedLocation } from '../services/district'
 import {
   fetchStateBills,
-  aiSearchStateBills,
-  rankBillsByRelevance
+  searchStateBills
 } from '../services/stateBills'
 import '../styles/StateBillsPage.css'
 
@@ -16,9 +15,7 @@ function StateBillsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('impact')
-  const [aiMessage, setAiMessage] = useState(null)
-  const [isAiSearch, setIsAiSearch] = useState(false)
+  const [sortBy, setSortBy] = useState('recent')
 
   // Auto-detect user's state on mount
   useEffect(() => {
@@ -38,15 +35,9 @@ function StateBillsPage() {
   const loadBills = async () => {
     setLoading(true)
     setError(null)
-    setAiMessage(null)
-    setIsAiSearch(false)
 
     try {
-      let stateBills = await fetchStateBills(selectedState)
-
-      // Try AI relevance ranking
-      stateBills = await rankBillsByRelevance(selectedState, stateBills)
-
+      const stateBills = await fetchStateBills(selectedState)
       setBills(stateBills)
     } catch (err) {
       console.error('[StateBillsPage] Error loading bills:', err)
@@ -68,10 +59,8 @@ function StateBillsPage() {
     setError(null)
 
     try {
-      const result = await aiSearchStateBills(selectedState, searchQuery.trim())
-      setBills(result.bills)
-      setAiMessage(result.aiMessage)
-      setIsAiSearch(result.isAI)
+      const results = await searchStateBills(selectedState, searchQuery.trim())
+      setBills(results)
     } catch (err) {
       console.error('[StateBillsPage] Search error:', err)
       setError(`Search failed: ${err.message || 'Unknown error'}`)
@@ -82,8 +71,6 @@ function StateBillsPage() {
 
   const handleClearSearch = () => {
     setSearchQuery('')
-    setAiMessage(null)
-    setIsAiSearch(false)
     if (selectedState) loadBills()
   }
 
@@ -94,13 +81,13 @@ function StateBillsPage() {
       return bill.status === statusFilter
     })
     .sort((a, b) => {
-      if (sortBy === 'impact') {
-        return (b.aiScore || 0) - (a.aiScore || 0)
+      if (sortBy === 'recent') {
+        if (!a.last_action_date) return 1
+        if (!b.last_action_date) return -1
+        return b.last_action_date.localeCompare(a.last_action_date)
       }
-      // Sort by recent activity
-      if (!a.last_action_date) return 1
-      if (!b.last_action_date) return -1
-      return b.last_action_date.localeCompare(a.last_action_date)
+      // Sort by relevance (search results have a relevance field)
+      return (b.relevance || 0) - (a.relevance || 0)
     })
 
   if (!selectedState) {
@@ -108,7 +95,7 @@ function StateBillsPage() {
       <div className="state-bills-page">
         <div className="state-bills-header">
           <h1>State Bills</h1>
-          <p className="state-bills-subtitle">AI-powered state legislation tracker</p>
+          <p className="state-bills-subtitle">Track legislation in your state</p>
         </div>
         <div className="state-select-prompt">
           <p>Select a state to browse its current legislative session</p>
@@ -131,7 +118,7 @@ function StateBillsPage() {
     <div className="state-bills-page">
       <div className="state-bills-header">
         <h1>State Bills</h1>
-        <p className="state-bills-subtitle">AI-powered state legislation tracker</p>
+        <p className="state-bills-subtitle">Track legislation in your state</p>
       </div>
 
       <div className="state-bills-controls">
@@ -149,7 +136,7 @@ function StateBillsPage() {
         <form className="ai-search-form" onSubmit={handleSearch}>
           <input
             type="text"
-            placeholder="Ask about legislation... (e.g., &quot;education funding bills&quot;)"
+            placeholder="Search bills... (e.g., education funding)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="ai-search-input"
@@ -160,19 +147,19 @@ function StateBillsPage() {
             className="ai-search-button"
             disabled={searching || !searchQuery.trim()}
           >
-            {searching ? 'Searching...' : 'AI Search'}
+            {searching ? 'Searching...' : 'Search'}
           </button>
+          {searchQuery && (
+            <button
+              type="button"
+              className="ai-message-clear"
+              onClick={handleClearSearch}
+            >
+              Clear
+            </button>
+          )}
         </form>
       </div>
-
-      {aiMessage && (
-        <div className="ai-message-banner">
-          <span className="ai-message-text">{aiMessage}</span>
-          <button className="ai-message-clear" onClick={handleClearSearch}>
-            Clear
-          </button>
-        </div>
-      )}
 
       <div className="state-bills-filters">
         <select
@@ -194,8 +181,8 @@ function StateBillsPage() {
           onChange={(e) => setSortBy(e.target.value)}
           className="state-bills-filter-select"
         >
-          <option value="impact">Sort by AI Impact</option>
           <option value="recent">Sort by Recent Activity</option>
+          <option value="relevance">Sort by Relevance</option>
         </select>
       </div>
 
@@ -216,7 +203,6 @@ function StateBillsPage() {
           <div className="state-bills-results-info">
             <span className="results-count">
               Showing {displayBills.length} bill{displayBills.length !== 1 ? 's' : ''}
-              {isAiSearch ? ' (AI ranked)' : ''}
             </span>
           </div>
 
