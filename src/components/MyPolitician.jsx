@@ -4,7 +4,7 @@ import {
   getAllRepresentativesForLocation,
   getCongressionalDistrict,
   getDistrictsByState,
-  getDistrictFromAddress
+  US_STATES
 } from '../services/district'
 import {
   saveUserAddress,
@@ -17,11 +17,6 @@ import '../styles/MyPolitician.css'
 function MyPolitician() {
   const savedAddress = getUserAddress()
 
-  const [address, setAddress] = useState(
-    savedAddress?.street
-      ? [savedAddress.street, savedAddress.city, savedAddress.state, savedAddress.zip].filter(Boolean).join(', ')
-      : ''
-  )
   const [formData, setFormData] = useState({
     street: savedAddress?.street || '',
     city: savedAddress?.city || '',
@@ -34,12 +29,10 @@ function MyPolitician() {
   const [hasSearched, setHasSearched] = useState(!!savedAddress?.state)
   const [favorites, setFavorites] = useState([])
 
-  // Load favorites on mount
   useEffect(() => {
     setFavorites(getFavorites())
   }, [])
 
-  // Auto-load representatives if we have saved address
   useEffect(() => {
     if (savedAddress?.street && savedAddress?.state) {
       findRepresentatives(savedAddress)
@@ -50,37 +43,14 @@ function MyPolitician() {
     setFavorites(getFavorites())
   }
 
-  // Parse a full address string into components
-  const parseAddress = (fullAddress) => {
-    // Expected format: "123 Main St, City, ST 12345" or similar
-    const parts = fullAddress.split(',').map(p => p.trim())
-
-    if (parts.length >= 3) {
-      const street = parts[0]
-      const city = parts[1]
-      // Last part might be "ST 12345" or "State 12345"
-      const lastPart = parts[parts.length - 1]
-      const stateZipMatch = lastPart.match(/^([A-Za-z]{2})\s*(\d{5})?/)
-      const state = stateZipMatch ? stateZipMatch[1].toUpperCase() : ''
-      const zip = stateZipMatch ? (stateZipMatch[2] || '') : ''
-      return { street, city, state, zip }
-    } else if (parts.length === 2) {
-      const street = parts[0]
-      const lastPart = parts[1]
-      const stateZipMatch = lastPart.match(/^(.+?)\s+([A-Za-z]{2})\s*(\d{5})?$/)
-      if (stateZipMatch) {
-        return { street, city: stateZipMatch[1], state: stateZipMatch[2].toUpperCase(), zip: stateZipMatch[3] || '' }
-      }
-      return { street, city: '', state: '', zip: '' }
-    }
-
-    return { street: fullAddress, city: '', state: '', zip: '' }
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const findRepresentatives = async (addressData) => {
     const data = addressData || formData
     if (!data.street || !data.state) {
-      setError('Please enter a full address (e.g. 123 Main St, City, ST 12345)')
+      setError('Please enter your street address and select a state')
       return
     }
 
@@ -89,29 +59,20 @@ function MyPolitician() {
     setHasSearched(true)
 
     try {
-      console.log(`[MyPolitician] Looking up representatives for: ${data.street}, ${data.city}, ${data.state} ${data.zip}`)
-
-      // Save address
       saveUserAddress(data)
-
       const stateAbbr = data.state
 
-      // Try Census Geocoder to get the exact congressional district
       const districtInfo = await getCongressionalDistrict(
         data.street, data.city, stateAbbr, data.zip
       )
 
       if (districtInfo?.district) {
-        console.log(`[MyPolitician] Census Geocoder found district: ${districtInfo.state}-${districtInfo.district}`)
         const reps = await getAllRepresentativesForLocation(districtInfo.state, districtInfo.district)
         setRepresentatives(reps)
       } else {
-        console.log('[MyPolitician] Census Geocoder returned no district, using state-based fallback')
-
         const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
 
         if (atLargeStates.includes(stateAbbr)) {
-          console.log(`[MyPolitician] ${stateAbbr} is at-large, fetching all representatives`)
           const allReps = await getAllRepresentativesForLocation(stateAbbr, '0')
           setRepresentatives(allReps)
         } else {
@@ -142,14 +103,11 @@ function MyPolitician() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const parsed = parseAddress(address)
-    setFormData(parsed)
-    findRepresentatives(parsed)
+    findRepresentatives()
   }
 
   const handleReset = () => {
     clearUserAddress()
-    setAddress('')
     setFormData({ street: '', city: '', state: '', zip: '' })
     setRepresentatives([])
     setHasSearched(false)
@@ -165,18 +123,72 @@ function MyPolitician() {
 
       <div className="address-card">
         <form onSubmit={handleSubmit} className="address-form">
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 Main St, City, ST 12345"
-            className="form-input autocomplete-input"
-          />
+          <div className="form-group full-width">
+            <label htmlFor="street">Street Address</label>
+            <input
+              id="street"
+              name="street"
+              type="text"
+              value={formData.street}
+              onChange={handleChange}
+              placeholder="123 Main St"
+              className="form-input"
+              autoComplete="address-line1"
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="city">City</label>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="City"
+                className="form-input"
+                autoComplete="address-level2"
+              />
+            </div>
+
+            <div className="form-group small">
+              <label htmlFor="state">State</label>
+              <select
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="form-input"
+                autoComplete="address-level1"
+              >
+                <option value="">--</option>
+                {US_STATES.map(s => (
+                  <option key={s.abbr} value={s.abbr}>{s.abbr}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group small">
+              <label htmlFor="zip">Zip Code</label>
+              <input
+                id="zip"
+                name="zip"
+                type="text"
+                value={formData.zip}
+                onChange={handleChange}
+                placeholder="12345"
+                className="form-input"
+                maxLength={5}
+                autoComplete="postal-code"
+              />
+            </div>
+          </div>
 
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-actions">
-            <button type="submit" className="btn-primary" disabled={loading || !address.trim()}>
+            <button type="submit" className="btn-primary" disabled={loading || !formData.street.trim() || !formData.state}>
               {loading ? 'Finding...' : 'Find My Representatives'}
             </button>
             {hasSearched && (
