@@ -15,6 +15,8 @@ function ShutdownTracker() {
   const [apiBills, setApiBills] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showCRTooltip, setShowCRTooltip] = useState(false)
+  const crTooltipRef = useRef(null)
 
   const loadData = async () => {
     try {
@@ -53,6 +55,22 @@ function ShutdownTracker() {
 
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (crTooltipRef.current && !crTooltipRef.current.contains(e.target)) {
+        setShowCRTooltip(false)
+      }
+    }
+    if (showCRTooltip) {
+      document.addEventListener('touchstart', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCRTooltip])
 
   const statusLabels = {
     signed: 'Signed into Law',
@@ -97,25 +115,6 @@ function ShutdownTracker() {
       </div>
     )
   }
-
-  const [showCRTooltip, setShowCRTooltip] = useState(false)
-  const crTooltipRef = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (crTooltipRef.current && !crTooltipRef.current.contains(e.target)) {
-        setShowCRTooltip(false)
-      }
-    }
-    if (showCRTooltip) {
-      document.addEventListener('touchstart', handleClickOutside)
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => {
-      document.removeEventListener('touchstart', handleClickOutside)
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [showCRTooltip])
 
   const bills = FUNDING_DEADLINES.appropriationsBills
   const billsSigned = bills.filter(b => b.status === 'signed').length
