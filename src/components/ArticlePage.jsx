@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import articles from '../data/articles'
 import '../styles/ArticlePage.css'
@@ -5,6 +6,10 @@ import '../styles/ArticlePage.css'
 function ArticlePage() {
   const { slug } = useParams()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [slug])
 
   const article = articles.find(a => a.slug === slug)
 

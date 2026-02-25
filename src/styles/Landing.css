@@ -93,7 +93,10 @@ html {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 3rem;
-  background: transparent;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   opacity: 0;
   transform: translateY(-20px);
   pointer-events: none;
