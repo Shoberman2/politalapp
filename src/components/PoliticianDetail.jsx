@@ -458,40 +458,6 @@ function PoliticianDetail() {
               <p className="no-corporate-message">No major corporate donations found</p>
             )}
 
-            {/* Top Individual Donors Table */}
-            {donations.donors && donations.donors.length > 0 && (
-              <div className="top-donors-section">
-                <h3>Top Individual Donors</h3>
-                <div className="donors-table-container">
-                  <table className="donors-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Occupation</th>
-                        <th>Employer</th>
-                        <th>Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {donations.donors.slice(0, 15).map((donor, index) => (
-                        <tr key={index} className={donor.isCorporate ? 'corporate-row' : ''}>
-                          <td className="donor-rank">{index + 1}</td>
-                          <td className="donor-name">
-                            {donor.name}
-                            {donor.isCorporate && <span className="corp-badge">Corp</span>}
-                          </td>
-                          <td className="donor-occupation">{donor.occupation || '—'}</td>
-                          <td className="donor-occupation">{donor.employer || '—'}</td>
-                          <td className="donor-amount">{formatCurrency(donor.totalAmount)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
             <div className="funding-source">
               <a
                 href={`https://www.fec.gov/data/candidate/${donations.candidate?.id || ''}/`}
