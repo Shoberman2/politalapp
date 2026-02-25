@@ -47,16 +47,15 @@ function Navigation() {
             >
               Shutdown Tracker
             </NavLink>
+            <NavLink
+              to="/blog"
+              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+            >
+              Blog
+            </NavLink>
           </div>
 
-          {/* Auth UI disabled for now */}
-          {/* {user && (
-            <div className="nav-auth">
-              <button className="nav-signout" onClick={handleSignOut}>
-                Sign Out
-              </button>
-            </div>
-          )} */}
+          <div className="nav-spacer"></div>
         </div>
       </nav>
     </>

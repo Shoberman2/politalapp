@@ -1,0 +1,163 @@
+.article-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.article-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #514e4c;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  padding: 0;
+  transition: color 0.2s ease;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.article-page .back-link:hover {
+  color: #514e4c;
+}
+
+.article-header {
+  margin-bottom: 2.5rem;
+}
+
+.article-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.article-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  background: #514e4c;
+  padding: 0.4rem 0.8rem;
+}
+
+.article-title {
+  font-size: 2.25rem;
+  font-weight: 400;
+  color: #514e4c;
+  line-height: 1.25;
+  margin-bottom: 1.25rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #7a7775;
+  font-size: 0.95rem;
+}
+
+.article-meta-divider {
+  color: #a8a6a4;
+}
+
+.article-author {
+  font-weight: 500;
+}
+
+.article-body {
+  border-top: 1px solid rgba(81, 78, 76, 0.15);
+  padding-top: 2rem;
+}
+
+.article-body p {
+  color: #514e4c;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  margin-bottom: 1.5rem;
+}
+
+.article-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Not found state */
+.article-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+  text-align: center;
+}
+
+.article-not-found h1 {
+  font-size: 1.75rem;
+  color: #514e4c;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+}
+
+.article-not-found p {
+  color: #7a7775;
+  font-size: 1.05rem;
+}
+
+.article-not-found .back-button {
+  padding: 0.75rem 1.5rem;
+  background: #514e4c;
+  color: white;
+  border: 1px solid #514e4c;
+  border-radius: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+}
+
+.article-not-found .back-button:hover {
+  background: transparent;
+  color: #514e4c;
+  border-color: #514e4c;
+}
+
+@media (max-width: 768px) {
+  .article-page {
+    padding: 0;
+  }
+
+  .article-title {
+    font-size: 1.65rem;
+  }
+
+  .article-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .article-meta-divider {
+    display: none;
+  }
+
+  .article-body p {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+}

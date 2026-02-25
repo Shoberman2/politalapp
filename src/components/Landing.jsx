@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import articles from '../data/articles'
 import '../styles/Landing.css'
 
 function Landing() {
@@ -47,6 +48,7 @@ function Landing() {
           <a href="#about">Representatives</a>
           <a href="#features">Bills</a>
           <a href="#how-it-works">Tracker</a>
+          <a href="#articles">Articles</a>
         </div>
         <div className="nav-cta">
           <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">
@@ -392,6 +394,42 @@ function Landing() {
         </div>
       </section>
 
+      {/* Articles */}
+      <section className="landing-articles" id="articles">
+        <div className="section-container">
+          <div className="section-header section-header-center">
+            <span className="section-label">From the Blog</span>
+            <h2 className="section-title">Understand how Congress really works</h2>
+            <p className="section-description">
+              Nonpartisan explainers on legislation, voting records, campaign finance, and the procedures that shape American law.
+            </p>
+          </div>
+          <div className="articles-grid">
+            {articles.slice(0, 6).map(article => (
+              <div
+                key={article.slug}
+                className="article-preview-card"
+                onClick={() => navigate(`/blog/${article.slug}`)}
+              >
+                <div className="article-preview-tags">
+                  {article.tags.map(tag => (
+                    <span key={tag} className="article-preview-tag">{tag}</span>
+                  ))}
+                </div>
+                <h3>{article.title}</h3>
+                <p>{article.excerpt}</p>
+                <span className="article-preview-link">Read Article &rsaquo;</span>
+              </div>
+            ))}
+          </div>
+          <div className="articles-cta">
+            <button onClick={() => navigate('/blog')} className="btn-tertiary">
+              View All Articles
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-container">
@@ -410,6 +448,13 @@ function Landing() {
                 <h4>Resources</h4>
                 <button onClick={() => navigate('/bills')}>Bills</button>
                 <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
+                <button onClick={() => navigate('/blog')}>Blog</button>
+              </div>
+              <div className="footer-column">
+                <h4>Articles</h4>
+                {articles.slice(0, 5).map(article => (
+                  <button key={article.slug} onClick={() => navigate(`/blog/${article.slug}`)}>{article.title}</button>
+                ))}
               </div>
               <div className="footer-column">
                 <h4>Data</h4>

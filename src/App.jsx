@@ -12,6 +12,8 @@ import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
 import ShutdownBanner from './components/ShutdownBanner'
 import ShutdownTracker from './components/ShutdownTracker'
+import BlogPage from './components/BlogPage'
+import ArticlePage from './components/ArticlePage'
 // import StateBillsPage from './components/StateBillsPage'
 
 function App() {
@@ -52,6 +54,8 @@ function App() {
           <Route path="/shutdown-tracker" element={
             <ProtectedRoute><ShutdownTracker /></ProtectedRoute>
           } />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<ArticlePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
