@@ -10,22 +10,29 @@ function Landing() {
   const [introComplete, setIntroComplete] = useState(!!hasSeenIntro)
   const [introExiting, setIntroExiting] = useState(!!hasSeenIntro)
 
-  useEffect(() => {
-    if (hasSeenIntro) return
+  const playIntro = () => {
+    setIntroComplete(false)
+    setIntroExiting(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 
     const exitTimer = setTimeout(() => {
       setIntroExiting(true)
-    }, 4000)
+    }, 3000)
 
     const completeTimer = setTimeout(() => {
       setIntroComplete(true)
       sessionStorage.setItem('hasSeenIntro', 'true')
-    }, 5000)
+    }, 4000)
 
     return () => {
       clearTimeout(exitTimer)
       clearTimeout(completeTimer)
     }
+  }
+
+  useEffect(() => {
+    if (hasSeenIntro) return
+    return playIntro()
   }, [])
 
   return (
@@ -49,7 +56,7 @@ function Landing() {
 
       {/* Sticky Navigation Bar */}
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
-        <div className="nav-logo">
+        <div className="nav-logo" onClick={playIntro} style={{ cursor: 'pointer' }}>
           <img src="/capitol-logo.png" alt="" className="landing-nav-logo-img" />
           BallotWatch
         </div>

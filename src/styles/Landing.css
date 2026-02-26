@@ -563,13 +563,16 @@ html {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  justify-items: center;
 }
 
 .value-card:last-child {
-  grid-column: 2 / 3;
+  grid-column: 1 / -1;
+  max-width: calc((100% - 1.5rem * 2) / 3);
 }
 
 .value-card {
+  width: 100%;
   background: #141414;
   padding: 2.5rem 2rem;
   cursor: pointer;
@@ -683,6 +686,7 @@ html {
 .premium-db-layout {
   max-width: 800px;
   margin: 0 auto;
+  text-align: center;
 }
 
 .premium-db-content .section-title {
@@ -771,9 +775,16 @@ html {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+  justify-items: center;
+}
+
+.features-grid .feature-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  max-width: calc((100% - 1.5rem) / 2);
 }
 
 .feature-card {
+  width: 100%;
   padding: 2.5rem;
   background: #ffffff;
   border: 1px solid rgba(26, 26, 26, 0.08);
@@ -1193,6 +1204,10 @@ html {
     gap: 1.25rem;
   }
 
+  .value-card:last-child {
+    max-width: calc((100% - 1.25rem) / 2);
+  }
+
   .step-number {
     font-size: 3rem;
   }
@@ -1203,6 +1218,11 @@ html {
 
   .features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .features-grid .feature-card:last-child:nth-child(odd) {
+    grid-column: auto;
+    max-width: 100%;
   }
 
   .cta-content h2 {
@@ -1307,6 +1327,7 @@ html {
 
   .value-card:last-child {
     grid-column: auto;
+    max-width: 100%;
   }
 
   .value-card {
