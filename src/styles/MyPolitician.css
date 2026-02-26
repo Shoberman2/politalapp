@@ -274,6 +274,37 @@ select.form-input {
   font-size: 0.95rem;
 }
 
+/* Senators loading */
+.senators-loading,
+.senators-loading-standalone {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #fafafa;
+  border: 1px solid rgba(81, 78, 76, 0.1);
+}
+
+.senators-loading p,
+.senators-loading-standalone p {
+  color: #7a7775;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.loading-spinner.small {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-width: 2px;
+}
+
+.no-senators-message {
+  color: #7a7775;
+  font-size: 0.95rem;
+  padding: 1rem 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-header h1 {

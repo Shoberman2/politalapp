@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
 import SEO from './SEO'
 import {
-  getAllRepresentativesForLocation,
+  getHouseRepForDistrict,
+  getSenatorsForState,
   getCongressionalDistrict,
   getDistrictsByState,
   US_STATES
@@ -24,8 +25,10 @@ function MyPolitician() {
     state: savedAddress?.state || '',
     zip: savedAddress?.zip || ''
   })
-  const [representatives, setRepresentatives] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [houseRep, setHouseRep] = useState(null)
+  const [senators, setSenators] = useState([])
+  const [loadingHouse, setLoadingHouse] = useState(false)
+  const [loadingSenators, setLoadingSenators] = useState(false)
   const [error, setError] = useState(null)
   const [hasSearched, setHasSearched] = useState(!!savedAddress?.state)
   const [favorites, setFavorites] = useState([])
@@ -55,9 +58,12 @@ function MyPolitician() {
       return
     }
 
-    setLoading(true)
+    setLoadingHouse(true)
+    setLoadingSenators(true)
     setError(null)
     setHasSearched(true)
+    setHouseRep(null)
+    setSenators([])
 
     try {
       saveUserAddress(data)
@@ -67,38 +73,61 @@ function MyPolitician() {
         data.street, data.city, stateAbbr, data.zip
       )
 
+      let resolvedState = stateAbbr
+      let resolvedDistrict = null
+
       if (districtInfo?.district) {
-        const reps = await getAllRepresentativesForLocation(districtInfo.state, districtInfo.district)
-        setRepresentatives(reps)
+        resolvedState = districtInfo.state
+        resolvedDistrict = districtInfo.district
       } else {
         const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
 
         if (atLargeStates.includes(stateAbbr)) {
-          const allReps = await getAllRepresentativesForLocation(stateAbbr, '0')
-          setRepresentatives(allReps)
+          resolvedDistrict = '0'
         } else {
           const districts = await getDistrictsByState(stateAbbr)
 
           if (districts.length === 1) {
-            const allReps = await getAllRepresentativesForLocation(stateAbbr, districts[0])
-            setRepresentatives(allReps)
+            resolvedDistrict = districts[0]
           } else {
-            const allReps = await getAllRepresentativesForLocation(stateAbbr, null)
-            const senators = allReps.filter(r => r.chamber === 'senate')
-            setRepresentatives(senators)
-            if (senators.length > 0) {
-              setError(`Found your senators below. We couldn't determine your House district from your address. Visit house.gov/representatives/find-your-representative to find your district number.`)
-            } else {
-              setError('Could not find representatives for your address. Please check your address and try again.')
-            }
+            // Can't determine district — just load senators
+            resolvedDistrict = null
+            setLoadingHouse(false)
+            setError(`We couldn't determine your House district from your address. Visit house.gov/representatives/find-your-representative to find your district number.`)
           }
         }
       }
+
+      // Fetch House rep and Senators in parallel
+      const housePromise = resolvedDistrict !== null
+        ? getHouseRepForDistrict(resolvedState, resolvedDistrict)
+            .then(rep => {
+              setHouseRep(rep)
+              setLoadingHouse(false)
+            })
+            .catch(err => {
+              console.error('[MyPolitician] Error fetching House rep:', err)
+              setLoadingHouse(false)
+            })
+        : Promise.resolve()
+
+      const senatePromise = getSenatorsForState(resolvedState)
+        .then(sens => {
+          setSenators(sens)
+          setLoadingSenators(false)
+        })
+        .catch(err => {
+          console.error('[MyPolitician] Error fetching Senators:', err)
+          setLoadingSenators(false)
+        })
+
+      await Promise.all([housePromise, senatePromise])
+
     } catch (err) {
       console.error('[MyPolitician] Error:', err)
       setError('Error finding representatives. Please check your address and try again.')
-    } finally {
-      setLoading(false)
+      setLoadingHouse(false)
+      setLoadingSenators(false)
     }
   }
 
@@ -110,10 +139,14 @@ function MyPolitician() {
   const handleReset = () => {
     clearUserAddress()
     setFormData({ street: '', city: '', state: '', zip: '' })
-    setRepresentatives([])
+    setHouseRep(null)
+    setSenators([])
     setHasSearched(false)
     setError(null)
   }
+
+  const isLoading = loadingHouse || loadingSenators
+  const hasResults = houseRep || senators.length > 0
 
   return (
     <div className="my-politician">
@@ -194,8 +227,8 @@ function MyPolitician() {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-actions">
-            <button type="submit" className="btn-primary" disabled={loading || !formData.street.trim() || !formData.state}>
-              {loading ? 'Finding...' : 'Find My Representatives'}
+            <button type="submit" className="btn-primary" disabled={isLoading || !formData.street.trim() || !formData.state}>
+              {isLoading ? 'Finding...' : 'Find My Representatives'}
             </button>
             {hasSearched && (
               <button type="button" className="btn-secondary" onClick={handleReset}>
@@ -223,41 +256,53 @@ function MyPolitician() {
         </div>
       )}
 
-      {loading && (
+      {loadingHouse && !houseRep && senators.length === 0 && (
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Finding your representatives...</p>
         </div>
       )}
 
-      {!loading && representatives.length > 0 && (
+      {hasResults && (
         <div className="representatives-results">
           <h2>Your Representatives</h2>
           <p className="results-subtitle">
             Representing {formData.street}{formData.city ? `, ${formData.city}` : ''}, {formData.state} {formData.zip}
           </p>
 
-          {representatives.filter(r => r.chamber === 'house').length > 0 && (
+          {houseRep && (
             <div className="rep-section">
               <h3>House of Representatives</h3>
               <div className="rep-grid">
-                {representatives.filter(r => r.chamber === 'house').map(rep => (
-                  <PoliticianCard key={rep.bioguideId} politician={rep} showFavorite onFavoriteChange={refreshFavorites} />
-                ))}
+                <PoliticianCard politician={houseRep} showFavorite onFavoriteChange={refreshFavorites} />
               </div>
             </div>
           )}
 
-          {representatives.filter(r => r.chamber === 'senate').length > 0 && (
-            <div className="rep-section">
-              <h3>U.S. Senate</h3>
+          <div className="rep-section">
+            <h3>U.S. Senate</h3>
+            {loadingSenators ? (
+              <div className="senators-loading">
+                <div className="loading-spinner small"></div>
+                <p>Loading senators — this can take a minute...</p>
+              </div>
+            ) : senators.length > 0 ? (
               <div className="rep-grid">
-                {representatives.filter(r => r.chamber === 'senate').map(senator => (
+                {senators.map(senator => (
                   <PoliticianCard key={senator.bioguideId} politician={senator} showFavorite onFavoriteChange={refreshFavorites} />
                 ))}
               </div>
-            </div>
-          )}
+            ) : !loadingHouse && (
+              <p className="no-senators-message">No senators found for your state.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {loadingSenators && houseRep && (
+        <div className="senators-loading-standalone">
+          <div className="loading-spinner small"></div>
+          <p>Loading senators — this can take a minute...</p>
         </div>
       )}
     </div>

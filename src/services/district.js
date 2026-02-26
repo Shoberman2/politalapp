@@ -289,12 +289,19 @@ const getMemberDistrict = (member) => {
   return term?.district || member.district || null
 }
 
-// Get all representatives for a location (House + Senate)
-export const getAllRepresentativesForLocation = async (stateAbbr, district = null) => {
-  try {
-    console.log(`[District API] Fetching ALL representatives for ${stateAbbr}${district ? ` district ${district}` : ''}`)
+// Shared cache for fetched members to avoid duplicate API calls
+let _membersCachePromise = null
+let _membersCacheTime = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
-    // Fetch all members with pagination
+const fetchAllMembersWithCache = async () => {
+  const now = Date.now()
+  if (_membersCachePromise && (now - _membersCacheTime) < CACHE_TTL) {
+    return _membersCachePromise
+  }
+
+  _membersCacheTime = now
+  _membersCachePromise = (async () => {
     const allMembers = []
     let offset = 0
     const limit = 250
@@ -317,19 +324,64 @@ export const getAllRepresentativesForLocation = async (stateAbbr, district = nul
       if (members.length < limit) break
     }
 
-    console.log(`[District API] Total members fetched: ${allMembers.length}`)
+    console.log(`[District API] Cached ${allMembers.length} members`)
+    return allMembers
+  })()
 
-    // Log first member structure for debugging
-    if (allMembers.length > 0) {
-      const sample = allMembers[0]
-      console.log(`[District API] Sample member structure:`, {
-        state: sample.state,
-        termsType: typeof sample.terms,
-        termsIsArray: Array.isArray(sample.terms),
-        hasTermsItem: !!sample.terms?.item,
-        keys: Object.keys(sample)
-      })
+  return _membersCachePromise
+}
+
+// Get House representative for a specific district
+export const getHouseRepForDistrict = async (stateAbbr, district) => {
+  try {
+    console.log(`[District API] Fetching House rep for ${stateAbbr} district ${district}`)
+    const allMembers = await fetchAllMembersWithCache()
+
+    const districtNum = parseInt(district)
+    const houseRep = allMembers.find(member => {
+      const memberState = getMemberState(member)
+      const chamber = getMemberChamber(member)
+      const memberDistrict = parseInt(getMemberDistrict(member) || 0)
+      return memberState === stateAbbr && chamber === 'house' && memberDistrict === districtNum
+    })
+
+    if (houseRep) {
+      console.log(`[District API] Found House rep: ${houseRep.name}`)
+      return normalizeMember(houseRep, 'house')
     }
+    return null
+  } catch (error) {
+    console.error('[District API] Error getting House rep:', error)
+    throw error
+  }
+}
+
+// Get Senators for a state
+export const getSenatorsForState = async (stateAbbr) => {
+  try {
+    console.log(`[District API] Fetching Senators for ${stateAbbr}`)
+    const allMembers = await fetchAllMembersWithCache()
+
+    const senators = allMembers.filter(member => {
+      const memberState = getMemberState(member)
+      const chamber = getMemberChamber(member)
+      return memberState === stateAbbr && chamber === 'senate'
+    })
+
+    console.log(`[District API] Found ${senators.length} senators for ${stateAbbr}`)
+    return senators.map(s => normalizeMember(s, 'senate'))
+  } catch (error) {
+    console.error('[District API] Error getting senators:', error)
+    throw error
+  }
+}
+
+// Get all representatives for a location (House + Senate)
+export const getAllRepresentativesForLocation = async (stateAbbr, district = null) => {
+  try {
+    console.log(`[District API] Fetching ALL representatives for ${stateAbbr}${district ? ` district ${district}` : ''}`)
+
+    const allMembers = await fetchAllMembersWithCache()
 
     // Filter by state
     const stateMembers = allMembers.filter(member => {

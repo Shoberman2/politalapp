@@ -19,11 +19,11 @@ function AllPoliticians() {
       try {
         setLoading(true)
         console.log('[AllPoliticians] Starting to fetch all members...')
-        const members = await getAllCurrentMembers()
-        console.log(`[AllPoliticians] Successfully loaded ${members.length} members`)
-        console.log('[AllPoliticians] Sample member:', members[0])
-        setAllMembers(members)
-        setFilteredMembers(members)
+        await getAllCurrentMembers((batchMembers) => {
+          console.log(`[AllPoliticians] Received batch, total so far: ${batchMembers.length}`)
+          setAllMembers(batchMembers)
+          setLoading(false)
+        })
       } catch (err) {
         console.error('[AllPoliticians] Error loading politicians:', err)
         console.error('[AllPoliticians] Error status:', err.response?.status)

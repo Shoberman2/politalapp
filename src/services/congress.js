@@ -260,7 +260,32 @@ export const getBillText = async (congress, billType, billNumber) => {
   }
 }
 
-export const getAllCurrentMembers = async () => {
+const normalizeMemberBatch = (members) => {
+  const partyAbbr = { 'democratic': 'D', 'republican': 'R', 'independent': 'I' }
+  return members.map(member => {
+    const currentTerm = member.terms?.item?.[member.terms.item.length - 1]
+    const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
+    const chamber = chamberRaw.includes('senate') ? 'senate' : 'house'
+    const rawParty = (member.partyName || currentTerm?.party || '').toLowerCase()
+    const party = partyAbbr[rawParty] || rawParty.charAt(0).toUpperCase()
+
+    return {
+      bioguideId: member.bioguideId,
+      name: member.name,
+      firstName: member.firstName || '',
+      lastName: member.lastName || '',
+      state: member.state || currentTerm?.state,
+      district: currentTerm?.district,
+      party: party,
+      partyName: member.partyName || currentTerm?.party,
+      chamber: chamber,
+      url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
+      updateDate: member.updateDate
+    }
+  })
+}
+
+export const getAllCurrentMembers = async (onBatch) => {
   try {
     console.log('[Congress API] Fetching all current members (House + Senate)...')
 
@@ -285,41 +310,22 @@ export const getAllCurrentMembers = async () => {
 
       if (members.length === 0) break
 
-      allMembers.push(...members)
+      const processed = normalizeMemberBatch(members)
+      allMembers.push(...processed)
+
+      // Notify caller with incremental results
+      if (onBatch) {
+        onBatch([...allMembers])
+      }
+
       offset += members.length
 
       // If we got fewer than the limit, we've reached the end
       if (members.length < limit) break
     }
 
-    console.log(`[Congress API] Total members received: ${allMembers.length}`)
-
-    // Process and normalize member data
-    const partyAbbr = { 'democratic': 'D', 'republican': 'R', 'independent': 'I' }
-    const processed = allMembers.map(member => {
-      const currentTerm = member.terms?.item?.[member.terms.item.length - 1]
-      const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
-      const chamber = chamberRaw.includes('senate') ? 'senate' : 'house'
-      const rawParty = (member.partyName || currentTerm?.party || '').toLowerCase()
-      const party = partyAbbr[rawParty] || rawParty.charAt(0).toUpperCase()
-
-      return {
-        bioguideId: member.bioguideId,
-        name: member.name,
-        firstName: member.firstName || '',
-        lastName: member.lastName || '',
-        state: member.state || currentTerm?.state,
-        district: currentTerm?.district,
-        party: party,
-        partyName: member.partyName || currentTerm?.party,
-        chamber: chamber,
-        url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
-        updateDate: member.updateDate
-      }
-    })
-
-    console.log(`[Congress API] Processed ${processed.length} members`)
-    return processed
+    console.log(`[Congress API] Total members processed: ${allMembers.length}`)
+    return allMembers
   } catch (error) {
     console.error('[Congress API] Error fetching all members:', error.response?.status, error.response?.data || error.message)
     throw error
