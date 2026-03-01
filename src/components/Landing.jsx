@@ -41,6 +41,26 @@ function Landing() {
         title="Track Your Congress"
         description="Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status."
         path="/"
+        schema={{
+          '@graph': [
+            {
+              '@type': 'WebSite',
+              name: 'BallotWatch',
+              url: 'https://politicalapp.vercel.app',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://politicalapp.vercel.app/bills?search={search_term_string}',
+                'query-input': 'required name=search_term_string'
+              }
+            },
+            {
+              '@type': 'Organization',
+              name: 'BallotWatch',
+              url: 'https://politicalapp.vercel.app',
+              logo: 'https://politicalapp.vercel.app/capitol-logo.png'
+            }
+          ]
+        }}
       />
       {/* Intro Quote Screen */}
       {!introComplete && (

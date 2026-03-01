@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { getBillDetails, getBillText, getBillActions, getBillCosponsors, explainBillWithAI, getVoteTalliesFromActions } from '../services/congress'
+import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getVoteTalliesFromActions } from '../services/congress'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import '../styles/BillDetail.css'
@@ -18,10 +18,6 @@ function BillDetail() {
 
   const [voteTallies, setVoteTallies] = useState([])
   const [talliesLoading, setTalliesLoading] = useState(false)
-
-  const [aiExplanation, setAiExplanation] = useState(null)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [aiExpanded, setAiExpanded] = useState(false)
 
   useEffect(() => {
     fetchBillData()
@@ -58,30 +54,9 @@ function BillDetail() {
     }
   }
 
-  const handleExplainWithAI = async () => {
-    if (aiExplanation && !aiExplanation.isPlaceholder) {
-      setAiExpanded(!aiExpanded)
-      return
-    }
-
-    try {
-      setAiLoading(true)
-      setAiExpanded(true)
-
-      const summary = bill.summaries?.[0]?.text || ''
-      const result = await explainBillWithAI(bill.title, summary)
-      setAiExplanation(result)
-    } catch (err) {
-      console.error('Error getting AI explanation:', err)
-      setAiExplanation({
-        explanation: 'Failed to get AI explanation. Please try again.',
-        keyPoints: [],
-        isPlaceholder: true,
-        error: err.message
-      })
-    } finally {
-      setAiLoading(false)
-    }
+  const getAIExplainPrompt = () => {
+    const billId = `${billType.toUpperCase()} ${number}`
+    return `Explain this U.S. congressional bill in plain English: ${billId} — ${bill?.title || ''}`
   }
 
   const formatDate = (dateString) => {
@@ -154,6 +129,22 @@ function BillDetail() {
         title={bill.title || 'Bill Details'}
         description={`${bill.title || 'Bill'} — ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
         path={`/bill/${congress}/${billType}/${number}`}
+        schema={{
+          '@type': 'Legislation',
+          name: bill.title,
+          description: bill.summaries?.[0]?.text?.replace(/<[^>]+>/g, '').slice(0, 300) || bill.title,
+          legislationIdentifier: `${billType.toUpperCase()}.${number}`,
+          datePublished: bill.introducedDate,
+          ...(sponsor && {
+            sponsor: {
+              '@type': 'Person',
+              name: sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`
+            }
+          }),
+          ...(bill.latestAction?.text?.toLowerCase().includes('became public law') && {
+            legislationPassedBy: 'United States Congress'
+          })
+        }}
       />
       <button className="back-link" onClick={() => navigate('/bills')}>
         ← Back to Bills
@@ -303,46 +294,34 @@ function BillDetail() {
       )}
 
       <section className="bill-section ai-section">
-        <div className="ai-header">
-          <h2>AI Explanation</h2>
-          <button
-            className={`ai-explain-button ${aiExpanded ? 'expanded' : ''}`}
-            onClick={handleExplainWithAI}
-            disabled={aiLoading}
+        <h2>Explain This Bill with AI</h2>
+        <p className="ai-section-desc">Ask an AI assistant to explain this bill in plain English:</p>
+        <div className="ai-links">
+          <a
+            href={`https://claude.ai/new?q=${encodeURIComponent(getAIExplainPrompt())}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ai-link-button ai-link-claude"
           >
-            {aiLoading ? (
-              <>
-                <span className="loading-spinner-small"></span>
-                Analyzing...
-              </>
-            ) : aiExpanded ? (
-              'Hide Explanation'
-            ) : (
-              'Explain This Bill'
-            )}
-          </button>
+            Ask Claude
+          </a>
+          <a
+            href={`https://chatgpt.com/?q=${encodeURIComponent(getAIExplainPrompt())}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ai-link-button ai-link-chatgpt"
+          >
+            Ask ChatGPT
+          </a>
+          <a
+            href={`https://gemini.google.com/app?q=${encodeURIComponent(getAIExplainPrompt())}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ai-link-button ai-link-gemini"
+          >
+            Ask Gemini
+          </a>
         </div>
-
-        {aiExpanded && aiExplanation && (
-          <div className="ai-explanation-content">
-            {aiExplanation.isPlaceholder && (
-              <div className="ai-placeholder-notice">
-                AI-powered explanations require an OpenAI API key.
-              </div>
-            )}
-
-            <div className="explanation-text">
-              <h3>Plain English Explanation</h3>
-              {aiExplanation.paragraphs && aiExplanation.paragraphs.length > 0 ? (
-                aiExplanation.paragraphs.map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))
-              ) : (
-                <p>{aiExplanation.explanation}</p>
-              )}
-            </div>
-          </div>
-        )}
       </section>
 
       <section className="bill-section">

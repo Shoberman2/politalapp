@@ -219,6 +219,22 @@ function PoliticianDetail() {
         title={`${displayName} — Voting Record`}
         description={`View ${displayName}'s congressional voting record, sponsored legislation, and campaign finance data.`}
         path={`/politician/${bioguideId}`}
+        schema={{
+          '@type': 'Person',
+          name: displayName,
+          jobTitle: chamber === 'Senate' ? 'U.S. Senator' : 'U.S. Representative',
+          affiliation: {
+            '@type': 'GovernmentOrganization',
+            name: 'United States Congress'
+          },
+          memberOf: {
+            '@type': 'Organization',
+            name: party
+          },
+          ...(member.depiction?.imageUrl && {
+            image: member.depiction.imageUrl
+          })
+        }}
       />
       <button className="back-link" onClick={() => navigate('/all')}>
         ← Back to All Politicians
