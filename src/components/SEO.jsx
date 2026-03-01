@@ -5,7 +5,7 @@ const BASE_URL = 'https://politicalapp.vercel.app'
 const DEFAULT_IMAGE = `${BASE_URL}/congress.jpg`
 const DEFAULT_DESCRIPTION = 'Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status.'
 
-function SEO({ title, description, path = '/', type = 'website', image, article }) {
+function SEO({ title, description, path = '/', type = 'website', image, article, schema }) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Congressional Voting Records, Bill Tracker & Representative Lookup`
   const desc = description || DEFAULT_DESCRIPTION
   const url = `${BASE_URL}${path}`
@@ -50,6 +50,12 @@ function SEO({ title, description, path = '/', type = 'website', image, article 
               '@id': url
             }
           })}
+        </script>
+      )}
+
+      {schema && (
+        <script type="application/ld+json">
+          {JSON.stringify({ '@context': 'https://schema.org', ...schema })}
         </script>
       )}
     </Helmet>

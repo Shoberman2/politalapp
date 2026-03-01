@@ -459,6 +459,243 @@ export const getVoteTalliesFromActions = async (actions) => {
   }
 }
 
+// --- Notable / "In the News" bills pipeline ---
+
+const ACTION_SCORES = [
+  { pattern: /became public law/i, score: 100 },
+  { pattern: /signed by president/i, score: 100 },
+  { pattern: /resolving differences/i, score: 90 },
+  { pattern: /passed (house|senate) and (house|senate)/i, score: 85 },
+  { pattern: /cloture/i, score: 80 },
+  { pattern: /passed (house|senate)/i, score: 80 },
+  { pattern: /motion to reconsider/i, score: 75 },
+  { pattern: /amendment/i, score: 60 },
+  { pattern: /reported by/i, score: 55 },
+  { pattern: /ordered to be reported/i, score: 50 },
+  { pattern: /hearing/i, score: 40 },
+  { pattern: /committee/i, score: 35 },
+  { pattern: /introduced/i, score: 10 }
+]
+
+function scoreBill(bill) {
+  const text = bill.latestAction?.text || ''
+  for (const { pattern, score } of ACTION_SCORES) {
+    if (pattern.test(text)) return score
+  }
+  return 0
+}
+
+// localStorage cache helpers (24hr TTL for editorial content)
+const NB_EDITORIAL_TTL = 24 * 60 * 60 * 1000
+
+function nbCacheGet(key) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    const { data, expiry } = JSON.parse(raw)
+    if (Date.now() > expiry) {
+      localStorage.removeItem(key)
+      return null
+    }
+    return data
+  } catch {
+    return null
+  }
+}
+
+function nbCacheSet(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, expiry: Date.now() + NB_EDITORIAL_TTL }))
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      // Evict old notable-bill entries and retry
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        if (k?.startsWith('nb_editorial_')) keysToRemove.push(k)
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k))
+      try {
+        localStorage.setItem(key, JSON.stringify({ data, expiry: Date.now() + NB_EDITORIAL_TTL }))
+      } catch {
+        // give up silently
+      }
+    }
+  }
+}
+
+// In-memory promise cache (30 min)
+let _notableBillsPromise = null
+let _notableBillsCacheTime = 0
+const NOTABLE_CACHE_TTL = 30 * 60 * 1000
+
+async function fetchNotableBills() {
+  const response = await congressApi.get('/bill/119', {
+    params: { limit: 250, sort: 'updateDate+desc' }
+  })
+  const bills = response.data.bills || []
+
+  // Score and sort
+  const scored = bills
+    .map(b => ({ ...b, _score: scoreBill(b) }))
+    .filter(b => b._score >= 35)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 7)
+
+  // Fetch sponsor details in parallel
+  const enriched = await Promise.allSettled(
+    scored.map(async (bill) => {
+      try {
+        const detail = await getBillDetails(bill.congress, bill.type?.toLowerCase(), bill.number)
+        return {
+          congress: bill.congress,
+          type: bill.type?.toLowerCase(),
+          number: bill.number,
+          title: detail.title || bill.title,
+          sponsors: detail.sponsors || [],
+          latestAction: detail.latestAction || bill.latestAction,
+          introducedDate: detail.introducedDate,
+          originChamber: detail.originChamber,
+          _score: bill._score
+        }
+      } catch {
+        return {
+          congress: bill.congress,
+          type: bill.type?.toLowerCase(),
+          number: bill.number,
+          title: bill.title,
+          sponsors: [],
+          latestAction: bill.latestAction,
+          _score: bill._score
+        }
+      }
+    })
+  )
+
+  return enriched
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
+}
+
+// Strip HTML tags and grab the first meaningful sentence from CRS summary text
+function extractBlurb(html) {
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  // Skip the bold title line CRS puts at the start, grab the next sentence
+  const sentences = text.split(/(?<=\.)\s+/)
+  const meaningful = sentences.find(s => s.length > 30 && !s.startsWith('This bill is titled'))
+  return meaningful?.slice(0, 200) || sentences[1]?.slice(0, 200) || text.slice(0, 200)
+}
+
+// Build a headline from the bill title — take the short name if present, otherwise truncate
+function buildHeadline(title) {
+  if (!title) return ''
+  // Many bills have a short title like "XYZ Act" — extract it
+  const actMatch = title.match(/(?:the\s+)?(.{5,60}?\bAct\b)/i)
+  if (actMatch) return actMatch[1]
+  // For resolutions, trim common prefixes
+  const cleaned = title
+    .replace(/^A (bill|resolution|joint resolution|concurrent resolution) /i, '')
+    .replace(/^(Providing|Expressing|Designating|Recognizing|Supporting|Calling) for /i, '$1: ')
+  return cleaned.length > 80 ? cleaned.slice(0, 77) + '...' : cleaned
+}
+
+// Template-based "why it matters" from the latest action text
+function buildTemplateBlurb(latestAction, title) {
+  const action = (latestAction || '').toLowerCase()
+  if (action.includes('became public law') || action.includes('signed by president')) {
+    return 'Signed into law — this legislation is now in effect and will be implemented by federal agencies.'
+  }
+  if (action.includes('passed house') && action.includes('passed senate')) {
+    return 'Passed both chambers of Congress and is heading to the President\'s desk for signature.'
+  }
+  if (action.includes('passed house')) {
+    return 'Passed the House and now moves to the Senate for consideration.'
+  }
+  if (action.includes('passed senate')) {
+    return 'Passed the Senate and now moves to the House for consideration.'
+  }
+  if (action.includes('cloture')) {
+    return 'A cloture vote has been invoked, limiting debate and moving this bill closer to a final vote.'
+  }
+  if (action.includes('reported by') || action.includes('ordered to be reported')) {
+    return 'Advanced out of committee and is now on the legislative calendar for floor action.'
+  }
+  if (action.includes('hearing')) {
+    return 'Committee hearings are underway as lawmakers gather testimony on this legislation.'
+  }
+  if (action.includes('committee')) {
+    return 'Referred to committee for review — this is where most of the detailed work on legislation happens.'
+  }
+  return title ? `This legislation is currently active in the ${action.includes('senate') ? 'Senate' : 'House'}.` : 'This legislation is currently active in Congress.'
+}
+
+async function generateBillEditorial(title, latestAction, type, number, congress) {
+  const cacheKey = `nb_editorial_${type}${number}`
+  const cached = nbCacheGet(cacheKey)
+  if (cached) return cached
+
+  const headline = buildHeadline(title) || `${type?.toUpperCase()} ${number}`
+
+  // Try CRS summary first
+  try {
+    const response = await congressApi.get(`/bill/${congress || 119}/${type}/${number}/summaries`)
+    const summaries = response.data.summaries || []
+    if (summaries.length > 0) {
+      // Use the most recent summary
+      const latest = summaries[summaries.length - 1]
+      const blurb = extractBlurb(latest.text)
+      if (blurb) {
+        const result = { headline, whyItMatters: blurb }
+        nbCacheSet(cacheKey, result)
+        return result
+      }
+    }
+  } catch {
+    // CRS summary not available — fall through to template
+  }
+
+  // Fallback: template-based blurb
+  const result = { headline, whyItMatters: buildTemplateBlurb(latestAction, title) }
+  nbCacheSet(cacheKey, result)
+  return result
+}
+
+export const getTrendingBills = async () => {
+  const now = Date.now()
+  if (_notableBillsPromise && (now - _notableBillsCacheTime) < NOTABLE_CACHE_TTL) {
+    return _notableBillsPromise
+  }
+
+  _notableBillsCacheTime = now
+  _notableBillsPromise = (async () => {
+    try {
+      const bills = await fetchNotableBills()
+      if (bills.length === 0) return []
+
+      // Generate editorial content in parallel
+      const withEditorial = await Promise.all(
+        bills.map(async (bill) => {
+          const editorial = await generateBillEditorial(
+            bill.title,
+            bill.latestAction?.text,
+            bill.type,
+            bill.number,
+            bill.congress
+          )
+          return { ...bill, ...editorial }
+        })
+      )
+
+      return withEditorial
+    } catch (err) {
+      console.error('[Congress API] Notable bills pipeline failed:', err.message)
+      return []
+    }
+  })()
+
+  return _notableBillsPromise
+}
+
 export const explainBillWithAI = async (billTitle, billSummary, billText = '') => {
   try {
     const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY

@@ -1,0 +1,176 @@
+.trending-bills-section {
+  margin-bottom: 2.5rem;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.trending-bills-title {
+  font-size: 1.75rem;
+  color: #514e4c;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  margin-bottom: 0.25rem;
+}
+
+.trending-bills-subtitle {
+  color: #7a7775;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+}
+
+.trending-bills-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.trending-bills-loading p {
+  color: #7a7775;
+  font-size: 0.95rem;
+}
+
+.trending-bills-scroll {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trending-bills-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.trending-bills-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.trending-bills-scroll::-webkit-scrollbar-thumb {
+  background: rgba(81, 78, 76, 0.2);
+}
+
+.trending-bills-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(81, 78, 76, 0.4);
+}
+
+/* Card */
+.trending-bill-card {
+  flex: 0 0 340px;
+  background: white;
+  padding: 1.5rem;
+  border: 1px solid rgba(81, 78, 76, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  scroll-snap-align: start;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trending-bill-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #514e4c;
+}
+
+.trending-bill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.trending-badge {
+  padding: 0.3rem 0.65rem;
+  background: #514e4c;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.trending-bill-headline {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #514e4c;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.trending-bill-blurb {
+  font-size: 0.88rem;
+  color: #7a7775;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.trending-bill-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f5f5f5;
+}
+
+.trending-bill-number {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #514e4c;
+}
+
+.trending-bill-action {
+  font-size: 0.78rem;
+  color: #7a7775;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.trending-bill-footer {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(81, 78, 76, 0.15);
+  margin-top: auto;
+}
+
+.trending-bill-footer .sponsor-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #514e4c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.trending-bill-footer .sponsor-link:hover {
+  text-decoration: underline;
+}
+
+/* Reuse status badge styles from BillCard */
+.trending-bill-card .bill-status-badge {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .trending-bills-scroll {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .trending-bill-card {
+    flex: none;
+    width: 100%;
+  }
+
+  .trending-bills-title {
+    font-size: 1.5rem;
+  }
+}

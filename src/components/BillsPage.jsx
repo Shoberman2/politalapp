@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import BillCard from './BillCard'
+import TrendingBills from './TrendingBills'
 import SEO from './SEO'
-import { searchBills } from '../services/congress'
+import { searchBills, getTrendingBills } from '../services/congress'
 import '../styles/BillsPage.css'
 
 function BillsPage() {
   const [bills, setBills] = useState([])
+  const [trendingBills, setTrendingBills] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -14,6 +16,10 @@ function BillsPage() {
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  useEffect(() => {
+    getTrendingBills().then(setTrendingBills).catch(() => {})
+  }, [])
 
   const LIMIT = 20
 
@@ -114,13 +120,34 @@ function BillsPage() {
     <div className="bills-page">
       <SEO
         title="Congressional Bill Tracker"
-        description="Browse and search legislation from the U.S. Congress. Track bills, read AI-powered explanations, and follow the legislative process."
+        description={
+          trendingBills.length > 0
+            ? `Trending now: ${trendingBills.slice(0, 3).map(b => b.headline).join(', ')}. Browse and search legislation from the U.S. Congress.`
+            : 'Browse and search legislation from the U.S. Congress. Track bills, read AI-powered explanations, and follow the legislative process.'
+        }
         path="/bills"
+        schema={trendingBills.length > 0 ? {
+          '@type': 'ItemList',
+          name: 'Notable Congressional Bills',
+          itemListElement: trendingBills.map((b, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            item: {
+              '@type': 'Legislation',
+              name: b.headline || b.title,
+              description: b.whyItMatters,
+              legislationIdentifier: `${b.type?.toUpperCase()} ${b.number}`,
+              dateModified: b.latestAction?.actionDate
+            }
+          }))
+        } : undefined}
       />
       <div className="bills-header">
         <h1>Congressional Bills</h1>
         <p className="bills-subtitle">Browse and search legislation from the U.S. Congress</p>
       </div>
+
+      <TrendingBills bills={trendingBills.length > 0 ? trendingBills : undefined} />
 
       <div className="bills-filters">
         <input
