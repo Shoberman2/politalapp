@@ -294,8 +294,7 @@ function BillDetail() {
       )}
 
       <section className="bill-section ai-section">
-        <h2>Explain This Bill with AI</h2>
-        <p className="ai-section-desc">Ask an AI assistant to explain this bill in plain English:</p>
+        <p className="ai-section-desc">Need a plain-English explanation? Ask an AI assistant:</p>
         <div className="ai-links">
           <a
             href={`https://claude.ai/new?q=${encodeURIComponent(getAIExplainPrompt())}`}
@@ -303,7 +302,7 @@ function BillDetail() {
             rel="noopener noreferrer"
             className="ai-link-button ai-link-claude"
           >
-            Ask Claude
+            Claude
           </a>
           <a
             href={`https://chatgpt.com/?q=${encodeURIComponent(getAIExplainPrompt())}`}
@@ -311,7 +310,7 @@ function BillDetail() {
             rel="noopener noreferrer"
             className="ai-link-button ai-link-chatgpt"
           >
-            Ask ChatGPT
+            ChatGPT
           </a>
           <a
             href={`https://gemini.google.com/app?q=${encodeURIComponent(getAIExplainPrompt())}`}
@@ -319,7 +318,7 @@ function BillDetail() {
             rel="noopener noreferrer"
             className="ai-link-button ai-link-gemini"
           >
-            Ask Gemini
+            Gemini
           </a>
         </div>
       </section>

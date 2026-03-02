@@ -137,36 +137,6 @@ function ShutdownTracker() {
           )}
         </header>
 
-        {/* Status Card */}
-        {risk && (
-          <section className="shutdown-status-card">
-            <div className="status-card__header">
-              <h2>Current Status</h2>
-              <span className={`status-badge status-badge--${risk.level}`}>
-                {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}
-              </span>
-            </div>
-            <p className="status-card__summary">{risk.summary}</p>
-            <div className="risk-meter">
-              <div className="risk-meter__track">
-                <div
-                  className={`risk-meter__fill risk-meter__fill--${risk.level}`}
-                  style={{ width: `${risk.score}%` }}
-                ></div>
-              </div>
-              <div className="risk-meter__labels">
-                <span>Low Risk</span>
-                <span>High Risk</span>
-              </div>
-            </div>
-            {RISK_EXPLAINERS[risk.level] && (
-              <div className="risk-explainer">
-                <strong>What does this mean?</strong> {RISK_EXPLAINERS[risk.level]}
-              </div>
-            )}
-          </section>
-        )}
-
         {/* Countdown */}
         {countdown && risk?.nextDeadline && (
           <section className="shutdown-countdown">
@@ -198,6 +168,36 @@ function ShutdownTracker() {
               <br />
               {risk.nextDeadline.description}
             </p>
+          </section>
+        )}
+
+        {/* Status Card */}
+        {risk && (
+          <section className="shutdown-status-card">
+            <div className="status-card__header">
+              <h2>Current Status</h2>
+              <span className={`status-badge status-badge--${risk.level}`}>
+                {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}
+              </span>
+            </div>
+            <p className="status-card__summary">{risk.summary}</p>
+            <div className="risk-meter">
+              <div className="risk-meter__track">
+                <div
+                  className={`risk-meter__fill risk-meter__fill--${risk.level}`}
+                  style={{ width: `${risk.score}%` }}
+                ></div>
+              </div>
+              <div className="risk-meter__labels">
+                <span>Low Risk</span>
+                <span>High Risk</span>
+              </div>
+            </div>
+            {RISK_EXPLAINERS[risk.level] && (
+              <div className="risk-explainer">
+                <strong>What does this mean?</strong> {RISK_EXPLAINERS[risk.level]}
+              </div>
+            )}
           </section>
         )}
 
