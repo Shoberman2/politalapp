@@ -169,6 +169,9 @@ function ShutdownTracker() {
               <br />
               {risk.nextDeadline.description}
             </p>
+            <div className="countdown__explainer">
+              A funding deadline is the date by which Congress must pass spending bills or a continuing resolution to keep the federal government open. If no funding legislation is enacted by this date, federal agencies that haven't been funded must cease non-essential operations — a government shutdown. Essential services like the military and law enforcement continue, but hundreds of thousands of federal workers may be furloughed or forced to work without pay until Congress acts.
+            </div>
           </section>
         )}
 

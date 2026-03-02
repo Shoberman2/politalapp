@@ -242,6 +242,18 @@
   line-height: 1.6;
 }
 
+.countdown__explainer {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #f8f7f5;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.65;
+  text-align: left;
+}
+
 /* Progress Summary */
 .shutdown-progress {
   background: #ffffff;
