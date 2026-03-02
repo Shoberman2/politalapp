@@ -258,18 +258,102 @@ export const FUNDING_DEADLINES = {
     }
   ],
   appropriationsBills: [
-    { name: 'Agriculture, Rural Development, Food and Drug Administration', shortName: 'Agriculture', status: 'cr', searchTerms: ['agriculture appropriation', 'rural development appropriation'] },
-    { name: 'Commerce, Justice, Science', shortName: 'Commerce-Justice-Science', status: 'cr', searchTerms: ['commerce justice science appropriation'] },
-    { name: 'Defense', shortName: 'Defense', status: 'cr', searchTerms: ['defense appropriation', 'department of defense appropriation'] },
-    { name: 'Energy and Water Development', shortName: 'Energy-Water', status: 'cr', searchTerms: ['energy water appropriation', 'energy and water development'] },
-    { name: 'Financial Services and General Government', shortName: 'Financial Services', status: 'cr', searchTerms: ['financial services appropriation', 'general government appropriation'] },
-    { name: 'Homeland Security', shortName: 'Homeland Security', status: 'cr', searchTerms: ['homeland security appropriation'] },
-    { name: 'Interior, Environment', shortName: 'Interior-Environment', status: 'cr', searchTerms: ['interior environment appropriation'] },
-    { name: 'Labor, Health and Human Services, Education', shortName: 'Labor-HHS-Education', status: 'cr', searchTerms: ['labor health human services appropriation', 'labor hhs education'] },
-    { name: 'Legislative Branch', shortName: 'Legislative Branch', status: 'cr', searchTerms: ['legislative branch appropriation'] },
-    { name: 'Military Construction, Veterans Affairs', shortName: 'MilCon-VA', status: 'cr', searchTerms: ['military construction appropriation', 'veterans affairs appropriation'] },
-    { name: 'State, Foreign Operations', shortName: 'State-Foreign Ops', status: 'cr', searchTerms: ['state foreign operations appropriation'] },
-    { name: 'Transportation, Housing and Urban Development', shortName: 'Transportation-HUD', status: 'cr', searchTerms: ['transportation hud appropriation', 'housing urban development appropriation'] }
+    {
+      name: 'Agriculture, Rural Development, Food and Drug Administration',
+      shortName: 'Agriculture',
+      status: 'cr',
+      searchTerms: ['agriculture appropriation', 'rural development appropriation'],
+      fundingAmount: '$26.5 billion',
+      description: 'Funds the Department of Agriculture, Food and Drug Administration, rural development loans and grants, food safety inspections, agricultural research, the Supplemental Nutrition Assistance Program (SNAP) administration, and the Commodity Futures Trading Commission.'
+    },
+    {
+      name: 'Commerce, Justice, Science',
+      shortName: 'Commerce-Justice-Science',
+      status: 'cr',
+      searchTerms: ['commerce justice science appropriation'],
+      fundingAmount: '$76.4 billion',
+      description: 'Funds the Department of Justice (FBI, DEA, federal prisons, U.S. Marshals), Department of Commerce (Census Bureau, NOAA, Patent Office), NASA, the National Science Foundation, and Legal Services Corporation.'
+    },
+    {
+      name: 'Defense',
+      shortName: 'Defense',
+      status: 'cr',
+      searchTerms: ['defense appropriation', 'department of defense appropriation'],
+      fundingAmount: '$849 billion',
+      description: 'The largest of the 12 bills. Funds military personnel, operations and maintenance, weapons procurement, research and development, and military construction for the Army, Navy, Air Force, Marine Corps, and Space Force. Does not include the Department of Energy\'s nuclear weapons programs.'
+    },
+    {
+      name: 'Energy and Water Development',
+      shortName: 'Energy-Water',
+      status: 'cr',
+      searchTerms: ['energy water appropriation', 'energy and water development'],
+      fundingAmount: '$59.2 billion',
+      description: 'Funds the Department of Energy (including nuclear weapons programs and clean energy research), the Army Corps of Engineers (flood control, navigation, water infrastructure), the Bureau of Reclamation, and the Nuclear Regulatory Commission.'
+    },
+    {
+      name: 'Financial Services and General Government',
+      shortName: 'Financial Services',
+      status: 'cr',
+      searchTerms: ['financial services appropriation', 'general government appropriation'],
+      fundingAmount: '$28.9 billion',
+      description: 'Funds the Treasury Department, IRS, federal courts, the Executive Office of the President, the SEC, FTC, Small Business Administration, General Services Administration, and the District of Columbia\'s federal payment.'
+    },
+    {
+      name: 'Homeland Security',
+      shortName: 'Homeland Security',
+      status: 'cr',
+      searchTerms: ['homeland security appropriation'],
+      fundingAmount: '$62.7 billion',
+      description: 'Funds the Department of Homeland Security including Customs and Border Protection, Immigration and Customs Enforcement (ICE), the Coast Guard, Secret Service, TSA, FEMA disaster relief, and cybersecurity operations (CISA).'
+    },
+    {
+      name: 'Interior, Environment',
+      shortName: 'Interior-Environment',
+      status: 'cr',
+      searchTerms: ['interior environment appropriation'],
+      fundingAmount: '$40.2 billion',
+      description: 'Funds the Department of the Interior (National Park Service, Bureau of Land Management, Fish and Wildlife Service), the Environmental Protection Agency, the U.S. Forest Service, the Smithsonian Institution, and Indian Health Service.'
+    },
+    {
+      name: 'Labor, Health and Human Services, Education',
+      shortName: 'Labor-HHS-Education',
+      status: 'cr',
+      searchTerms: ['labor health human services appropriation', 'labor hhs education'],
+      fundingAmount: '$208.3 billion',
+      description: 'The largest non-defense bill. Funds the Departments of Labor, Health and Human Services, and Education. Covers NIH medical research, CDC, Head Start, Pell Grants, job training, substance abuse programs, and community health centers.'
+    },
+    {
+      name: 'Legislative Branch',
+      shortName: 'Legislative Branch',
+      status: 'cr',
+      searchTerms: ['legislative branch appropriation'],
+      fundingAmount: '$6.9 billion',
+      description: 'Funds the operations of Congress itself, the Library of Congress, the Government Accountability Office (GAO), the Congressional Budget Office (CBO), the Capitol Police, and the Architect of the Capitol.'
+    },
+    {
+      name: 'Military Construction, Veterans Affairs',
+      shortName: 'MilCon-VA',
+      status: 'cr',
+      searchTerms: ['military construction appropriation', 'veterans affairs appropriation'],
+      fundingAmount: '$156.7 billion',
+      description: 'Funds military base construction and family housing, and the Department of Veterans Affairs including VA healthcare, disability compensation, the GI Bill education benefits, and veterans\' home loan programs.'
+    },
+    {
+      name: 'State, Foreign Operations',
+      shortName: 'State-Foreign Ops',
+      status: 'cr',
+      searchTerms: ['state foreign operations appropriation'],
+      fundingAmount: '$58.1 billion',
+      description: 'Funds the State Department, USAID, diplomatic operations, embassy security, international peacekeeping, global health programs (including PEPFAR), foreign military financing, and contributions to international organizations like the UN.'
+    },
+    {
+      name: 'Transportation, Housing and Urban Development',
+      shortName: 'Transportation-HUD',
+      status: 'cr',
+      searchTerms: ['transportation hud appropriation', 'housing urban development appropriation'],
+      fundingAmount: '$90.8 billion',
+      description: 'Funds the Department of Transportation (FAA, Federal Highway Administration, Amtrak, transit grants) and the Department of Housing and Urban Development (Section 8 housing vouchers, public housing, FHA, community development block grants).'
+    }
   ]
 }
 

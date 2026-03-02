@@ -17,6 +17,7 @@ function ShutdownTracker() {
   const [apiBills, setApiBills] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [expandedBill, setExpandedBill] = useState(null)
 
   const loadData = async () => {
     try {
@@ -235,7 +236,11 @@ function ShutdownTracker() {
           <h2>FY{FUNDING_DEADLINES.fiscalYear} <InfoTip text="The 12 annual spending bills that Congress must pass to fund every federal agency and program.">Appropriations Bills</InfoTip></h2>
           <div className="approp-bills-grid">
             {bills.map((bill, i) => (
-              <div key={i} className={`approp-bill-card approp-bill-card--${bill.status}`}>
+              <div
+                key={i}
+                className={`approp-bill-card approp-bill-card--${bill.status} ${expandedBill === i ? 'approp-bill-card--expanded' : ''}`}
+                onClick={() => setExpandedBill(expandedBill === i ? null : i)}
+              >
                 <div className="approp-bill-card__header">
                   <h3 className="approp-bill-card__short">{bill.shortName}</h3>
                   <span
@@ -247,6 +252,20 @@ function ShutdownTracker() {
                   </span>
                 </div>
                 <p className="approp-bill-card__name">{bill.name}</p>
+                {expandedBill === i && (
+                  <div className="approp-bill-card__details">
+                    {bill.fundingAmount && (
+                      <div className="approp-bill-card__funding">
+                        <span className="approp-bill-card__funding-label">FY{FUNDING_DEADLINES.fiscalYear} Funding</span>
+                        <span className="approp-bill-card__funding-amount">{bill.fundingAmount}</span>
+                      </div>
+                    )}
+                    {bill.description && (
+                      <p className="approp-bill-card__desc">{bill.description}</p>
+                    )}
+                  </div>
+                )}
+                <span className={`approp-bill-card__toggle ${expandedBill === i ? 'approp-bill-card__toggle--open' : ''}`}>&#9662;</span>
               </div>
             ))}
           </div>

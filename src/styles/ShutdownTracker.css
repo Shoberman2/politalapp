@@ -328,10 +328,17 @@
   border-radius: 10px;
   padding: 1.25rem;
   transition: box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+  position: relative;
 }
 
 .approp-bill-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.approp-bill-card--expanded {
+  border-color: #c5c3c1;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .approp-bill-card--signed { border-left: 3px solid #16a34a; }
@@ -372,6 +379,59 @@
   color: #6b7280;
   margin: 0;
   line-height: 1.4;
+}
+
+.approp-bill-card__toggle {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.75rem;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+
+.approp-bill-card__toggle--open {
+  transform: rotate(180deg);
+}
+
+.approp-bill-card__details {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #e5e7eb;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.approp-bill-card__funding {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.approp-bill-card__funding-label {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.approp-bill-card__funding-amount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.approp-bill-card__desc {
+  font-size: 0.82rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Deadlines Timeline */
