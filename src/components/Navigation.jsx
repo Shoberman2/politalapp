@@ -19,7 +19,7 @@ function Navigation() {
       <nav className="navigation">
         <div className="nav-container">
           <div className="nav-brand" onClick={() => navigate('/')}>
-            <img src="/capitol-logo.png" alt="" className="brand-logo" />
+            <img src="/capitol-logo.svg" alt="" className="brand-logo" />
             <h1 className="brand-name">BallotWatch</h1>
           </div>
 

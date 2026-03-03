@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f1f3a"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="url(#bg)"/>
+  <!-- Capitol building -->
+  <g fill="white" transform="translate(3, 4)">
+    <!-- Statue on top -->
+    <rect x="12" y="0" width="2" height="3" rx="0.5"/>
+    <!-- Dome -->
+    <path d="M8 12 Q8 4, 13 2 Q18 4, 18 12 Z"/>
+    <!-- Dome base -->
+    <rect x="7" y="12" width="12" height="2" rx="0.5"/>
+    <!-- Pediment -->
+    <polygon points="5,16 13,13 21,16"/>
+    <!-- Columns -->
+    <rect x="6" y="16" width="1.5" height="6"/>
+    <rect x="10" y="16" width="1.5" height="6"/>
+    <rect x="14.5" y="16" width="1.5" height="6"/>
+    <rect x="18.5" y="16" width="1.5" height="6"/>
+    <!-- Left wing -->
+    <rect x="1" y="17" width="6" height="5" rx="0.5"/>
+    <!-- Right wing -->
+    <rect x="19" y="17" width="6" height="5" rx="0.5"/>
+    <!-- Base -->
+    <rect x="0" y="22" width="26" height="2" rx="1"/>
+  </g>
+</svg>

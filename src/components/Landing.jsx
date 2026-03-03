@@ -57,7 +57,7 @@ function Landing() {
               '@type': 'Organization',
               name: 'BallotWatch',
               url: 'https://politicalapp.vercel.app',
-              logo: 'https://politicalapp.vercel.app/capitol-logo.png'
+              logo: 'https://politicalapp.vercel.app/capitol-logo.svg'
             }
           ]
         }}
@@ -77,7 +77,7 @@ function Landing() {
       {/* Sticky Navigation Bar */}
       <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
         <div className="nav-logo" onClick={playIntro} style={{ cursor: 'pointer' }}>
-          <img src="/capitol-logo.png" alt="" className="landing-nav-logo-img" />
+          <img src="/capitol-logo.svg" alt="" className="landing-nav-logo-img" />
           BallotWatch
         </div>
         <div className="nav-links">
@@ -472,7 +472,7 @@ function Landing() {
           <div className="footer-top">
             <div className="footer-brand">
               <span className="footer-logo">
-                <img src="/capitol-logo.png" alt="" className="footer-logo-img" />
+                <img src="/capitol-logo.svg" alt="" className="footer-logo-img" />
                 BallotWatch
               </span>
               <p>Premium congressional intelligence — making democracy accessible to every American.</p>
