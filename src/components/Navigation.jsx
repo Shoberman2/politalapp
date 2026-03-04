@@ -1,15 +1,22 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 // import { useAuth } from '../context/AuthContext'
 import '../styles/Navigation.css'
 
 function Navigation() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
   // const { user, signOut } = useAuth()
 
   // const handleSignOut = async () => {
   //   await signOut()
   //   navigate('/')
   // }
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
 
   return (
     <>
@@ -23,7 +30,17 @@ function Navigation() {
             <h1 className="brand-name">BallotWatch</h1>
           </div>
 
-          <div className="nav-tabs">
+          <button
+            className={`nav-hamburger ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div className={`nav-tabs ${menuOpen ? 'nav-tabs-open' : ''}`}>
             <NavLink
               to="/my-representative"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
