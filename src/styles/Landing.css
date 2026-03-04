@@ -1255,9 +1255,8 @@ html {
     height: 20px;
   }
 
-  .nav-btn-primary {
-    padding: 0.6rem 1rem;
-    font-size: 0.7rem;
+  .nav-cta {
+    display: none;
   }
 
   .hero {
