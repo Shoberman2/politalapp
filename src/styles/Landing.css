@@ -1256,7 +1256,14 @@ html {
   }
 
   .nav-cta {
-    display: none;
+    display: flex;
+  }
+
+  .nav-btn-primary {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
   }
 
   .hero {
