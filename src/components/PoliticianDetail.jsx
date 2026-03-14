@@ -361,7 +361,16 @@ function PoliticianDetail() {
               </thead>
               <tbody>
                 {votes.map((vote, index) => (
-                  <tr key={index} className={vote.isSponsoredBill ? 'sponsored-row' : ''}>
+                  <tr
+                    key={index}
+                    className={`${vote.isSponsoredBill ? 'sponsored-row' : ''}${parseBillNumber(vote.billNumber) ? ' clickable-row' : ''}`}
+                    onClick={() => {
+                      const parsed = parseBillNumber(vote.billNumber)
+                      if (parsed) {
+                        navigate(`/bill/${parsed.congress}/${parsed.type}/${parsed.number}`)
+                      }
+                    }}
+                  >
                     <td className="vote-date">{formatDate(vote.date)}</td>
                     <td className="vote-bill">
                       {vote.billNumber ? (

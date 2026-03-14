@@ -291,6 +291,14 @@
   background: #f5f5f5;
 }
 
+.votes-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.votes-table tbody tr.clickable-row:hover {
+  background: #eef3fb;
+}
+
 .vote-date {
   white-space: nowrap;
   color: #7a7775;
