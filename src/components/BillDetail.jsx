@@ -18,6 +18,7 @@ function BillDetail() {
 
   const [voteTallies, setVoteTallies] = useState([])
   const [talliesLoading, setTalliesLoading] = useState(false)
+  const [showAllCosponsors, setShowAllCosponsors] = useState(false)
 
   useEffect(() => {
     fetchBillData()
@@ -172,11 +173,14 @@ function BillDetail() {
       <section className="bill-key-facts">
         <div className="key-facts-grid">
           {sponsor && (
-            <div className="key-fact">
+            <div
+              className="key-fact key-fact-clickable"
+              onClick={() => navigate(`/politician/${sponsor.bioguideId}`)}
+            >
               <span className="key-fact-label">Sponsor</span>
-              <Link to={`/politician/${sponsor.bioguideId}`} className="key-fact-value key-fact-link">
+              <span className="key-fact-value key-fact-link">
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
-              </Link>
+              </span>
               <span className="key-fact-desc">The member of Congress who introduced this bill</span>
             </div>
           )}
@@ -188,7 +192,10 @@ function BillDetail() {
             </div>
           )}
           {cosponsors.length > 0 && (
-            <div className="key-fact">
+            <div
+              className="key-fact key-fact-clickable"
+              onClick={() => document.getElementById('sponsors-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               <span className="key-fact-label">Cosponsors</span>
               <span className="key-fact-value">{cosponsors.length}</span>
               <span className="key-fact-desc">Members who publicly support this bill</span>
@@ -209,7 +216,10 @@ function BillDetail() {
             </div>
           )}
           {actions.length > 0 && (
-            <div className="key-fact">
+            <div
+              className="key-fact key-fact-clickable"
+              onClick={() => document.getElementById('actions-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               <span className="key-fact-label">Actions</span>
               <span className="key-fact-value">{actions.length}</span>
               <span className="key-fact-desc">Official steps taken on this bill (introductions, referrals, votes, etc.)</span>
@@ -323,7 +333,7 @@ function BillDetail() {
         </div>
       </section>
 
-      <section className="bill-section">
+      <section className="bill-section" id="sponsors-section">
         <h2><InfoTip text="The sponsor is the member of Congress who wrote and introduced the bill. Cosponsors are other members who formally endorse it.">Sponsors</InfoTip></h2>
         <div className="sponsors-list">
           {sponsor && (
@@ -345,7 +355,7 @@ function BillDetail() {
             <div className="cosponsors-section">
               <h3>{cosponsors.length} Cosponsor{cosponsors.length !== 1 ? 's' : ''}</h3>
               <div className="cosponsors-grid">
-                {cosponsors.slice(0, 10).map((cosponsor) => (
+                {(showAllCosponsors ? cosponsors : cosponsors.slice(0, 10)).map((cosponsor) => (
                   <Link
                     key={cosponsor.bioguideId}
                     to={`/politician/${cosponsor.bioguideId}`}
@@ -356,9 +366,12 @@ function BillDetail() {
                   </Link>
                 ))}
                 {cosponsors.length > 10 && (
-                  <span className="more-cosponsors">
-                    +{cosponsors.length - 10} more
-                  </span>
+                  <button
+                    className="more-cosponsors"
+                    onClick={() => setShowAllCosponsors(!showAllCosponsors)}
+                  >
+                    {showAllCosponsors ? 'Show fewer' : `+${cosponsors.length - 10} more`}
+                  </button>
                 )}
               </div>
             </div>
@@ -389,7 +402,7 @@ function BillDetail() {
 
       {actions.length > 0 && (
         <section className="bill-section">
-          <h2><InfoTip text="Actions are the official steps a bill goes through — from being introduced, to committee review, floor votes, and potentially being signed into law.">Actions Timeline</InfoTip></h2>
+          <h2 id="actions-section"><InfoTip text="Actions are the official steps a bill goes through — from being introduced, to committee review, floor votes, and potentially being signed into law.">Actions Timeline</InfoTip></h2>
           <div className="actions-timeline">
             {actions.slice(0, 15).map((action, index) => {
               const text = (action.text || '').toLowerCase()

@@ -211,6 +211,18 @@
   text-decoration: underline;
 }
 
+.key-fact-clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  transition: background 0.2s ease;
+}
+
+.key-fact-clickable:hover {
+  background: rgba(81, 78, 76, 0.08);
+}
+
 .key-fact-desc {
   font-size: 0.72rem;
   color: #a8a6a4;
@@ -564,6 +576,12 @@
   font-size: 0.85rem;
   color: #7a7775;
   border: 1px solid rgba(81, 78, 76, 0.15);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.more-cosponsors:hover {
+  background: #eee;
 }
 
 /* Text Versions */
