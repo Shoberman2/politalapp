@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getVoteTalliesFromActions } from '../services/congress'
+import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions } from '../services/congress'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import '../styles/BillDetail.css'
@@ -13,6 +13,7 @@ function BillDetail() {
   const [textVersions, setTextVersions] = useState([])
   const [actions, setActions] = useState([])
   const [cosponsors, setCosponsors] = useState([])
+  const [committees, setCommittees] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -28,17 +29,19 @@ function BillDetail() {
     try {
       setLoading(true)
 
-      const [billData, textData, actionsData, cosponsorsData] = await Promise.all([
+      const [billData, textData, actionsData, cosponsorsData, committeesData] = await Promise.all([
         getBillDetails(congress, billType, number),
         getBillText(congress, billType, number),
         getBillActions(congress, billType, number),
-        getBillCosponsors(congress, billType, number)
+        getBillCosponsors(congress, billType, number),
+        getBillCommittees(congress, billType, number)
       ])
 
       setBill(billData)
       setTextVersions(textData)
       setActions(actionsData)
       setCosponsors(cosponsorsData)
+      setCommittees(committeesData)
       setError(null)
 
       // Fetch vote tallies from actions (non-blocking)
@@ -208,10 +211,13 @@ function BillDetail() {
               <span className="key-fact-desc">The primary topic or subject of this legislation</span>
             </div>
           )}
-          {bill.committees?.count > 0 && (
-            <div className="key-fact">
+          {(committees.length > 0 || bill.committees?.count > 0) && (
+            <div
+              className="key-fact key-fact-clickable"
+              onClick={() => document.getElementById('committees-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               <span className="key-fact-label">Committees</span>
-              <span className="key-fact-value">{bill.committees.count}</span>
+              <span className="key-fact-value">{committees.length || bill.committees.count}</span>
               <span className="key-fact-desc">Groups of members assigned to review and refine the bill before a full vote</span>
             </div>
           )}
@@ -378,6 +384,29 @@ function BillDetail() {
           )}
         </div>
       </section>
+
+      {committees.length > 0 && (
+        <section className="bill-section" id="committees-section">
+          <h2><InfoTip text="Committees are small groups of Congress members who specialize in specific topics. Bills are sent to relevant committees for detailed review before the full chamber votes.">Committees</InfoTip></h2>
+          <div className="committees-list">
+            {committees.map((committee, index) => (
+              <div key={index} className="committee-item">
+                <span className="committee-name">{committee.name}</span>
+                {committee.chamber && (
+                  <span className="committee-chamber">{committee.chamber}</span>
+                )}
+                {committee.subcommittees && committee.subcommittees.length > 0 && (
+                  <div className="subcommittees">
+                    {committee.subcommittees.map((sub, i) => (
+                      <span key={i} className="subcommittee-chip">{sub.name}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {textVersions.length > 0 && (
         <section className="bill-section">

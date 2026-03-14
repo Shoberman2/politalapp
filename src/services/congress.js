@@ -397,6 +397,16 @@ export const getBillCosponsors = async (congress, billType, billNumber) => {
   }
 }
 
+export const getBillCommittees = async (congress, billType, billNumber) => {
+  try {
+    const response = await congressApi.get(`/bill/${congress}/${billType}/${billNumber}/committees`)
+    return response.data.committees || []
+  } catch (error) {
+    console.error('Error fetching bill committees:', error)
+    return []
+  }
+}
+
 export const getBillActions = async (congress, billType, billNumber) => {
   try {
     const response = await congressApi.get(`/bill/${congress}/${billType}/${billNumber}/actions`)

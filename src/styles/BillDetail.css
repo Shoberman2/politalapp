@@ -584,6 +584,53 @@
   background: #eee;
 }
 
+/* Committees */
+.committees-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.committee-item {
+  padding: 1rem 1.25rem;
+  background: #f8f7f5;
+  border: 1px solid rgba(81, 78, 76, 0.12);
+  border-radius: 6px;
+}
+
+.committee-name {
+  font-weight: 600;
+  color: #514e4c;
+  font-size: 0.95rem;
+}
+
+.committee-chamber {
+  display: inline-block;
+  margin-left: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #7a7775;
+  background: #eee;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+
+.subcommittees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.subcommittee-chip {
+  font-size: 0.8rem;
+  color: #7a7775;
+  background: #f0f0f0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  border: 1px solid rgba(81, 78, 76, 0.1);
+}
+
 /* Text Versions */
 .text-versions-list {
   display: flex;
