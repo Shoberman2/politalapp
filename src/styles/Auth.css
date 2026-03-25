@@ -1,6 +1,6 @@
 .auth-page {
   min-height: 100vh;
-  background: #0a0a0a;
+  background: #111110;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,9 +10,10 @@
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: #141414;
+  background: #1a1a18;
   border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 3rem 2.5rem;
+  border-radius: var(--radius-lg);
 }
 
 .auth-header {
@@ -21,7 +22,7 @@
 }
 
 .auth-logo {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 400;
   color: #ffffff;
@@ -29,7 +30,7 @@
 }
 
 .auth-tagline {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.4);
   margin: 0;
@@ -50,20 +51,20 @@
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.4);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
 
 .auth-tab--active {
-  color: #c9a96e;
-  border-bottom-color: #c9a96e;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .auth-tab:hover:not(.auth-tab--active) {
@@ -84,7 +85,7 @@
 }
 
 .auth-field label {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.5);
@@ -94,12 +95,13 @@
 
 .auth-field input {
   padding: 0.85rem 1rem;
-  background: #0a0a0a;
+  background: #111110;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
   color: #ffffff;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.95rem;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.15s ease;
 }
 
 .auth-field input::placeholder {
@@ -108,44 +110,47 @@
 
 .auth-field input:focus {
   outline: none;
-  border-color: #c9a96e;
+  border-color: var(--accent);
 }
 
 .auth-error {
   padding: 0.75rem 1rem;
-  background: rgba(220, 38, 38, 0.1);
+  background: var(--error-subtle);
   border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
   color: #fca5a5;
   font-size: 0.85rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .auth-message {
   padding: 0.75rem 1rem;
-  background: rgba(201, 169, 110, 0.1);
-  border: 1px solid rgba(201, 169, 110, 0.3);
-  color: #c9a96e;
+  background: var(--accent-subtle);
+  border: 1px solid rgba(29, 78, 216, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
   font-size: 0.85rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .auth-submit {
   padding: 1rem;
-  background: #c9a96e;
-  color: #0a0a0a;
+  background: var(--accent);
+  color: #ffffff;
   border: none;
-  font-family: 'Inter', sans-serif;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   margin-top: 0.5rem;
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: #b08d4f;
+  background: var(--accent-hover);
 }
 
 .auth-submit:disabled {
@@ -163,10 +168,10 @@
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.4);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .auth-back:hover {

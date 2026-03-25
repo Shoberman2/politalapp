@@ -20,77 +20,78 @@
 
 .form-group label {
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
   font-size: 0.85rem;
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: var(--font-body);
 }
 
 .selector-input {
   padding: 0.875rem 1rem;
-  border: 1px solid rgba(81, 78, 76, 0.25);
-  border-radius: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
-  transition: all 0.2s ease;
-  background: white;
+  transition: all 0.15s ease;
+  background: var(--surface);
   cursor: pointer;
-  font-family: inherit;
-  color: #514e4c;
+  font-family: var(--font-body);
+  color: var(--text-primary);
 }
 
 .selector-input:hover {
-  border-color: #514e4c;
+  border-color: var(--text-primary);
 }
 
 .selector-input:focus {
   outline: none;
-  border-color: #514e4c;
+  border-color: var(--accent);
 }
 
 .loading-districts {
   padding: 0.875rem 1rem;
   text-align: center;
-  color: #514e4c;
+  color: var(--text-primary);
   font-size: 0.9rem;
-  background: #f5f5f5;
-  border-radius: 0;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
 }
 
 .at-large-district {
   padding: 0.875rem 1rem;
-  background: #f5f5f5;
-  color: #514e4c;
-  border-radius: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
-  border: 1px solid #514e4c;
+  border: 1px solid var(--border);
 }
 
 .selector-button {
   padding: 1rem 2rem;
-  background: var(--accent-emphasis);
-  color: white;
-  border: 1px solid var(--accent-emphasis);
-  border-radius: 0;
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
+  transition: all 0.15s ease;
+  font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .selector-button:hover:not(:disabled) {
-  background: var(--accent-emphasis-dark);
-  color: white;
-  border-color: var(--accent-emphasis-dark);
+  background: var(--accent-hover);
+  color: var(--surface);
+  border-color: var(--accent-hover);
 }
 
 .selector-button:disabled {
-  background: #a8a6a4;
-  border-color: #a8a6a4;
+  background: var(--text-muted);
+  border-color: var(--text-muted);
   cursor: not-allowed;
 }
 

@@ -1,6 +1,6 @@
 .shutdown-tracker {
   min-height: 100vh;
-  background: #fafaf9;
+  background: var(--bg);
   padding: 2rem;
 }
 
@@ -16,27 +16,30 @@
 
 .shutdown-tracker__header h1 {
   font-size: 2rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
+  font-family: var(--font-display);
 }
 
 .shutdown-tracker__header p {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 1rem;
   margin: 0;
+  font-family: var(--font-body);
 }
 
 .last-updated {
   display: inline-block;
   margin-top: 0.5rem;
   padding: 0.25rem 0.75rem;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 500;
+  font-family: var(--font-mono);
 }
 
 /* Loading & Error */
@@ -48,14 +51,14 @@
   justify-content: center;
   min-height: 50vh;
   gap: 1rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #514e4c;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -66,24 +69,25 @@
 
 .retry-btn {
   padding: 0.5rem 1.5rem;
-  background: #514e4c;
+  background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s;
+  font-family: var(--font-body);
+  transition: background 0.15s ease;
 }
 
 .retry-btn:hover {
-  background: #3a3836;
+  background: var(--accent-hover);
 }
 
 /* Status Card */
 .shutdown-status-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 1.5rem;
 }
@@ -97,9 +101,10 @@
 
 .status-card__header h2 {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0;
+  font-family: var(--font-display);
 }
 
 .status-badge {
@@ -107,76 +112,80 @@
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.status-badge--funded { background: #dcfce7; color: #166534; }
-.status-badge--low { background: #f3f4f6; color: #374151; }
-.status-badge--moderate { background: #fef3c7; color: #92400e; }
+.status-badge--funded { background: var(--success-subtle); color: #166534; }
+.status-badge--low { background: var(--bg); color: var(--text-primary); }
+.status-badge--moderate { background: var(--warning-subtle); color: #92400e; }
 .status-badge--high { background: #fed7aa; color: #9a3412; }
-.status-badge--critical { background: #fecaca; color: #991b1b; }
-.status-badge--shutdown { background: #dc2626; color: #ffffff; }
+.status-badge--critical { background: var(--error-subtle); color: #991b1b; }
+.status-badge--shutdown { background: var(--error); color: #ffffff; }
 
 .status-card__summary {
-  color: #374151;
+  color: var(--text-primary);
   font-size: 1.05rem;
   margin: 0 0 1.25rem 0;
   line-height: 1.6;
   font-weight: 500;
+  font-family: var(--font-body);
 }
 
 /* Risk Meter */
 .risk-meter__track {
   height: 12px;
-  background: #e5e7eb;
-  border-radius: 6px;
+  background: var(--border);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .risk-meter__fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   transition: width 0.6s ease;
 }
 
-.risk-meter__fill--funded { background: #16a34a; }
-.risk-meter__fill--low { background: #6b7280; }
-.risk-meter__fill--moderate { background: #d97706; }
+.risk-meter__fill--funded { background: var(--success); }
+.risk-meter__fill--low { background: var(--text-secondary); }
+.risk-meter__fill--moderate { background: var(--warning); }
 .risk-meter__fill--high { background: #ea580c; }
-.risk-meter__fill--critical { background: #dc2626; }
+.risk-meter__fill--critical { background: var(--error); }
 .risk-meter__fill--shutdown { background: #991b1b; }
 
 .risk-meter__labels {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-top: 0.25rem;
+  font-family: var(--font-mono);
 }
 
 /* Risk Explainer */
 .risk-explainer {
   margin-top: 1.25rem;
   padding: 1rem 1.25rem;
-  background: #f8f7f5;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 0.88rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   line-height: 1.6;
+  font-family: var(--font-body);
 }
 
 .risk-explainer strong {
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-right: 0.25rem;
 }
 
 /* Countdown */
 .shutdown-countdown {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 1.5rem;
   text-align: center;
@@ -184,9 +193,10 @@
 
 .shutdown-countdown h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 1.25rem 0;
+  font-family: var(--font-display);
 }
 
 .countdown__units {
@@ -207,67 +217,73 @@
 .countdown__number {
   font-size: 3.5rem;
   font-weight: 800;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .countdown__separator {
   font-size: 2.5rem;
   font-weight: 300;
-  color: #d1d5db;
+  color: var(--border);
   padding-bottom: 1.25rem;
 }
 
 .countdown__label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 0.35rem;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 .countdown__expired {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--error);
   padding: 1rem 0;
+  font-family: var(--font-mono);
 }
 
 .countdown__description {
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.6;
+  font-family: var(--font-body);
 }
 
 .countdown__explainer {
   margin-top: 1.25rem;
   padding: 1rem 1.25rem;
-  background: #f8f7f5;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   line-height: 1.65;
   text-align: left;
+  font-family: var(--font-body);
 }
 
 /* Progress Summary */
 .shutdown-progress {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 1.5rem;
 }
 
 .shutdown-progress h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
+  font-family: var(--font-display);
 }
 
 .progress-stats {
@@ -285,35 +301,38 @@
 .progress-stat__number {
   font-size: 2.25rem;
   font-weight: 800;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1;
+  font-family: var(--font-mono);
 }
 
 .progress-stat__label {
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-top: 0.25rem;
+  font-family: var(--font-body);
 }
 
 .progress-bar__track {
   height: 10px;
-  background: #e5e7eb;
+  background: var(--border);
   border-radius: 5px;
   overflow: hidden;
 }
 
 .progress-bar__fill {
   height: 100%;
-  background: #16a34a;
+  background: var(--success);
   border-radius: 5px;
   transition: width 0.6s ease;
 }
 
 .progress-bar__label {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin-top: 0.35rem;
   display: block;
+  font-family: var(--font-mono);
 }
 
 /* Appropriations Bills Grid (renamed to avoid collision with BillCard) */
@@ -323,9 +342,10 @@
 
 .shutdown-bills h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
+  font-family: var(--font-display);
 }
 
 .approp-bills-grid {
@@ -335,31 +355,31 @@
 }
 
 .approp-bill-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 1.25rem;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
   position: relative;
 }
 
 .approp-bill-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .approp-bill-card--expanded {
-  border-color: #c5c3c1;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
 }
 
-.approp-bill-card--signed { border-left: 3px solid #16a34a; }
+.approp-bill-card--signed { border-left: 3px solid var(--success); }
 .approp-bill-card--passed_both { border-left: 3px solid #2563eb; }
 .approp-bill-card--passed_one { border-left: 3px solid #7c3aed; }
-.approp-bill-card--committee { border-left: 3px solid #d97706; }
+.approp-bill-card--committee { border-left: 3px solid var(--warning); }
 .approp-bill-card--cr { border-left: 3px solid #0891b2; }
-.approp-bill-card--introduced { border-left: 3px solid #6b7280; }
-.approp-bill-card--not_introduced { border-left: 3px solid #d1d5db; }
+.approp-bill-card--introduced { border-left: 3px solid var(--text-secondary); }
+.approp-bill-card--not_introduced { border-left: 3px solid var(--border); }
 
 .approp-bill-card__header {
   display: flex;
@@ -372,8 +392,9 @@
 .approp-bill-card__short {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
+  font-family: var(--font-mono);
 }
 
 .approp-bill-card__status {
@@ -384,13 +405,15 @@
   color: #ffffff;
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 .approp-bill-card__name {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
+  font-family: var(--font-body);
 }
 
 .approp-bill-card__toggle {
@@ -398,8 +421,8 @@
   bottom: 0.6rem;
   right: 0.75rem;
   font-size: 0.7rem;
-  color: #9ca3af;
-  transition: transform 0.2s;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
 }
 
 .approp-bill-card__toggle--open {
@@ -409,7 +432,7 @@
 .approp-bill-card__details {
   margin-top: 1rem;
   padding-top: 0.85rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -422,23 +445,26 @@
 
 .approp-bill-card__funding-label {
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 .approp-bill-card__funding-amount {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .approp-bill-card__desc {
   font-size: 0.82rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
+  font-family: var(--font-body);
 }
 
 @keyframes fadeIn {
@@ -448,18 +474,19 @@
 
 /* Deadlines Timeline */
 .shutdown-deadlines {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 1.5rem;
 }
 
 .shutdown-deadlines h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
+  font-family: var(--font-display);
 }
 
 .deadlines-timeline {
@@ -486,18 +513,18 @@
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 0.2rem;
-  border: 2px solid #d1d5db;
-  background: #ffffff;
+  border: 2px solid var(--border);
+  background: var(--surface);
 }
 
-.deadline-dot--passed { background: #16a34a; border-color: #16a34a; }
-.deadline-dot--active { background: #dc2626; border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); }
-.deadline-dot--upcoming { background: #ffffff; border-color: #d1d5db; }
+.deadline-dot--passed { background: var(--success); border-color: var(--success); }
+.deadline-dot--active { background: var(--error); border-color: var(--error); box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); }
+.deadline-dot--upcoming { background: var(--surface); border-color: var(--border); }
 
 .deadline-line {
   width: 2px;
   flex: 1;
-  background: #e5e7eb;
+  background: var(--border);
   margin-top: 0.25rem;
   min-height: 20px;
 }
@@ -514,50 +541,55 @@
 .deadline-date {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .deadline-status-tag {
   padding: 0.1rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: var(--font-mono);
 }
 
-.deadline-status-tag--passed { background: #dcfce7; color: #166534; }
-.deadline-status-tag--active { background: #fecaca; color: #991b1b; }
-.deadline-status-tag--upcoming { background: #f3f4f6; color: #6b7280; }
+.deadline-status-tag--passed { background: var(--success-subtle); color: #166534; }
+.deadline-status-tag--active { background: var(--error-subtle); color: #991b1b; }
+.deadline-status-tag--upcoming { background: var(--bg); color: var(--text-secondary); }
 
 .deadline-desc {
   width: 100%;
   margin: 0.15rem 0 0 0;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   line-height: 1.4;
+  font-family: var(--font-body);
 }
 
 /* API Bills */
 .shutdown-api-bills {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
 .shutdown-api-bills h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  font-family: var(--font-display);
 }
 
 .section-note {
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 0.85rem;
   margin: 0 0 1rem 0;
+  font-family: var(--font-body);
 }
 
 .api-bills-list {
@@ -571,7 +603,7 @@
   align-items: baseline;
   gap: 0.75rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-light);
   font-size: 0.85rem;
 }
 
@@ -581,21 +613,24 @@
 
 .api-bill-item__type {
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 .api-bill-item__title {
   flex: 1;
-  color: #4b5563;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
 }
 
 .api-bill-item__action {
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 0.8rem;
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 /* Historical Timeline */
@@ -605,9 +640,10 @@
 
 .shutdown-history h2 {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 400;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
+  font-family: var(--font-display);
 }
 
 .history-timeline {
@@ -634,7 +670,7 @@
 .timeline-dot {
   width: 12px;
   height: 12px;
-  background: #9ca3af;
+  background: var(--text-muted);
   border-radius: 50%;
   flex-shrink: 0;
   margin-top: 0.3rem;
@@ -643,7 +679,7 @@
 .timeline-dot--major {
   width: 16px;
   height: 16px;
-  background: #dc2626;
+  background: var(--error);
   margin-left: -2px;
   margin-right: -2px;
 }
@@ -651,7 +687,7 @@
 .timeline-line {
   width: 2px;
   flex: 1;
-  background: #e5e7eb;
+  background: var(--border);
   margin-top: 0.25rem;
 }
 
@@ -663,23 +699,25 @@
 .timeline-dates {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
+  font-family: var(--font-mono);
 }
 
 .timeline-duration {
   display: inline-block;
   margin-left: 0.5rem;
   padding: 0.1rem 0.5rem;
-  background: #f3f4f6;
+  background: var(--bg);
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
 }
 
 .timeline-duration--major {
-  background: #fecaca;
+  background: var(--error-subtle);
   color: #991b1b;
   font-weight: 600;
 }
@@ -687,15 +725,17 @@
 .timeline-details strong {
   display: block;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
+  font-family: var(--font-body);
 }
 
 .timeline-details p {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0 0 0.5rem 0;
   line-height: 1.5;
+  font-family: var(--font-body);
 }
 
 .timeline-meta {
@@ -703,7 +743,8 @@
   flex-wrap: wrap;
   gap: 1rem;
   font-size: 0.78rem;
-  color: #9ca3af;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 /* Animation */
@@ -799,8 +840,8 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #d1d5db;
-  color: #374151;
+  background: var(--border);
+  color: var(--text-primary);
   font-size: 0.6rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -808,7 +849,7 @@
 }
 
 .cr-label:hover .cr-info-icon {
-  background: #9ca3af;
+  background: var(--text-muted);
   color: #fff;
 }
 
@@ -823,11 +864,12 @@
   font-weight: 400;
   line-height: 1.5;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   width: 280px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
   pointer-events: none;
+  font-family: var(--font-body);
 }
 
 .cr-tooltip::after {

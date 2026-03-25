@@ -1,10 +1,10 @@
 .bill-card {
-  background: white;
-  border-radius: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  box-shadow: var(--shadow-md);
+  transition: all 0.15s ease;
+  border: 1px solid var(--border);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,7 @@
 .bill-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
-  border-color: #514e4c;
+  border-color: var(--text-primary);
 }
 
 .bill-card-header {
@@ -26,19 +26,20 @@
 
 .bill-type-badge {
   padding: 0.35rem 0.75rem;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   color: white;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  background: #514e4c;
+  background: var(--accent);
 }
 
 .bill-number {
-  color: #7a7775;
+  color: var(--accent);
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: var(--font-mono);
 }
 
 .bill-status-badge {
@@ -49,61 +50,62 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: 1px solid;
+  border-radius: var(--radius-sm);
 }
 
 .bill-status-badge.status-enacted {
-  background: #f0f7ed;
-  color: #4a6741;
-  border-color: rgba(74, 103, 65, 0.25);
+  background: var(--success-subtle);
+  color: var(--success);
+  border-color: var(--success);
 }
 
 .bill-status-badge.status-passed-both {
-  background: #eff6ff;
-  color: #1e40af;
-  border-color: rgba(30, 64, 175, 0.25);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .bill-status-badge.status-passed {
-  background: #f5f3ff;
-  color: #6d28d9;
-  border-color: rgba(109, 40, 217, 0.25);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .bill-status-badge.status-committee {
-  background: #fffbeb;
-  color: #b45309;
-  border-color: rgba(180, 83, 9, 0.25);
+  background: var(--warning-subtle);
+  color: var(--warning);
+  border-color: var(--warning);
 }
 
 .bill-status-badge.status-introduced {
-  background: #f5f5f5;
-  color: #6b7280;
-  border-color: rgba(107, 114, 128, 0.25);
+  background: var(--bg);
+  color: var(--text-muted);
+  border-color: var(--border);
 }
 
 .bill-status-badge.status-progress {
-  background: #f5f5f5;
-  color: #7a7775;
-  border-color: rgba(81, 78, 76, 0.2);
+  background: var(--bg);
+  color: var(--text-secondary);
+  border-color: var(--border);
 }
 
 .bill-type-desc {
   font-size: 0.75rem;
-  color: #7a7775;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
   font-style: italic;
 }
 
 .bill-introduced {
   font-size: 0.8rem;
-  color: #7a7775;
+  color: var(--text-secondary);
   margin-bottom: 0.75rem;
 }
 
 .bill-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #514e4c;
+  color: var(--text-primary);
   line-height: 1.4;
   margin-bottom: 1rem;
   flex: 1;
@@ -111,6 +113,7 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-family: var(--font-display);
 }
 
 .bill-meta {
@@ -118,14 +121,14 @@
 }
 
 .bill-action {
-  background: #f5f5f5;
-  border-radius: 4px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
   padding: 0.75rem;
   font-size: 0.85rem;
 }
 
 .action-label {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-weight: 600;
   display: block;
   margin-bottom: 0.25rem;
@@ -135,7 +138,7 @@
 }
 
 .action-text {
-  color: #514e4c;
+  color: var(--text-primary);
   display: block;
   line-height: 1.4;
   display: -webkit-box;
@@ -145,7 +148,7 @@
 }
 
 .action-date {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   display: block;
   margin-top: 0.5rem;
@@ -156,7 +159,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid rgba(81, 78, 76, 0.15);
+  border-top: 1px solid var(--border);
   margin-top: auto;
 }
 
@@ -167,7 +170,7 @@
 }
 
 .sponsor-label {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -178,28 +181,28 @@
   background: none;
   border: none;
   padding: 0;
-  color: #514e4c;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
   font-family: inherit;
 }
 
 .sponsor-link:hover {
-  color: #514e4c;
+  color: var(--accent);
   text-decoration: underline;
 }
 
 .bill-congress {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   font-weight: 500;
-  background: #f5f5f5;
+  background: var(--bg);
   padding: 0.35rem 0.75rem;
-  border-radius: 0;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {

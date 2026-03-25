@@ -1,15 +1,15 @@
 .politician-card {
-  background: #ffffff;
-  border-radius: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   padding: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  transition: all 0.15s ease;
+  border: 1px solid var(--border);
 }
 
 .politician-card:hover {
-  border-color: #514e4c;
-  box-shadow: 0 4px 15px rgba(81, 78, 76, 0.1);
+  border-color: var(--text-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .card-content {
@@ -24,7 +24,7 @@
   height: 60px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(81, 78, 76, 0.1);
+  border: 2px solid var(--border-light);
 }
 
 .card-photo img {
@@ -42,7 +42,7 @@
   color: white;
   font-weight: 600;
   font-size: 1.1rem;
-  background: #514e4c;
+  background: var(--text-primary);
 }
 
 .card-info {
@@ -53,17 +53,17 @@
 .card-name {
   font-size: 1rem;
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .card-role {
   font-size: 0.75rem;
-  color: #7a7775;
+  color: var(--text-secondary);
   margin: 0 0 0.15rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -71,7 +71,7 @@
 
 .card-location {
   font-size: 0.85rem;
-  color: #514e4c;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 500;
 }
@@ -103,8 +103,8 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #a8a6a4;
-  transition: all 0.2s ease;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,16 +116,16 @@
 }
 
 .favorite-btn:hover {
-  color: var(--accent-emphasis);
+  color: var(--accent);
   transform: scale(1.15);
 }
 
 .favorite-btn.active {
-  color: var(--accent-emphasis);
+  color: var(--accent);
 }
 
 .favorite-btn.active svg {
-  filter: drop-shadow(0 2px 4px rgba(236, 208, 111, 0.4));
+  filter: drop-shadow(0 2px 4px rgba(29, 78, 216, 0.3));
 }
 
 @media (max-width: 480px) {

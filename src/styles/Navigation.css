@@ -1,20 +1,20 @@
 /* Announcement Bar */
 .announcement-bar {
-  background: #0a0a0a;
-  color: rgba(255, 255, 255, 0.7);
+  background: #111110;
+  color: var(--text-muted);
   text-align: center;
   padding: 0.5rem 1rem;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .navigation {
-  background: #f8f7f5;
-  color: #1a1a1a;
-  border-bottom: 1px solid rgba(26, 26, 26, 0.15);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: var(--bg);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -48,12 +48,12 @@
 }
 
 .brand-name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 400;
   letter-spacing: -0.01em;
   margin: 0;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .nav-tabs {
@@ -66,12 +66,12 @@
 .nav-tab {
   padding: 0.75rem 1.25rem;
   text-decoration: none;
-  color: #6b6b6b;
-  font-family: 'Inter', sans-serif;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.8rem;
-  border-radius: 0;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -88,8 +88,8 @@
   left: 50%;
   width: 0;
   height: 2px;
-  background: var(--accent-emphasis);
-  transition: all 0.3s ease;
+  background: var(--accent);
+  transition: all 0.15s ease;
   transform: translateX(-50%);
 }
 
@@ -98,13 +98,13 @@
 }
 
 .nav-tab:hover {
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .nav-tab.active {
-  color: #1a1a1a;
+  color: var(--text-primary);
   background: transparent;
-  border-bottom: 2px solid var(--accent-emphasis);
+  border-bottom: 2px solid var(--accent);
 }
 
 .nav-tab.active::after {
@@ -119,20 +119,21 @@
 .nav-signout {
   padding: 0.5rem 1rem;
   background: none;
-  border: 1px solid rgba(26, 26, 26, 0.2);
-  color: #6b6b6b;
-  font-family: 'Inter', sans-serif;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  border-radius: var(--radius-sm);
 }
 
 .nav-signout:hover {
-  border-color: #1a1a1a;
-  color: #1a1a1a;
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 /* Hamburger button - hidden on desktop */
@@ -189,8 +190,8 @@
     display: block;
     width: 22px;
     height: 2px;
-    background: #1a1a1a;
-    transition: all 0.3s ease;
+    background: var(--text-primary);
+    transition: all 0.15s ease;
   }
 
   .nav-hamburger.open span:nth-child(1) {
@@ -224,7 +225,7 @@
     padding: 0.85rem 0.5rem;
     font-size: 0.8rem;
     letter-spacing: 0.1em;
-    border-bottom: 1px solid rgba(26, 26, 26, 0.06);
+    border-bottom: 1px solid var(--border-light);
   }
 
   .nav-tab::after {
@@ -232,8 +233,8 @@
   }
 
   .nav-tab.active {
-    border-bottom: 1px solid rgba(26, 26, 26, 0.06);
-    border-left: 3px solid var(--accent-emphasis);
+    border-bottom: 1px solid var(--border-light);
+    border-left: 3px solid var(--accent);
     padding-left: calc(0.5rem - 3px);
   }
 }

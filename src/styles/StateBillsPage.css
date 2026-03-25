@@ -14,14 +14,14 @@
 
 .state-bills-header h1 {
   font-size: 2.25rem;
-  color: #514e4c;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
 .state-bills-subtitle {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
@@ -37,31 +37,31 @@
 }
 
 .state-select-prompt p {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
 .state-select-large {
   padding: 1rem 3rem 1rem 1.25rem;
-  border: 1px solid rgba(81, 78, 76, 0.25);
-  border-radius: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 1.1rem;
-  background: white;
-  color: #514e4c;
-  font-family: inherit;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-body);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23514e4c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%231A1A18' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   min-width: 280px;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.15s ease;
 }
 
 .state-select-large:hover,
 .state-select-large:focus {
   outline: none;
-  border-color: #514e4c;
+  border-color: var(--accent);
 }
 
 /* Controls row */
@@ -87,44 +87,44 @@
 .ai-search-input {
   flex: 1;
   padding: 1rem 1.25rem;
-  border: 1px solid rgba(81, 78, 76, 0.25);
+  border: 1px solid var(--border);
   border-right: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   font-size: 1rem;
-  font-family: inherit;
-  color: #514e4c;
-  background: white;
-  transition: border-color 0.3s ease;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--surface);
+  transition: border-color 0.15s ease;
 }
 
 .ai-search-input::placeholder {
-  color: #a8a6a4;
+  color: var(--text-muted);
 }
 
 .ai-search-input:focus {
   outline: none;
-  border-color: #514e4c;
+  border-color: var(--accent);
 }
 
 .ai-search-button {
   padding: 1rem 1.5rem;
-  background: var(--accent-emphasis, #d4a843);
-  color: white;
-  border: 1px solid var(--accent-emphasis, #d4a843);
-  border-radius: 0;
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: inherit;
+  font-family: var(--font-body);
   white-space: nowrap;
 }
 
 .ai-search-button:hover:not(:disabled) {
-  background: var(--accent-emphasis-dark, #c49a38);
-  border-color: var(--accent-emphasis-dark, #c49a38);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .ai-search-button:disabled {
@@ -138,35 +138,37 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, rgba(212, 168, 67, 0.08), rgba(212, 168, 67, 0.04));
-  border: 1px solid rgba(212, 168, 67, 0.25);
+  background: var(--accent-subtle);
+  border: 1px solid rgba(29, 78, 216, 0.25);
+  border-radius: var(--radius-sm);
   margin-bottom: 1rem;
   animation: fadeIn 0.3s ease-out;
 }
 
 .ai-message-text {
   font-size: 0.9rem;
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .ai-message-clear {
   background: none;
-  border: 1px solid rgba(81, 78, 76, 0.25);
-  color: #7a7775;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   padding: 0.3rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.2s ease;
-  font-family: inherit;
+  transition: all 0.15s ease;
+  font-family: var(--font-body);
+  border-radius: var(--radius-sm);
 }
 
 .ai-message-clear:hover {
-  border-color: #514e4c;
-  color: #514e4c;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Filters */
@@ -178,16 +180,16 @@
 
 .state-bills-filter-select {
   padding: 1rem 3rem 1rem 1.25rem;
-  border: 1px solid rgba(81, 78, 76, 0.25);
-  border-radius: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
-  background: white;
-  color: #514e4c;
-  font-family: inherit;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.15s ease;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23514e4c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%231A1A18' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
 }
@@ -195,7 +197,7 @@
 .state-bills-filter-select:hover,
 .state-bills-filter-select:focus {
   outline: none;
-  border-color: #514e4c;
+  border-color: var(--accent);
 }
 
 /* Loading / Error states */
@@ -209,7 +211,7 @@
 }
 
 .state-bills-loading p {
-  color: var(--text-light, #7a7775);
+  color: var(--text-secondary);
   font-size: 1.15rem;
   font-weight: 500;
 }
@@ -217,8 +219,8 @@
 .state-bills-loading .loading-spinner {
   width: 48px;
   height: 48px;
-  border: 3px solid rgba(81, 78, 76, 0.15);
-  border-top: 3px solid #514e4c;
+  border: 3px solid var(--border);
+  border-top: 3px solid var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -240,27 +242,28 @@
 }
 
 .state-bills-error .error-message {
-  color: #991b1b;
+  color: var(--error);
   font-size: 1rem;
 }
 
 .state-bills-error .retry-button {
   padding: 0.75rem 1.5rem;
-  background: #514e4c;
-  color: white;
-  border: 1px solid #514e4c;
-  border-radius: 0;
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-family: var(--font-body);
 }
 
 .state-bills-error .retry-button:hover {
-  background: transparent;
-  color: #514e4c;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 /* Results */
@@ -272,7 +275,7 @@
 }
 
 .state-bills-results-info .results-count {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
   display: flex;
@@ -286,7 +289,7 @@
   content: '';
   width: 3px;
   height: 16px;
-  background: #514e4c;
+  background: var(--accent);
 }
 
 /* Grid */
@@ -301,13 +304,13 @@
 .no-state-bills {
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 
 .no-state-bills p {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
 }
@@ -315,20 +318,21 @@
 .no-state-bills .reset-filters-button {
   padding: 0.75rem 1.5rem;
   background: transparent;
-  color: #514e4c;
-  border: 1px solid rgba(81, 78, 76, 0.3);
-  border-radius: 0;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-family: var(--font-body);
 }
 
 .no-state-bills .reset-filters-button:hover {
-  border-color: #514e4c;
-  background: rgba(81, 78, 76, 0.05);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 /* Responsive */
@@ -356,7 +360,12 @@
   }
 
   .ai-search-input {
-    border-right: 1px solid rgba(81, 78, 76, 0.25);
+    border-right: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .ai-search-button {
+    border-radius: var(--radius-sm);
   }
 
   .state-bills-filters {

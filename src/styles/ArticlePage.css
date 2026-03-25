@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 2rem;
   cursor: pointer;
@@ -22,14 +22,14 @@
   border: none;
   font-size: 0.9rem;
   padding: 0;
-  transition: color 0.2s ease;
-  font-family: inherit;
+  transition: color 0.15s ease;
+  font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .article-page .back-link:hover {
-  color: #514e4c;
+  color: var(--accent);
 }
 
 .article-header {
@@ -48,30 +48,31 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: white;
-  background: #514e4c;
+  color: var(--surface);
+  background: var(--accent);
   padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
 }
 
 .article-title {
   font-size: 2.25rem;
   font-weight: 400;
-  color: #514e4c;
+  color: var(--text-primary);
   line-height: 1.25;
   margin-bottom: 1.25rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
 }
 
 .article-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
 .article-meta-divider {
-  color: #a8a6a4;
+  color: var(--text-muted);
 }
 
 .article-author {
@@ -79,12 +80,12 @@
 }
 
 .article-body {
-  border-top: 1px solid rgba(81, 78, 76, 0.15);
+  border-top: 1px solid var(--border);
   padding-top: 2rem;
 }
 
 .article-body p {
-  color: #514e4c;
+  color: var(--text-primary);
   font-size: 1.05rem;
   line-height: 1.85;
   margin-bottom: 1.5rem;
@@ -107,34 +108,35 @@
 
 .article-not-found h1 {
   font-size: 1.75rem;
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 400;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
 }
 
 .article-not-found p {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 1.05rem;
 }
 
 .article-not-found .back-button {
   padding: 0.75rem 1.5rem;
-  background: #514e4c;
-  color: white;
-  border: 1px solid #514e4c;
-  border-radius: 0;
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-top: 0.5rem;
+  transition: all 0.15s ease;
+  font-family: var(--font-body);
 }
 
 .article-not-found .back-button:hover {
-  background: transparent;
-  color: #514e4c;
-  border-color: #514e4c;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 @media (max-width: 768px) {

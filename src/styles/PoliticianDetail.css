@@ -23,7 +23,7 @@
 }
 
 .politician-detail-loading p {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
@@ -31,7 +31,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 1.5rem;
   cursor: pointer;
@@ -39,22 +39,22 @@
   border: none;
   font-size: 0.9rem;
   padding: 0;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
   font-family: inherit;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .back-link:hover {
-  color: #514e4c;
+  color: var(--accent);
 }
 
 .back-button {
   padding: 0.75rem 1.5rem;
-  background: #514e4c;
-  color: #ffffff;
-  border: 1px solid #514e4c;
-  border-radius: 0;
+  background: var(--text-primary);
+  color: var(--surface);
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -64,19 +64,19 @@
 
 .back-button:hover {
   background: transparent;
-  color: #514e4c;
-  border-color: #514e4c;
+  color: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 /* Header Section - Photo Left, Info Right */
 .politician-header-section {
   display: flex;
   gap: 2.5rem;
-  background: #ffffff;
-  border-radius: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   padding: 2rem;
   margin-bottom: 2rem;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  border: 1px solid var(--border);
 }
 
 .politician-photo-side {
@@ -87,22 +87,22 @@
   width: 220px;
   height: 280px;
   object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .politician-photo-placeholder {
   width: 220px;
   height: 280px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 3.5rem;
   font-weight: 400;
-  background: #514e4c;
-  font-family: 'Inter', sans-serif;
+  background: var(--text-primary);
+  font-family: var(--font-body);
 }
 
 .politician-info-side {
@@ -114,15 +114,15 @@
 .politician-name {
   font-size: 2.25rem;
   font-weight: 400;
-  color: #514e4c;
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-display);
 }
 
 .party-badge-large {
   display: inline-block;
   padding: 0.4rem 1rem;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   color: white;
   font-weight: 500;
   font-size: 0.8rem;
@@ -143,12 +143,12 @@
 .info-table td {
   padding: 0.65rem 0;
   text-align: left;
-  border-bottom: 1px solid rgba(81, 78, 76, 0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .info-table th {
   width: 140px;
-  color: #7a7775;
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -156,12 +156,12 @@
 }
 
 .info-table td {
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 400;
 }
 
 .info-table td a {
-  color: #514e4c;
+  color: var(--text-primary);
   text-decoration: none;
 }
 
@@ -177,63 +177,63 @@
 
 .profile-link {
   padding: 0.6rem 1.25rem;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   font-size: 0.8rem;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .profile-link.website {
-  background: #514e4c;
-  color: #ffffff;
-  border: 1px solid #514e4c;
+  background: var(--accent);
+  color: var(--surface);
+  border: 1px solid var(--accent);
 }
 
 .profile-link.website:hover {
-  background: transparent;
-  color: #514e4c;
-  border-color: #514e4c;
+  background: var(--accent-hover);
+  color: var(--surface);
+  border-color: var(--accent-hover);
 }
 
 .profile-link.congress {
   background: transparent;
-  color: #514e4c;
-  border: 1px solid rgba(81, 78, 76, 0.3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
 .profile-link.congress:hover {
-  border-color: #514e4c;
+  border-color: var(--text-primary);
 }
 
 /* Detail Sections */
 .detail-section {
-  background: #ffffff;
-  border-radius: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   padding: 2rem;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  border: 1px solid var(--border);
 }
 
 .detail-section h2 {
   font-size: 1.5rem;
-  color: #514e4c;
+  color: var(--text-primary);
   margin: 0 0 1.5rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(81, 78, 76, 0.15);
-  font-family: 'Inter', sans-serif;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
   font-weight: 400;
 }
 
 .detail-section h3 {
   font-size: 0.85rem;
-  color: #514e4c;
+  color: var(--text-primary);
   margin: 1.5rem 0 1rem 0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
 }
 
@@ -246,11 +246,11 @@
 }
 
 .section-loading p {
-  color: #7a7775;
+  color: var(--text-secondary);
 }
 
 .no-data-message {
-  color: #7a7775;
+  color: var(--text-secondary);
   text-align: center;
   padding: 2rem;
 }
@@ -258,7 +258,7 @@
 .no-data-message small {
   display: block;
   margin-top: 0.5rem;
-  color: #a8a6a4;
+  color: var(--text-muted);
 }
 
 /* Voting History Table */
@@ -275,12 +275,12 @@
 .votes-table td {
   padding: 0.875rem 1rem;
   text-align: left;
-  border-bottom: 1px solid rgba(81, 78, 76, 0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .votes-table th {
-  background: #f5f5f5;
-  color: #7a7775;
+  background: var(--bg);
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -288,7 +288,7 @@
 }
 
 .votes-table tbody tr:hover {
-  background: #f5f5f5;
+  background: var(--bg);
 }
 
 .votes-table tbody tr.clickable-row {
@@ -296,35 +296,35 @@
 }
 
 .votes-table tbody tr.clickable-row:hover {
-  background: #eef3fb;
+  background: var(--accent-subtle);
 }
 
 .vote-date {
   white-space: nowrap;
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .vote-bill {
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .vote-description {
   max-width: 400px;
   font-size: 0.95rem;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .vote-result {
   font-size: 0.9rem;
-  color: #7a7775;
+  color: var(--text-secondary);
 }
 
 .vote-badge {
   display: inline-block;
   padding: 0.25rem 0.65rem;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -332,27 +332,27 @@
 }
 
 .vote-badge.vote-yea {
-  background: #f0f7ed;
-  color: #4a6741;
-  border: 1px solid rgba(74, 103, 65, 0.2);
+  background: var(--success-subtle);
+  color: var(--success);
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .vote-badge.vote-nay {
-  background: #fef5f5;
-  color: #8b4513;
-  border: 1px solid rgba(139, 69, 19, 0.2);
+  background: var(--error-subtle);
+  color: var(--error);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .vote-badge.vote-other {
-  background: #f5f5f5;
-  color: #7a7775;
-  border: 1px solid rgba(81, 78, 76, 0.2);
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
 .vote-badge.vote-sponsor {
-  background: #f5f5f5;
-  color: #514e4c;
-  border: 1px solid #514e4c;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 /* Tooltips */
@@ -367,10 +367,10 @@
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  background: #514e4c;
+  background: var(--text-primary);
   color: white;
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 400;
   text-transform: none;
@@ -386,31 +386,31 @@
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #514e4c;
+  border-top-color: var(--text-primary);
   margin-bottom: -7px;
   z-index: 101;
 }
 
 /* Bill Links */
 .bill-link {
-  color: #514e4c;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .bill-link:hover {
-  color: #514e4c;
+  color: var(--accent);
   text-decoration: underline;
 }
 
 /* Sponsored Bill Row */
 .sponsored-row {
-  background: #f5f5f5 !important;
+  background: var(--bg) !important;
 }
 
 .sponsored-row:hover {
-  background: #f0f0f0 !important;
+  background: var(--border-light) !important;
 }
 
 /* Description tooltip on hover */
@@ -419,7 +419,7 @@
 }
 
 .description-text:hover {
-  color: #3a3836;
+  color: var(--text-primary);
 }
 
 /* Funding Section */
@@ -428,9 +428,9 @@
   gap: 2rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: #f5f5f5;
-  border-radius: 4px;
-  border: 1px solid rgba(81, 78, 76, 0.1);
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
 }
 
 .funding-stat {
@@ -440,32 +440,32 @@
 }
 
 .funding-stat.corporate-stat {
-  background: #f5f5f5;
+  background: var(--bg);
   padding: 1rem 1.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   margin: -0.5rem 0;
-  border: 1px solid #514e4c;
+  border: 1px solid var(--accent);
 }
 
 .funding-stat.corporate-stat .stat-value {
-  color: #514e4c;
+  color: var(--accent);
 }
 
 .stat-value {
   font-size: 1.75rem;
   font-weight: 400;
-  color: #514e4c;
-  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-body);
 }
 
 .stat-value.small {
   font-size: 1rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .stat-label {
   font-size: 0.7rem;
-  color: #7a7775;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -482,8 +482,8 @@
 }
 
 .committee-card {
-  background: #f5f5f5;
-  border: 1px solid rgba(81, 78, 76, 0.1);
+  background: var(--bg);
+  border: 1px solid var(--border-light);
   padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -493,7 +493,7 @@
 .committee-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .committee-financials {
@@ -512,13 +512,13 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #7a7775;
+  color: var(--text-secondary);
 }
 
 .committee-stat-value {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 /* Top Individual Donors */
@@ -530,18 +530,18 @@
 .corporate-donors-section {
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: #f5f5f5;
-  border-radius: 4px;
-  border: 1px solid #514e4c;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent);
 }
 
 .corporate-donors-section h3 {
   margin: 0 0 0.25rem 0;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .section-subtitle {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   margin: 0 0 1rem 0;
 }
@@ -555,38 +555,38 @@
 .corporate-tag {
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--surface);
   padding: 0.75rem 1rem;
-  border-radius: 4px;
-  border: 1px solid rgba(81, 78, 76, 0.15);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .corp-name {
   font-weight: 500;
   font-size: 0.8rem;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .corp-amount {
   font-size: 0.75rem;
-  color: #514e4c;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 /* Corporate row highlight in donors table */
 .corporate-row {
-  background: #f5f5f5 !important;
+  background: var(--bg) !important;
 }
 
 .corporate-row:hover {
-  background: #f0f0f0 !important;
+  background: var(--border-light) !important;
 }
 
 .corp-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
-  background: #514e4c;
-  color: #ffffff;
+  background: var(--accent);
+  color: var(--surface);
   font-size: 0.6rem;
   font-weight: 600;
   border-radius: 2px;
@@ -596,13 +596,13 @@
 }
 
 .no-corporate-message {
-  color: #7a7775;
+  color: var(--text-secondary);
   text-align: center;
   padding: 1.5rem;
-  background: #f5f5f5;
-  border-radius: 4px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
   margin: 1rem 0;
-  border: 1px solid rgba(81, 78, 76, 0.1);
+  border: 1px solid var(--border-light);
 }
 
 /* Donors Table */
@@ -619,12 +619,12 @@
 .donors-table td {
   padding: 0.875rem 1rem;
   text-align: left;
-  border-bottom: 1px solid rgba(81, 78, 76, 0.1);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .donors-table th {
-  background: #f5f5f5;
-  color: #7a7775;
+  background: var(--bg);
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -632,29 +632,29 @@
 }
 
 .donors-table tbody tr:hover {
-  background: #f5f5f5;
+  background: var(--bg);
 }
 
 .donor-rank {
   width: 40px;
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .donor-name {
   font-weight: 500;
-  color: #514e4c;
+  color: var(--text-primary);
 }
 
 .donor-occupation,
 .donor-location {
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .donor-amount {
   font-weight: 600;
-  color: #514e4c;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
@@ -664,7 +664,7 @@
 }
 
 .fec-link {
-  color: #514e4c;
+  color: var(--accent);
   font-weight: 500;
   text-decoration: none;
   font-size: 0.9rem;
@@ -672,13 +672,13 @@
 
 .fec-link:hover {
   text-decoration: underline;
-  color: #514e4c;
+  color: var(--accent-hover);
 }
 
 /* Photo Attribution */
 .photo-attribution {
   text-align: center;
-  color: #7a7775;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   margin-top: 1rem;
   font-style: italic;
@@ -688,8 +688,8 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid rgba(81, 78, 76, 0.1);
-  border-top-color: #514e4c;
+  border: 2px solid var(--border-light);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -14,8 +14,8 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: rgba(81, 78, 76, 0.12);
-  color: #7a7775;
+  background: var(--border);
+  color: var(--text-secondary);
   font-size: 0.6rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -27,13 +27,13 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: #2d2b2a;
+  background: #2d2a28;
   color: #f5f5f4;
   font-size: 0.78rem;
   font-weight: 400;
   line-height: 1.45;
   padding: 0.65rem 0.85rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   white-space: normal;
   width: max-content;
   max-width: 280px;
@@ -43,6 +43,7 @@
   text-transform: none;
   letter-spacing: 0;
   font-style: normal;
+  font-family: var(--font-body);
 }
 
 .tooltip-popup::after {
@@ -52,14 +53,14 @@
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: #2d2b2a;
+  border-top-color: #2d2a28;
 }
 
-/* InfoTip — dotted underline, no icon */
+/* InfoTip -- dotted underline, no icon */
 .infotip-wrapper {
   position: relative;
   cursor: help;
-  border-bottom: 1px dotted rgba(81, 78, 76, 0.4);
+  border-bottom: 1px dotted var(--border);
   display: inline;
 }
 

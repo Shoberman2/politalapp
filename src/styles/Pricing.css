@@ -1,6 +1,6 @@
 .pricing-page {
   min-height: 100vh;
-  background: #0a0a0a;
+  background: #111110;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,10 +10,11 @@
 .pricing-card {
   width: 100%;
   max-width: 440px;
-  background: #141414;
+  background: #1a1a18;
   border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 3rem 2.5rem;
   text-align: center;
+  border-radius: var(--radius-lg);
 }
 
 .pricing-header {
@@ -21,7 +22,7 @@
 }
 
 .pricing-header h1 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display);
   font-size: 1.75rem;
   color: #ffffff;
   margin: 0 0 0.5rem 0;
@@ -31,14 +32,15 @@
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.9rem;
   margin: 0;
+  font-family: var(--font-body);
 }
 
 .pricing-label {
   display: inline-block;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 600;
-  color: #c9a96e;
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.2em;
   margin-bottom: 1rem;
@@ -53,14 +55,14 @@
 }
 
 .pricing-dollar {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 1.5rem;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 400;
 }
 
 .pricing-number {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display);
   font-size: 5rem;
   font-weight: 400;
   color: #ffffff;
@@ -68,14 +70,14 @@
 }
 
 .pricing-period {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 400;
 }
 
 .pricing-tagline {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.5);
   margin: 0;
@@ -91,7 +93,7 @@
 
 .pricing-features li {
   padding: 0.65rem 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.7);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -107,7 +109,7 @@
   transform: translateY(-50%);
   width: 8px;
   height: 8px;
-  background: #c9a96e;
+  background: var(--accent);
   border-radius: 50%;
 }
 
@@ -119,20 +121,21 @@
 .pricing-subscribe-btn {
   width: 100%;
   padding: 1.1rem;
-  background: #c9a96e;
-  color: #0a0a0a;
+  background: var(--accent);
+  color: #ffffff;
   border: none;
-  font-family: 'Inter', sans-serif;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
   text-transform: uppercase;
   letter-spacing: 0.15em;
 }
 
 .pricing-subscribe-btn:hover:not(:disabled) {
-  background: #b08d4f;
+  background: var(--accent-hover);
 }
 
 .pricing-subscribe-btn:disabled {
@@ -143,24 +146,25 @@
 .pricing-btn {
   width: 100%;
   padding: 1rem;
-  background: #c9a96e;
-  color: #0a0a0a;
+  background: var(--accent);
+  color: #ffffff;
   border: none;
-  font-family: 'Inter', sans-serif;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .pricing-btn:hover {
-  background: #b08d4f;
+  background: var(--accent-hover);
 }
 
 .pricing-note {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.3);
   margin: 1rem 0 0 0;
@@ -168,11 +172,12 @@
 
 .pricing-error {
   padding: 0.75rem 1rem;
-  background: rgba(220, 38, 38, 0.1);
+  background: var(--error-subtle);
   border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
   color: #fca5a5;
   font-size: 0.85rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   margin-bottom: 1rem;
 }
 
@@ -188,7 +193,7 @@
 }
 
 .pricing-email {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.4);
 }
@@ -197,16 +202,16 @@
 .pricing-auth-link {
   background: none;
   border: none;
-  color: #c9a96e;
-  font-family: 'Inter', sans-serif;
+  color: var(--accent);
+  font-family: var(--font-body);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .pricing-signout:hover,
 .pricing-auth-link:hover {
-  color: #b08d4f;
+  color: var(--accent-hover);
 }
 
 @media (max-width: 480px) {
