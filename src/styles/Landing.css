@@ -230,9 +230,9 @@ html {
   bottom: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.35) 0%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.65) 100%
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.6) 40%,
+    rgba(0, 0, 0, 0.75) 100%
   );
 }
 
@@ -496,14 +496,14 @@ html {
    SECTION STYLES (Shared)
    ======================================== */
 .section-container {
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 8rem 2rem;
+  padding: 6rem 2rem;
 }
 
 .section-header {
-  max-width: 700px;
-  margin: 0 0 5rem;
+  max-width: 680px;
+  margin: 0 0 4rem;
 }
 
 .section-header-center {
@@ -525,16 +525,16 @@ html {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 400;
   color: var(--text-primary);
-  margin: 0 0 1.25rem 0;
-  line-height: 1.15;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
 }
 
 .section-description {
   font-family: var(--font-body);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-secondary);
   line-height: 1.7;
   margin: 0;
@@ -585,7 +585,6 @@ html {
 .value-card:hover {
   background: #222220;
   border-color: var(--accent);
-  transform: translateY(-4px);
 }
 
 .value-card-number {
@@ -787,16 +786,15 @@ html {
 
 .feature-card {
   width: 100%;
-  padding: 2.5rem;
+  padding: 2.25rem;
   background: var(--surface);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   transition: all 0.15s ease;
   border-radius: var(--radius-md);
 }
 
 .feature-card:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-md);
+  border-color: var(--text-primary);
 }
 
 .feature-header {
@@ -807,15 +805,14 @@ html {
 }
 
 .feature-icon-wrap {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  border: 1px solid var(--border-light);
+  background: transparent;
+  border: none;
   color: var(--accent);
-  border-radius: var(--radius-sm);
 }
 
 .feature-card h3 {
@@ -992,8 +989,6 @@ html {
 
 .article-preview-card:hover {
   border-color: var(--text-primary);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
 }
 
 .article-preview-tags {
@@ -1018,8 +1013,8 @@ html {
 
 .article-preview-card h3 {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 400;
   color: var(--text-primary);
   margin: 0 0 0.75rem 0;
   line-height: 1.35;
@@ -1027,7 +1022,7 @@ html {
 
 .article-preview-card p {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 1.25rem 0;
@@ -1191,15 +1186,15 @@ html {
   }
 
   .section-container {
-    padding: 6rem 2rem;
+    padding: 5rem 2rem;
   }
 
   .section-header {
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
   }
 
   .section-title {
-    font-size: 2.75rem;
+    font-size: 2.25rem;
   }
 
   .trust-number {
