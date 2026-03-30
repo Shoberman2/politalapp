@@ -6,12 +6,14 @@
  *
  * API Documentation: https://api.congress.gov/
  *
- * Key Endpoints Used:
- * - GET /v3/vote/house/{congress}/{year} - List House roll call votes
- * - GET /v3/vote/senate/{congress}/{year} - List Senate roll call votes
- * - GET /v3/vote/house/{congress}/{year}/{rollNumber} - Specific House vote details
- * - GET /v3/vote/senate/{congress}/{year}/{rollNumber} - Specific Senate vote details
- * - GET /v3/member - Member information (for additional politician data)
+ * Key Endpoints (updated format as of 2025):
+ * - GET /v3/house-vote/{congress} - List House roll call votes
+ * - GET /v3/senate-vote/{congress} - List Senate roll call votes
+ * - GET /v3/house-vote/{congress}/{session}/{rollNumber} - House vote details
+ * - GET /v3/senate-vote/{congress}/{session}/{rollNumber} - Senate vote details
+ * - GET /v3/house-vote/{congress}/{session}/{rollNumber}/members - Member positions
+ * - GET /v3/senate-vote/{congress}/{session}/{rollNumber}/members - Member positions
+ * - GET /v3/member - Member information
  * - GET /v3/bill/{congress}/{type}/{number} - Bill details
  */
 
@@ -35,6 +37,115 @@ import {
 // API RESPONSE INTERFACES (Internal to this module)
 // =============================================================================
 
+// New API response shapes (as of 2025)
+interface HouseVoteListItem {
+  congress: number;
+  rollCallNumber: number;
+  sessionNumber: number;
+  startDate: string;
+  updateDate: string;
+  result: string;
+  voteType: string;
+  voteQuestion?: string;
+  legislationType?: string;
+  legislationNumber?: string;
+  legislationUrl?: string;
+  url: string;
+}
+
+interface SenateVoteListItem {
+  congress: number;
+  rollCallNumber: number;
+  sessionNumber: number;
+  voteDate: string;
+  updateDate: string;
+  result: string;
+  voteType: string;
+  question?: string;
+  issue?: string;
+  url: string;
+}
+
+interface HouseVoteDetailResponse {
+  houseRollCallVote: {
+    congress: number;
+    rollCallNumber: number;
+    sessionNumber: number;
+    startDate: string;
+    updateDate: string;
+    result: string;
+    voteType: string;
+    voteQuestion?: string;
+    legislationType?: string;
+    legislationNumber?: string;
+    legislationUrl?: string;
+    votePartyTotal?: Array<{
+      yeaTotal: number;
+      nayTotal: number;
+      presentTotal: number;
+      notVotingTotal: number;
+      voteParty: string;
+      party: { name: string; type: string };
+    }>;
+  };
+}
+
+interface SenateVoteDetailResponse {
+  senateRollCallVote: {
+    congress: number;
+    rollCallNumber: number;
+    sessionNumber: number;
+    voteDate: string;
+    updateDate: string;
+    result: string;
+    voteType: string;
+    question?: string;
+    issue?: string;
+    votePartyTotal?: Array<{
+      yeaTotal: number;
+      nayTotal: number;
+      presentTotal: number;
+      notVotingTotal: number;
+      voteParty: string;
+    }>;
+  };
+}
+
+interface HouseMemberVotesResponse {
+  houseRollCallVoteMemberVotes: {
+    congress: number;
+    rollCallNumber: number;
+    sessionNumber: number;
+    results: Array<{
+      bioguideID: string;
+      firstName: string;
+      lastName: string;
+      voteCast: string;
+      voteParty: string;
+      voteState: string;
+    }>;
+  };
+  pagination?: { count: number; next?: string };
+}
+
+interface SenateMemberVotesResponse {
+  senateRollCallVoteMemberVotes: {
+    congress: number;
+    rollCallNumber: number;
+    sessionNumber: number;
+    results: Array<{
+      bioguideID: string;
+      firstName: string;
+      lastName: string;
+      voteCast: string;
+      voteParty: string;
+      voteState: string;
+    }>;
+  };
+  pagination?: { count: number; next?: string };
+}
+
+// Legacy interfaces kept for backward compatibility with types.ts
 interface VoteListResponse {
   votes: Array<{
     congress: number;
@@ -47,34 +158,6 @@ interface VoteListResponse {
   pagination?: {
     count: number;
     next?: string;
-  };
-}
-
-interface VoteDetailResponse {
-  vote: {
-    congress: number;
-    chamber: string;
-    session: number;
-    number: number;
-    date: string;
-    updateDate: string;
-    question: string;
-    questionText?: string;
-    description?: string;
-    voteType: string;
-    result: string;
-    bill?: {
-      congress: number;
-      type: string;
-      number: number;
-      title?: string;
-    };
-    amendment?: {
-      congress: number;
-      type: string;
-      number: string;
-    };
-    url: string;
   };
 }
 
@@ -174,6 +257,8 @@ export async function extractRecentVotes(
 
 /**
  * Extracts votes for a specific chamber (House or Senate).
+ * Uses the new Congress.gov API endpoints (2025+):
+ *   /house-vote/{congress} and /senate-vote/{congress}
  */
 async function extractChamberVotes(
   config: ETLConfig,
@@ -185,11 +270,9 @@ async function extractChamberVotes(
   const extractedVotes: ExtractedVoteData[] = [];
 
   try {
-    // Get list of votes for the current year
-    const year = new Date().getFullYear();
-    const voteList = await fetchVoteList(config.congressApiKey, chamber, congress, year);
+    const voteList = await fetchVoteList(config.congressApiKey, chamber, congress);
 
-    logger.info(`Found ${voteList.length} ${chamber} votes for ${year}`);
+    logger.info(`Found ${voteList.length} ${chamber} votes for congress ${congress}`);
 
     // Filter votes within our date range
     const filteredVotes = voteList.filter((vote) => {
@@ -208,7 +291,7 @@ async function extractChamberVotes(
           config.congressApiKey,
           chamber,
           congress,
-          year,
+          vote.session,
           vote.number
         );
 
@@ -219,11 +302,9 @@ async function extractChamberVotes(
           );
         }
 
-        // Small delay between requests to be nice to the API
         await sleep(100);
       } catch (error) {
         logger.error(`Failed to extract ${chamber} vote #${vote.number}`, error);
-        // Continue with other votes
       }
     }
   } catch (error) {
@@ -234,43 +315,48 @@ async function extractChamberVotes(
 }
 
 /**
- * Fetches the list of roll call votes for a chamber/congress/year.
+ * Fetches the list of roll call votes using the new API format.
+ * House: /house-vote/{congress}   Senate: /senate-vote/{congress}
  */
 async function fetchVoteList(
   apiKey: string,
   chamber: 'house' | 'senate',
-  congress: number,
-  year: number
-): Promise<Array<{ number: number; date: string; url: string }>> {
-  const allVotes: Array<{ number: number; date: string; url: string }> = [];
+  congress: number
+): Promise<Array<{ number: number; session: number; date: string; url: string }>> {
+  const allVotes: Array<{ number: number; session: number; date: string; url: string }> = [];
   let offset = 0;
   const limit = 250;
+  const endpoint = chamber === 'house' ? 'house-vote' : 'senate-vote';
 
   while (true) {
     const response = await retry(() =>
-      fetchCongressApi<VoteListResponse>(
-        `/vote/${chamber}/${congress}/${year}`,
+      fetchCongressApi<any>(
+        `/${endpoint}/${congress}`,
         apiKey,
         { offset, limit }
       )
     );
 
-    if (!response.votes || response.votes.length === 0) {
-      break;
-    }
+    // New API uses different response keys per chamber
+    const votes: any[] =
+      response.houseRollCallVotes ||
+      response.senateRollCallVotes ||
+      [];
+
+    if (votes.length === 0) break;
 
     allVotes.push(
-      ...response.votes.map((v) => ({
-        number: v.number,
-        date: v.date,
-        url: v.url,
-      }))
+      ...votes
+        .filter((v: any) => v.congress === congress)
+        .map((v: any) => ({
+          number: v.rollCallNumber,
+          session: v.sessionNumber,
+          date: v.startDate || v.voteDate || '',
+          url: v.url || '',
+        }))
     );
 
-    // Check if there are more pages
-    if (!response.pagination?.next || response.votes.length < limit) {
-      break;
-    }
+    if (votes.length < limit) break;
 
     offset += limit;
     await sleep(100);
@@ -280,34 +366,39 @@ async function fetchVoteList(
 }
 
 /**
- * Extracts a single vote with all member positions.
+ * Extracts a single vote with all member positions using the new API.
+ * House: /house-vote/{congress}/{session}/{rollNumber}
+ * Senate: /senate-vote/{congress}/{session}/{rollNumber}
  */
 async function extractSingleVote(
   apiKey: string,
   chamber: 'house' | 'senate',
   congress: number,
-  year: number,
+  session: number,
   rollNumber: number
 ): Promise<ExtractedVoteData | null> {
+  const endpoint = chamber === 'house' ? 'house-vote' : 'senate-vote';
+
   // Fetch vote details
   const detailResponse = await retry(() =>
-    fetchCongressApi<VoteDetailResponse>(
-      `/vote/${chamber}/${congress}/${year}/${rollNumber}`,
+    fetchCongressApi<any>(
+      `/${endpoint}/${congress}/${session}/${rollNumber}`,
       apiKey
     )
   );
 
-  if (!detailResponse.vote) {
+  const detail = detailResponse.houseRollCallVote || detailResponse.senateRollCallVote;
+  if (!detail) {
     logger.warn(`No vote details found for ${chamber} #${rollNumber}`);
     return null;
   }
 
-  // Fetch member positions
+  // Fetch member positions from /members sub-endpoint
   const memberVotes = await fetchVotePositions(
     apiKey,
     chamber,
     congress,
-    year,
+    session,
     rollNumber
   );
 
@@ -316,26 +407,29 @@ async function extractSingleVote(
     return null;
   }
 
-  // Convert to our internal format
+  // Parse bill info from legislationType/legislationNumber (house) or issue (senate)
+  let bill: CongressVoteDetail['bill'] = undefined;
+  if (detail.legislationType && detail.legislationNumber) {
+    bill = {
+      congress: detail.congress,
+      type: detail.legislationType.toLowerCase().replace(/\./g, ''),
+      number: parseInt(detail.legislationNumber, 10),
+      title: undefined,
+    };
+  }
+
   const voteDetail: CongressVoteDetail = {
-    congress: detailResponse.vote.congress,
-    chamber: detailResponse.vote.chamber,
-    session: detailResponse.vote.session,
-    rollNumber: detailResponse.vote.number,
-    date: detailResponse.vote.date,
-    updateDate: detailResponse.vote.updateDate,
-    question: detailResponse.vote.question || detailResponse.vote.questionText || '',
-    description: detailResponse.vote.description || '',
-    voteType: detailResponse.vote.voteType,
-    result: detailResponse.vote.result,
-    bill: detailResponse.vote.bill,
-    amendment: detailResponse.vote.amendment
-      ? {
-          congress: detailResponse.vote.amendment.congress,
-          type: detailResponse.vote.amendment.type,
-          number: parseInt(detailResponse.vote.amendment.number, 10),
-        }
-      : undefined,
+    congress: detail.congress,
+    chamber: chamber === 'house' ? 'House' : 'Senate',
+    session: detail.sessionNumber,
+    rollNumber: detail.rollCallNumber,
+    date: detail.startDate || detail.voteDate || '',
+    updateDate: detail.updateDate || '',
+    question: detail.voteQuestion || detail.question || '',
+    description: detail.issue || '',
+    voteType: detail.voteType || '',
+    result: detail.result || '',
+    bill,
     votes: memberVotes,
   };
 
@@ -347,49 +441,53 @@ async function extractSingleVote(
 }
 
 /**
- * Fetches all member vote positions for a specific roll call vote.
+ * Fetches all member vote positions from the /members sub-endpoint.
+ * House: /house-vote/{congress}/{session}/{rollNumber}/members
+ * Senate: /senate-vote/{congress}/{session}/{rollNumber}/members
  */
 async function fetchVotePositions(
   apiKey: string,
   chamber: 'house' | 'senate',
   congress: number,
-  year: number,
+  session: number,
   rollNumber: number
 ): Promise<CongressMemberVote[]> {
   const allPositions: CongressMemberVote[] = [];
   let offset = 0;
   const limit = 250;
+  const endpoint = chamber === 'house' ? 'house-vote' : 'senate-vote';
 
   while (true) {
     const response = await retry(() =>
-      fetchCongressApi<VotePositionsResponse>(
-        `/vote/${chamber}/${congress}/${year}/${rollNumber}/positions`,
+      fetchCongressApi<any>(
+        `/${endpoint}/${congress}/${session}/${rollNumber}/members`,
         apiKey,
         { offset, limit }
       )
     );
 
-    if (!response.positions || response.positions.length === 0) {
-      break;
-    }
+    const data =
+      response.houseRollCallVoteMemberVotes ||
+      response.senateRollCallVoteMemberVotes;
+
+    const results: any[] = data?.results || [];
+
+    if (results.length === 0) break;
 
     allPositions.push(
-      ...response.positions.map((p) => ({
+      ...results.map((r: any) => ({
         member: {
-          bioguideId: p.member.bioguideId,
-          name: p.member.name,
-          party: p.member.party,
-          state: p.member.state,
-          district: p.member.district,
+          bioguideId: r.bioguideID || r.bioguideId,
+          name: `${r.firstName} ${r.lastName}`,
+          party: r.voteParty,
+          state: r.voteState,
+          district: undefined,
         },
-        votePosition: p.votePosition,
+        votePosition: r.voteCast,
       }))
     );
 
-    // Check if there are more pages
-    if (!response.pagination?.next || response.positions.length < limit) {
-      break;
-    }
+    if (!response.pagination?.next || results.length < limit) break;
 
     offset += limit;
     await sleep(50);
