@@ -1,8 +1,8 @@
 .bill-card {
   background: var(--surface);
   border-radius: var(--radius-md);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
+  padding: 1.75rem;
+  box-shadow: none;
   transition: all 0.15s ease;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -37,7 +37,7 @@
 
 .bill-number {
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   font-family: var(--font-mono);
 }
@@ -103,8 +103,8 @@
 }
 
 .bill-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 400;
   color: var(--text-primary);
   line-height: 1.4;
   margin-bottom: 1rem;
@@ -123,8 +123,8 @@
 .bill-action {
   background: var(--bg);
   border-radius: var(--radius-sm);
-  padding: 0.75rem;
-  font-size: 0.85rem;
+  padding: 0.875rem;
+  font-size: 0.9rem;
 }
 
 .action-label {

@@ -369,7 +369,8 @@
 @media (max-width: 767px) {
   .dash-stats-bar {
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
   }
 
   .dash-stat-primary {
@@ -377,9 +378,25 @@
     width: 100%;
   }
 
+  .dash-stat-number {
+    font-size: 2rem;
+  }
+
+  .dash-stat-secondary {
+    padding-top: var(--space-1);
+    border-top: 1px solid var(--border-light, #F0EEEA);
+  }
+
   .dash-stat-breakdown {
     flex-direction: row;
-    gap: var(--space-2);
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    padding-top: var(--space-1);
+    border-top: 1px solid var(--border-light, #F0EEEA);
+  }
+
+  .dash-count {
+    font-size: 0.8125rem;
   }
 
   .dash-bill-title {
@@ -393,7 +410,16 @@
     overflow: hidden;
   }
 
+  .dash-card-meta {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
   .dash-card-date {
     display: none;
+  }
+
+  .dash-vote-card {
+    padding: var(--space-4) 0;
   }
 }
