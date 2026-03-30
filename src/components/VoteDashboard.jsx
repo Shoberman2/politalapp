@@ -182,7 +182,9 @@ function VoteDashboard({ bioguideId }) {
           {displayVotes.length > 0 ? displayVotes.map((vote, index) => {
             const parsed = parseBillId(vote.bill_id)
             const description = getBillDescription(vote)
-            const billTitle = vote.bill?.title || 'Procedural Vote'
+            const billTitle = vote.bill?.title
+              || (vote.bill_id ? vote.bill_id.split('-').slice(1).join(' ').toUpperCase()
+              : 'Procedural Vote')
             const isExpanded = expandedBill === index
             const explanation = billExplanations[index]
 
@@ -197,7 +199,7 @@ function VoteDashboard({ bioguideId }) {
                   <div className="dash-card-meta">
                     {vote.bill_id && (
                       <span className="dash-bill-number">
-                        {vote.bill_id.split('-').slice(1).join('-').toUpperCase()}
+                        {vote.bill_id.split('-').slice(1).join(' ').toUpperCase()}
                       </span>
                     )}
                     <span
