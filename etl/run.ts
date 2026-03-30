@@ -26,6 +26,8 @@ import { extractRecentVotes } from './extractHouseVotes.js';
 import { transformVoteData, validateTransformedData, getTransformStats } from './transform.js';
 import { loadToSupabase, checkTablesExist, getExistingCounts } from './load.js';
 import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
+import { computeMemberStats } from './computeStats.js';
+import { fetchCRSSummaries } from './fetchCRS.js';
 import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
 
 // =============================================================================
@@ -171,7 +173,21 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     });
 
     // ===========================================
-    // ENRICH PHASE (Optional)
+    // CRS SUMMARY PHASE
+    // ===========================================
+    logger.info('=== CRS SUMMARY PHASE ===');
+    try {
+      const crsResult = await fetchCRSSummaries(config);
+      logger.info('CRS summaries complete', crsResult);
+      if (crsResult.errors.length > 0) {
+        result.errors.push(...crsResult.errors.slice(0, 5));
+      }
+    } catch (crsError) {
+      logger.warn('CRS summary phase failed, continuing', crsError);
+    }
+
+    // ===========================================
+    // ENRICH PHASE (Optional - AI summaries)
     // ===========================================
     if (!options.skipEnrich) {
       logger.info('=== ENRICH PHASE ===');
@@ -179,10 +195,24 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
       logger.info('Enrichment complete', enrichResult);
 
       if (enrichResult.errors.length > 0) {
-        result.errors.push(...enrichResult.errors.slice(0, 5)); // Limit error count
+        result.errors.push(...enrichResult.errors.slice(0, 5));
       }
     } else {
       logger.info('Skipping AI enrichment (--skip-enrich flag)');
+    }
+
+    // ===========================================
+    // COMPUTE STATS PHASE
+    // ===========================================
+    logger.info('=== COMPUTE STATS PHASE ===');
+    try {
+      const statsResult = await computeMemberStats(config);
+      logger.info('Stats computation complete', statsResult);
+      if (statsResult.errors.length > 0) {
+        result.errors.push(...statsResult.errors.slice(0, 5));
+      }
+    } catch (statsError) {
+      logger.warn('Stats computation failed, continuing', statsError);
     }
 
     // ===========================================

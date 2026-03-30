@@ -228,9 +228,15 @@ function transformVote(
     ? getVoteSourceUrl(chamber, voteDetail.congress, session, voteDetail.rollNumber)
     : `https://www.congress.gov/`;
 
+  // Build roll_call_id for grouping votes by roll call (used by computeStats)
+  const rollCallId = chamber
+    ? `${chamber}-${voteDetail.congress}-${session}-${voteDetail.rollNumber}`
+    : `unknown-${voteDetail.congress}-0-${voteDetail.rollNumber}`;
+
   return {
     politician_id: memberVote.member.bioguideId,
     bill_id: billId,
+    roll_call_id: rollCallId,
     position,
     voted_at: votedAt,
     source_url: sourceUrl,

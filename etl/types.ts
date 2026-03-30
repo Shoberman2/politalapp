@@ -24,6 +24,8 @@ export interface Bill {
   title: string;
   introduced_at: string;   // ISO date string
   summary: string | null;  // AI-generated, cached
+  crs_summary: string | null; // Official CRS summary from Congress.gov
+  policy_area: string | null; // e.g., "Healthcare", "Defense", from Congress.gov policyArea
   source_url: string;
 }
 
@@ -31,9 +33,22 @@ export interface Vote {
   id?: number;             // Auto-generated
   politician_id: string;   // References politicians.id (BioGuide ID)
   bill_id: string | null;  // References bills.id (can be null for procedural votes)
+  roll_call_id: string;    // Format: "{chamber}-{congress}-{session}-{rollNumber}"
   position: VotePosition;
   voted_at: string;        // ISO date string
   source_url: string;
+}
+
+export interface MemberStats {
+  politician_id: string;
+  congress: number;
+  total_votes: number;
+  yea_count: number;
+  nay_count: number;
+  present_count: number;
+  not_voting_count: number;
+  party_loyalty_pct: number;
+  updated_at: string;
 }
 
 export type VotePosition = 'Yea' | 'Nay' | 'Present' | 'Not Voting';

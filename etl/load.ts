@@ -190,7 +190,7 @@ async function upsertBills(
   try {
     const { data: existing } = await supabase
       .from('bills')
-      .select('id, summary')
+      .select('id, summary, crs_summary, policy_area')
       .in('id', bills.map((b) => b.id));
 
     if (existing) {
@@ -210,14 +210,18 @@ async function upsertBills(
       const { data, error } = await supabase
         .from('bills')
         .upsert(
-          batch.map((b) => ({
-            id: b.id,
-            title: b.title,
-            introduced_at: b.introduced_at,
-            // Preserve existing summary if new one is null
-            summary: b.summary || existingBills.get(b.id)?.summary || null,
-            source_url: b.source_url,
-          })),
+          batch.map((b) => {
+            const existing = existingBills.get(b.id);
+            return {
+              id: b.id,
+              title: b.title,
+              introduced_at: b.introduced_at,
+              summary: b.summary || existing?.summary || null,
+              crs_summary: b.crs_summary || (existing as any)?.crs_summary || null,
+              policy_area: b.policy_area || (existing as any)?.policy_area || null,
+              source_url: b.source_url,
+            };
+          }),
           {
             onConflict: 'id',
             ignoreDuplicates: false,
@@ -270,6 +274,7 @@ async function upsertVotes(
           batch.map((v) => ({
             politician_id: v.politician_id,
             bill_id: v.bill_id,
+            roll_call_id: v.roll_call_id,
             position: v.position,
             voted_at: v.voted_at,
             source_url: v.source_url,

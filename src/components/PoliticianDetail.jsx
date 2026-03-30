@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getMemberDetails, getMemberVotes } from '../services/congress'
+import { getMemberDetails } from '../services/congress'
 import { getDonationsByPoliticianName, formatCurrency } from '../services/donations'
 import { InfoTip } from './Tooltip'
+import VoteDashboard from './VoteDashboard'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
 
@@ -11,10 +12,8 @@ function PoliticianDetail() {
   const navigate = useNavigate()
 
   const [member, setMember] = useState(null)
-  const [votes, setVotes] = useState([])
   const [donations, setDonations] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [votesLoading, setVotesLoading] = useState(true)
   const [donationsLoading, setDonationsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [imageError, setImageError] = useState(false)
@@ -35,27 +34,12 @@ function PoliticianDetail() {
       setError(null)
       setLoading(false)
 
-      // Fetch votes and donations in parallel after member loads
-      fetchVotes()
+      // Fetch donations after member loads (votes handled by VoteDashboard)
       fetchDonations(memberData)
     } catch (err) {
       setError('Failed to load politician details. Please try again.')
       console.error('[PoliticianDetail] Error loading member:', err)
       setLoading(false)
-    }
-  }
-
-  const fetchVotes = async () => {
-    try {
-      setVotesLoading(true)
-      console.log('[PoliticianDetail] Fetching votes for:', bioguideId)
-      const votesData = await getMemberVotes(bioguideId, 20)
-      console.log('[PoliticianDetail] Votes received:', votesData?.length || 0)
-      setVotes(votesData || [])
-    } catch (err) {
-      console.error('[PoliticianDetail] Error fetching votes:', err)
-    } finally {
-      setVotesLoading(false)
     }
   }
 
@@ -118,71 +102,6 @@ function PoliticianDetail() {
     if (!terms || terms.length === 0) return null
     const sortedTerms = [...terms].sort((a, b) => (b.startYear || 0) - (a.startYear || 0))
     return sortedTerms[0]
-  }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-
-  const getVoteClass = (position) => {
-    const pos = position?.toLowerCase()
-    if (pos === 'yea' || pos === 'yes' || pos === 'aye') return 'vote-yea'
-    if (pos === 'nay' || pos === 'no') return 'vote-nay'
-    if (pos === 'sponsor') return 'vote-sponsor'
-    return 'vote-other'
-  }
-
-  // Tooltips for voting terms
-  const voteTooltips = {
-    'yea': 'Voted YES - The representative voted in favor of this measure',
-    'yes': 'Voted YES - The representative voted in favor of this measure',
-    'aye': 'Voted YES - The representative voted in favor of this measure',
-    'nay': 'Voted NO - The representative voted against this measure',
-    'no': 'Voted NO - The representative voted against this measure',
-    'sponsor': 'SPONSOR - This representative authored or introduced this bill',
-    'cosponsor': 'CO-SPONSOR - This representative formally supports this bill',
-    'present': 'PRESENT - The representative was present but did not vote yes or no',
-    'not voting': 'NOT VOTING - The representative did not cast a vote on this measure'
-  }
-
-  const getVoteTooltip = (position) => {
-    const pos = position?.toLowerCase()
-    return voteTooltips[pos] || `Vote position: ${position}`
-  }
-
-  // Parse bill number to navigate to bill detail page
-  const parseBillNumber = (billNumber) => {
-    if (!billNumber) return null
-    // Format: HR123, S456, HRES789, SRES101, HJRES12, SJRES34, HCONRES56, SCONRES78
-    const match = billNumber.match(/^(HR|S|HRES|SRES|HJRES|SJRES|HCONRES|SCONRES)\.?\s*(\d+)$/i)
-    if (match) {
-      const typeMap = {
-        'hr': 'hr',
-        's': 's',
-        'hres': 'hres',
-        'sres': 'sres',
-        'hjres': 'hjres',
-        'sjres': 'sjres',
-        'hconres': 'hconres',
-        'sconres': 'sconres'
-      }
-      return {
-        type: typeMap[match[1].toLowerCase()],
-        number: match[2],
-        congress: 118 // Current congress
-      }
-    }
-    return null
-  }
-
-  const handleBillClick = (billNumber, e) => {
-    e.preventDefault()
-    const parsed = parseBillNumber(billNumber)
-    if (parsed) {
-      navigate(`/bill/${parsed.congress}/${parsed.type}/${parsed.number}`)
-    }
   }
 
   if (loading) {
@@ -339,86 +258,9 @@ function PoliticianDetail() {
         </div>
       </div>
 
-      {/* Voting History Section */}
+      {/* Voting Dashboard — replaces old voting history table */}
       <section className="detail-section votes-section">
-        <h2>Voting History</h2>
-        {votesLoading ? (
-          <div className="section-loading">
-            <div className="loading-spinner"></div>
-            <p>Loading voting history...</p>
-          </div>
-        ) : votes.length > 0 ? (
-          <div className="votes-table-container">
-            <table className="votes-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Bill</th>
-                  <th>Vote</th>
-                  <th>Description</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {votes.map((vote, index) => (
-                  <tr
-                    key={index}
-                    className={`${vote.isSponsoredBill ? 'sponsored-row' : ''}${parseBillNumber(vote.billNumber) ? ' clickable-row' : ''}`}
-                    onClick={() => {
-                      const parsed = parseBillNumber(vote.billNumber)
-                      if (parsed) {
-                        navigate(`/bill/${parsed.congress}/${parsed.type}/${parsed.number}`)
-                      }
-                    }}
-                  >
-                    <td className="vote-date">{formatDate(vote.date)}</td>
-                    <td className="vote-bill">
-                      {vote.billNumber ? (
-                        parseBillNumber(vote.billNumber) ? (
-                          <a
-                            href="#"
-                            onClick={(e) => handleBillClick(vote.billNumber, e)}
-                            className="bill-link"
-                            title="Click to view bill details"
-                          >
-                            {vote.billNumber}
-                          </a>
-                        ) : (
-                          vote.billNumber
-                        )
-                      ) : (
-                        'N/A'
-                      )}
-                    </td>
-                    <td>
-                      <span
-                        className={`vote-badge ${getVoteClass(vote.position)} has-tooltip`}
-                        title={getVoteTooltip(vote.position)}
-                      >
-                        {vote.position || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="vote-description">
-                      <span
-                        className="description-text"
-                        title={vote.billTitle || vote.description || ''}
-                      >
-                        {vote.question || vote.description || vote.billTitle || 'Vote'}
-                      </span>
-                    </td>
-                    <td className="vote-result">
-                      <span title={vote.result === 'Passed' ? 'This measure was approved' : vote.result === 'Failed' ? 'This measure was rejected' : ''}>
-                        {vote.result || 'N/A'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="no-data-message">No voting records available</p>
-        )}
+        <VoteDashboard bioguideId={bioguideId} />
       </section>
 
       {/* Campaign Funding Section */}
