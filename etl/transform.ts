@@ -193,6 +193,8 @@ function transformBill(
     title: title || `${type.toUpperCase()} ${number}`,
     introduced_at: new Date().toISOString().split('T')[0], // Will be enriched later
     summary: null, // Will be populated by AI enrichment
+    crs_summary: null, // Will be populated by fetchCRS
+    policy_area: null, // Will be populated by fetchCRS
     source_url: sourceUrl,
   };
 }

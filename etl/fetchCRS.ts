@@ -35,11 +35,13 @@ export async function fetchCRSSummaries(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Fetch bills that are missing crs_summary OR policy_area
+  // Fetch bills that need enrichment:
+  // - missing crs_summary or policy_area
+  // - title is just the bill number (e.g., "HR 1234") meaning real title wasn't fetched
   const { data: bills, error } = await supabase
     .from('bills')
     .select('id, title, crs_summary, policy_area')
-    .or('crs_summary.is.null,policy_area.is.null')
+    .or('crs_summary.is.null,policy_area.is.null,title.ilike.HR %,title.ilike.S %,title.ilike.HRES %,title.ilike.SRES %,title.ilike.HJRES %,title.ilike.SJRES %,title.ilike.HCONRES %,title.ilike.SCONRES %')
     .limit(maxBills);
 
   if (error || !bills) {
@@ -83,21 +85,27 @@ export async function fetchCRSSummaries(
       }
     }
 
-    // Fetch policy area if missing
-    if (!bill.policy_area) {
+    // Fetch bill details (title, policy area) if missing
+    const needsTitle = !bill.title || /^(HR|S|HRES|SRES|HJRES|SJRES|HCONRES|SCONRES)\s+\d+$/i.test(bill.title);
+    if (!bill.policy_area || needsTitle) {
       try {
         const billResponse = await fetchCongressApi(
           `/bill/${congress}/${type}/${number}`,
           config.congressApiKey
         );
 
-        const policyArea = billResponse?.bill?.policyArea?.name;
-        if (policyArea) {
-          updates.policy_area = policyArea;
-          result.policyAreasFetched++;
+        const billData = billResponse?.bill;
+        if (billData) {
+          if (billData.policyArea?.name) {
+            updates.policy_area = billData.policyArea.name;
+            result.policyAreasFetched++;
+          }
+          if (needsTitle && billData.title) {
+            updates.title = billData.title;
+          }
         }
       } catch (err) {
-        logger.debug(`No policy area for ${bill.id}: ${(err as Error).message}`);
+        logger.debug(`No bill details for ${bill.id}: ${(err as Error).message}`);
       }
     }
 
