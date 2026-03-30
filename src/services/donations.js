@@ -114,8 +114,7 @@ export const searchCandidateByName = async (name, state = '') => {
       const response = await fecApi.get('/candidates/search/', {
         params: {
           q: variant,
-          per_page: 20,
-          is_active_candidate: true
+          per_page: 20
         }
       })
 
