@@ -291,13 +291,36 @@
   color: var(--text-secondary);
 }
 
-.member-party-badge {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
+.member-arrow {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
   font-weight: 600;
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.panel-section {
+  margin-bottom: 1rem;
+}
+
+.panel-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted, #9C9789);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.panel-empty {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
   color: var(--text-secondary);
+  text-align: center;
+  padding: 2rem 0;
 }
 
 /* Responsive */

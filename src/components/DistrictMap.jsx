@@ -10,8 +10,8 @@ import { getAllCurrentMembers } from '../services/congress'
 import SEO from './SEO'
 import '../styles/DistrictMap.css'
 
-// State-level TopoJSON. District-level requires self-hosted data (future enhancement).
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json'
+// Self-hosted 119th Congress district boundaries (from Census Bureau cb_2024_us_cd119_500k)
+const GEO_URL = '/cd119.json'
 
 const FIPS_TO_STATE = {
   '01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA',
@@ -24,7 +24,7 @@ const FIPS_TO_STATE = {
   '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI',
   '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT',
   '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI',
-  '56': 'WY',
+  '56': 'WY', '72': 'PR', '78': 'VI', '66': 'GU', '69': 'MP', '60': 'AS',
 }
 
 const STATE_NAMES = {
@@ -40,16 +40,16 @@ const STATE_NAMES = {
   'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
   'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
   'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-  'WI': 'Wisconsin', 'WY': 'Wyoming',
+  'WI': 'Wisconsin', 'WY': 'Wyoming', 'DC': 'District of Columbia',
 }
 
 function DistrictMap() {
   const navigate = useNavigate()
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [hoveredState, setHoveredState] = useState(null)
+  const [hoveredDistrict, setHoveredDistrict] = useState(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
-  const [selectedState, setSelectedState] = useState(null)
+  const [selectedDistrict, setSelectedDistrict] = useState(null)
   const [zoom, setZoom] = useState(1)
   const [center, setCenter] = useState([-96, 38])
 
@@ -68,79 +68,94 @@ function DistrictMap() {
     }
   }
 
-  // Group members by state, compute majority party per state
-  const stateData = useMemo(() => {
-    const byState = {}
+  // Build lookup: "STATE-DISTRICT" -> member
+  const memberLookup = useMemo(() => {
+    const lookup = {}
     members.forEach(m => {
-      const st = m.state
-      if (!st) return
-      if (!byState[st]) byState[st] = { members: [], dem: 0, rep: 0, ind: 0 }
-      byState[st].members.push(m)
-      const party = (m.partyName || m.party || '').toLowerCase()
-      if (party.includes('democrat') || party === 'd') byState[st].dem++
-      else if (party.includes('republican') || party === 'r') byState[st].rep++
-      else byState[st].ind++
+      if (!m.state || m.chamber === 'senate') return
+      const dist = m.district != null ? String(m.district) : '0'
+      lookup[`${m.state}-${dist}`] = m
     })
-    return byState
+    // Also store senators by state for the panel
+    members.forEach(m => {
+      if (m.chamber === 'senate') {
+        const key = `sen-${m.state}`
+        if (!lookup[key]) lookup[key] = []
+        if (Array.isArray(lookup[key])) lookup[key].push(m)
+      }
+    })
+    return lookup
   }, [members])
 
-  const getStateColor = (stateAbbr) => {
-    const data = stateData[stateAbbr]
-    if (!data) return '#E8E6E1'
-    if (data.dem > data.rep) return '#2563EB'
-    if (data.rep > data.dem) return '#DC2626'
-    return '#7C3AED' // tie or all independent
+  const getDistrictMember = (geo) => {
+    const props = geo.properties || {}
+    const stateFips = props.STATEFP
+    const districtNum = props.CD119FP
+    const stateAbbr = FIPS_TO_STATE[stateFips]
+    if (!stateAbbr) return { stateAbbr: '', district: '', member: null }
+    // At-large districts show as "00" or "98"
+    const dist = (!districtNum || districtNum === '00' || districtNum === '98') ? '0' : String(parseInt(districtNum, 10))
+    const member = memberLookup[`${stateAbbr}-${dist}`]
+    return { stateAbbr, district: dist, member }
   }
 
-  const getStateHoverColor = (stateAbbr) => {
-    const data = stateData[stateAbbr]
-    if (!data) return '#D4D2CD'
-    if (data.dem > data.rep) return '#1D4ED8'
-    if (data.rep > data.dem) return '#B91C1C'
+  const getPartyColor = (member) => {
+    if (!member) return '#E8E6E1'
+    const party = (member.partyName || member.party || '').toLowerCase()
+    if (party.includes('democrat') || party === 'd') return '#2563EB'
+    if (party.includes('republican') || party === 'r') return '#DC2626'
+    return '#7C3AED'
+  }
+
+  const getPartyHoverColor = (member) => {
+    if (!member) return '#D4D2CD'
+    const party = (member.partyName || member.party || '').toLowerCase()
+    if (party.includes('democrat') || party === 'd') return '#1D4ED8'
+    if (party.includes('republican') || party === 'r') return '#B91C1C'
     return '#6D28D9'
   }
 
-  const handleStateClick = (geo) => {
-    const fips = geo.id
-    const stateAbbr = FIPS_TO_STATE[fips]
-    if (stateAbbr && stateData[stateAbbr]) {
-      setSelectedState(stateAbbr)
-    }
+  const handleDistrictClick = (geo) => {
+    const { stateAbbr, district, member } = getDistrictMember(geo)
+    setSelectedDistrict({ stateAbbr, district, member, geo })
   }
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.5, 8))
+  const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.5, 12))
   const handleZoomOut = () => setZoom(prev => Math.max(prev / 1.5, 1))
-  const handleReset = () => { setZoom(1); setCenter([-96, 38]); setSelectedState(null) }
+  const handleReset = () => { setZoom(1); setCenter([-96, 38]); setSelectedDistrict(null) }
 
-  const selectedMembers = selectedState ? (stateData[selectedState]?.members || []) : []
+  // Get senators for selected state
+  const selectedSenators = selectedDistrict
+    ? (memberLookup[`sen-${selectedDistrict.stateAbbr}`] || [])
+    : []
 
   return (
     <div className="district-map-page">
       <SEO
-        title="Congressional Map"
-        description="Interactive map of the United States showing congressional representation by party. Click any state to see its representatives."
+        title="Congressional District Map"
+        description="Interactive map of all 435 congressional districts, color-coded by party. Click any district to see your representative."
         path="/map"
       />
 
       <div className="map-header">
-        <h1 className="map-title">Congressional Map</h1>
+        <h1 className="map-title">Congressional District Map</h1>
         <p className="map-subtitle">
-          Click any state to view its representatives
+          All 435 House districts, colored by party. Click any district to see who represents it.
         </p>
       </div>
 
       <div className="map-legend">
         <span className="legend-item">
           <span className="legend-dot legend-dem"></span>
-          Democrat majority
+          Democrat
         </span>
         <span className="legend-item">
           <span className="legend-dot legend-rep"></span>
-          Republican majority
+          Republican
         </span>
         <span className="legend-item">
           <span className="legend-dot legend-ind"></span>
-          Split / Independent
+          Independent
         </span>
       </div>
 
@@ -175,29 +190,29 @@ function DistrictMap() {
               <Geographies geography={GEO_URL}>
                 {({ geographies }) =>
                   geographies.map((geo) => {
-                    const fips = geo.id
-                    const stateAbbr = FIPS_TO_STATE[fips]
-                    const isHovered = hoveredState === fips
-                    const isSelected = selectedState === stateAbbr
+                    const { member } = getDistrictMember(geo)
+                    const geoId = geo.properties?.GEOID || geo.rsmKey
+                    const isHovered = hoveredDistrict === geoId
+                    const isSelected = selectedDistrict?.geo?.rsmKey === geo.rsmKey
 
                     return (
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
                         fill={isHovered || isSelected
-                          ? getStateHoverColor(stateAbbr)
-                          : getStateColor(stateAbbr)}
+                          ? getPartyHoverColor(member)
+                          : getPartyColor(member)}
                         stroke="#FFFFFF"
-                        strokeWidth={isSelected ? 1.5 : 0.5}
-                        onClick={() => handleStateClick(geo)}
+                        strokeWidth={isSelected ? 1.2 : 0.2}
+                        onClick={() => handleDistrictClick(geo)}
                         onMouseEnter={(e) => {
-                          setHoveredState(fips)
+                          setHoveredDistrict(geoId)
                           setTooltipPos({ x: e.clientX, y: e.clientY })
                         }}
                         onMouseMove={(e) => {
                           setTooltipPos({ x: e.clientX, y: e.clientY })
                         }}
-                        onMouseLeave={() => setHoveredState(null)}
+                        onMouseLeave={() => setHoveredDistrict(null)}
                         style={{
                           default: { outline: 'none', cursor: 'pointer' },
                           hover: { outline: 'none', cursor: 'pointer' },
@@ -212,75 +227,105 @@ function DistrictMap() {
           </ComposableMap>
 
           {/* Tooltip */}
-          {hoveredState && !selectedState && (() => {
-            const stateAbbr = FIPS_TO_STATE[hoveredState]
-            const data = stateData[stateAbbr]
+          {hoveredDistrict && !selectedDistrict && (() => {
+            // Find the hovered geography's data from the DOM isn't possible,
+            // but we stored enough in hoveredDistrict. Parse GEOID: "SSDD"
+            const stateFips = hoveredDistrict.substring(0, 2)
+            const distNum = parseInt(hoveredDistrict.substring(2), 10)
+            const stateAbbr = FIPS_TO_STATE[stateFips] || ''
+            const dist = (distNum === 0 || distNum === 98) ? '0' : String(distNum)
+            const member = memberLookup[`${stateAbbr}-${dist}`]
+
             return (
               <div
                 className="map-tooltip"
                 style={{ left: tooltipPos.x + 12, top: tooltipPos.y - 40 }}
               >
-                <span className="tooltip-state">{STATE_NAMES[stateAbbr] || stateAbbr}</span>
-                {data ? (
-                  <span className="tooltip-counts">
-                    {data.dem > 0 && <span className="tooltip-dem">{data.dem}D</span>}
-                    {data.rep > 0 && <span className="tooltip-rep"> {data.rep}R</span>}
-                    {data.ind > 0 && <span className="tooltip-ind"> {data.ind}I</span>}
-                  </span>
+                <span className="tooltip-district">
+                  {stateAbbr}{distNum === 0 || distNum === 98 ? ' At-Large' : `-${distNum}`}
+                </span>
+                {member ? (
+                  <>
+                    <span className="tooltip-name">{member.name}</span>
+                    <span className={`tooltip-party ${
+                      (member.partyName || '').toLowerCase().includes('democrat') ? 'tooltip-dem' :
+                      (member.partyName || '').toLowerCase().includes('republican') ? 'tooltip-rep' :
+                      'tooltip-ind'
+                    }`}>
+                      {member.partyName || member.party}
+                    </span>
+                  </>
                 ) : (
-                  <span className="tooltip-counts">No data</span>
+                  <span className="tooltip-name">No data</span>
                 )}
               </div>
             )
           })()}
         </div>
 
-        {/* Side panel: representatives for selected state */}
-        {selectedState && (
+        {/* Side panel */}
+        {selectedDistrict && (
           <div className="map-panel">
             <div className="panel-header">
-              <h2 className="panel-title">{STATE_NAMES[selectedState]}</h2>
-              <button className="panel-close" onClick={() => setSelectedState(null)} aria-label="Close panel">
+              <h2 className="panel-title">
+                {STATE_NAMES[selectedDistrict.stateAbbr] || selectedDistrict.stateAbbr}
+                {selectedDistrict.district !== '0'
+                  ? `, District ${selectedDistrict.district}`
+                  : ' (At-Large)'}
+              </h2>
+              <button className="panel-close" onClick={() => setSelectedDistrict(null)} aria-label="Close">
                 Close
               </button>
             </div>
 
-            <div className="panel-counts">
-              {stateData[selectedState]?.dem > 0 && (
-                <span className="panel-count panel-count-dem">{stateData[selectedState].dem} Democrat</span>
-              )}
-              {stateData[selectedState]?.rep > 0 && (
-                <span className="panel-count panel-count-rep">{stateData[selectedState].rep} Republican</span>
-              )}
-              {stateData[selectedState]?.ind > 0 && (
-                <span className="panel-count panel-count-ind">{stateData[selectedState].ind} Independent</span>
-              )}
-            </div>
+            {/* House Rep */}
+            {selectedDistrict.member && (
+              <div className="panel-section">
+                <span className="panel-section-label">House Representative</span>
+                <button
+                  className={`panel-member ${
+                    (selectedDistrict.member.partyName || '').toLowerCase().includes('democrat') ? 'member-dem' :
+                    (selectedDistrict.member.partyName || '').toLowerCase().includes('republican') ? 'member-rep' :
+                    'member-ind'
+                  }`}
+                  onClick={() => navigate(`/politician/${selectedDistrict.member.bioguideId}`)}
+                >
+                  <div className="member-info">
+                    <span className="member-name">{selectedDistrict.member.name}</span>
+                    <span className="member-role">{selectedDistrict.member.partyName || selectedDistrict.member.party}</span>
+                  </div>
+                  <span className="member-arrow">View Profile &rsaquo;</span>
+                </button>
+              </div>
+            )}
 
-            <div className="panel-members">
-              {selectedMembers.map((m, i) => {
-                const party = (m.partyName || m.party || '').toLowerCase()
-                const partyClass = party.includes('democrat') ? 'member-dem'
-                  : party.includes('republican') ? 'member-rep'
-                  : 'member-ind'
-
-                return (
+            {/* Senators */}
+            {selectedSenators.length > 0 && (
+              <div className="panel-section">
+                <span className="panel-section-label">Senators from {selectedDistrict.stateAbbr}</span>
+                {selectedSenators.map((sen, i) => (
                   <button
-                    key={m.bioguideId || i}
-                    className={`panel-member ${partyClass}`}
-                    onClick={() => m.bioguideId && navigate(`/politician/${m.bioguideId}`)}
+                    key={sen.bioguideId || i}
+                    className={`panel-member ${
+                      (sen.partyName || '').toLowerCase().includes('democrat') ? 'member-dem' :
+                      (sen.partyName || '').toLowerCase().includes('republican') ? 'member-rep' :
+                      'member-ind'
+                    }`}
+                    onClick={() => navigate(`/politician/${sen.bioguideId}`)}
                   >
                     <div className="member-info">
-                      <span className="member-name">{m.name}</span>
-                      <span className="member-role">
-                        {m.chamber === 'Senate' ? 'Senator' : `District ${m.district || 'At-Large'}`}
-                      </span>
+                      <span className="member-name">{sen.name}</span>
+                      <span className="member-role">{sen.partyName || sen.party}</span>
                     </div>
-                    <span className="member-party-badge">{m.partyName || m.party}</span>
+                    <span className="member-arrow">View Profile &rsaquo;</span>
                   </button>
-                )
-              })}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {!selectedDistrict.member && selectedSenators.length === 0 && (
+              <p className="panel-empty">No representative data available for this district.</p>
+            )}
           </div>
         )}
       </div>
