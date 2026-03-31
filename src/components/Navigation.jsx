@@ -60,6 +60,12 @@ function Navigation() {
               Bills
             </NavLink>
             <NavLink
+              to="/map"
+              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+            >
+              District Map
+            </NavLink>
+            <NavLink
               to="/shutdown-tracker"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             >

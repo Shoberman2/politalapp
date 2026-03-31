@@ -19,10 +19,12 @@
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/analytics": "^1.6.1",
     "axios": "^1.6.7",
+    "d3-geo": "^3.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^2.0.5",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "react-simple-maps": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

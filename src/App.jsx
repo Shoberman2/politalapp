@@ -12,6 +12,7 @@ import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
 import ShutdownBanner from './components/ShutdownBanner'
 import ShutdownTracker from './components/ShutdownTracker'
+import DistrictMap from './components/DistrictMap'
 import BlogPage from './components/BlogPage'
 import ArticlePage from './components/ArticlePage'
 // import StateBillsPage from './components/StateBillsPage'
@@ -53,6 +54,9 @@ function App() {
           } /> */}
           <Route path="/shutdown-tracker" element={
             <ProtectedRoute><ShutdownTracker /></ProtectedRoute>
+          } />
+          <Route path="/map" element={
+            <ProtectedRoute><DistrictMap /></ProtectedRoute>
           } />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<ArticlePage />} />

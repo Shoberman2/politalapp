@@ -260,6 +260,24 @@ export const getBillText = async (congress, billType, billNumber) => {
   }
 }
 
+const STATE_NAME_TO_ABBR = {
+  'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR',
+  'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE',
+  'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
+  'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS',
+  'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+  'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+  'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV',
+  'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY',
+  'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
+  'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+  'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT',
+  'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV',
+  'Wisconsin': 'WI', 'Wyoming': 'WY', 'District of Columbia': 'DC',
+  'Puerto Rico': 'PR', 'American Samoa': 'AS', 'Guam': 'GU',
+  'Northern Mariana Islands': 'MP', 'U.S. Virgin Islands': 'VI',
+}
+
 const normalizeMemberBatch = (members) => {
   const partyAbbr = { 'democratic': 'D', 'republican': 'R', 'independent': 'I' }
   return members.map(member => {
@@ -268,13 +286,15 @@ const normalizeMemberBatch = (members) => {
     const chamber = chamberRaw.includes('senate') ? 'senate' : 'house'
     const rawParty = (member.partyName || currentTerm?.party || '').toLowerCase()
     const party = partyAbbr[rawParty] || rawParty.charAt(0).toUpperCase()
+    const rawState = member.state || currentTerm?.state || ''
+    const state = STATE_NAME_TO_ABBR[rawState] || rawState
 
     return {
       bioguideId: member.bioguideId,
       name: member.name,
       firstName: member.firstName || '',
       lastName: member.lastName || '',
-      state: member.state || currentTerm?.state,
+      state: state,
       district: currentTerm?.district,
       party: party,
       partyName: member.partyName || currentTerm?.party,
