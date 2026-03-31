@@ -116,7 +116,7 @@ function Landing() {
               </svg>
             </button>
           </div>
-          <p className="hero-note">Premium congressional intelligence — powered by official government data.</p>
+          <p className="hero-note">Powered by Congress.gov, the Census Bureau, and the FEC.</p>
         </div>
         <button
           className="scroll-indicator"
@@ -148,8 +148,8 @@ function Landing() {
           </div>
           <div className="trust-divider"></div>
           <div className="trust-item">
-            <span className="trust-number">$2</span>
-            <span className="trust-label">Per Month</span>
+            <span className="trust-number">Free</span>
+            <span className="trust-label">No Account Required</span>
           </div>
         </div>
       </section>
@@ -157,12 +157,11 @@ function Landing() {
       {/* Explore Congress Collection Cards */}
       <section className="value-prop" id="about">
         <div className="section-container">
-          <div className="section-header section-header-center">
-            <span className="section-label">Explore Congress</span>
-            <h2 className="section-title">Congressional voting records made accessible</h2>
+          <div className="section-header">
+            <h2 className="section-title">What you can do here</h2>
             <p className="section-description">
-              Every vote your senators and representatives cast affects your life. Track congressional voting history,
-              browse legislation, and hold your elected officials accountable — all in one place.
+              Track how your senators and representatives vote. Browse legislation.
+              Follow the money.
             </p>
           </div>
           <div className="value-grid">
@@ -194,96 +193,57 @@ function Landing() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* How It Works — editorial style, not numbered steps */}
       <section className="how-it-works" id="how-it-works">
         <div className="section-container">
-          <div className="section-header section-header-center">
-            <span className="section-label">How It Works</span>
-            <h2 className="section-title">Look up your representatives in three steps</h2>
-          </div>
-          <div className="steps-grid">
-            <div className="step-card">
-              <div className="step-number">01</div>
-              <h3>Enter Your Address</h3>
-              <p>Type your home address and we'll identify your U.S. senators and congressional district representative automatically.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">02</div>
-              <h3>Review Voting Records</h3>
-              <p>See every congressional vote they cast, bills they sponsor, committee assignments, and positions on key legislation.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">03</div>
-              <h3>Hold Congress Accountable</h3>
-              <p>Track how your elected officials vote on issues that matter to you — from healthcare and defense to taxes and spending bills.</p>
-            </div>
+          <div className="section-header">
+            <h2 className="section-title">Your address. Your representatives. Their votes.</h2>
+            <p className="section-description">
+              Enter your address and BallotWatch identifies your senators and house representative.
+              From there, you can see every vote they've cast, every bill they've sponsored, and
+              how they compare to their party.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Premium Database */}
+      {/* Data Sources — editorial, no icons-in-circles */}
       <section className="premium-db" id="database">
         <div className="section-container">
           <div className="premium-db-layout">
             <div className="premium-db-content">
-              <span className="section-label">Premium Database</span>
-              <h2 className="section-title">Congressional data you won't find anywhere else</h2>
+              <h2 className="section-title">Where the data comes from</h2>
               <p className="section-description">
-                BallotWatch aggregates data from Congress.gov, the U.S. Census Bureau, the FEC, and more into
-                one searchable platform. Every vote, every bill, every dollar — organized and updated continuously.
+                BallotWatch pulls from four official sources. No middlemen, no editorializing.
               </p>
               <ul className="premium-db-list">
                 <li>
-                  <span className="premium-db-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  </span>
                   <div>
-                    <strong>10,000+ Bills Indexed</strong>
-                    <span>Every piece of legislation from the 119th Congress, searchable and explained in plain English by AI.</span>
+                    <strong>Congress.gov</strong>
+                    <span>10,000+ bills, every roll call vote, committee assignments, and bill status from the official legislative database.</span>
                   </div>
                 </li>
                 <li>
-                  <span className="premium-db-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  </span>
                   <div>
-                    <strong>Complete Roll Call Records</strong>
-                    <span>Every yea, nay, and abstention for all 535 members — with party-line analysis and voting trends.</span>
+                    <strong>U.S. Census Bureau</strong>
+                    <span>Address-to-district mapping so you can find your exact representative, not just your state's senators.</span>
                   </div>
                 </li>
                 <li>
-                  <span className="premium-db-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  </span>
                   <div>
-                    <strong>Campaign Finance Data</strong>
-                    <span>FEC donation records linked to each representative so you can follow the money behind every vote.</span>
+                    <strong>Federal Election Commission</strong>
+                    <span>Campaign donations, committee fundraising, and individual contributor data linked to each member.</span>
                   </div>
                 </li>
                 <li>
-                  <span className="premium-db-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                  </span>
                   <div>
-                    <strong>Real-Time Updates</strong>
-                    <span>Data sourced directly from official government APIs and refreshed continuously throughout the day.</span>
+                    <strong>Updated daily</strong>
+                    <span>An automated pipeline runs every morning at 6 AM ET, pulling new votes and bill updates.</span>
                   </div>
                 </li>
               </ul>
-              <button onClick={() => navigate('/my-representative')} className="btn-primary">
-                Explore the Database
+              <button onClick={() => navigate('/bills')} className="btn-primary">
+                Browse Bills
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
