@@ -6,14 +6,14 @@ function BillCard({ bill, onSponsorClick }) {
 
   const getBillTypeColor = (type) => {
     const colors = {
-      hr: '#2563eb',
-      s: '#dc2626',
-      hjres: '#7c3aed',
-      sjres: '#059669',
-      hconres: '#d97706',
-      sconres: '#0891b2',
-      hres: '#4f46e5',
-      sres: '#be185d'
+      hr: '#1D4ED8',
+      s: '#7C3AED',
+      hjres: '#16A34A',
+      sjres: '#16A34A',
+      hconres: '#D97706',
+      sconres: '#D97706',
+      hres: '#16A34A',
+      sres: '#0891b2'
     }
     return colors[type?.toLowerCase()] || '#6b7280'
   }

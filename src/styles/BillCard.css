@@ -90,15 +90,12 @@
 }
 
 .bill-type-desc {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  font-style: italic;
+  display: none;
 }
 
 .bill-introduced {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  color: var(--text-muted, #9C9789);
   margin-bottom: 0.75rem;
 }
 

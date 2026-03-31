@@ -148,11 +148,11 @@
 
 .info-table th {
   width: 140px;
-  color: var(--text-secondary);
+  color: var(--text-muted, #9C9789);
   font-weight: 500;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .info-table td {
@@ -176,36 +176,44 @@
 }
 
 .profile-link {
-  padding: 0.6rem 1.25rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
-  font-weight: 500;
-  font-size: 0.8rem;
+  font-weight: 600;
+  font-size: 0.75rem;
   text-decoration: none;
   transition: all 0.15s ease;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.profile-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-subtle, rgba(29, 78, 216, 0.08));
 }
 
 .profile-link.website {
-  background: var(--accent);
-  color: var(--surface);
-  border: 1px solid var(--accent);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  background: transparent;
 }
 
 .profile-link.website:hover {
-  background: var(--accent-hover);
-  color: var(--surface);
-  border-color: var(--accent-hover);
+  border-color: var(--accent);
+  background: var(--accent-subtle, rgba(29, 78, 216, 0.08));
 }
 
 .profile-link.congress {
   background: transparent;
-  color: var(--text-primary);
+  color: var(--accent);
   border: 1px solid var(--border);
 }
 
 .profile-link.congress:hover {
-  border-color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--accent-subtle, rgba(29, 78, 216, 0.08));
 }
 
 /* Detail Sections */
@@ -215,6 +223,13 @@
   padding: 2rem;
   margin-bottom: 1.5rem;
   border: 1px solid var(--border);
+}
+
+.detail-section.votes-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 2rem;
 }
 
 .detail-section h2 {
