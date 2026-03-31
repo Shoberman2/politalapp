@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
  * Returns votes with joined bill data and member stats.
  * Falls back to null if Supabase is empty or unavailable.
  */
-export async function getMemberDashboardData(politicianId, limit = 50) {
+export async function getMemberDashboardData(politicianId, limit = 500) {
   try {
     // Fetch votes with bill data
     const { data: votes, error: votesError } = await supabase
