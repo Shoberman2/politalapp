@@ -362,13 +362,18 @@ async function extractSenateVotesFromXML(
       const terms = m.terms?.item || [];
       const currentTerm = terms[terms.length - 1];
       if (currentTerm?.chamber?.toLowerCase().includes('senate')) {
-        const lastName = (m.name || '').split(',')[0].trim().toLowerCase();
+        const lastName = (m.name || '').split(',')[0].trim().toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents (Luján → lujan)
         const stateAbbr = STATE_TO_ABBR[(m.state || '').toLowerCase()] || (m.state || '').toUpperCase();
         if (lastName && stateAbbr) {
           senatorBioguideMap.set(`${lastName}-${stateAbbr.toLowerCase()}`, m.bioguideId);
         }
       }
     }
+    // Add former senators who voted during this congress but are no longer current members
+    // (e.g., resigned to take cabinet positions). Congress.gov currentMember=true excludes them.
+    if (!senatorBioguideMap.has('mullin-ok')) senatorBioguideMap.set('mullin-ok', 'M001190');
+
     logger.info(`Built lookup for ${senatorBioguideMap.size} senators`);
   } catch (error) {
     logger.error('Failed to build senator lookup, Senate votes will have missing bioguideIds', error);
