@@ -54,9 +54,13 @@ function AllPoliticians() {
     let filtered = [...allMembers]
 
     if (searchTerm) {
+      const query = searchTerm.toLowerCase()
       filtered = filtered.filter(member => {
-        const name = member.name || `${member.firstName || member.first_name || ''} ${member.lastName || member.last_name || ''}`
-        return name.toLowerCase().includes(searchTerm.toLowerCase())
+        const name = member.name || ''
+        const firstName = member.firstName || member.first_name || ''
+        const lastName = member.lastName || member.last_name || ''
+        const fullName = `${firstName} ${lastName}`.trim()
+        return name.toLowerCase().includes(query) || fullName.toLowerCase().includes(query)
       })
     }
 
