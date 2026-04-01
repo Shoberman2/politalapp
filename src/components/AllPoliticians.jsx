@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
 import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
+import { filterMembersByName } from '../utils/searchFilter'
 import '../styles/AllPoliticians.css'
 
 function AllPoliticians() {
@@ -54,14 +55,7 @@ function AllPoliticians() {
     let filtered = [...allMembers]
 
     if (searchTerm) {
-      const queryWords = searchTerm.toLowerCase().split(/\s+/).filter(Boolean)
-      filtered = filtered.filter(member => {
-        const name = member.name || ''
-        const firstName = member.firstName || member.first_name || ''
-        const lastName = member.lastName || member.last_name || ''
-        const nameText = `${name} ${firstName} ${lastName}`.toLowerCase()
-        return queryWords.every(word => nameText.includes(word))
-      })
+      filtered = filterMembersByName(filtered, searchTerm)
     }
 
     if (chamberFilter !== 'all') {

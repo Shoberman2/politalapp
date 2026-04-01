@@ -15,7 +15,11 @@
       "Bash(tree:*)",
       "WebSearch",
       "WebFetch(domain:geocoding.geo.census.gov)",
-      "WebFetch(domain:www.geocod.io)"
+      "WebFetch(domain:www.geocod.io)",
+      "Bash(git add:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase --continue)",
+      "Bash(git:*)"
     ]
   }
 }
