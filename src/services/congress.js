@@ -127,7 +127,7 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
     // 2025 API endpoints: /house-vote/{congress} and /senate-vote/{congress}
     const endpoint = chamber === 'senate' ? 'senate-vote' : 'house-vote'
     const votesResponse = await congressApi.get(`/${endpoint}/${currentCongress}`, {
-      params: { limit: 50 }
+      params: { limit: 20 }
     })
 
     // Response keys differ by chamber
@@ -136,31 +136,28 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
       || []
     console.log(`[Congress API] Found ${votes.length} chamber votes`)
 
-    // For each vote, fetch member positions to find this member's vote
+    // Fetch member positions in parallel batches of 5 to avoid rate limits
+    const validVotes = votes
+      .filter(v => v.rollCallNumber && v.sessionNumber)
+      .slice(0, limit)
+
+    const batchSize = 5
     const memberVotes = []
 
-    for (const vote of votes) {
-      if (memberVotes.length >= limit) break
+    for (let i = 0; i < validVotes.length; i += batchSize) {
+      const batch = validVotes.slice(i, i + batchSize)
+      const results = await Promise.allSettled(
+        batch.map(async (vote) => {
+          const membersResponse = await congressApi.get(
+            `/${endpoint}/${currentCongress}/${vote.sessionNumber}/${vote.rollCallNumber}/members`
+          )
+          const membersData = membersResponse.data?.houseRollCallVoteMemberVotes
+            || membersResponse.data?.senateRollCallVoteMemberVotes
+          const members = membersData?.results || []
+          const memberPosition = members.find(m => m.bioguideID === bioguideId)
 
-      const rollNumber = vote.rollCallNumber
-      const session = vote.sessionNumber
-      if (!rollNumber || !session) continue
+          if (!memberPosition) return null
 
-      try {
-        // Fetch member positions for this roll call
-        const membersResponse = await congressApi.get(
-          `/${endpoint}/${currentCongress}/${session}/${rollNumber}/members`
-        )
-
-        // Response key differs by chamber, field name is bioguideID (capital D)
-        const membersData = membersResponse.data?.houseRollCallVoteMemberVotes
-          || membersResponse.data?.senateRollCallVoteMemberVotes
-        const results = membersData?.results || []
-
-        const memberPosition = results.find(m => m.bioguideID === bioguideId)
-
-        if (memberPosition) {
-          // Map voteCast to standard position names
           const rawPosition = memberPosition.voteCast || ''
           const position = rawPosition === 'Yea' || rawPosition === 'Aye' ? 'Yea'
             : rawPosition === 'Nay' || rawPosition === 'No' ? 'Nay'
@@ -168,8 +165,8 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
             : rawPosition === 'Not Voting' ? 'Not Voting'
             : rawPosition || 'Unknown'
 
-          memberVotes.push({
-            rollNumber,
+          return {
+            rollNumber: vote.rollCallNumber,
             date: vote.startDate || vote.voteDate || vote.date,
             question: vote.voteQuestion || vote.question || '',
             description: vote.legislationType || vote.issue || '',
@@ -178,10 +175,14 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
             billTitle: vote.voteQuestion || vote.question || '',
             position,
             chamber
-          })
+          }
+        })
+      )
+
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          memberVotes.push(result.value)
         }
-      } catch (voteError) {
-        console.warn('[Congress API] Error fetching vote members:', voteError.message)
       }
     }
 
