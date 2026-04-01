@@ -116,8 +116,8 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
     const member = memberResponse.data.member
 
     // Determine current chamber from terms
-    const terms = member?.terms || []
-    const currentTerm = terms[terms.length - 1]
+    const termsArray = member?.terms?.item || []
+    const currentTerm = termsArray[termsArray.length - 1]
     const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
     const chamber = chamberRaw.includes('senate') ? 'Senate' : 'House'
     const currentCongress = 119
