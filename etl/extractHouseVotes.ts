@@ -257,8 +257,8 @@ export async function extractRecentVotes(
 
 /**
  * Extracts votes for a specific chamber (House or Senate).
- * Uses the new Congress.gov API endpoints (2025+):
- *   /house-vote/{congress} and /senate-vote/{congress}
+ * House: uses Congress.gov API /house-vote/{congress}
+ * Senate: uses senate.gov XML feeds (Congress.gov API lacks Senate vote endpoints)
  */
 async function extractChamberVotes(
   config: ETLConfig,
@@ -270,6 +270,10 @@ async function extractChamberVotes(
   const extractedVotes: ExtractedVoteData[] = [];
 
   try {
+    if (chamber === 'senate') {
+      return await extractSenateVotesFromXML(config, congress, fromDate, toDate);
+    }
+
     const voteList = await fetchVoteList(config.congressApiKey, chamber, congress);
 
     logger.info(`Found ${voteList.length} ${chamber} votes for congress ${congress}`);
@@ -309,6 +313,207 @@ async function extractChamberVotes(
     }
   } catch (error) {
     logger.error(`Failed to extract ${chamber} votes`, error);
+  }
+
+  return extractedVotes;
+}
+
+/**
+ * Extract Senate votes from senate.gov XML feeds.
+ * Congress.gov API doesn't have a /senate-vote endpoint,
+ * so we use the official senate.gov roll call XML instead.
+ */
+async function extractSenateVotesFromXML(
+  config: ETLConfig,
+  congress: number,
+  fromDate: string,
+  toDate: string
+): Promise<ExtractedVoteData[]> {
+  const extractedVotes: ExtractedVoteData[] = [];
+
+  // Build a lastName-stateAbbr → bioguideId map from Congress.gov member API
+  // Congress.gov returns full state names ("Oklahoma"), senate.gov XML uses abbreviations ("OK")
+  const STATE_TO_ABBR: Record<string, string> = {
+    'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
+    'colorado':'CO','connecticut':'CT','delaware':'DE','florida':'FL','georgia':'GA',
+    'hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA','kansas':'KS',
+    'kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD','massachusetts':'MA',
+    'michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO','montana':'MT',
+    'nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ','new mexico':'NM',
+    'new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH','oklahoma':'OK',
+    'oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC',
+    'south dakota':'SD','tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT',
+    'virginia':'VA','washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY',
+    'district of columbia':'DC','american samoa':'AS','guam':'GU',
+    'northern mariana islands':'MP','puerto rico':'PR','u.s. virgin islands':'VI',
+  };
+
+  const senatorBioguideMap = new Map<string, string>();
+  try {
+    logger.info('Building senator bioguideId lookup from Congress.gov...');
+    const memberResponse = await retry(() =>
+      fetchCongressApi<any>('/member', config.congressApiKey, {
+        limit: 250,
+        currentMember: 'true',
+      })
+    );
+    const members = memberResponse.members || [];
+    for (const m of members) {
+      const terms = m.terms?.item || [];
+      const currentTerm = terms[terms.length - 1];
+      if (currentTerm?.chamber?.toLowerCase().includes('senate')) {
+        const lastName = (m.name || '').split(',')[0].trim().toLowerCase();
+        const stateAbbr = STATE_TO_ABBR[(m.state || '').toLowerCase()] || (m.state || '').toUpperCase();
+        if (lastName && stateAbbr) {
+          senatorBioguideMap.set(`${lastName}-${stateAbbr.toLowerCase()}`, m.bioguideId);
+        }
+      }
+    }
+    logger.info(`Built lookup for ${senatorBioguideMap.size} senators`);
+  } catch (error) {
+    logger.error('Failed to build senator lookup, Senate votes will have missing bioguideIds', error);
+  }
+
+  // Check both sessions (1 = odd year, 2 = even year)
+  for (const session of [1, 2]) {
+    try {
+      const listUrl = `https://www.senate.gov/legislative/LIS/roll_call_lists/vote_menu_${congress}_${session}.xml`;
+      logger.info(`Fetching Senate vote list: ${listUrl}`);
+
+      const listResponse = await fetch(listUrl);
+      if (!listResponse.ok) {
+        logger.warn(`Senate session ${session} vote list returned ${listResponse.status}`);
+        continue;
+      }
+      const listXml = await listResponse.text();
+
+      // Parse vote entries from the list XML
+      const entryRegex = /<vote>\s*<vote_number>(\d+)<\/vote_number>\s*<vote_date>([^<]*)<\/vote_date>\s*<issue>([^<]*)<\/issue>\s*<question>([^<]*)<\/question>\s*<result>([^<]*)<\/result>[^]*?<title>([^<]*)<\/title>\s*<\/vote>/g;
+      const entries: Array<{ number: string; date: string; issue: string; question: string; result: string; title: string }> = [];
+      let match;
+      while ((match = entryRegex.exec(listXml)) !== null) {
+        entries.push({
+          number: match[1],
+          date: match[2].trim(),
+          issue: match[3].trim(),
+          question: match[4].trim(),
+          result: match[5].trim(),
+          title: match[6].trim(),
+        });
+      }
+
+      logger.info(`Found ${entries.length} Senate votes in session ${session}`);
+
+      // Filter by date range - senate dates are like "26-Mar" so we need the year from the session
+      const sessionYear = congress === 119 ? (session === 1 ? 2025 : 2026) : 0;
+      const months: Record<string, string> = {
+        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+        'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+      };
+
+      const filteredEntries = entries.filter((entry) => {
+        const parts = entry.date.split('-');
+        if (parts.length !== 2) return false;
+        const month = months[parts[1]] || '01';
+        const day = parts[0].padStart(2, '0');
+        const isoDate = `${sessionYear}-${month}-${day}`;
+        return isoDate >= fromDate && isoDate <= toDate;
+      });
+
+      logger.info(`${filteredEntries.length} Senate votes in date range`);
+
+      // Fetch individual vote XMLs for member positions
+      for (const entry of filteredEntries) {
+        try {
+          const voteNum = entry.number;
+          const voteUrl = `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${congress}${session}/vote_${congress}_${session}_${voteNum}.xml`;
+          const response = await fetch(voteUrl);
+          if (!response.ok) continue;
+          const xml = await response.text();
+
+          // Parse vote date
+          const dateMatch = xml.match(/<vote_date>([^<]+)<\/vote_date>/);
+          const rawDate = dateMatch ? dateMatch[1].trim() : '';
+          let voteDate = '';
+          try {
+            const parsed = new Date(rawDate.replace(/,\s*\d{2}:\d{2}\s*(AM|PM)/, ''));
+            if (!isNaN(parsed.getTime())) {
+              voteDate = parsed.toISOString().split('T')[0];
+            }
+          } catch (e) { /* skip */ }
+
+          // Parse all member positions
+          const memberVotes: CongressMemberVote[] = [];
+          const memberRegex = /<member>\s*<member_full>[^<]*<\/member_full>\s*<last_name>([^<]+)<\/last_name>\s*<first_name>([^<]+)<\/first_name>\s*<party>([^<]+)<\/party>\s*<state>([^<]+)<\/state>\s*<vote_cast>([^<]+)<\/vote_cast>\s*<lis_member_id>([^<]+)<\/lis_member_id>/g;
+          let memberMatch;
+          while ((memberMatch = memberRegex.exec(xml)) !== null) {
+            const voteCast = memberMatch[5].trim();
+            const position = voteCast === 'Yea' ? 'Yea'
+              : voteCast === 'Nay' ? 'Nay'
+              : voteCast === 'Present' ? 'Present'
+              : 'Not Voting';
+
+            const lastName = memberMatch[1].trim();
+            const firstName = memberMatch[2].trim();
+            const state = memberMatch[4].trim();
+
+            // Look up bioguideId from the senator name/state map
+            const lookupKey = `${lastName.toLowerCase()}-${state.toLowerCase()}`;
+            const bioguideId = senatorBioguideMap.get(lookupKey) || '';
+
+            memberVotes.push({
+              member: {
+                bioguideId,
+                name: `${firstName} ${lastName}`,
+                party: memberMatch[3].trim(),
+                state,
+              },
+              votePosition: position,
+            });
+          }
+
+          // Parse bill info from issue field (e.g., "H.R. 7147", "S. 5", "PN373")
+          let bill: CongressVoteDetail['bill'] = undefined;
+          const billMatch = entry.issue.match(/^(H\.?R\.?|S\.?|H\.?J\.?Res\.?|S\.?J\.?Res\.?)\s*(\d+)$/i);
+          if (billMatch) {
+            const type = billMatch[1].replace(/\./g, '').toLowerCase();
+            bill = {
+              congress,
+              type,
+              number: parseInt(billMatch[2], 10),
+            };
+          }
+
+          const voteDetail: CongressVoteDetail = {
+            congress,
+            chamber: 'Senate',
+            session,
+            rollNumber: parseInt(voteNum, 10),
+            date: voteDate,
+            updateDate: voteDate,
+            question: entry.question,
+            description: entry.title,
+            voteType: '',
+            result: entry.result,
+            bill,
+            votes: memberVotes,
+          };
+
+          extractedVotes.push({
+            vote: voteDetail,
+            memberVotes,
+            rawResponse: xml,
+          });
+
+          logger.debug(`Extracted senate vote #${voteNum}: ${entry.question}`);
+          await sleep(200); // Be polite to senate.gov
+        } catch (error) {
+          logger.error(`Failed to extract senate vote #${entry.number}`, error);
+        }
+      }
+    } catch (error) {
+      logger.error(`Failed to extract senate session ${session} votes`, error);
+    }
   }
 
   return extractedVotes;

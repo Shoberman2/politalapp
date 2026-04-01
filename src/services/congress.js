@@ -107,15 +107,130 @@ export const getMemberDetails = async (bioguideId) => {
   }
 }
 
+/**
+ * Fetch Senate votes from senate.gov XML feeds.
+ * Congress.gov API doesn't have a Senate vote list endpoint,
+ * so we use the official senate.gov roll call XML instead.
+ */
+const getSenateVotesFromXML = async (bioguideId, member, limit = 10) => {
+  const congress = 119
+  const lastName = member?.lastName || member?.name?.split(',')[0] || ''
+  const state = member?.state || ''
+
+  // Determine current session (1 = odd year, 2 = even year)
+  const currentYear = new Date().getFullYear()
+  const session = currentYear % 2 === 1 ? 1 : 2
+
+  console.log(`[Senate XML] Fetching votes for ${lastName} (${state}), session ${session}`)
+
+  // Fetch vote list XML
+  const listUrl = `https://www.senate.gov/legislative/LIS/roll_call_lists/vote_menu_${congress}_${session}.xml`
+  const listResponse = await fetch(listUrl)
+  if (!listResponse.ok) throw new Error(`Senate vote list failed: ${listResponse.status}`)
+  const listXml = await listResponse.text()
+
+  // Parse vote numbers from XML (most recent first)
+  const voteNumbers = []
+  const voteRegex = /<vote_number>(\d+)<\/vote_number>/g
+  let match
+  while ((match = voteRegex.exec(listXml)) !== null) {
+    voteNumbers.push(match[1])
+  }
+
+  // Parse corresponding questions and results
+  const voteEntries = []
+  const entryRegex = /<vote>\s*<vote_number>(\d+)<\/vote_number>\s*<vote_date>([^<]*)<\/vote_date>\s*<issue>([^<]*)<\/issue>\s*<question>([^<]*)<\/question>\s*<result>([^<]*)<\/result>[^]*?<title>([^<]*)<\/title>\s*<\/vote>/g
+  while ((match = entryRegex.exec(listXml)) !== null) {
+    voteEntries.push({
+      number: match[1],
+      date: match[2].trim(),
+      issue: match[3].trim(),
+      question: match[4].trim(),
+      result: match[5].trim(),
+      title: match[6].trim()
+    })
+  }
+
+  const entryMap = new Map(voteEntries.map(e => [e.number, e]))
+  const recentVotes = voteNumbers.slice(0, Math.min(limit * 2, 30))
+
+  console.log(`[Senate XML] Found ${voteNumbers.length} total votes, checking ${recentVotes.length}`)
+
+  // Fetch individual vote XMLs in parallel batches to find this member's position
+  const memberVotes = []
+  const batchSize = 5
+
+  for (let i = 0; i < recentVotes.length && memberVotes.length < limit; i += batchSize) {
+    const batch = recentVotes.slice(i, i + batchSize)
+    const results = await Promise.allSettled(
+      batch.map(async (voteNum) => {
+        const voteUrl = `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${congress}${session}/vote_${congress}_${session}_${voteNum}.xml`
+        const response = await fetch(voteUrl)
+        if (!response.ok) return null
+        const xml = await response.text()
+
+        // Find this member by last name + state
+        const memberRegex = new RegExp(
+          `<member>[\\s\\S]*?<last_name>${lastName}</last_name>[\\s\\S]*?<state>${state}</state>[\\s\\S]*?<vote_cast>([^<]+)</vote_cast>[\\s\\S]*?</member>`
+        )
+        const memberMatch = xml.match(memberRegex)
+        if (!memberMatch) return null
+
+        const rawPosition = memberMatch[1].trim()
+        const position = rawPosition === 'Yea' ? 'Yea'
+          : rawPosition === 'Nay' ? 'Nay'
+          : rawPosition === 'Present' ? 'Present'
+          : rawPosition === 'Not Voting' ? 'Not Voting'
+          : rawPosition || 'Unknown'
+
+        // Extract vote date from the individual XML
+        const dateMatch = xml.match(/<vote_date>([^<]+)<\/vote_date>/)
+        const voteDate = dateMatch ? dateMatch[1].trim() : ''
+
+        // Parse the date (format: "March 26, 2026, 05:30 PM")
+        let formattedDate = ''
+        try {
+          const parsed = new Date(voteDate.replace(/,\s*\d{2}:\d{2}\s*(AM|PM)/, ''))
+          if (!isNaN(parsed.getTime())) {
+            formattedDate = parsed.toISOString().split('T')[0]
+          }
+        } catch (e) { /* use empty string */ }
+
+        const entry = entryMap.get(voteNum)
+
+        return {
+          rollNumber: parseInt(voteNum, 10),
+          date: formattedDate,
+          question: entry?.question || '',
+          description: entry?.title || '',
+          result: entry?.result || '',
+          billNumber: entry?.issue || null,
+          billTitle: entry?.title || entry?.question || '',
+          position,
+          chamber: 'senate'
+        }
+      })
+    )
+
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value && memberVotes.length < limit) {
+        memberVotes.push(result.value)
+      }
+    }
+  }
+
+  console.log(`[Senate XML] Found ${memberVotes.length} votes for ${lastName}`)
+  return memberVotes
+}
+
 export const getMemberVotes = async (bioguideId, limit = 10) => {
   try {
     console.log(`[Congress API] Fetching votes for member: ${bioguideId}`)
 
-    // First get member details to determine chamber
+    // First get member details to determine chamber and name
     const memberResponse = await congressApi.get(`/member/${bioguideId}`)
     const member = memberResponse.data.member
 
-    // Determine current chamber from terms
     const termsArray = member?.terms?.item || []
     const currentTerm = termsArray[termsArray.length - 1]
     const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
@@ -124,19 +239,18 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
 
     console.log(`[Congress API] Member chamber: ${chamber}, Congress: ${currentCongress}`)
 
-    // 2025 API endpoints: /house-vote/{congress} and /senate-vote/{congress}
-    const endpoint = chamber === 'senate' ? 'senate-vote' : 'house-vote'
-    const votesResponse = await congressApi.get(`/${endpoint}/${currentCongress}`, {
+    if (chamber === 'senate') {
+      return await getSenateVotesFromXML(bioguideId, member, limit)
+    }
+
+    // House: use Congress.gov API /house-vote/{congress}
+    const votesResponse = await congressApi.get(`/house-vote/${currentCongress}`, {
       params: { limit: 20 }
     })
 
-    // Response keys differ by chamber
-    const votes = votesResponse.data?.houseRollCallVotes
-      || votesResponse.data?.senateRollCallVotes
-      || []
-    console.log(`[Congress API] Found ${votes.length} chamber votes`)
+    const votes = votesResponse.data?.houseRollCallVotes || []
+    console.log(`[Congress API] Found ${votes.length} house votes`)
 
-    // Fetch member positions in parallel batches of 5 to avoid rate limits
     const validVotes = votes
       .filter(v => v.rollCallNumber && v.sessionNumber)
       .slice(0, limit)
@@ -149,10 +263,9 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
       const results = await Promise.allSettled(
         batch.map(async (vote) => {
           const membersResponse = await congressApi.get(
-            `/${endpoint}/${currentCongress}/${vote.sessionNumber}/${vote.rollCallNumber}/members`
+            `/house-vote/${currentCongress}/${vote.sessionNumber}/${vote.rollCallNumber}/members`
           )
           const membersData = membersResponse.data?.houseRollCallVoteMemberVotes
-            || membersResponse.data?.senateRollCallVoteMemberVotes
           const members = membersData?.results || []
           const memberPosition = members.find(m => m.bioguideID === bioguideId)
 
@@ -174,7 +287,7 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
             billNumber: vote.legislationNumber || null,
             billTitle: vote.voteQuestion || vote.question || '',
             position,
-            chamber
+            chamber: 'house'
           }
         })
       )
