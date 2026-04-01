@@ -119,56 +119,69 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
     const termsArray = member?.terms?.item || []
     const currentTerm = termsArray[termsArray.length - 1]
     const chamberRaw = currentTerm?.chamber?.toLowerCase() || ''
-    const chamber = chamberRaw.includes('senate') ? 'Senate' : 'House'
+    const chamber = chamberRaw.includes('senate') ? 'senate' : 'house'
     const currentCongress = 119
 
     console.log(`[Congress API] Member chamber: ${chamber}, Congress: ${currentCongress}`)
 
-    // Use the correct vote endpoint: /vote/{congress}/{chamber}
-    const votesResponse = await congressApi.get(`/vote/${currentCongress}/${chamber.toLowerCase()}`, {
-      params: {
-        limit: 50 // Fetch recent votes
-      }
+    // 2025 API endpoints: /house-vote/{congress} and /senate-vote/{congress}
+    const endpoint = chamber === 'senate' ? 'senate-vote' : 'house-vote'
+    const votesResponse = await congressApi.get(`/${endpoint}/${currentCongress}`, {
+      params: { limit: 50 }
     })
 
-    const votes = votesResponse.data?.votes || []
+    // Response keys differ by chamber
+    const votes = votesResponse.data?.houseRollCallVotes
+      || votesResponse.data?.senateRollCallVotes
+      || []
     console.log(`[Congress API] Found ${votes.length} chamber votes`)
 
-    // For each vote, we need to get details to find this member's position
+    // For each vote, fetch member positions to find this member's vote
     const memberVotes = []
 
     for (const vote of votes) {
       if (memberVotes.length >= limit) break
 
+      const rollNumber = vote.rollCallNumber
+      const session = vote.sessionNumber
+      if (!rollNumber || !session) continue
+
       try {
-        // Get vote details which includes member positions
-        const voteUrl = vote.url?.replace('https://api.congress.gov/v3', '')
-        if (!voteUrl) continue
-
-        const voteDetailResponse = await congressApi.get(voteUrl)
-        const voteDetail = voteDetailResponse.data?.vote
-
-        // Find this member's position in the vote
-        const memberPosition = voteDetail?.members?.find(m =>
-          m.bioguideId === bioguideId
+        // Fetch member positions for this roll call
+        const membersResponse = await congressApi.get(
+          `/${endpoint}/${currentCongress}/${session}/${rollNumber}/members`
         )
 
+        // Response key differs by chamber, field name is bioguideID (capital D)
+        const membersData = membersResponse.data?.houseRollCallVoteMemberVotes
+          || membersResponse.data?.senateRollCallVoteMemberVotes
+        const results = membersData?.results || []
+
+        const memberPosition = results.find(m => m.bioguideID === bioguideId)
+
         if (memberPosition) {
+          // Map voteCast to standard position names
+          const rawPosition = memberPosition.voteCast || ''
+          const position = rawPosition === 'Yea' || rawPosition === 'Aye' ? 'Yea'
+            : rawPosition === 'Nay' || rawPosition === 'No' ? 'Nay'
+            : rawPosition === 'Present' ? 'Present'
+            : rawPosition === 'Not Voting' ? 'Not Voting'
+            : rawPosition || 'Unknown'
+
           memberVotes.push({
-            rollNumber: voteDetail?.rollNumber || vote.rollNumber,
-            date: voteDetail?.date || vote.date,
-            question: voteDetail?.question || vote.question,
-            description: voteDetail?.description || vote.description,
-            result: voteDetail?.result || vote.result,
-            billNumber: voteDetail?.bill?.number || vote.bill?.number,
-            billTitle: voteDetail?.bill?.title || vote.bill?.title,
-            position: memberPosition.votePosition || memberPosition.position || 'Unknown',
-            chamber: chamber.toLowerCase()
+            rollNumber,
+            date: vote.startDate || vote.voteDate || vote.date,
+            question: vote.voteQuestion || vote.question || '',
+            description: vote.legislationType || vote.issue || '',
+            result: vote.result || '',
+            billNumber: vote.legislationNumber || null,
+            billTitle: vote.voteQuestion || vote.question || '',
+            position,
+            chamber
           })
         }
       } catch (voteError) {
-        // Skip individual vote errors, continue with others
-        console.warn('[Congress API] Error fetching vote detail:', voteError.message)
+        console.warn('[Congress API] Error fetching vote members:', voteError.message)
       }
     }
 
@@ -192,8 +205,8 @@ export const getMemberVotes = async (bioguideId, limit = 10) => {
         question: 'Sponsored Bill',
         description: bill.title,
         result: bill.latestAction?.text || 'Introduced',
-        billNumber: `${bill.type}${bill.number}`,
-        billTitle: bill.title,
+        billNumber: bill.type && bill.number ? `${bill.type}${bill.number}` : null,
+        billTitle: bill.title || 'Sponsored Bill',
         position: 'Sponsor',
         chamber: bill.originChamber?.toLowerCase() || 'unknown',
         isSponsoredBill: true
