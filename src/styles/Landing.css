@@ -701,10 +701,12 @@ html {
 .premium-db-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 3rem 0;
+  margin: 0 auto 3rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  max-width: 560px;
+  text-align: left;
 }
 
 .premium-db-list li {

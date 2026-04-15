@@ -456,3 +456,283 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+-- =============================================================================
+-- 12. ORGANIZATIONS TABLE (B2B API Customers)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  owner_id UUID NOT NULL REFERENCES auth.users(id),
+  stripe_customer_id TEXT,
+  subscription_status TEXT DEFAULT 'inactive'
+    CHECK (subscription_status IN ('active', 'inactive', 'canceled', 'past_due')),
+  subscription_id TEXT,
+  plan TEXT DEFAULT 'starter'
+    CHECK (plan IN ('starter', 'pro', 'enterprise')),
+  monthly_limit INTEGER DEFAULT 10000,
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_organizations_owner ON organizations(owner_id);
+
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'organizations' AND policyname = 'Org owners can read own org'
+  ) THEN
+    CREATE POLICY "Org owners can read own org"
+      ON organizations FOR SELECT
+      USING (auth.uid() = owner_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'organizations' AND policyname = 'Org owners can update own org'
+  ) THEN
+    CREATE POLICY "Org owners can update own org"
+      ON organizations FOR UPDATE
+      USING (auth.uid() = owner_id)
+      WITH CHECK (auth.uid() = owner_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'organizations' AND policyname = 'Authenticated users can create orgs'
+  ) THEN
+    CREATE POLICY "Authenticated users can create orgs"
+      ON organizations FOR INSERT
+      WITH CHECK (auth.uid() = owner_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'organizations' AND policyname = 'Service role full access on organizations'
+  ) THEN
+    CREATE POLICY "Service role full access on organizations"
+      ON organizations FOR ALL
+      USING (auth.role() = 'service_role');
+  END IF;
+END $$;
+
+GRANT SELECT, INSERT, UPDATE ON organizations TO authenticated;
+GRANT ALL ON organizations TO service_role;
+
+DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
+CREATE TRIGGER update_organizations_updated_at
+  BEFORE UPDATE ON organizations
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+
+-- =============================================================================
+-- 13. API_KEYS TABLE (B2B API Key Management)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS api_keys (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  key_hash TEXT NOT NULL UNIQUE,        -- SHA-256 of the actual key
+  key_prefix TEXT NOT NULL,             -- First 12 chars for display (bw_live_xxxx)
+  name TEXT DEFAULT 'Default',          -- User-assigned label
+  monthly_count INTEGER DEFAULT 0,
+  last_reset_at TIMESTAMPTZ DEFAULT date_trunc('month', NOW()),
+  last_used_at TIMESTAMPTZ,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_org ON api_keys(org_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+
+-- Org owners can manage their own keys (via org ownership)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_keys' AND policyname = 'Org owners can read own keys'
+  ) THEN
+    CREATE POLICY "Org owners can read own keys"
+      ON api_keys FOR SELECT
+      USING (
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_keys' AND policyname = 'Org owners can create keys'
+  ) THEN
+    CREATE POLICY "Org owners can create keys"
+      ON api_keys FOR INSERT
+      WITH CHECK (
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_keys' AND policyname = 'Org owners can update own keys'
+  ) THEN
+    CREATE POLICY "Org owners can update own keys"
+      ON api_keys FOR UPDATE
+      USING (
+        org_id IN (SELECT id FROM organizations WHERE owner_id = auth.uid())
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_keys' AND policyname = 'Service role full access on api_keys'
+  ) THEN
+    CREATE POLICY "Service role full access on api_keys"
+      ON api_keys FOR ALL
+      USING (auth.role() = 'service_role');
+  END IF;
+END $$;
+
+GRANT SELECT, INSERT, UPDATE ON api_keys TO authenticated;
+GRANT ALL ON api_keys TO service_role;
+
+
+-- =============================================================================
+-- 14. API_USAGE TABLE (Request Audit Log)
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS api_usage (
+  id BIGSERIAL PRIMARY KEY,
+  key_id UUID NOT NULL REFERENCES api_keys(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL,
+  method TEXT DEFAULT 'GET',
+  status_code INTEGER,
+  response_ms INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_usage_key_date ON api_usage(key_id, created_at DESC);
+
+ALTER TABLE api_usage ENABLE ROW LEVEL SECURITY;
+
+-- Org owners can read usage for their own keys
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_usage' AND policyname = 'Org owners can read own usage'
+  ) THEN
+    CREATE POLICY "Org owners can read own usage"
+      ON api_usage FOR SELECT
+      USING (
+        key_id IN (
+          SELECT ak.id FROM api_keys ak
+          JOIN organizations o ON ak.org_id = o.id
+          WHERE o.owner_id = auth.uid()
+        )
+      );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'api_usage' AND policyname = 'Service role full access on api_usage'
+  ) THEN
+    CREATE POLICY "Service role full access on api_usage"
+      ON api_usage FOR ALL
+      USING (auth.role() = 'service_role');
+  END IF;
+END $$;
+
+GRANT SELECT ON api_usage TO authenticated;
+GRANT ALL ON api_usage TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE api_usage_id_seq TO service_role;
+
+
+-- =============================================================================
+-- 15. AI CONGRESS SIMULATION TABLES
+-- =============================================================================
+
+-- AI Congress Sessions — each run produces one session with ~25 bills
+CREATE TABLE IF NOT EXISTS ai_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_number INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'running'
+    CHECK (status IN ('running', 'completed', 'failed')),
+  error_message TEXT,             -- sanitized only, never raw API errors
+  summary TEXT,
+  bills_passed INTEGER DEFAULT 0,
+  bills_failed INTEGER DEFAULT 0,
+  total_bills INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- AI Bills within a session
+CREATE TABLE IF NOT EXISTS ai_bills (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID NOT NULL REFERENCES ai_sessions(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  issue TEXT NOT NULL,
+  provisions JSONB DEFAULT '[]',
+  estimated_cost TEXT,
+  affected_groups TEXT,
+  -- House vote
+  house_yea INTEGER,
+  house_nay INTEGER,
+  house_passed BOOLEAN,
+  house_arguments_for JSONB DEFAULT '[]',
+  house_arguments_against JSONB DEFAULT '[]',
+  -- Senate vote
+  senate_yea INTEGER,
+  senate_nay INTEGER,
+  senate_passed BOOLEAN,
+  senate_cloture_required BOOLEAN DEFAULT FALSE,
+  senate_cloture_votes INTEGER,
+  senate_arguments_for JSONB DEFAULT '[]',
+  senate_arguments_against JSONB DEFAULT '[]',
+  -- Outcome
+  passed BOOLEAN DEFAULT FALSE,   -- house_passed AND senate_passed
+  surprise_rationale TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_bills_session ON ai_bills(session_id);
+
+ALTER TABLE ai_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_bills ENABLE ROW LEVEL SECURITY;
+
+-- Public read access (this is generated content, not user data)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'ai_sessions' AND policyname = 'AI sessions are viewable by everyone'
+  ) THEN
+    CREATE POLICY "AI sessions are viewable by everyone"
+      ON ai_sessions FOR SELECT
+      USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'ai_bills' AND policyname = 'AI bills are viewable by everyone'
+  ) THEN
+    CREATE POLICY "AI bills are viewable by everyone"
+      ON ai_bills FOR SELECT
+      USING (true);
+  END IF;
+END $$;
+
+-- Write access: Vercel API route uses SUPABASE_SERVICE_ROLE_KEY which bypasses RLS.
+-- No INSERT/UPDATE policies needed for the anon key — only the service role writes.
+GRANT SELECT ON ai_sessions TO anon;
+GRANT SELECT ON ai_bills TO anon;
+GRANT ALL ON ai_sessions TO service_role;
+GRANT ALL ON ai_bills TO service_role;
