@@ -16,6 +16,7 @@ import BlogPage from './components/BlogPage'
 import ArticlePage from './components/ArticlePage'
 import AiCongress from './components/AiCongress'
 import AiCongressSession from './components/AiCongressSession'
+import DonationComparison from './components/DonationComparison'
 import DeveloperPortal from './components/DeveloperPortal'
 import ApiKeyManager from './components/ApiKeyManager'
 import UsageDashboard from './components/UsageDashboard'
@@ -70,6 +71,9 @@ function App() {
           {/* AI Congress simulation (public) */}
           <Route path="/ai-congress" element={<AiCongress />} />
           <Route path="/ai-congress/:sessionId" element={<AiCongressSession />} />
+
+          {/* Campaign finance comparison (public) */}
+          <Route path="/compare" element={<DonationComparison />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
-import { getDonationsByPoliticianName, formatCurrency } from '../services/donations'
+import { getDonationsByPoliticianName, formatCurrency, getMoneyVotesCorrelation } from '../services/donations'
+import { getIndustryBreakdown, formatCurrency as formatCompact } from '../data/industryMap'
+import { getMemberDashboardData } from '../services/supabaseVotes'
 import { InfoTip } from './Tooltip'
 import VoteDashboard from './VoteDashboard'
 import SEO from './SEO'
@@ -13,6 +15,8 @@ function PoliticianDetail() {
 
   const [member, setMember] = useState(null)
   const [donations, setDonations] = useState(null)
+  const [industryData, setIndustryData] = useState([])
+  const [correlationData, setCorrelationData] = useState([])
   const [loading, setLoading] = useState(true)
   const [donationsLoading, setDonationsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -77,6 +81,25 @@ function PoliticianDetail() {
       const donationsData = await getDonationsByPoliticianName(displayName, state)
       console.log('[PoliticianDetail] Donations data:', donationsData ? 'received' : 'none')
       setDonations(donationsData)
+
+      // Compute industry breakdown from donor data
+      if (donationsData?.donors?.length > 0) {
+        const breakdown = getIndustryBreakdown(donationsData.donors)
+        setIndustryData(breakdown)
+
+        // Compute money-votes correlation using Supabase voting data
+        try {
+          const dashData = await getMemberDashboardData(bioguideId)
+          if (dashData?.votes && dashData.votes.length > 0) {
+            const votes = dashData.votes
+            const bills = votes.map(v => v.bills).filter(Boolean)
+            const corr = await getMoneyVotesCorrelation(breakdown, votes, bills)
+            setCorrelationData(corr)
+          }
+        } catch (err) {
+          console.warn('[PoliticianDetail] Correlation data unavailable:', err.message)
+        }
+      }
     } catch (err) {
       console.error('[PoliticianDetail] Error fetching donations:', err)
     } finally {
@@ -278,17 +301,67 @@ function PoliticianDetail() {
                 <span className="stat-value">{formatCurrency(donations.totalRaised)}</span>
                 <span className="stat-label">Total Raised</span>
               </div>
-              {donations.committees?.[0]?.disbursements > 0 && (
+              {donations.individualTotal > 0 && (
                 <div className="funding-stat">
-                  <span className="stat-value">{formatCurrency(donations.committees[0].disbursements)}</span>
-                  <span className="stat-label">Total Spent</span>
+                  <span className="stat-value">{formatCurrency(donations.individualTotal)}</span>
+                  <span className="stat-label">Individuals</span>
                 </div>
               )}
-              <div className="funding-stat corporate-stat">
-                <span className="stat-value">{donations.corporateCount || 0}</span>
-                <span className="stat-label">Major Corporate Donors</span>
-              </div>
+              {donations.pacTotal > 0 && (
+                <div className="funding-stat">
+                  <span className="stat-value">{formatCurrency(donations.pacTotal)}</span>
+                  <span className="stat-label">PACs</span>
+                </div>
+              )}
             </div>
+
+            {/* Industry Breakdown */}
+            {industryData.length > 0 && (
+              <div className="industry-breakdown">
+                <h3>Industry Breakdown</h3>
+                <div className="industry-bars">
+                  {industryData.slice(0, 8).map((sector, i) => (
+                    <div key={i} className="industry-bar-row">
+                      <span className="industry-label">{sector.industry}</span>
+                      <div className="industry-bar-track">
+                        <div
+                          className="industry-bar-fill"
+                          style={{ width: `${Math.max(sector.percentage, 2)}%` }}
+                        />
+                      </div>
+                      <span className="industry-amount">{formatCompact(sector.totalAmount)}</span>
+                      <span className="industry-pct">{sector.percentage}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Money-Votes Correlation */}
+            {correlationData.length > 0 && (
+              <div className="money-votes-section">
+                <h3><InfoTip text="How often this politician votes 'Yea' on bills related to the industries that fund them. Based on FEC donation data matched to Congress.gov bill policy areas.">Money &amp; Votes</InfoTip></h3>
+                <div className="correlation-cards">
+                  {correlationData.map((corr, i) => (
+                    <div key={i} className="correlation-card">
+                      <div className="correlation-industry">{corr.industry}</div>
+                      <div className="correlation-stats">
+                        <span className="correlation-donated">{formatCompact(corr.donationAmount)} donated</span>
+                        <span className="correlation-votes">
+                          Voted Yea {corr.yeaPercent}% on {corr.billsVotedOn} related bill{corr.billsVotedOn !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="correlation-bar-track">
+                        <div
+                          className="correlation-bar-fill"
+                          style={{ width: `${corr.yeaPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Committee Financial Details */}
             {donations.committees && donations.committees.length > 0 && (
@@ -300,11 +373,11 @@ function PoliticianDetail() {
                       <span className="committee-name">{committee.name}</span>
                       <div className="committee-financials">
                         <span className="committee-stat">
-                          <span className="committee-stat-label" title="Total money received — includes individual donations, PAC contributions, and transfers">Receipts</span>
+                          <span className="committee-stat-label" title="Total money received">Receipts</span>
                           <span className="committee-stat-value">{formatCurrency(committee.receipts)}</span>
                         </span>
                         <span className="committee-stat">
-                          <span className="committee-stat-label" title="Total money spent — includes advertising, staff salaries, travel, and campaign operations">Disbursements</span>
+                          <span className="committee-stat-label" title="Total money spent">Disbursements</span>
                           <span className="committee-stat-value">{formatCurrency(committee.disbursements)}</span>
                         </span>
                       </div>
@@ -314,22 +387,27 @@ function PoliticianDetail() {
               </div>
             )}
 
-            {/* Corporate Donors Section */}
-            {donations.corporateDonors && donations.corporateDonors.length > 0 ? (
-              <div className="corporate-donors-section">
-                <h3>Major Corporate Contributions</h3>
-                <p className="section-subtitle">Donations from employees of major corporations</p>
-                <div className="corporate-tags">
-                  {donations.corporateDonors.map((corp, index) => (
-                    <div key={index} className="corporate-tag">
-                      <span className="corp-name">{corp.company}</span>
-                      <span className="corp-amount">{formatCurrency(corp.totalAmount)}</span>
+            {/* Top Donors */}
+            {donations.donors && donations.donors.length > 0 && (
+              <div className="top-donors-section">
+                <h3>Top Donors</h3>
+                <div className="donors-list">
+                  {donations.donors.slice(0, 10).map((donor, i) => (
+                    <div key={i} className="donor-row">
+                      <div className="donor-info">
+                        <span className="donor-name">{donor.name}</span>
+                        {donor.entityType && donor.entityType !== 'IND' && (
+                          <span className={`entity-badge ${donor.entityType.toLowerCase()}`}>
+                            {donor.entityType === 'COM' ? 'PAC' : 'ORG'}
+                          </span>
+                        )}
+                        {donor.employer && <span className="donor-employer">{donor.employer}</span>}
+                      </div>
+                      <span className="donor-amount">{formatCurrency(donor.totalAmount)}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            ) : (
-              <p className="no-corporate-message">No major corporate donations found</p>
             )}
 
             <div className="funding-source">

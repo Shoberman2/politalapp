@@ -620,6 +620,218 @@
   border: 1px solid var(--border-light);
 }
 
+/* Industry Breakdown */
+.industry-breakdown {
+  margin: 1.5rem 0;
+}
+
+.industry-breakdown h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+}
+
+.industry-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.industry-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.industry-label {
+  min-width: 120px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.industry-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.industry-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.industry-amount {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  min-width: 50px;
+  text-align: right;
+}
+
+.industry-pct {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  min-width: 30px;
+}
+
+/* Money-Votes Correlation */
+.money-votes-section {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.money-votes-section h3 {
+  margin: 0 0 1rem 0;
+}
+
+.correlation-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.correlation-card {
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+.correlation-industry {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.correlation-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.correlation-donated {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.correlation-votes {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.correlation-bar-track {
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.correlation-bar-fill {
+  height: 100%;
+  background: var(--success);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* Top Donors List */
+.top-donors-section h3 {
+  margin: 0 0 0.75rem 0;
+}
+
+.donors-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.donor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.donor-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.donor-name {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.donor-employer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.donor-amount {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.entity-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entity-badge.com {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.entity-badge.org {
+  background: var(--info-subtle);
+  color: var(--info);
+}
+
+@media (max-width: 768px) {
+  .industry-label {
+    min-width: 80px;
+    font-size: 0.75rem;
+  }
+
+  .industry-amount {
+    min-width: 40px;
+  }
+
+  .correlation-stats {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .donor-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+  }
+}
+
 /* Donors Table */
 .donors-table-container {
   overflow-x: auto;

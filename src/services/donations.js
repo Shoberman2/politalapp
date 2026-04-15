@@ -161,18 +161,18 @@ export const getCandidateDonors = async (candidateId) => {
     const mainCommittee = committees[0]
     const committeeId = mainCommittee.committee_id
 
-    // Get top donors/contributions
+    // Get top donors/contributions (individuals + PACs + organizations)
     const donorsResponse = await fecApi.get('/schedules/schedule_a/', {
       params: {
         committee_id: committeeId,
-        per_page: 20,
+        per_page: 100,
         sort: '-contribution_receipt_amount',
-        is_individual: true
+        two_year_transaction_period: 2024,
       }
     })
 
     const contributions = donorsResponse.data.results || []
-    console.log(`[Donations API] Found ${contributions.length} individual contributions`)
+    console.log(`[Donations API] Found ${contributions.length} contributions (individuals + PACs)`)
 
     // Check if employer is a major company
     const isMajorCompany = (employer) => {
@@ -186,8 +186,9 @@ export const getCandidateDonors = async (candidateId) => {
     const corporateDonors = []
 
     contributions.forEach(contrib => {
-      const name = contrib.contributor_name || 'Unknown'
+      const name = contrib.contributor_name || contrib.committee_name || 'Unknown'
       const employer = contrib.contributor_employer || ''
+      const entityType = contrib.entity_type || 'IND' // IND, COM, ORG
 
       if (!donorMap[name]) {
         donorMap[name] = {
@@ -198,7 +199,8 @@ export const getCandidateDonors = async (candidateId) => {
           state: contrib.contributor_state || '',
           totalAmount: 0,
           contributionCount: 0,
-          isCorporate: isMajorCompany(employer)
+          isCorporate: isMajorCompany(employer),
+          entityType: entityType,
         }
       }
       donorMap[name].totalAmount += contrib.contribution_receipt_amount || 0
@@ -220,9 +222,20 @@ export const getCandidateDonors = async (candidateId) => {
       }
     })
 
+    // Split totals by entity type
+    const individualTotal = contributions
+      .filter(c => c.entity_type === 'IND')
+      .reduce((sum, c) => sum + (c.contribution_receipt_amount || 0), 0)
+    const pacTotal = contributions
+      .filter(c => c.entity_type === 'COM')
+      .reduce((sum, c) => sum + (c.contribution_receipt_amount || 0), 0)
+    const orgTotal = contributions
+      .filter(c => c.entity_type === 'ORG')
+      .reduce((sum, c) => sum + (c.contribution_receipt_amount || 0), 0)
+
     const donors = Object.values(donorMap)
       .sort((a, b) => b.totalAmount - a.totalAmount)
-      .slice(0, 15)
+      .slice(0, 30)
 
     // Sort corporate donors by total amount
     corporateDonors.sort((a, b) => b.totalAmount - a.totalAmount)
@@ -235,6 +248,9 @@ export const getCandidateDonors = async (candidateId) => {
       corporateDonors,
       corporateCount: corporateDonors.length,
       totalRaised: mainCommittee.receipts || 0,
+      individualTotal,
+      pacTotal,
+      orgTotal,
       committees: committees.map(c => ({
         id: c.committee_id,
         name: c.name,
@@ -248,9 +264,39 @@ export const getCandidateDonors = async (candidateId) => {
   }
 }
 
+// localStorage cache with 24-hour TTL
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+
+function getCachedDonations(key) {
+  try {
+    const raw = localStorage.getItem(`fec_${key}`)
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw)
+    if (Date.now() - ts > CACHE_TTL_MS) {
+      localStorage.removeItem(`fec_${key}`)
+      return null
+    }
+    return data
+  } catch { return null }
+}
+
+function setCachedDonations(key, data) {
+  try {
+    localStorage.setItem(`fec_${key}`, JSON.stringify({ data, ts: Date.now() }))
+  } catch { /* localStorage full or unavailable */ }
+}
+
 // Get donations summary for a politician by their name
 export const getDonationsByPoliticianName = async (politicianName, state = '') => {
   try {
+    // Check cache first
+    const cacheKey = `${politicianName}_${state}`.toLowerCase().replace(/\s+/g, '_')
+    const cached = getCachedDonations(cacheKey)
+    if (cached) {
+      console.log(`[Donations API] Cache hit for: ${politicianName}`)
+      return cached
+    }
+
     console.log(`[Donations API] Getting donations for: ${politicianName}, state: ${state}`)
 
     // Search for the candidate, passing state for filtering
@@ -293,7 +339,7 @@ export const getDonationsByPoliticianName = async (politicianName, state = '') =
     // Get donors for this candidate
     const donorData = await getCandidateDonors(candidate.candidate_id)
 
-    return {
+    const result = {
       candidate: {
         id: candidate.candidate_id,
         name: candidate.name,
@@ -305,17 +351,68 @@ export const getDonationsByPoliticianName = async (politicianName, state = '') =
       },
       ...donorData
     }
+
+    // Cache for 24 hours
+    setCachedDonations(cacheKey, result)
+
+    return result
   } catch (error) {
     console.error('[Donations API] Error getting donations:', error.response?.data || error.message)
     return null
   }
 }
 
-// Get top industry/sector donors - placeholder for future OpenSecrets integration
-export const getIndustryDonors = async (cid) => {
-  // OpenSecrets API requires a key - not implemented
-  console.log('[Donations API] Industry donors feature not yet implemented')
-  return null
+/**
+ * Get money-votes correlation for a politician.
+ * Matches industry sectors of donors against policy_area of bills they voted on.
+ * Returns: [{industry, donationAmount, billsVotedOn, yeaPercent, policyAreas}]
+ */
+export const getMoneyVotesCorrelation = async (industryBreakdown, votes, bills) => {
+  // Lazy import to avoid circular dependency
+  const { INDUSTRY_TO_POLICY } = await import('../data/industryMap.js')
+
+  if (!industryBreakdown || !votes || !bills) return []
+
+  const correlations = []
+
+  for (const sector of industryBreakdown) {
+    if (['Retired', 'Self-Employed', 'Not Disclosed', 'Other'].includes(sector.industry)) continue
+
+    const policyAreas = INDUSTRY_TO_POLICY[sector.industry]
+    if (!policyAreas || policyAreas.length === 0) continue
+
+    // Find bills matching this industry's policy areas
+    const matchingBillIds = bills
+      .filter(b => b.policy_area && policyAreas.includes(b.policy_area))
+      .map(b => b.id || b.bill_id)
+
+    if (matchingBillIds.length === 0) continue
+
+    // Find votes on those bills
+    const matchingVotes = votes.filter(v => {
+      const billId = v.bill_id || v.bills?.id
+      return billId && matchingBillIds.includes(billId)
+    })
+
+    if (matchingVotes.length === 0) continue
+
+    const yeaVotes = matchingVotes.filter(v =>
+      v.position === 'Yea' || v.position === 'Yes'
+    ).length
+
+    correlations.push({
+      industry: sector.industry,
+      donationAmount: sector.totalAmount,
+      donorCount: sector.donorCount,
+      billsVotedOn: matchingVotes.length,
+      yeaCount: yeaVotes,
+      nayCount: matchingVotes.length - yeaVotes,
+      yeaPercent: Math.round((yeaVotes / matchingVotes.length) * 100),
+      policyAreas,
+    })
+  }
+
+  return correlations.sort((a, b) => b.donationAmount - a.donationAmount)
 }
 
 // Format currency for display
