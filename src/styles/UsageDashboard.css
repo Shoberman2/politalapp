@@ -1,0 +1,196 @@
+.usage-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.usage-header h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  margin: 0;
+}
+
+.usage-subtitle {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  margin-top: 4px;
+}
+
+.usage-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.usage-period-select {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #E8E6E1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1A1A18;
+}
+
+/* Stats row */
+.usage-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.usage-stat {
+  background: #fff;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.usage-stat-value {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A18;
+  line-height: 1;
+}
+
+.usage-stat-label {
+  display: block;
+  font-family: 'General Sans', sans-serif;
+  font-size: 12px;
+  color: #9C9789;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Bar chart */
+.usage-chart-section {
+  margin-bottom: 40px;
+}
+
+.usage-chart-section h3 {
+  font-family: 'General Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A18;
+  margin: 0 0 16px;
+}
+
+.usage-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+  padding: 0 0 24px;
+  border-bottom: 1px solid #E8E6E1;
+}
+
+.usage-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.usage-bar-fill {
+  width: 100%;
+  max-width: 40px;
+  background: #1D4ED8;
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.usage-bar-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: #9C9789;
+  margin-top: 8px;
+  position: absolute;
+  bottom: -20px;
+}
+
+.usage-bar-count {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: #6B6861;
+  margin-bottom: 4px;
+}
+
+/* Endpoint list */
+.usage-endpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #E8E6E1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.usage-endpoint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+}
+
+.usage-endpoint-row code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #1A1A18;
+}
+
+.usage-endpoint-count {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #6B6861;
+}
+
+/* Empty state */
+.usage-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.usage-empty h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  color: #1A1A18;
+  margin: 0 0 8px;
+}
+
+.usage-empty p {
+  font-family: 'General Sans', sans-serif;
+  color: #6B6861;
+  margin-bottom: 24px;
+}
+
+.usage-loading {
+  text-align: center;
+  padding: 60px;
+  color: #9C9789;
+  font-family: 'General Sans', sans-serif;
+}
+
+@media (max-width: 768px) {
+  .usage-header { flex-direction: column; gap: 12px; }
+  .usage-actions { flex-direction: column; align-items: flex-start; }
+  .usage-stats { grid-template-columns: repeat(2, 1fr); }
+}

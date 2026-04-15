@@ -1,0 +1,277 @@
+.api-keys-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.api-keys-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.api-keys-header h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  margin: 0;
+}
+
+.api-keys-subtitle {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  margin-top: 4px;
+}
+
+.api-keys-plan-badge {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1D4ED8;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.api-keys-plan-inactive {
+  color: #D97706;
+  font-weight: 500;
+}
+
+/* Create key */
+.api-keys-create {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.api-keys-create input {
+  flex: 1;
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1A1A18;
+}
+
+.api-keys-create input:focus {
+  outline: none;
+  border-color: #1D4ED8;
+}
+
+/* Key list */
+.api-keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #E8E6E1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.api-key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fff;
+}
+
+.api-key-revoked {
+  opacity: 0.5;
+}
+
+.api-key-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.api-key-name {
+  font-family: 'General Sans', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1A1A18;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-key-revoked-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.api-key-prefix {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #6B6861;
+}
+
+.api-key-meta {
+  font-family: 'General Sans', sans-serif;
+  font-size: 12px;
+  color: #9C9789;
+}
+
+.btn-danger-sm {
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: 1px solid #DC2626;
+  border-radius: 6px;
+  background: transparent;
+  color: #DC2626;
+  cursor: pointer;
+}
+
+.btn-danger-sm:hover {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.api-keys-empty {
+  font-family: 'General Sans', sans-serif;
+  color: #9C9789;
+  text-align: center;
+  padding: 40px;
+  background: #fff;
+}
+
+.api-keys-error {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* Modal */
+.api-keys-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.api-keys-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 560px;
+  width: 90%;
+}
+
+.api-keys-modal h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  color: #1A1A18;
+  margin: 0 0 8px;
+}
+
+.api-keys-modal-warning {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #D97706;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.api-keys-modal-key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FAFAF7;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.api-keys-modal-key code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #1A1A18;
+  flex: 1;
+  word-break: break-all;
+}
+
+.btn-copy {
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid #E8E6E1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1D4ED8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.api-keys-modal-usage {
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  margin-bottom: 24px;
+}
+
+.api-keys-modal-usage code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: #1A1A18;
+  display: block;
+  margin-top: 8px;
+  background: #FAFAF7;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* Subscribe prompt */
+.api-keys-subscribe-prompt {
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(29, 78, 216, 0.04);
+  border: 1px solid rgba(29, 78, 216, 0.15);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.api-keys-subscribe-prompt h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 18px;
+  color: #1A1A18;
+  margin: 0 0 8px;
+}
+
+.api-keys-subscribe-prompt p {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  margin-bottom: 16px;
+}
+
+.api-keys-loading {
+  text-align: center;
+  padding: 60px;
+  color: #9C9789;
+  font-family: 'General Sans', sans-serif;
+}
+
+@media (max-width: 768px) {
+  .api-keys-header { flex-direction: column; gap: 12px; }
+  .api-keys-create { flex-direction: column; }
+}

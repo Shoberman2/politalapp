@@ -1,0 +1,229 @@
+.dev-portal {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.dev-hero {
+  text-align: center;
+  padding: 80px 0 60px;
+}
+
+.dev-label {
+  font-family: 'General Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1D4ED8;
+}
+
+.dev-hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 42px;
+  font-weight: 400;
+  color: #1A1A18;
+  margin: 16px 0;
+  line-height: 1.2;
+}
+
+.dev-hero-subtitle {
+  font-family: 'General Sans', sans-serif;
+  font-size: 18px;
+  color: #6B6861;
+  max-width: 600px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+
+.dev-hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Endpoints */
+.dev-endpoints {
+  padding: 60px 0;
+}
+
+.dev-endpoints h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.dev-endpoint-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.dev-endpoint-card {
+  background: #fff;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.dev-endpoint-card code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 14px;
+  color: #1D4ED8;
+  background: rgba(29, 78, 216, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.dev-endpoint-card p {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Pricing */
+.dev-pricing {
+  padding: 60px 0;
+  text-align: center;
+}
+
+.dev-pricing h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  margin-bottom: 8px;
+}
+
+.dev-pricing-subtitle {
+  font-family: 'General Sans', sans-serif;
+  color: #6B6861;
+  margin-bottom: 40px;
+}
+
+.dev-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.dev-tier-card {
+  background: #fff;
+  border: 1px solid #E8E6E1;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: left;
+  position: relative;
+}
+
+.dev-tier-popular {
+  border-color: #1D4ED8;
+  box-shadow: 0 0 0 1px #1D4ED8;
+}
+
+.dev-tier-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1D4ED8;
+  color: white;
+  font-family: 'General Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+}
+
+.dev-tier-card h3 {
+  font-family: 'General Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1A1A18;
+  margin: 0 0 16px;
+}
+
+.dev-tier-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.dev-tier-dollar {
+  font-family: 'General Sans', sans-serif;
+  font-size: 18px;
+  color: #6B6861;
+}
+
+.dev-tier-amount {
+  font-family: 'Geist Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: #1A1A18;
+}
+
+.dev-tier-period {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+}
+
+.dev-tier-limit {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #9C9789;
+  margin: 0 0 24px;
+}
+
+.dev-tier-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+.dev-tier-features li {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  padding: 6px 0;
+  border-bottom: 1px solid #F0EEEA;
+}
+
+.dev-tier-features li:last-child {
+  border-bottom: none;
+}
+
+/* CTA */
+.dev-cta {
+  text-align: center;
+  padding: 60px 0 80px;
+}
+
+.dev-cta h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  margin-bottom: 8px;
+}
+
+.dev-cta p {
+  font-family: 'General Sans', sans-serif;
+  color: #6B6861;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .dev-hero h1 { font-size: 28px; }
+  .dev-hero { padding: 40px 0; }
+  .dev-hero-actions { flex-direction: column; align-items: center; }
+  .dev-endpoint-grid { grid-template-columns: 1fr; }
+  .dev-tier-grid { grid-template-columns: 1fr; }
+}

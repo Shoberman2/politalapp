@@ -1,0 +1,267 @@
+.api-docs {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.api-docs-header {
+  margin-bottom: 32px;
+}
+
+.api-docs-header h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: #1A1A18;
+  margin: 0 0 8px;
+}
+
+.api-docs-header p {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+}
+
+.api-docs-header code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  background: #FAFAF7;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Layout */
+.api-docs-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+}
+
+/* Nav */
+.api-docs-nav {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+}
+
+.api-docs-nav h3 {
+  font-family: 'General Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9C9789;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 12px;
+}
+
+.api-docs-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  transition: background 0.15s;
+}
+
+.api-docs-nav-item:hover {
+  background: #FAFAF7;
+}
+
+.api-docs-nav-item.active {
+  background: rgba(29, 78, 216, 0.08);
+  color: #1D4ED8;
+}
+
+.api-docs-method {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #16A34A;
+  background: rgba(22, 163, 74, 0.08);
+  padding: 2px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.api-docs-path {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-docs-nav-divider {
+  height: 1px;
+  background: #E8E6E1;
+  margin: 12px 0;
+}
+
+.api-docs-nav-cta {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1D4ED8;
+  background: rgba(29, 78, 216, 0.08);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Content */
+.api-docs-content {
+  min-width: 0;
+}
+
+.api-docs-endpoint {
+  margin-bottom: 48px;
+}
+
+.api-docs-endpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.api-docs-method-badge {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #16A34A;
+  background: rgba(22, 163, 74, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.api-docs-endpoint-path {
+  font-family: 'Geist Mono', monospace;
+  font-size: 16px;
+  color: #1A1A18;
+}
+
+.api-docs-endpoint-desc {
+  font-family: 'General Sans', sans-serif;
+  font-size: 15px;
+  color: #6B6861;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.api-docs-section {
+  margin-bottom: 24px;
+}
+
+.api-docs-section h3 {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A18;
+  margin: 0 0 12px;
+}
+
+/* Params table */
+.api-docs-params-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'General Sans', sans-serif;
+  font-size: 13px;
+}
+
+.api-docs-params-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #9C9789;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  border-bottom: 1px solid #E8E6E1;
+}
+
+.api-docs-params-table td {
+  padding: 10px 12px;
+  color: #6B6861;
+  border-bottom: 1px solid #F0EEEA;
+}
+
+.api-docs-params-table code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: #1A1A18;
+}
+
+.api-docs-required {
+  font-size: 10px;
+  color: #DC2626;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Code block */
+.api-docs-code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  background: #1A1A18;
+  color: #E8E6E1;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+/* Auth section */
+.api-docs-auth-section {
+  padding-top: 32px;
+  border-top: 1px solid #E8E6E1;
+}
+
+.api-docs-auth-section h3 {
+  font-family: 'General Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A18;
+  margin: 24px 0 12px;
+}
+
+.api-docs-auth-section h3:first-child {
+  margin-top: 0;
+}
+
+.api-docs-auth-section p {
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  color: #6B6861;
+  line-height: 1.5;
+}
+
+.api-docs-auth-section a {
+  color: #1D4ED8;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .api-docs-layout {
+    grid-template-columns: 1fr;
+  }
+  .api-docs-nav {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .api-docs-nav h3 { width: 100%; }
+  .api-docs-nav-item { flex: 0 0 auto; }
+}
