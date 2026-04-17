@@ -6,6 +6,7 @@ import { getIndustryBreakdown, formatCurrency as formatCompact } from '../data/i
 import { getMemberDashboardData } from '../services/supabaseVotes'
 import { InfoTip } from './Tooltip'
 import VoteDashboard from './VoteDashboard'
+import VotingPatternAnalysis from './VotingPatternAnalysis'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
 
@@ -429,6 +430,9 @@ function PoliticianDetail() {
           </p>
         )}
       </section>
+
+      {/* Voting Pattern Analysis — new in v2 */}
+      <VotingPatternAnalysis member={{ ...member, bioguideId, state, district, party }} />
 
       {member.depiction?.attribution && (
         <div className="photo-attribution">

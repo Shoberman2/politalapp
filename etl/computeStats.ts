@@ -32,6 +32,17 @@ interface PoliticianRow {
   party: string;
 }
 
+interface RollCallStatsRow {
+  roll_call_id: string;
+  dem_yea: number;
+  dem_nay: number;
+  rep_yea: number;
+  rep_nay: number;
+  ind_yea: number;
+  ind_nay: number;
+  updated_at: string;
+}
+
 /**
  * Get the effective party for loyalty calculation.
  * Maps party codes to full names and handles Independent caucusing.
@@ -144,9 +155,12 @@ export async function computeMemberStats(
 
     logger.info(`Found ${rollCalls.size} roll calls`);
 
-    // 4. For each roll call, determine party majority positions
+    // 4. For each roll call, determine party majority positions AND
+    //    collect per-party vote counts for the roll_call_stats table.
     //    Map: roll_call_id -> { party -> majority position }
     const rollCallPartyMajority = new Map<string, Map<string, string>>();
+    const rollCallStatsRows: RollCallStatsRow[] = [];
+    const nowIso = new Date().toISOString();
 
     for (const [rollCallId, votes] of rollCalls) {
       // Group votes by effective party
@@ -174,6 +188,63 @@ export async function computeMemberStats(
       }
 
       rollCallPartyMajority.set(rollCallId, majorityMap);
+
+      // Per-party Yea/Nay counts for roll_call_stats table.
+      // "Independent" bucket holds non-caucusing independents only
+      // (getEffectiveParty remaps caucusing I's to D or R).
+      const countPositions = (positions: Array<{ position: string }>) => {
+        let yea = 0;
+        let nay = 0;
+        for (const p of positions) {
+          if (p.position === 'Yea') yea++;
+          else if (p.position === 'Nay') nay++;
+        }
+        return { yea, nay };
+      };
+      const dem = countPositions(partyVotes.get('Democratic') ?? []);
+      const rep = countPositions(partyVotes.get('Republican') ?? []);
+      let indYea = 0;
+      let indNay = 0;
+      for (const [party, positions] of partyVotes) {
+        if (party === 'Democratic' || party === 'Republican') continue;
+        const { yea, nay } = countPositions(positions);
+        indYea += yea;
+        indNay += nay;
+      }
+      rollCallStatsRows.push({
+        roll_call_id: rollCallId,
+        dem_yea: dem.yea,
+        dem_nay: dem.nay,
+        rep_yea: rep.yea,
+        rep_nay: rep.nay,
+        ind_yea: indYea,
+        ind_nay: indNay,
+        updated_at: nowIso,
+      });
+    }
+
+    // 4b. Upsert roll_call_stats. Table may not exist yet in older deploys —
+    // if the upsert fails with a "relation does not exist" error, log a warning
+    // and continue (the feature degrades to a 2-signal classifier client-side).
+    logger.info(`Upserting roll_call_stats for ${rollCallStatsRows.length} roll calls...`);
+    const rcsBatches = chunk(rollCallStatsRows, 500);
+    for (const batch of rcsBatches) {
+      const { error } = await supabase
+        .from('roll_call_stats')
+        .upsert(batch, { onConflict: 'roll_call_id' });
+
+      if (error) {
+        if (error.message.includes('does not exist')) {
+          logger.warn(
+            'roll_call_stats table not found. Run migration ' +
+            'supabase/migrations/002_add_roll_call_stats.sql in Supabase SQL Editor, ' +
+            'then re-run this ETL to backfill.'
+          );
+          break;
+        }
+        result.errors.push(`roll_call_stats upsert error: ${error.message}`);
+        logger.error('roll_call_stats upsert error', error);
+      }
     }
 
     // 5. For each politician, compute stats

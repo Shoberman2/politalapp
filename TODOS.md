@@ -32,3 +32,15 @@
 **Blocked by:** Nothing
 **Context:** The B2B API (api/v1/*) has 12 endpoints and auth middleware with zero test coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
 **What to do:** Create test/api/ directory with auth.test.js, members.test.js, bills.test.js, votes.test.js, stats.test.js. Mock the Supabase admin client. Verify response shapes, status codes, and error handling for every endpoint.
+
+## Move client-side OpenAI calls behind an Edge Function
+**Priority:** Medium
+**Blocked by:** Nothing (but increases in OpenAI spend from abuse are the trigger)
+**Context:** `VITE_OPENAI_API_KEY` is browser-exposed by design of Vite's `VITE_` prefix — anyone viewing page source or devtools can copy it. Today used by `explainBillWithAI` in VoteDashboard and the new voting-pattern narration feature (added 2026-04-17). A scraper can drain the OpenAI account with arbitrary completions. Set a hard monthly spend cap on the OpenAI account as an interim safety net. When worth addressing properly: route all OpenAI calls through a Vercel Edge Function (`/api/ai/narrate`, `/api/ai/explain-bill`) with a per-IP rate limit (e.g., 20 calls/hour) and origin check, then drop the `VITE_` key and use a server-only `OPENAI_API_KEY`.
+**What to do:** 1) Add per-IP rate-limit middleware (use Vercel's KV or Upstash). 2) Create `/api/ai/narrate.js` and `/api/ai/explain-bill.js` Edge Functions that proxy OpenAI. 3) Move `votingPatternNarration.js` and `explainBillWithAI` to call these endpoints. 4) Rename env var to `OPENAI_API_KEY` (server-only). 5) Remove `VITE_OPENAI_API_KEY` from `.env.example`.
+
+## Refresh district-lean data yearly
+**Priority:** Low
+**Blocked by:** Daily Kos Elections publishing new data (typically December of election years) AND the static data becoming stale enough to cause wrong "district mismatch" flags
+**Context:** `src/data/districtLean2024.js` and `src/data/stateLean2024.js` were imported from Daily Kos Elections 2024 presidential-by-CD data. The "district-lean mismatch" dimension of the voting-pattern analysis (shipped 2026-04-17) uses these to detect when a rep voted against their district's partisan lean. Redistricting, special elections, and partisan drift will slowly decay accuracy starting around 2027. Likely fine until 2028 elections publish fresh data.
+**What to do:** When 2028 or 2030 data is available: download the latest Daily Kos spreadsheet (CC BY-SA 4.0), regenerate the two JS files, bump the classifier's cache `schemaVersion` so in-flight caches recompute. Update attribution in UI methodology modal.
