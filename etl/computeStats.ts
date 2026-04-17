@@ -191,7 +191,11 @@ export async function computeMemberStats(
 
       // Per-party Yea/Nay counts for roll_call_stats table.
       // "Independent" bucket holds non-caucusing independents only
-      // (getEffectiveParty remaps caucusing I's to D or R).
+      // (getEffectiveParty remaps caucusing I's to 'Democratic' string).
+      //
+      // Aliases: the ETL's normalizeParty() stores 'Democrat'/'Republican'
+      // (singular nouns), but getEffectiveParty returns 'Democratic'/'Republican'
+      // (adjectives) for caucus overrides. Match all forms to avoid undercounting.
       const countPositions = (positions: Array<{ position: string }>) => {
         let yea = 0;
         let nay = 0;
@@ -201,22 +205,28 @@ export async function computeMemberStats(
         }
         return { yea, nay };
       };
-      const dem = countPositions(partyVotes.get('Democratic') ?? []);
-      const rep = countPositions(partyVotes.get('Republican') ?? []);
-      let indYea = 0;
-      let indNay = 0;
+      const DEM_ALIASES = new Set(['Democrat', 'Democratic', 'D']);
+      const REP_ALIASES = new Set(['Republican', 'R']);
+      let demYea = 0, demNay = 0, repYea = 0, repNay = 0, indYea = 0, indNay = 0;
       for (const [party, positions] of partyVotes) {
-        if (party === 'Democratic' || party === 'Republican') continue;
-        const { yea, nay } = countPositions(positions);
-        indYea += yea;
-        indNay += nay;
+        const counts = countPositions(positions);
+        if (DEM_ALIASES.has(party)) {
+          demYea += counts.yea;
+          demNay += counts.nay;
+        } else if (REP_ALIASES.has(party)) {
+          repYea += counts.yea;
+          repNay += counts.nay;
+        } else {
+          indYea += counts.yea;
+          indNay += counts.nay;
+        }
       }
       rollCallStatsRows.push({
         roll_call_id: rollCallId,
-        dem_yea: dem.yea,
-        dem_nay: dem.nay,
-        rep_yea: rep.yea,
-        rep_nay: rep.nay,
+        dem_yea: demYea,
+        dem_nay: demNay,
+        rep_yea: repYea,
+        rep_nay: repNay,
         ind_yea: indYea,
         ind_nay: indNay,
         updated_at: nowIso,
