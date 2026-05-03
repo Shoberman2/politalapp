@@ -45,6 +45,30 @@
 **Context:** Most bills die in committee, and committee votes are where real accountability lives — but they're invisible on every current tracker (GovTrack, Congress.gov surface them poorly). Deferred from the 2026-04-20 CEO review (`~/.gstack/projects/Shoberman2-politalapp/ceo-plans/2026-04-20-go-to-place-accountability.md`) because of real data-availability risk: Congress.gov committee data is inconsistent, many committee votes are voice votes with no individual record, and several sources are locked in committee-report PDFs. Strong journalist appeal when it works, but XL effort (human: ~6 weeks / CC+gstack: ~1-2 weeks) with meaningful schedule risk.
 **What to do:** Phase 0: research spike — pick 3 committees, sample 1 month of activity, catalogue how many votes are roll calls vs voice vs unavailable. Phase 1: if signal is strong, build ETL for structured committee roll calls (easier subset). Phase 2: PDF parsing for committee reports + voice-vote annotation. Surface committee-level accountability ("Rep voted against bill in committee but for it on floor") as a differentiated editorial feature.
 
+## Cross-rep procedural pattern stat
+**Priority:** P2 (Medium)
+**Blocked by:** "Explain procedural votes" plan shipping (creates the `roll_calls` table this depends on)
+**Context:** Deferred cherry-pick from 2026-05-03 CEO review (`~/.gstack/projects/Shoberman2-politalapp/ceo-plans/2026-05-03-explain-procedural-votes.md`). Once procedural votes are classified and stored in `roll_calls`, compute per-rep procedural-vote behavior diffs vs. party median: e.g., "Senator X votes Yea on cloture 3% above party median" or "Rep Y votes to recommit 18% more than the House median." Reuses the voting-pattern analysis ranking pattern (deterministic computation, AI narration on top). Held out of the explain-procedural-votes scope because it's a standalone feature that overlaps the voting-pattern analysis surface — better as its own focused PR.
+**What to do:** After `roll_calls` ships: (1) compute per-rep procedural vote stats grouped by `procedural_action` (cloture, motion-to-recommit, motion-to-table). (2) Compute party-median baseline. (3) Surface notable diffs (e.g., >2 std-dev) in the existing voting-pattern analysis section on PoliticianDetail, or as a new "Procedural behavior" stat block. (4) AI narration uses the same prompt safety guardrails as the procedural-vote narration. Effort: M (human ~1 week / CC ~2 hrs).
+
+## Periodically re-narrate procedural votes after prompt improvements
+**Priority:** P3 (Low)
+**Blocked by:** "Explain procedural votes" plan shipping AND first meaningful prompt v2 iteration
+**Context:** From 2026-05-03 CEO review L2 (operational debt). The `roll_calls.ai_explanation` is generated once per row with `generated_at` tracking. When the procedural narration prompt is improved meaningfully, older rows have stale narration. Without an explicit re-narrate path, only new roll calls benefit from prompt improvements.
+**What to do:** Add a CLI flag to `etl/run.ts` or a separate `etl/renarrate.ts` script: `npm run etl:renarrate -- --since=YYYY-MM-DD` re-narrates all significant roll calls with `generated_at < since`, honoring the same per-run budget cap (3000 calls). Cheap to add (~50 lines) once the underlying enrichRollCalls.ts exists.
+
+## Migrate touched JS service files to TypeScript
+**Priority:** P3 (Low)
+**Blocked by:** Nothing
+**Context:** Surfaced in 2026-05-03 plan-eng-review of the procedural votes plan. The new `src/services/rollCalls.js` and the modified `src/services/supabaseVotes.js` carry implicit type contracts (the joined roll_call shape, the `significance_signals` JSONB shape, the glossary entry shape with `category` field) that would benefit from TypeScript types. Existing project convention is JS + JSDoc, so this is a deliberate deferred decision, not an oversight.
+**What to do:** Convert `src/services/rollCalls.js`, `src/services/supabaseVotes.js`, and `src/data/proceduralGlossary.js` to `.ts`. Define shared `RollCall`, `SignificanceSignals`, `GlossaryEntry` types in `src/types/`. No runtime change. Effort: M (human ~6 hrs / CC ~30 min). Trigger: when adding new files to these services or after a roll_call-shape-related bug.
+
+## Configure gstack design binary OPENAI_API_KEY
+**Priority:** P3 (Low)
+**Blocked by:** Nothing
+**Context:** Surfaced in 2026-05-03 plan-design-review. The gstack `design` binary at `~/.claude/skills/gstack/design/dist/design` returned 401 when generating procedural-vote-card mockups. Without a working API key, /plan-design-review and /design-shotgun fall back to text-only review and lose the highest-leverage design tool (visual mockup generation, comparison boards, vision quality checks).
+**What to do:** Run `~/.claude/skills/gstack/design/dist/design setup` to configure the OPENAI_API_KEY (or wherever the gstack designer reads its credentials). Verify with `~/.claude/skills/gstack/design/dist/design generate --brief "test card with red button" --output /tmp/test.png`. Effort: human ~5 min / CC ~2 min.
+
 ## Refresh district-lean data yearly
 **Priority:** Low
 **Blocked by:** Daily Kos Elections publishing new data (typically December of election years) AND the static data becoming stale enough to cause wrong "district mismatch" flags

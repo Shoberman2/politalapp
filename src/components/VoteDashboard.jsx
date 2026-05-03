@@ -2,7 +2,119 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMemberDashboardData } from '../services/supabaseVotes'
 import { getMemberVotes, explainBillWithAI } from '../services/congress'
+import { GLOSSARY_FLAT } from '../data/proceduralGlossary'
 import '../styles/VoteDashboard.css'
+
+// ┌─────────────────────────────────────────────────────────────────────┐
+// │ Procedural vote card — render conditions                            │
+// │                                                                     │
+// │   has roll_call.question?           render question + tooltips      │
+// │   no roll_call.question?            fallback: bill.title → date     │
+// │                                                                     │
+// │ Future PRs will add (gated by roll_call.is_significant):            │
+// │   - tactical badge between description and AI block                 │
+// │   - AI narration block (.dash-explanation marginalia)               │
+// │   - "Why was this explained?" methodology popover trigger           │
+// │                                                                     │
+// │ Storyboard: citizen scrolls voting record → sees plain-English     │
+// │ question instead of "Procedural Vote" placeholder → reads or        │
+// │ taps a glossary term for civics definition.                        │
+// └─────────────────────────────────────────────────────────────────────┘
+
+// Pre-compile the glossary regex array once at module load. Rebuilding
+// these on every render across N visible cards is O(cards × terms) work
+// per re-render — meaningful at 20+ procedural cards.
+const GLOSSARY_PATTERNS = Object.entries(GLOSSARY_FLAT).map(([term, definition]) => ({
+  term,
+  definition,
+  regex: new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+}))
+
+/**
+ * Inline glossary annotation for procedural question text.
+ * Wraps any glossary-matched term in a tooltip-triggering span.
+ * Mirrors the pattern in VotingHistory.jsx (now extracted to shared glossary).
+ */
+function annotateQuestion(text, activeTerm, setActiveTerm, tooltipRef) {
+  if (!text) return text
+  const matches = []
+  for (const { term, definition, regex } of GLOSSARY_PATTERNS) {
+    regex.lastIndex = 0 // reset since regex is shared across renders
+    let match
+    while ((match = regex.exec(text)) !== null) {
+      matches.push({ start: match.index, end: match.index + match[0].length, term, original: match[0], definition })
+    }
+  }
+  if (matches.length === 0) return text
+
+  matches.sort((a, b) => a.start - b.start || b.end - a.end)
+  const filtered = []
+  let lastEnd = -1
+  for (const m of matches) {
+    if (m.start >= lastEnd) {
+      filtered.push(m)
+      lastEnd = m.end
+    }
+  }
+
+  const parts = []
+  let cursor = 0
+  for (const m of filtered) {
+    if (m.start > cursor) parts.push(text.slice(cursor, m.start))
+    const key = `${m.term}-${m.start}`
+    parts.push(
+      <span
+        key={key}
+        className="glossary-term"
+        role="button"
+        tabIndex={0}
+        aria-expanded={activeTerm === key}
+        onClick={(e) => {
+          e.stopPropagation()
+          setActiveTerm(activeTerm === key ? null : key)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            e.stopPropagation()
+            setActiveTerm(activeTerm === key ? null : key)
+          } else if (e.key === 'Escape') {
+            setActiveTerm(null)
+          }
+        }}
+      >
+        {m.original}
+        {activeTerm === key && (
+          <span className="glossary-tooltip" ref={tooltipRef} role="tooltip">
+            <strong>{m.original}</strong>
+            <span>{m.definition}</span>
+          </span>
+        )}
+      </span>
+    )
+    cursor = m.end
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor))
+  return parts
+}
+
+/**
+ * Returns a citizen-readable title for a procedural vote.
+ * Fallback chain (E4 from /plan-eng-review):
+ *   roll_call.question → bill.title → "Vote on {date}"
+ */
+function getProceduralTitle(vote) {
+  const q = vote.roll_call?.question
+  if (q && q.trim()) return q.trim()
+  if (vote.bill?.title) return vote.bill.title
+  if (vote.voted_at) {
+    const date = new Date(vote.voted_at)
+    if (!isNaN(date.getTime())) {
+      return `Vote on ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    }
+  }
+  return 'Vote'
+}
 
 function VoteDashboard({ bioguideId }) {
   const navigate = useNavigate()
@@ -13,12 +125,33 @@ function VoteDashboard({ bioguideId }) {
   const [visibleCount, setVisibleCount] = useState(20)
   const [expandedBill, setExpandedBill] = useState(null)
   const [billExplanations, setBillExplanations] = useState({})
+  const [activeGlossaryTerm, setActiveGlossaryTerm] = useState(null)
+  const tooltipRef = useRef(null)
+  // containerRef scopes the outside-click handler to this component's subtree
+  // so a glossary-term click inside another component (e.g. VotingHistory) on
+  // the same page doesn't accidentally close (or fail to close) our tooltip.
+  const containerRef = useRef(null)
   const statsRef = useRef(null)
   const [statsAnimated, setStatsAnimated] = useState(false)
 
   useEffect(() => {
     loadData()
   }, [bioguideId])
+
+  // Close glossary tooltip on outside click. Scoped: only react when the
+  // click happens INSIDE our subtree (so cross-component glossary clicks
+  // don't pollute state).
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!containerRef.current) return
+      if (!containerRef.current.contains(e.target)) return
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target) && !e.target.closest('.glossary-term')) {
+        setActiveGlossaryTerm(null)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   // Animate stats bar on first render
   useEffect(() => {
@@ -130,7 +263,7 @@ function VoteDashboard({ bioguideId }) {
     const displayVotes = votes.slice(0, visibleCount)
 
     return (
-      <section className="vote-dashboard">
+      <section className="vote-dashboard" ref={containerRef}>
         <h2 className="dash-section-title">Voting Record</h2>
 
         {isStale && (
@@ -182,9 +315,14 @@ function VoteDashboard({ bioguideId }) {
           {displayVotes.length > 0 ? displayVotes.map((vote, index) => {
             const parsed = parseBillId(vote.bill_id)
             const description = getBillDescription(vote)
+            // Procedural votes have no bill_id (or have a roll_call.question
+            // that isn't a final-passage vote). For those, render question
+            // text + glossary tooltips. For bill votes, render bill title.
+            const isProcedural = !vote.bill_id
+            const procQuestion = vote.roll_call?.question?.trim() || null
             const billTitle = vote.bill?.title
               || (vote.bill_id ? vote.bill_id.split('-').slice(1).join(' ').toUpperCase()
-              : 'Procedural Vote')
+              : getProceduralTitle(vote))
             const isExpanded = expandedBill === index
             const explanation = billExplanations[index]
 
@@ -211,18 +349,32 @@ function VoteDashboard({ bioguideId }) {
                     <span className="dash-card-date">{formatDate(vote.voted_at)}</span>
                   </div>
 
-                  {/* Bill title */}
-                  <h4 className="dash-bill-title">{billTitle}</h4>
+                  {/* Title: procedural cards render question text with
+                      glossary tooltips; bill cards render plain bill title.
+                      Procedural cards use a div (not h4) so the interactive
+                      glossary-term spans inside don't violate ARIA semantics
+                      (heading content should be static for screen readers). */}
+                  {isProcedural && procQuestion ? (
+                    <div className="dash-bill-title proc-question" role="heading" aria-level="4">
+                      {annotateQuestion(procQuestion, activeGlossaryTerm, setActiveGlossaryTerm, tooltipRef)}
+                    </div>
+                  ) : (
+                    <h4 className="dash-bill-title">{billTitle}</h4>
+                  )}
 
-                  {/* Description */}
-                  {description && (
+                  {/* Description: for bill votes use bill summary; for
+                      procedural votes use roll_call.description if present. */}
+                  {description ? (
                     <p className="dash-bill-desc">
                       {description.length > 200 ? description.slice(0, 200) + '...' : description}
                     </p>
-                  )}
+                  ) : isProcedural && vote.roll_call?.description ? (
+                    <p className="dash-bill-desc">{vote.roll_call.description}</p>
+                  ) : null}
                 </div>
 
-                {/* AI explanation expand */}
+                {/* AI explanation expand (bill votes only — procedural
+                    AI narration ships in PR 2 from a precomputed table). */}
                 {vote.bill && (
                   <button
                     className="dash-explain-btn"

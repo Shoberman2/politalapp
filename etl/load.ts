@@ -17,6 +17,7 @@ import type {
   Politician,
   Bill,
   Vote,
+  RollCall,
   TransformedData,
   LoadResult,
   ETLConfig,
@@ -60,6 +61,7 @@ export async function loadToSupabase(
   const result: LoadResult = {
     politiciansUpserted: 0,
     billsUpserted: 0,
+    rollCallsUpserted: 0,
     votesInserted: 0,
     errors: [],
   };
@@ -68,13 +70,18 @@ export async function loadToSupabase(
     logger.info('DRY RUN MODE - No data will be written to Supabase');
     result.politiciansUpserted = data.politicians.size;
     result.billsUpserted = data.bills.size;
+    result.rollCallsUpserted = data.rollCalls.size;
     result.votesInserted = data.votes.length;
     return result;
   }
 
   const supabase = getSupabaseClient(config);
 
-  // Step 1: Upsert politicians
+  // Order is critical for foreign keys:
+  //   politicians → bills → roll_calls (FK to bills) → votes (FK to politicians + bills)
+  // Roll calls must be upserted before votes so the soft join from
+  // votes.roll_call_id → roll_calls.id always finds a row.
+
   logger.info(`Loading ${data.politicians.size} politicians...`);
   const politicianResult = await upsertPoliticians(
     supabase,
@@ -83,13 +90,19 @@ export async function loadToSupabase(
   result.politiciansUpserted = politicianResult.count;
   result.errors.push(...politicianResult.errors);
 
-  // Step 2: Upsert bills
   logger.info(`Loading ${data.bills.size} bills...`);
   const billResult = await upsertBills(supabase, Array.from(data.bills.values()));
   result.billsUpserted = billResult.count;
   result.errors.push(...billResult.errors);
 
-  // Step 3: Upsert votes
+  logger.info(`Loading ${data.rollCalls.size} roll calls...`);
+  const rollCallResult = await upsertRollCalls(
+    supabase,
+    Array.from(data.rollCalls.values())
+  );
+  result.rollCallsUpserted = rollCallResult.count;
+  result.errors.push(...rollCallResult.errors);
+
   logger.info(`Loading ${data.votes.length} votes...`);
   const voteResult = await upsertVotes(supabase, data.votes);
   result.votesInserted = voteResult.count;
@@ -98,6 +111,7 @@ export async function loadToSupabase(
   logger.info('Load complete', {
     politiciansUpserted: result.politiciansUpserted,
     billsUpserted: result.billsUpserted,
+    rollCallsUpserted: result.rollCallsUpserted,
     votesInserted: result.votesInserted,
     errorCount: result.errors.length,
   });
@@ -246,6 +260,78 @@ async function upsertBills(
 }
 
 /**
+ * Upserts roll calls to Supabase.
+ *
+ * Roll calls are NOT immutable — a row may exist (created during the
+ * migration's pre-population step) without question/description, and a
+ * later ETL run fills those fields in. So we use ON CONFLICT UPDATE.
+ *
+ * Data preservation rules:
+ *   - The payload only includes columns whose new value is non-null.
+ *     Postgres' UPDATE ... SET col = EXCLUDED.col only fires for keys present
+ *     in the INSERT row, so omitting null keys leaves the existing column
+ *     untouched. This prevents a transient empty Congress.gov response from
+ *     wiping a previously-populated question or bill_id.
+ *   - Rows where every enrichable column is null become a no-op (the
+ *     pre-existing row keeps its data; the new id-only row is harmless).
+ */
+async function upsertRollCalls(
+  supabase: SupabaseClient,
+  rollCalls: RollCall[]
+): Promise<LoadOperationResult> {
+  const result: LoadOperationResult = { count: 0, errors: [] };
+
+  if (rollCalls.length === 0) {
+    return result;
+  }
+
+  const batches = chunk(rollCalls, 100);
+
+  for (const batch of batches) {
+    try {
+      // Build each upsert payload with only the columns we have data for.
+      // Omitted keys preserve the existing value on conflict.
+      const payloads = batch.map((r) => {
+        const row: Record<string, unknown> = {
+          id: r.id,
+          updated_at: new Date().toISOString(),
+        };
+        if (r.bill_id != null) row.bill_id = r.bill_id;
+        if (r.question != null) row.question = r.question;
+        if (r.description != null) row.description = r.description;
+        return row;
+      });
+
+      const { data, error } = await supabase
+        .from('roll_calls')
+        .upsert(payloads, {
+          onConflict: 'id',
+          ignoreDuplicates: false, // Update question/description if they arrive
+        })
+        .select();
+
+      if (error) {
+        if (error.code === '23503') {
+          result.errors.push(`Roll calls FK error: ${error.message}`);
+          logger.error('Roll calls foreign key error', error);
+        } else {
+          result.errors.push(`Roll calls upsert error: ${error.message}`);
+          logger.error('Roll calls upsert error', error);
+        }
+      } else {
+        result.count += data?.length || batch.length;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Roll calls batch error: ${message}`);
+      logger.error('Roll calls batch error', error);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Upserts votes to Supabase.
  *
  * Uses a composite key (politician_id, bill_id, voted_at) for deduplication.
@@ -320,7 +406,7 @@ async function upsertVotes(
 export async function checkTablesExist(config: ETLConfig): Promise<boolean> {
   const supabase = getSupabaseClient(config);
 
-  const tables = ['politicians', 'bills', 'votes'];
+  const tables = ['politicians', 'bills', 'roll_calls', 'votes'];
 
   for (const table of tables) {
     try {

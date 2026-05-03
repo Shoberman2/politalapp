@@ -39,6 +39,19 @@ export interface Vote {
   source_url: string;
 }
 
+/**
+ * One unique roll call (legislative vote event), identified by chamber,
+ * congress, session, and roll number. The same roll call is referenced by
+ * up to 535 vote rows (one per voting member). Source of truth for the
+ * vote question and description text.
+ */
+export interface RollCall {
+  id: string;              // Format: "{chamber}-{congress}-{session}-{rollNumber}"
+  bill_id: string | null;  // null for purely procedural roll calls
+  question: string | null; // e.g., "On Motion to Recommit"
+  description: string | null;
+}
+
 export interface MemberStats {
   politician_id: string;
   congress: number;
@@ -192,12 +205,14 @@ export interface ExtractedVoteData {
 export interface TransformedData {
   politicians: Map<string, Politician>;
   bills: Map<string, Bill>;
+  rollCalls: Map<string, RollCall>;
   votes: Vote[];
 }
 
 export interface LoadResult {
   politiciansUpserted: number;
   billsUpserted: number;
+  rollCallsUpserted: number;
   votesInserted: number;
   errors: string[];
 }

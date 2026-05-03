@@ -63,24 +63,52 @@ export async function getMemberDashboardData(politicianId, limit = 500) {
       return null // Signal to fall back to live API
     }
 
-    // Fetch roll_call_stats for the vote set. One batched IN query.
-    // If the table doesn't exist yet (migration not run), this fails silently
-    // and the classifier degrades to 2-signal mode.
+    // Fetch roll_call_stats and roll_calls for the vote set in parallel.
+    // Both tables key off roll_call_id; this is two batched IN queries.
+    // Each table may not exist yet (migration not run) — graceful degradation.
+    //
+    // Use allSettled so a transient network failure on one query doesn't
+    // erase the other's good data. Promise.all would reject the whole
+    // expression on first rejection.
     const rollCallIds = [...new Set(votes.map(v => v.roll_call_id).filter(Boolean))]
     const rollCallStatsMap = new Map()
+    const rollCallsMap = new Map()
     if (rollCallIds.length > 0) {
-      const { data: rcs, error: rcsError } = await supabase
-        .from('roll_call_stats')
-        .select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay')
-        .in('roll_call_id', rollCallIds)
+      const [statsSettled, callsSettled] = await Promise.allSettled([
+        supabase
+          .from('roll_call_stats')
+          .select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay')
+          .in('roll_call_id', rollCallIds),
+        supabase
+          .from('roll_calls')
+          .select('id, bill_id, question, description')
+          .in('id', rollCallIds),
+      ])
 
-      if (rcsError) {
-        // Table may not exist yet — log once, continue with empty map.
-        if (!rcsError.message?.includes('does not exist')) {
-          console.warn('[SupabaseVotes] roll_call_stats query failed:', rcsError.message)
+      if (statsSettled.status === 'fulfilled') {
+        const statsRes = statsSettled.value
+        if (statsRes.error) {
+          if (!statsRes.error.message?.includes('does not exist')) {
+            console.warn('[SupabaseVotes] roll_call_stats query failed:', statsRes.error.message)
+          }
+        } else if (Array.isArray(statsRes.data)) {
+          for (const r of statsRes.data) rollCallStatsMap.set(r.roll_call_id, r)
         }
-      } else if (Array.isArray(rcs)) {
-        for (const r of rcs) rollCallStatsMap.set(r.roll_call_id, r)
+      } else {
+        console.warn('[SupabaseVotes] roll_call_stats query rejected:', statsSettled.reason)
+      }
+
+      if (callsSettled.status === 'fulfilled') {
+        const callsRes = callsSettled.value
+        if (callsRes.error) {
+          if (!callsRes.error.message?.includes('does not exist')) {
+            console.warn('[SupabaseVotes] roll_calls query failed:', callsRes.error.message)
+          }
+        } else if (Array.isArray(callsRes.data)) {
+          for (const r of callsRes.data) rollCallsMap.set(r.id, r)
+        }
+      } else {
+        console.warn('[SupabaseVotes] roll_calls query rejected:', callsSettled.reason)
       }
     }
 
@@ -94,6 +122,7 @@ export async function getMemberDashboardData(politicianId, limit = 500) {
         source_url: v.source_url,
         bill: v.bills || null,
         roll_call_stats: v.roll_call_id ? rollCallStatsMap.get(v.roll_call_id) ?? null : null,
+        roll_call: v.roll_call_id ? rollCallsMap.get(v.roll_call_id) ?? null : null,
       })),
       stats: stats || null,
       lastRun,

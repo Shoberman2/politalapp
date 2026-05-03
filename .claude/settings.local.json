@@ -63,7 +63,21 @@
       "Bash(B=~/.claude/skills/gstack/browse/dist/browse $B goto \"http://localhost:5173/bills\")",
       "Bash(ETL_MAX_VOTES=1000 npx tsx etl/run.ts --days 120 --skip-enrich)",
       "Bash(source .env curl -s \"https://dbtbmjjjcfwobhlicduk.supabase.co/rest/v1/votes?select=voted_at&politician_id=eq.P000197&order=voted_at.asc&limit=5\" -H \"apikey: $VITE_SUPABASE_ANON_KEY\" -H \"Authorization: Bearer $VITE_SUPABASE_ANON_KEY\" 2)",
-      "Bash(1 echo:*)"
+      "Bash(1 echo:*)",
+      "Bash(mkdir -p ~/.gstack)",
+      "Bash(rm -f ~/.gstack/last-update-check)",
+      "Bash(rm -f ~/.gstack/update-snoozed)",
+      "Skill(office-hours)",
+      "Bash(~/.claude/skills/gstack/bin/gstack-learnings-log *)",
+      "Bash(~/.claude/skills/gstack/bin/gstack-review-read *)",
+      "Bash(npm test *)",
+      "Skill(browse)",
+      "Bash(gh --version)",
+      "Bash(gh workflow *)",
+      "Bash(echo \"---EXIT: $?\")",
+      "Bash(gh pr *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm ci *)"
     ]
   }
 }

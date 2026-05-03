@@ -220,6 +220,18 @@
   line-height: 1.35;
 }
 
+/* Procedural vote card variant: question text rendered in same display font.
+   Glossary tooltips inside .glossary-term / .glossary-tooltip are styled
+   in VotingHistory.css — that stylesheet is already loaded on every page
+   that renders this dashboard (PoliticianDetail.jsx imports both). */
+.dash-bill-title.proc-question {
+  font-style: italic;
+}
+
+.dash-bill-title.proc-question .glossary-term {
+  font-style: italic;
+}
+
 .dash-bill-desc {
   font-family: var(--font-body);
   font-size: 0.875rem;
