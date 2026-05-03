@@ -1,29 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getMemberSponsorship, explainBillWithAI } from '../services/congress'
+import { GLOSSARY_FLAT as GLOSSARY } from '../data/proceduralGlossary'
 import '../styles/VotingHistory.css'
-
-const GLOSSARY = {
-  'introduced': 'The bill was formally submitted to Congress for the first time. This is the first step in the legislative process — it doesn\'t mean it\'s been debated or voted on yet.',
-  'referred to': 'The bill was sent to a specific congressional committee for review. Committees study bills in detail before deciding whether to send them to the full chamber for a vote.',
-  'committee': 'A small group of members of Congress assigned to focus on a specific topic (like finance, defense, or education). Most bills are reviewed by a committee before the full House or Senate votes.',
-  'passed house': 'The bill received a majority vote in the House of Representatives (at least 218 of 435 members). It still needs to pass the Senate and be signed by the President to become law.',
-  'passed senate': 'The bill received a majority vote in the Senate (at least 51 of 100 senators). It still needs to pass the House (if it hasn\'t) and be signed by the President.',
-  'enrolled': 'The final, official copy of the bill that passed both the House and Senate. This version is sent to the President for signature.',
-  'signed by president': 'The President approved the bill by signing it. It is now law.',
-  'became public law': 'The bill has completed the entire legislative process and is now an official law of the United States.',
-  'vetoed': 'The President rejected the bill. Congress can override a veto with a two-thirds vote in both chambers, but this is rare.',
-  'cloture': 'A Senate procedure to end debate (filibuster) on a bill. It requires 60 out of 100 senators to agree. Without cloture, a single senator can block a vote indefinitely.',
-  'engrossed': 'The official version of a bill as passed by one chamber (House or Senate). It\'s prepared in final form before being sent to the other chamber.',
-  'markup': 'When a committee meets to debate, amend, and rewrite a bill before sending it to the full chamber. This is where major changes often happen.',
-  'cosponsor': 'A member of Congress who formally supports a bill introduced by someone else. Having many cosponsors signals broad support.',
-  'sponsor': 'The member of Congress who originally wrote and introduced the bill. Each bill has one primary sponsor.',
-  'resolution': 'A formal statement by one or both chambers of Congress. Some resolutions have the force of law (joint resolutions), while others just express opinions.',
-  'amendment': 'A proposed change to a bill. Amendments are debated and voted on during the legislative process.',
-  'appropriations': 'Bills that authorize the government to spend money. These are essential for funding federal programs and agencies.',
-  'tabled': 'The bill was set aside and is unlikely to be voted on. This is often a way to quietly kill a bill without a direct vote.',
-  'discharged': 'A bill was forced out of committee and brought to the full chamber for a vote, bypassing the normal committee process. This is rare and usually signals strong support.',
-  'conference': 'When the House and Senate pass different versions of the same bill, a conference committee of members from both chambers works out a compromise version.'
-}
 
 function VotingHistory({ bioguideId }) {
   const [bills, setBills] = useState([])
