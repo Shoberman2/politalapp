@@ -213,11 +213,17 @@ export function generateBillId(congress: number, type: string, number: number): 
 }
 
 /**
- * Generates a stable vote ID for deduplication.
+ * Canonical formatter for roll_call_id and roll_calls.id.
  *
  * Format: "{chamber}-{congress}-{session}-{rollNumber}"
+ * Example: "house-119-1-247"
+ *
+ * Single source of truth — every site that constructs a roll_call_id (extract,
+ * transform, load, browser query, classifier, narration) must use this. One
+ * character of format drift breaks the join chain silently between votes,
+ * roll_calls, and roll_call_stats.
  */
-export function generateVoteKey(
+export function formatRollCallId(
   chamber: string,
   congress: number,
   session: number,
@@ -225,6 +231,11 @@ export function generateVoteKey(
 ): string {
   return `${chamber.toLowerCase()}-${congress}-${session}-${rollNumber}`;
 }
+
+/**
+ * @deprecated Use formatRollCallId. Kept as alias to avoid touching every call site.
+ */
+export const generateVoteKey = formatRollCallId;
 
 // =============================================================================
 // DATA VALIDATION

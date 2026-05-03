@@ -16,6 +16,7 @@ import type {
   Politician,
   Bill,
   Vote,
+  RollCall,
   ExtractedVoteData,
   TransformedData,
   CongressVoteDetail,
@@ -32,6 +33,7 @@ import {
   getBillSourceUrl,
   getVoteSourceUrl,
   getSessionNumber,
+  formatRollCallId,
   logger,
 } from './utils.js';
 
@@ -50,6 +52,7 @@ export function transformVoteData(
 ): TransformedData {
   const politicians = new Map<string, Politician>();
   const bills = new Map<string, Bill>();
+  const rollCalls = new Map<string, RollCall>();
   const votes: Vote[] = [];
   const seenVotes = new Set<string>(); // For vote deduplication
 
@@ -66,6 +69,19 @@ export function transformVoteData(
       if (bill) {
         bills.set(bill.id, bill);
         billId = bill.id;
+      }
+    }
+
+    // Build the roll call record (one per vote event, not per member).
+    // question + description are extracted from Congress.gov but historically
+    // dropped on load; this populates the roll_calls table.
+    const rollCall = transformRollCall(voteDetail, billId);
+    if (rollCall) {
+      // If we've seen this roll call before in the same batch, prefer the
+      // version with non-null question/description.
+      const existing = rollCalls.get(rollCall.id);
+      if (!existing || (rollCall.question && !existing.question)) {
+        rollCalls.set(rollCall.id, rollCall);
       }
     }
 
@@ -113,10 +129,10 @@ export function transformVoteData(
     `Transform complete: ${processedVotes} votes processed, ${skippedVotes} skipped`
   );
   logger.info(
-    `Unique records: ${politicians.size} politicians, ${bills.size} bills`
+    `Unique records: ${politicians.size} politicians, ${bills.size} bills, ${rollCalls.size} roll calls`
   );
 
-  return { politicians, bills, votes };
+  return { politicians, bills, rollCalls, votes };
 }
 
 // =============================================================================
@@ -220,20 +236,28 @@ function transformVote(
   // Normalize vote position
   const position = normalizeVotePosition(memberVote.votePosition);
 
-  // Parse vote date
+  // Parse vote date as YYYY-MM-DD. Extract the year from the string directly
+  // to avoid timezone drift: `new Date("2025-01-01").getFullYear()` returns
+  // 2024 in negative-UTC-offset zones, which would shift the session number.
   const votedAt = voteDetail.date.split('T')[0];
+  const yearStr = votedAt.split('-')[0];
+  const year = parseInt(yearStr, 10);
+  if (!Number.isFinite(year)) {
+    logger.warn(`Unparseable vote date for roll ${voteDetail.rollNumber}: ${voteDetail.date}`);
+    return null;
+  }
+  const session = getSessionNumber(year);
 
-  // Construct source URL
+  // Construct source URL — chamber must be normalized for both the URL and
+  // the roll_call_id. Synthetic "unknown" ids would collide across roll calls
+  // from different chambers that happened to share a roll number.
   const chamber = normalizeChamber(voteDetail.chamber);
-  const session = getSessionNumber(new Date(votedAt).getFullYear());
-  const sourceUrl = chamber
-    ? getVoteSourceUrl(chamber, voteDetail.congress, session, voteDetail.rollNumber)
-    : `https://www.congress.gov/`;
-
-  // Build roll_call_id for grouping votes by roll call (used by computeStats)
-  const rollCallId = chamber
-    ? `${chamber}-${voteDetail.congress}-${session}-${voteDetail.rollNumber}`
-    : `unknown-${voteDetail.congress}-0-${voteDetail.rollNumber}`;
+  if (!chamber) {
+    logger.warn(`Skipping vote with unparseable chamber: ${voteDetail.chamber}`);
+    return null;
+  }
+  const sourceUrl = getVoteSourceUrl(chamber, voteDetail.congress, session, voteDetail.rollNumber);
+  const rollCallId = formatRollCallId(chamber, voteDetail.congress, session, voteDetail.rollNumber);
 
   return {
     politician_id: memberVote.member.bioguideId,
@@ -242,6 +266,52 @@ function transformVote(
     position,
     voted_at: votedAt,
     source_url: sourceUrl,
+  };
+}
+
+/**
+ * Builds a RollCall record (one per unique vote event).
+ *
+ * Uses the same formatRollCallId() the votes loop uses, so every vote row
+ * with this roll_call_id will join cleanly to this roll_calls row.
+ *
+ * Returns null when the source data is incomplete enough that we'd produce
+ * a colliding synthetic id (missing chamber) or unparseable session (bad
+ * date string). Better to skip than to silently merge unrelated roll calls.
+ */
+function transformRollCall(
+  voteDetail: CongressVoteDetail,
+  billId: string | null
+): RollCall | null {
+  if (!voteDetail.date) return null;
+
+  const chamber = normalizeChamber(voteDetail.chamber);
+  if (!chamber) return null;
+
+  const votedAt = voteDetail.date.split('T')[0];
+  const yearStr = votedAt.split('-')[0];
+  const year = parseInt(yearStr, 10);
+  if (!Number.isFinite(year)) return null;
+
+  const session = getSessionNumber(year);
+  const id = formatRollCallId(chamber, voteDetail.congress, session, voteDetail.rollNumber);
+
+  // Cap upstream text at 4000 chars. Congress.gov has historically returned
+  // multi-KB description blobs; uncapped storage inflates row size and slows
+  // dashboard reads. 4000 chars covers every reasonable question + description
+  // and rejects malformed responses.
+  const truncate = (s: string | undefined): string | null => {
+    if (!s) return null;
+    const trimmed = s.trim();
+    if (!trimmed) return null;
+    return trimmed.length > 4000 ? trimmed.slice(0, 4000) : trimmed;
+  };
+
+  return {
+    id,
+    bill_id: billId,
+    question: truncate(voteDetail.question),
+    description: truncate(voteDetail.description),
   };
 }
 
@@ -300,6 +370,7 @@ export function mergeTransformedData(
 ): TransformedData {
   const politicians = new Map<string, Politician>();
   const bills = new Map<string, Bill>();
+  const rollCalls = new Map<string, RollCall>();
   const votes: Vote[] = [];
   const seenVotes = new Set<string>();
 
@@ -319,6 +390,14 @@ export function mergeTransformedData(
       bills.set(id, bill);
     }
 
+    // Merge roll calls. Prefer the row with non-null question/description.
+    for (const [id, rollCall] of batch.rollCalls) {
+      const existing = rollCalls.get(id);
+      if (!existing || (rollCall.question && !existing.question)) {
+        rollCalls.set(id, rollCall);
+      }
+    }
+
     // Merge votes with deduplication
     for (const vote of batch.votes) {
       const voteKey = `${vote.politician_id}-${vote.bill_id}-${vote.voted_at}`;
@@ -329,7 +408,7 @@ export function mergeTransformedData(
     }
   }
 
-  return { politicians, bills, votes };
+  return { politicians, bills, rollCalls, votes };
 }
 
 /**
@@ -366,6 +445,16 @@ export function validateTransformedData(data: TransformedData): string[] {
     }
     if (!bill.source_url) {
       errors.push(`Missing source URL for bill: ${id}`);
+    }
+  }
+
+  // Validate roll calls
+  for (const [id, rollCall] of data.rollCalls) {
+    if (!id) {
+      errors.push('Roll call with empty id');
+    }
+    if (rollCall.bill_id && !data.bills.has(rollCall.bill_id)) {
+      errors.push(`Roll call ${id} references unknown bill: ${rollCall.bill_id}`);
     }
   }
 
