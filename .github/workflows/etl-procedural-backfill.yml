@@ -1,0 +1,155 @@
+# =============================================================================
+# Procedural Vote Backfill — Wide-Window ETL
+# =============================================================================
+# The main daily ETL (etl-daily.yml) only fetches the last 7 days. That's
+# enough for new votes but leaves historical roll_calls.question fields empty
+# on rows that existed before the procedural-vote feature shipped.
+#
+# This workflow runs a wider window (default 365 days) on a slower cadence to
+# fill in question/description text on roll_calls rows that pre-existed the
+# feature. Rate-limit-bounded; safely concurrent with the main daily ETL.
+#
+# Schedule: Weekly, Sunday at 8:00 AM UTC (3:00 AM EST). Offset from the
+# main daily ETL (6:00 AM UTC) so they don't collide.
+#
+# Manual trigger: workflow_dispatch with adjustable window.
+#
+# Required Secrets (same set as etl-daily.yml):
+#   CONGRESS_API_KEY          - Congress.gov API key
+#   SUPABASE_URL              - Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY - Supabase service role key
+#
+# OPENAI_API_KEY is intentionally NOT used here. Backfill always passes
+# --skip-enrich so a stale/rotating OpenAI key never blocks the procedural-
+# vote question population (which is the whole point of this run).
+
+name: Procedural Vote Backfill
+
+on:
+  # Weekly on Sunday at 8 AM UTC (offset +2h from the main daily ETL).
+  schedule:
+    - cron: '0 8 * * 0'
+
+  # Manual trigger with adjustable window.
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'Number of days to look back (default 365 = current Congress)'
+        required: false
+        default: '365'
+        type: string
+      max_votes:
+        description: 'Hard cap on total votes processed (rate-limit guard)'
+        required: false
+        default: '15000'
+        type: string
+
+# Don't run concurrently with itself OR with the main daily ETL — both
+# write to the same Supabase tables.
+concurrency:
+  group: etl-pipeline
+  cancel-in-progress: false
+
+jobs:
+  procedural-backfill:
+    name: Backfill roll_calls.question on historical votes
+    runs-on: ubuntu-latest
+    # 119th Congress backfill is ~30-60 min at Cong.gov rate limits;
+    # 90 min cap leaves headroom without runaway billing.
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required secrets
+        run: |
+          if [ -z "${{ secrets.CONGRESS_API_KEY }}" ]; then
+            echo "::error::CONGRESS_API_KEY secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
+            echo "::error::SUPABASE_URL secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is not set"
+            exit 1
+          fi
+
+      - name: Snapshot roll_calls coverage BEFORE
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Count how many roll_calls rows have question populated, so we
+          # can show the delta after the run completes.
+          TOTAL=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_calls?select=id" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          POPULATED=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_calls?select=id&question=not.is.null" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          echo "BEFORE: $POPULATED of $TOTAL roll_calls have question populated"
+          echo "POP_BEFORE=$POPULATED" >> $GITHUB_ENV
+          echo "TOTAL_BEFORE=$TOTAL" >> $GITHUB_ENV
+
+      - name: Run Procedural Backfill ETL
+        env:
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ETL_DAYS_BACK: ${{ github.event.inputs.days_back || '365' }}
+          ETL_MAX_VOTES: ${{ github.event.inputs.max_votes || '15000' }}
+        run: |
+          DAYS="${{ github.event.inputs.days_back || '365' }}"
+          echo "Running procedural backfill: --days $DAYS --skip-enrich"
+          # --skip-enrich avoids the OpenAI bill-summary step (irrelevant for
+          # this workflow's purpose, and may 401 if the OpenAI key is stale).
+          npm run etl -- --days "$DAYS" --skip-enrich
+
+      - name: Snapshot roll_calls coverage AFTER
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          TOTAL=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_calls?select=id" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          POPULATED=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_calls?select=id&question=not.is.null" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          DELTA=$((POPULATED - POP_BEFORE))
+          echo "AFTER: $POPULATED of $TOTAL roll_calls have question populated"
+          echo "Delta this run: +$DELTA newly populated rows"
+          # Alert in the workflow summary
+          {
+            echo "## Procedural Backfill Result"
+            echo ""
+            echo "| Metric | Before | After | Delta |"
+            echo "|---|---|---|---|"
+            echo "| roll_calls with question populated | $POP_BEFORE | $POPULATED | +$DELTA |"
+            echo "| Total roll_calls | $TOTAL_BEFORE | $TOTAL | +$((TOTAL - TOTAL_BEFORE)) |"
+            echo ""
+            if [ "$POPULATED" -gt 0 ] && [ "$TOTAL" -gt 0 ]; then
+              PCT=$((POPULATED * 100 / TOTAL))
+              echo "Coverage: **${PCT}%** of roll_calls now have question text."
+            fi
+          } >> $GITHUB_STEP_SUMMARY
