@@ -26,6 +26,7 @@ import { extractRecentVotes } from './extractHouseVotes.js';
 import { transformVoteData, validateTransformedData, getTransformStats } from './transform.js';
 import { loadToSupabase, checkTablesExist, getExistingCounts } from './load.js';
 import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
+import { preWarmBillExplanations } from './preWarmBillExplanations.js';
 import { computeMemberStats } from './computeStats.js';
 import { fetchCRSSummaries } from './fetchCRS.js';
 import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
@@ -38,6 +39,7 @@ interface CLIOptions {
   dryRun: boolean;
   enrichOnly: boolean;
   skipEnrich: boolean;
+  skipPrewarm: boolean;
   days: number;
   verbose: boolean;
 }
@@ -49,6 +51,7 @@ function parseArgs(): CLIOptions {
     dryRun: args.includes('--dry-run'),
     enrichOnly: args.includes('--enrich-only'),
     skipEnrich: args.includes('--skip-enrich'),
+    skipPrewarm: args.includes('--skip-prewarm'),
     days: 7,
     verbose: args.includes('--verbose') || args.includes('-v'),
   };
@@ -202,6 +205,24 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     }
 
     // ===========================================
+    // PRE-WARM PHASE (Long-form bill_explanations)
+    // ===========================================
+    if (!options.skipPrewarm) {
+      logger.info('=== PRE-WARM PHASE ===');
+      try {
+        const prewarmResult = await preWarmBillExplanations(config);
+        logger.info('Pre-warm complete', prewarmResult);
+        if (prewarmResult.errors.length > 0) {
+          result.errors.push(...prewarmResult.errors.slice(0, 5));
+        }
+      } catch (prewarmError) {
+        logger.warn('Pre-warm phase failed, continuing', prewarmError);
+      }
+    } else {
+      logger.info('Skipping explanation pre-warm (--skip-prewarm flag)');
+    }
+
+    // ===========================================
     // COMPUTE STATS PHASE
     // ===========================================
     logger.info('=== COMPUTE STATS PHASE ===');
@@ -269,6 +290,7 @@ async function main(): Promise<void> {
     dryRun: options.dryRun,
     enrichOnly: options.enrichOnly,
     skipEnrich: options.skipEnrich,
+    skipPrewarm: options.skipPrewarm,
     days: options.days,
     verbose: options.verbose,
   });
