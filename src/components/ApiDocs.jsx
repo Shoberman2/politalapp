@@ -172,7 +172,7 @@ function ApiDocs() {
     <div className="api-docs">
       <div className="api-docs-header">
         <h1>API Reference</h1>
-        <p>Base URL: <code>https://politicalapp.vercel.app</code></p>
+        <p>Base URL: <code>https://www.ballotwatch.io</code></p>
         <p>Authentication: <code>Authorization: Bearer bw_live_xxx</code></p>
       </div>
 
@@ -236,7 +236,7 @@ function ApiDocs() {
                 <h3>Example Request</h3>
                 <pre className="api-docs-code">
 {`curl -H "Authorization: Bearer bw_live_your_key_here" \\
-  "https://politicalapp.vercel.app${endpoint.example}"`}
+  "https://www.ballotwatch.io${endpoint.example}"`}
                 </pre>
               </div>
             )}

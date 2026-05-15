@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 
 const SITE_NAME = 'BallotWatch'
-const BASE_URL = 'https://politicalapp.vercel.app'
+const BASE_URL = 'https://www.ballotwatch.io'
 const DEFAULT_IMAGE = `${BASE_URL}/congress.jpg`
 const DEFAULT_DESCRIPTION = 'Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status.'
 

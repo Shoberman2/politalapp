@@ -46,18 +46,18 @@ function Landing() {
             {
               '@type': 'WebSite',
               name: 'BallotWatch',
-              url: 'https://politicalapp.vercel.app',
+              url: 'https://www.ballotwatch.io',
               potentialAction: {
                 '@type': 'SearchAction',
-                target: 'https://politicalapp.vercel.app/bills?search={search_term_string}',
+                target: 'https://www.ballotwatch.io/bills?search={search_term_string}',
                 'query-input': 'required name=search_term_string'
               }
             },
             {
               '@type': 'Organization',
               name: 'BallotWatch',
-              url: 'https://politicalapp.vercel.app',
-              logo: 'https://politicalapp.vercel.app/capitol-logo.svg'
+              url: 'https://www.ballotwatch.io',
+              logo: 'https://www.ballotwatch.io/capitol-logo.svg'
             }
           ]
         }}

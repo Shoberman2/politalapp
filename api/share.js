@@ -18,7 +18,7 @@ function escapeHtml(s) {
 
 function originFrom(req) {
   const proto = req.headers['x-forwarded-proto'] || 'https'
-  const host = req.headers['x-forwarded-host'] || req.headers.host || 'politicalapp.vercel.app'
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'www.ballotwatch.io'
   return `${proto}://${host}`
 }
 
@@ -60,7 +60,11 @@ function renderHtml(data, origin) {
     : null
 
   const canonical = `${origin}/s/bill/${parsed.congress}/${parsed.billType}/${parsed.number}`
-  const ogImage = `${origin}/api/og?bill=${encodeURIComponent(bill.id)}`
+  // Capitol photo as the static OG image. Bill-specific text still varies in
+  // og:title and og:description, but the image is constant — crawlers (iMessage,
+  // X, Slack) get a reliable, fast, always-cached preview instead of waiting on
+  // an Edge function that sometimes never renders in time.
+  const ogImage = `${origin}/congress.jpg`
   const appUrl = `${origin}/bill/${parsed.congress}/${parsed.billType}/${parsed.number}`
   const sourceUrl = bill.source_url || `https://www.congress.gov/bill/${parsed.congress}th-congress/${parsed.billType === 'hr' ? 'house-bill' : parsed.billType === 's' ? 'senate-bill' : `${parsed.billType}-bill`}/${parsed.number}`
 
