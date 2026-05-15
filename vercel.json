@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
+    { "source": "/s/bill/:congress/:billType/:number", "destination": "/api/share?bill=:congress-:billType-:number" },
+    { "source": "/((?!api/|assets/|s/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
