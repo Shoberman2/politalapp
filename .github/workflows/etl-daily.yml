@@ -37,6 +37,11 @@ on:
         required: false
         default: false
         type: boolean
+      skip_prewarm:
+        description: 'Skip pre-warming long-form bill_explanations'
+        required: false
+        default: false
+        type: boolean
 
 # Prevent concurrent runs
 concurrency:
@@ -79,6 +84,10 @@ jobs:
 
           if [ "${{ github.event.inputs.skip_enrich }}" = "true" ]; then
             ARGS="$ARGS --skip-enrich"
+          fi
+
+          if [ "${{ github.event.inputs.skip_prewarm }}" = "true" ]; then
+            ARGS="$ARGS --skip-prewarm"
           fi
 
           if [ -n "${{ github.event.inputs.days_back }}" ]; then
