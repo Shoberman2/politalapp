@@ -24,6 +24,25 @@ function BillDetail() {
 
   const [aiExplanation, setAiExplanation] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
+  const [shareLabel, setShareLabel] = useState('Share ↗')
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/s/bill/${congress}/${billType}/${number}`
+    const shareTitle = `${billType.toUpperCase()}. ${number} — BallotWatch`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: shareTitle, url: shareUrl })
+        return
+      }
+      await navigator.clipboard.writeText(shareUrl)
+      setShareLabel('Link copied')
+      setTimeout(() => setShareLabel('Share ↗'), 2000)
+    } catch (err) {
+      if (err?.name === 'AbortError') return
+      setShareLabel('Copy failed')
+      setTimeout(() => setShareLabel('Share ↗'), 2000)
+    }
+  }
 
   useEffect(() => {
     fetchBillData()
@@ -214,6 +233,7 @@ function BillDetail() {
           {bill.url && (
             <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Congress.gov ↗</a>
           )}
+          <button type="button" onClick={handleShare} className="bill-action-btn">{shareLabel}</button>
         </div>
       </header>
 
