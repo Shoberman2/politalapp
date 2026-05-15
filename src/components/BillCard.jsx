@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import '../styles/BillCard.css'
 
 function BillCard({ bill, onSponsorClick }) {
@@ -30,29 +31,6 @@ function BillCard({ bill, onSponsorClick }) {
       sres: { name: 'Senate Simple Resolution', desc: 'Addresses matters within the Senate only — does not become law' }
     }
     return info[type?.toLowerCase()] || { name: type, desc: '' }
-  }
-
-  const simplifyTitle = (title) => {
-    if (!title) return 'Untitled Bill'
-
-    let simplified = title
-      .replace(/^A bill to /i, '')
-      .replace(/^To /i, '')
-      .replace(/^An act to /i, '')
-      .replace(/^Providing for /i, '')
-      .replace(/^Expressing the sense of (the )?Congress /i, 'Congress Resolution: ')
-      .replace(/^Expressing the sense of (the )?House /i, 'House Resolution: ')
-      .replace(/^Expressing the sense of (the )?Senate /i, 'Senate Resolution: ')
-      .replace(/, and for other purposes\.?$/i, '')
-      .replace(/\.$/i, '')
-
-    simplified = simplified.charAt(0).toUpperCase() + simplified.slice(1)
-
-    if (simplified.length > 150) {
-      simplified = simplified.substring(0, 147) + '...'
-    }
-
-    return simplified
   }
 
   const formatDate = (dateString) => {
@@ -128,7 +106,7 @@ function BillCard({ bill, onSponsorClick }) {
         </span>
       </div>
 
-      <h3 className="bill-title">{simplifyTitle(bill.title)}</h3>
+      <h3 className="bill-title">{getBillDisplayTitle(bill)}</h3>
 
       <div className="bill-type-desc">{typeInfo.name}</div>
 

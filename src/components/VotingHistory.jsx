@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getMemberSponsorship, explainBillWithAI } from '../services/congress'
+import { getBillDisplayTitle } from '../utils/billTitle'
 import { GLOSSARY_FLAT as GLOSSARY } from '../data/proceduralGlossary'
 import '../styles/VotingHistory.css'
 
@@ -113,7 +114,7 @@ function VotingHistory({ bioguideId }) {
           congress: bill.congress,
           billType: bill.type,
           number: bill.number,
-          title: bill.title,
+          title: getBillDisplayTitle(bill),
           summary: bill.latestAction?.text || '',
         })
         setBillExplanations(prev => ({
@@ -213,7 +214,7 @@ function VotingHistory({ bioguideId }) {
                     >
                       {bill.number || 'Bill'}
                     </span>
-                    <h4 className="bill-title">{bill.title}</h4>
+                    <h4 className="bill-title">{getBillDisplayTitle(bill)}</h4>
                   </div>
                   {bill.latestAction && (
                     <p className="bill-action">

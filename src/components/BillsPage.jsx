@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
+import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import '../styles/BillsPage.css'
 
 function BillsPage() {
@@ -197,8 +198,8 @@ function BillsPage() {
                 className="trending-pill"
                 onClick={() => navigate(`/bill/${b.congress}/${b.type?.toLowerCase()}/${b.number}`)}
               >
-                <span className="trending-num">{b.type?.toUpperCase()}. {b.number}</span>
-                {b.headline || simplifyBillTitle(b.title)}
+                <span className="trending-num">{formatBillId(b)}</span>
+                {b.headline || getBillDisplayTitle(b)}
               </button>
             ))}
           </div>
@@ -250,19 +251,6 @@ function BillsPage() {
   )
 }
 
-function simplifyBillTitle(title) {
-  if (!title) return 'Untitled Bill'
-  let s = title
-    .replace(/^A bill to /i, '')
-    .replace(/^To /i, '')
-    .replace(/^An act to /i, '')
-    .replace(/, and for other purposes\.?$/i, '')
-    .replace(/\.$/i, '')
-  s = s.charAt(0).toUpperCase() + s.slice(1)
-  if (s.length > 140) s = s.slice(0, 137) + '...'
-  return s
-}
-
 function getStatusInfo(bill) {
   const text = (bill.latestAction?.text || '').toLowerCase()
   if (text.includes('became public law') || text.includes('signed by president')) {
@@ -312,11 +300,11 @@ function BillRow({ bill, onClick }) {
   return (
     <a className="bill-row" onClick={onClick} tabIndex={0} role="link">
       <div className="bill-row-rail">
-        <div className="bill-row-id">{bill.type?.toUpperCase()}. {bill.number}</div>
+        <div className="bill-row-id">{formatBillId(bill)}</div>
         {bill.policyArea?.name && <div className="bill-row-policy">{bill.policyArea.name}</div>}
       </div>
       <div className="bill-row-main">
-        <h3 className="bill-row-title">{simplifyBillTitle(bill.title)}</h3>
+        <h3 className="bill-row-title">{getBillDisplayTitle(bill)}</h3>
         {sponsorName && (
           <div className="bill-row-byline">
             Sponsored by <span className="bill-row-sponsor">{sponsorName}</span>

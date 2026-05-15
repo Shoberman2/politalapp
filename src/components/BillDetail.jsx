@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions, explainBillWithAI } from '../services/congress'
+import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import '../styles/BillDetail.css'
@@ -29,12 +30,13 @@ function BillDetail() {
   }, [congress, billType, number])
 
   useEffect(() => {
-    if (!bill?.title) return
+    if (!bill) return
     let cancelled = false
     setAiLoading(true)
     setAiExplanation(null)
     const summary = bill.summaries?.[0]?.text?.replace(/<[^>]+>/g, '') || ''
-    explainBillWithAI({ congress, billType, number, title: bill.title, summary })
+    const title = getBillDisplayTitle(bill, billType, number)
+    explainBillWithAI({ congress, billType, number, title, summary })
       .then(result => {
         if (!cancelled) setAiExplanation(result)
       })
@@ -42,7 +44,7 @@ function BillDetail() {
         if (!cancelled) setAiLoading(false)
       })
     return () => { cancelled = true }
-  }, [bill?.title, congress, billType, number])
+  }, [bill, congress, billType, number])
 
   const fetchBillData = async () => {
     try {
@@ -137,6 +139,7 @@ function BillDetail() {
 
   const sponsor = bill.sponsors?.[0]
   const status = getStatusInfo()
+  const displayTitle = getBillDisplayTitle(bill, billType, number)
 
   const cosponsorByParty = cosponsors.reduce((acc, c) => {
     const p = c.party?.toLowerCase()?.charAt(0) || 'i'
@@ -148,13 +151,13 @@ function BillDetail() {
   return (
     <div className="bill-detail">
       <SEO
-        title={bill.title || 'Bill Details'}
-        description={`${bill.title || 'Bill'} — ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
+        title={displayTitle}
+        description={`${displayTitle} — ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
         path={`/bill/${congress}/${billType}/${number}`}
         schema={{
           '@type': 'Legislation',
-          name: bill.title,
-          description: bill.summaries?.[0]?.text?.replace(/<[^>]+>/g, '').slice(0, 300) || bill.title,
+          name: displayTitle,
+          description: bill.summaries?.[0]?.text?.replace(/<[^>]+>/g, '').slice(0, 300) || displayTitle,
           legislationIdentifier: `${billType.toUpperCase()}.${number}`,
           datePublished: bill.introducedDate,
           ...(sponsor && {
@@ -181,13 +184,13 @@ function BillDetail() {
       {/* MASTHEAD */}
       <header className="bill-masthead">
         <div className="bill-id-row">
-          <span className="bill-masthead-id">{billType.toUpperCase()}. {number}</span>
+          <span className="bill-masthead-id">{formatBillId(bill, billType, number)}</span>
           <span className="bill-masthead-congress">{congress}th Congress</span>
           <span className={`bill-status-pill ${status.cls}`}>
             <span className="bill-status-pill-dot"></span>{status.label}
           </span>
         </div>
-        <h1 className="bill-masthead-title">{bill.title}</h1>
+        <h1 className="bill-masthead-title">{displayTitle}</h1>
         <p className="bill-masthead-byline">
           {sponsor && (
             <>
