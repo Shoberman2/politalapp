@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import BillCard from './BillCard'
-import TrendingBills from './TrendingBills'
+import { useNavigate } from 'react-router-dom'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
 import '../styles/BillsPage.css'
 
 function BillsPage() {
+  const navigate = useNavigate()
   const [bills, setBills] = useState([])
   const [trendingBills, setTrendingBills] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +37,6 @@ function BillsPage() {
       }
 
       const currentOffset = reset ? 0 : offset
-      console.log(`[BillsPage] Fetching bills - Congress: ${congressFilter}, Type: ${billTypeFilter}, Offset: ${currentOffset}`)
 
       const result = await searchBills({
         congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
@@ -47,7 +46,6 @@ function BillsPage() {
       })
 
       const newBills = result.bills || []
-      console.log(`[BillsPage] Received ${newBills.length} bills`)
 
       if (reset) {
         setBills(newBills)
@@ -60,9 +58,6 @@ function BillsPage() {
       setError(null)
     } catch (err) {
       console.error('[BillsPage] Error loading bills:', err)
-      console.error('[BillsPage] Error status:', err.response?.status)
-      console.error('[BillsPage] Error details:', err.response?.data)
-
       let errorMessage
       if (err.response?.status === 401 || err.response?.status === 403) {
         errorMessage = 'API key not configured or invalid. Please check the .env file.'
@@ -78,10 +73,6 @@ function BillsPage() {
     }
   }
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value)
-  }
-
   const filteredBills = bills.filter(bill => {
     if (!searchTerm) return true
     const query = searchTerm.toLowerCase()
@@ -92,9 +83,14 @@ function BillsPage() {
     )
   })
 
-  const handleLoadMore = () => {
-    fetchBills(false)
-  }
+  const handleLoadMore = () => fetchBills(false)
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  })
 
   if (loading) {
     return (
@@ -109,9 +105,7 @@ function BillsPage() {
     return (
       <div className="bills-page-error">
         <div className="error-message">{error}</div>
-        <button className="retry-button" onClick={() => fetchBills(true)}>
-          Try Again
-        </button>
+        <button className="retry-button" onClick={() => fetchBills(true)}>Try Again</button>
       </div>
     )
   }
@@ -142,100 +136,214 @@ function BillsPage() {
           }))
         } : undefined}
       />
-      <div className="bills-header">
-        <h1>Congressional Bills</h1>
-        <p className="bills-subtitle">Browse and search legislation from the U.S. Congress</p>
-      </div>
 
-      <TrendingBills bills={trendingBills.length > 0 ? trendingBills : undefined} />
+      <header className="bills-masthead">
+        <div className="masthead-kicker">Congressional Index · {congressFilter === 'all' ? 'All Congresses' : `${congressFilter}th Congress`}</div>
+        <h1 className="masthead-title">The <em>Bills</em> Desk</h1>
+        <p className="masthead-deck">Every bill introduced in the U.S. House and Senate, searchable and explained in plain English. Updated daily from Congress.gov.</p>
+        <div className="masthead-date-row">
+          <span>{today}</span>
+          <span>{filteredBills.length.toLocaleString()} bills shown</span>
+        </div>
+      </header>
 
-      <div className="bills-filters">
-        <input
-          type="text"
-          placeholder="Search bills by title or number..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="bills-search-input"
-        />
-
+      <div className="bills-search-shell">
+        <div className="bills-search-input-wrap">
+          <svg className="bills-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by title, bill number (H.R. 1234), or keyword"
+            className="bills-search-field"
+          />
+        </div>
         <select
           value={congressFilter}
           onChange={(e) => setCongressFilter(e.target.value)}
-          className="bills-filter-select"
+          className="bills-filter-pill"
         >
-          <option value="119">119th Congress (2025-2027)</option>
-          <option value="118">118th Congress (2023-2024)</option>
-          <option value="117">117th Congress (2021-2022)</option>
-          <option value="116">116th Congress (2019-2020)</option>
+          <option value="119">119th Congress</option>
+          <option value="118">118th Congress</option>
+          <option value="117">117th Congress</option>
+          <option value="116">116th Congress</option>
           <option value="all">All Congresses</option>
         </select>
-
         <select
           value={billTypeFilter}
           onChange={(e) => setBillTypeFilter(e.target.value)}
-          className="bills-filter-select"
+          className="bills-filter-pill"
         >
-          <option value="all">All Bill Types</option>
-          <option value="hr">House Bills (H.R.) — originate in the House</option>
-          <option value="s">Senate Bills (S.) — originate in the Senate</option>
-          <option value="hjres">House Joint Resolutions — force of law, used for amendments</option>
-          <option value="sjres">Senate Joint Resolutions — force of law, used for amendments</option>
-          <option value="hconres">House Concurrent Resolutions — non-binding, both chambers</option>
-          <option value="sconres">Senate Concurrent Resolutions — non-binding, both chambers</option>
-          <option value="hres">House Resolutions — internal House matters only</option>
-          <option value="sres">Senate Resolutions — internal Senate matters only</option>
+          <option value="all">All bill types</option>
+          <option value="hr">House Bills (H.R.)</option>
+          <option value="s">Senate Bills (S.)</option>
+          <option value="hjres">House Joint Resolutions</option>
+          <option value="sjres">Senate Joint Resolutions</option>
+          <option value="hres">House Resolutions</option>
+          <option value="sres">Senate Resolutions</option>
         </select>
       </div>
 
-      <div className="bills-results-info">
-        <span className="results-count">
-          Showing {filteredBills.length} bill{filteredBills.length !== 1 ? 's' : ''}
-        </span>
+      {trendingBills.length > 0 && (
+        <div className="bills-trending-strip">
+          <div className="trending-label">↑ Trending today</div>
+          <div className="trending-pills">
+            {trendingBills.slice(0, 6).map((b, i) => (
+              <button
+                key={`${b.congress}-${b.type}-${b.number}-${i}`}
+                className="trending-pill"
+                onClick={() => navigate(`/bill/${b.congress}/${b.type?.toLowerCase()}/${b.number}`)}
+              >
+                <span className="trending-num">{b.type?.toUpperCase()}. {b.number}</span>
+                {b.headline || simplifyBillTitle(b.title)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bills-results-bar">
+        <div className="bills-count">
+          Showing <strong>{filteredBills.length.toLocaleString()}</strong> bill{filteredBills.length !== 1 ? 's' : ''}
+          {searchTerm && <span className="bills-count-filter"> matching "{searchTerm}"</span>}
+        </div>
       </div>
 
       {filteredBills.length > 0 ? (
         <>
-          <div className="bills-grid">
+          <div className="bills-editorial-list">
             {filteredBills.map((bill, index) => (
-              <BillCard
+              <BillRow
                 key={`${bill.congress}-${bill.type}-${bill.number}-${index}`}
                 bill={bill}
+                onClick={() => navigate(`/bill/${bill.congress}/${bill.type?.toLowerCase()}/${bill.number}`)}
               />
             ))}
           </div>
 
           {hasMore && !searchTerm && (
-            <div className="load-more-container">
-              <button
-                className="load-more-button"
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-              >
+            <div className="bills-load-more">
+              <button onClick={handleLoadMore} disabled={loadingMore} className="bills-load-button">
                 {loadingMore ? (
-                  <>
-                    <span className="loading-spinner-small"></span>
-                    Loading...
-                  </>
+                  <><span className="loading-spinner-small"></span> Loading...</>
                 ) : (
-                  'Load More Bills'
+                  'Load more bills'
                 )}
               </button>
             </div>
           )}
         </>
       ) : (
-        <div className="no-bills">
+        <div className="bills-empty">
           <p>No bills found matching your criteria</p>
-          <button className="reset-filters-button" onClick={() => {
+          <button className="bills-reset-button" onClick={() => {
             setSearchTerm('')
             setCongressFilter('119')
             setBillTypeFilter('all')
-          }}>
-            Reset Filters
-          </button>
+          }}>Reset filters</button>
         </div>
       )}
     </div>
+  )
+}
+
+function simplifyBillTitle(title) {
+  if (!title) return 'Untitled Bill'
+  let s = title
+    .replace(/^A bill to /i, '')
+    .replace(/^To /i, '')
+    .replace(/^An act to /i, '')
+    .replace(/, and for other purposes\.?$/i, '')
+    .replace(/\.$/i, '')
+  s = s.charAt(0).toUpperCase() + s.slice(1)
+  if (s.length > 140) s = s.slice(0, 137) + '...'
+  return s
+}
+
+function getStatusInfo(bill) {
+  const text = (bill.latestAction?.text || '').toLowerCase()
+  if (text.includes('became public law') || text.includes('signed by president')) {
+    return { label: 'Became Law', cls: 'status-enacted' }
+  }
+  if (text.includes('passed house') && text.includes('passed senate')) {
+    return { label: 'Passed Both Chambers', cls: 'status-passed-both' }
+  }
+  if (text.includes('passed house')) return { label: 'Passed House', cls: 'status-passed' }
+  if (text.includes('passed senate')) return { label: 'Passed Senate', cls: 'status-passed' }
+  if (text.includes('committee')) return { label: 'In Committee', cls: 'status-committee' }
+  if (text.includes('introduced')) return { label: 'Introduced', cls: 'status-introduced' }
+  return { label: 'In Progress', cls: 'status-progress' }
+}
+
+function partyClass(party) {
+  if (!party) return ''
+  const p = party.toLowerCase()
+  if (p.startsWith('d')) return 'party-tag-dem'
+  if (p.startsWith('r')) return 'party-tag-rep'
+  return 'party-tag-ind'
+}
+
+function partyAbbrev(party) {
+  if (!party) return ''
+  const p = party.toLowerCase()
+  if (p.startsWith('d')) return 'D'
+  if (p.startsWith('r')) return 'R'
+  return 'I'
+}
+
+function formatDate(d) {
+  if (!d) return ''
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function BillRow({ bill, onClick }) {
+  const status = getStatusInfo(bill)
+  const sponsor = bill.sponsors?.[0] || bill.sponsor
+  const sponsorName = sponsor
+    ? (sponsor.fullName || sponsor.name || `${sponsor.firstName || ''} ${sponsor.lastName || ''}`.trim())
+    : null
+  const sponsorParty = sponsor?.party
+  const sponsorState = sponsor?.state
+  const cosponsorCount = bill.cosponsors?.count
+
+  return (
+    <a className="bill-row" onClick={onClick} tabIndex={0} role="link">
+      <div className="bill-row-rail">
+        <div className="bill-row-id">{bill.type?.toUpperCase()}. {bill.number}</div>
+        {bill.policyArea?.name && <div className="bill-row-policy">{bill.policyArea.name}</div>}
+      </div>
+      <div className="bill-row-main">
+        <h3 className="bill-row-title">{simplifyBillTitle(bill.title)}</h3>
+        {sponsorName && (
+          <div className="bill-row-byline">
+            Sponsored by <span className="bill-row-sponsor">{sponsorName}</span>
+            {sponsorParty && (
+              <span className={`bill-row-party ${partyClass(sponsorParty)}`}>
+                {partyAbbrev(sponsorParty)}{sponsorState ? `-${sponsorState}` : ''}
+              </span>
+            )}
+            {cosponsorCount > 0 && <> · with {cosponsorCount} cosponsor{cosponsorCount !== 1 ? 's' : ''}</>}
+            {bill.introducedDate && <> · introduced {formatDate(bill.introducedDate)}</>}
+          </div>
+        )}
+        {bill.latestAction?.text && (
+          <p className="bill-row-summary">{bill.latestAction.text}</p>
+        )}
+      </div>
+      <div className="bill-row-side">
+        <span className={`bill-row-status ${status.cls}`}>
+          <span className="bill-row-status-dot"></span>{status.label}
+        </span>
+        {bill.latestAction?.actionDate && (
+          <div className="bill-row-meta">
+            Last action<br /><span className="bill-row-meta-date">{formatDate(bill.latestAction.actionDate)}</span>
+          </div>
+        )}
+      </div>
+    </a>
   )
 }
 

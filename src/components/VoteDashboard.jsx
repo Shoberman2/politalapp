@@ -186,14 +186,20 @@ function VoteDashboard({ bioguideId }) {
     setLoading(false)
   }
 
-  const handleExpandBill = async (billTitle, billSummary, index) => {
+  const handleExpandBill = async (parsed, billTitle, billSummary, index) => {
     if (expandedBill === index) {
       setExpandedBill(null)
       return
     }
     setExpandedBill(index)
     if (!billExplanations[index]) {
-      const explanation = await explainBillWithAI(billTitle, billSummary)
+      const explanation = await explainBillWithAI({
+        congress: parsed?.congress,
+        billType: parsed?.type,
+        number: parsed?.number,
+        title: billTitle,
+        summary: billSummary,
+      })
       setBillExplanations(prev => ({ ...prev, [index]: explanation }))
     }
   }
@@ -380,7 +386,7 @@ function VoteDashboard({ bioguideId }) {
                     className="dash-explain-btn"
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleExpandBill(billTitle, description || '', index)
+                      handleExpandBill(parsed, billTitle, description || '', index)
                     }}
                   >
                     {isExpanded ? 'Hide explanation' : 'Explain this bill'}

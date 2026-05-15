@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions } from '../services/congress'
+import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions, explainBillWithAI } from '../services/congress'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import '../styles/BillDetail.css'
@@ -21,9 +21,28 @@ function BillDetail() {
   const [talliesLoading, setTalliesLoading] = useState(false)
   const [showAllCosponsors, setShowAllCosponsors] = useState(false)
 
+  const [aiExplanation, setAiExplanation] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+
   useEffect(() => {
     fetchBillData()
   }, [congress, billType, number])
+
+  useEffect(() => {
+    if (!bill?.title) return
+    let cancelled = false
+    setAiLoading(true)
+    setAiExplanation(null)
+    const summary = bill.summaries?.[0]?.text?.replace(/<[^>]+>/g, '') || ''
+    explainBillWithAI({ congress, billType, number, title: bill.title, summary })
+      .then(result => {
+        if (!cancelled) setAiExplanation(result)
+      })
+      .finally(() => {
+        if (!cancelled) setAiLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [bill?.title, congress, billType, number])
 
   const fetchBillData = async () => {
     try {
@@ -44,7 +63,6 @@ function BillDetail() {
       setCommittees(committeesData)
       setError(null)
 
-      // Fetch vote tallies from actions (non-blocking)
       setTalliesLoading(true)
       getVoteTalliesFromActions(actionsData)
         .then(tallies => setVoteTallies(tallies))
@@ -58,40 +76,45 @@ function BillDetail() {
     }
   }
 
-  const getAIExplainPrompt = () => {
-    const billId = `${billType.toUpperCase()} ${number}`
-    return `Explain this U.S. congressional bill in plain English: ${billId} — ${bill?.title || ''}`
-  }
-
   const formatDate = (dateString) => {
     if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric'
     })
   }
 
-  const getStatusBadge = () => {
-    if (!bill) return null
+  const getStatusInfo = () => {
+    if (!bill) return { label: 'Loading', cls: 'status-progress' }
+    const text = bill.latestAction?.text?.toLowerCase() || ''
+    if (text.includes('became public law') || text.includes('signed by president')) {
+      return { label: 'Became Law', cls: 'status-enacted' }
+    }
+    if (text.includes('passed house') && text.includes('passed senate')) {
+      return { label: 'Passed Both Chambers · Awaiting Signature', cls: 'status-passed-both' }
+    }
+    if (text.includes('passed house')) return { label: 'Passed House · Awaiting Senate', cls: 'status-passed' }
+    if (text.includes('passed senate')) return { label: 'Passed Senate · Awaiting House', cls: 'status-passed' }
+    if (text.includes('committee')) return { label: 'In Committee', cls: 'status-committee' }
+    if (text.includes('introduced')) return { label: 'Introduced', cls: 'status-introduced' }
+    return { label: 'In Progress', cls: 'status-progress' }
+  }
 
-    const latestAction = bill.latestAction?.text?.toLowerCase() || ''
+  const partyClass = (party) => {
+    if (!party) return 'party-tag-ind'
+    const p = party.toLowerCase()
+    if (p.startsWith('d')) return 'party-tag-dem'
+    if (p.startsWith('r')) return 'party-tag-rep'
+    return 'party-tag-ind'
+  }
 
-    if (latestAction.includes('became public law') || latestAction.includes('signed by president')) {
-      return <span className="status-badge enacted">Enacted</span>
-    }
-    if (latestAction.includes('passed house') && latestAction.includes('passed senate')) {
-      return <span className="status-badge passed-both">Passed Both Chambers</span>
-    }
-    if (latestAction.includes('passed house') || latestAction.includes('passed senate')) {
-      return <span className="status-badge passed">Passed One Chamber</span>
-    }
-    if (latestAction.includes('introduced')) {
-      return <span className="status-badge introduced">Introduced</span>
-    }
-    return <span className="status-badge in-progress">In Progress</span>
+  const partyAbbrev = (party) => {
+    if (!party) return ''
+    const p = party.toLowerCase()
+    if (p.startsWith('d')) return 'D'
+    if (p.startsWith('r')) return 'R'
+    return 'I'
   }
 
   if (loading) {
@@ -103,29 +126,24 @@ function BillDetail() {
     )
   }
 
-  if (error) {
+  if (error || !bill) {
     return (
       <div className="bill-detail-error">
-        <div className="error-message">{error}</div>
-        <button className="back-button" onClick={() => navigate('/bills')}>
-          Back to Bills
-        </button>
-      </div>
-    )
-  }
-
-  if (!bill) {
-    return (
-      <div className="bill-detail-error">
-        <div className="error-message">Bill not found</div>
-        <button className="back-button" onClick={() => navigate('/bills')}>
-          Back to Bills
-        </button>
+        <div className="error-message">{error || 'Bill not found'}</div>
+        <button className="bill-back-button" onClick={() => navigate('/bills')}>Back to Bills</button>
       </div>
     )
   }
 
   const sponsor = bill.sponsors?.[0]
+  const status = getStatusInfo()
+
+  const cosponsorByParty = cosponsors.reduce((acc, c) => {
+    const p = c.party?.toLowerCase()?.charAt(0) || 'i'
+    const k = p === 'd' ? 'dem' : p === 'r' ? 'rep' : 'ind'
+    acc[k] = (acc[k] || 0) + 1
+    return acc
+  }, { dem: 0, rep: 0, ind: 0 })
 
   return (
     <div className="bill-detail">
@@ -150,337 +168,249 @@ function BillDetail() {
           })
         }}
       />
-      <button className="back-link" onClick={() => navigate('/bills')}>
-        ← Back to Bills
-      </button>
 
-      <div className="bill-detail-header">
-        <div className="bill-type-congress">
-          <span className="bill-type-label">{billType.toUpperCase()}.{number}</span>
-          <span className="congress-label">{congress}th Congress</span>
+      {/* CRUMB */}
+      <nav className="bill-crumb">
+        <Link to="/">BallotWatch</Link>
+        <span className="bill-crumb-sep">/</span>
+        <Link to="/bills">Bills</Link>
+        <span className="bill-crumb-sep">/</span>
+        <span>{billType.toUpperCase()}. {number}</span>
+      </nav>
+
+      {/* MASTHEAD */}
+      <header className="bill-masthead">
+        <div className="bill-id-row">
+          <span className="bill-masthead-id">{billType.toUpperCase()}. {number}</span>
+          <span className="bill-masthead-congress">{congress}th Congress</span>
+          <span className={`bill-status-pill ${status.cls}`}>
+            <span className="bill-status-pill-dot"></span>{status.label}
+          </span>
         </div>
-
-        <h1 className="bill-detail-title">{bill.title}</h1>
-
-        <div className="bill-status-row">
-          {getStatusBadge()}
-          {bill.introducedDate && (
-            <span className="introduced-date">
-              Introduced: {formatDate(bill.introducedDate)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Key Facts */}
-      <section className="bill-key-facts">
-        <div className="key-facts-grid">
+        <h1 className="bill-masthead-title">{bill.title}</h1>
+        <p className="bill-masthead-byline">
           {sponsor && (
-            <div
-              className="key-fact key-fact-clickable"
-              onClick={() => navigate(`/politician/${sponsor.bioguideId}`)}
-            >
-              <span className="key-fact-label">Sponsor</span>
-              <span className="key-fact-value key-fact-link">
+            <>
+              Sponsored by <Link className="bill-byline-sponsor" to={`/politician/${sponsor.bioguideId}`}>
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
-              </span>
-              <span className="key-fact-desc">The member of Congress who introduced this bill</span>
-            </div>
-          )}
-          {bill.introducedDate && (
-            <div className="key-fact">
-              <span className="key-fact-label">Introduced</span>
-              <span className="key-fact-value">{formatDate(bill.introducedDate)}</span>
-              <span className="key-fact-desc">Date the bill was formally submitted to Congress</span>
-            </div>
-          )}
-          {cosponsors.length > 0 && (
-            <div
-              className="key-fact key-fact-clickable"
-              onClick={() => document.getElementById('sponsors-section')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <span className="key-fact-label">Cosponsors</span>
-              <span className="key-fact-value">{cosponsors.length}</span>
-              <span className="key-fact-desc">Members who publicly support this bill</span>
-            </div>
-          )}
-          {bill.policyArea?.name && (
-            <div className="key-fact">
-              <span className="key-fact-label">Policy Area</span>
-              <span className="key-fact-value">{bill.policyArea.name}</span>
-              <span className="key-fact-desc">The primary topic or subject of this legislation</span>
-            </div>
-          )}
-          {(committees.length > 0 || bill.committees?.count > 0) && (
-            <div
-              className="key-fact key-fact-clickable"
-              onClick={() => document.getElementById('committees-section')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <span className="key-fact-label">Committees</span>
-              <span className="key-fact-value">{committees.length || bill.committees.count}</span>
-              <span className="key-fact-desc">Groups of members assigned to review and refine the bill before a full vote</span>
-            </div>
-          )}
-          {actions.length > 0 && (
-            <div
-              className="key-fact key-fact-clickable"
-              onClick={() => document.getElementById('actions-section')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <span className="key-fact-label">Actions</span>
-              <span className="key-fact-value">{actions.length}</span>
-              <span className="key-fact-desc">Official steps taken on this bill (introductions, referrals, votes, etc.)</span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {voteTallies.length > 0 && (
-        <section className="bill-section vote-tallies-section">
-          <h2><InfoTip text="A roll call vote is when each member of Congress individually records their vote — yea (yes), nay (no), present (abstain), or not voting.">Vote Results</InfoTip></h2>
-          <div className="vote-tallies-list">
-            {voteTallies.map((tally, index) => {
-              const total = tally.totalYea + tally.totalNay
-              const yeaPct = total > 0 ? (tally.totalYea / total) * 100 : 0
-              const nayPct = total > 0 ? (tally.totalNay / total) * 100 : 0
-              const passed = tally.result?.toLowerCase().includes('passed') ||
-                             tally.result?.toLowerCase().includes('agreed')
-
-              return (
-                <div key={index} className="vote-tally-card">
-                  <div className="tally-header">
-                    <span className="tally-chamber-badge">
-                      {tally.chamber || 'Congress'}
-                    </span>
-                    {tally.date && (
-                      <span className="tally-date">{formatDate(tally.date)}</span>
-                    )}
-                    <span className={`tally-result-badge ${passed ? 'passed' : 'failed'}`}>
-                      {tally.result || 'N/A'}
-                    </span>
-                  </div>
-                  {tally.question && (
-                    <p className="tally-question">{tally.question}</p>
-                  )}
-                  <div className="tally-bar-container">
-                    <div className="tally-bar">
-                      <div
-                        className="tally-bar-yea"
-                        style={{ width: `${yeaPct}%` }}
-                      />
-                      <div
-                        className="tally-bar-nay"
-                        style={{ width: `${nayPct}%` }}
-                      />
-                    </div>
-                    <div className="tally-counts">
-                      <span className="tally-yea-count" title="Voted YES — in favor of the measure">Yea: {tally.totalYea}</span>
-                      <span className="tally-nay-count" title="Voted NO — against the measure">Nay: {tally.totalNay}</span>
-                      {tally.totalNotVoting > 0 && (
-                        <span className="tally-notvoting-count" title="Did not cast a vote on this measure">Not Voting: {tally.totalNotVoting}</span>
-                      )}
-                      {tally.totalPresent > 0 && (
-                        <span className="tally-present-count" title="Was present in the chamber but chose not to vote yes or no — often used as a form of protest or abstention">Present: {tally.totalPresent}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {talliesLoading && (
-        <section className="bill-section">
-          <div className="section-loading-inline">
-            <div className="loading-spinner"></div>
-            <p>Loading vote results...</p>
-          </div>
-        </section>
-      )}
-
-      {bill.summaries && bill.summaries.length > 0 && (
-        <section className="bill-section">
-          <h2>Official Summary</h2>
-          <div
-            className="bill-summary"
-            dangerouslySetInnerHTML={{ __html: bill.summaries[0].text }}
-          />
-        </section>
-      )}
-
-      <section className="bill-section ai-section">
-        <p className="ai-section-desc">Need a plain-English explanation? Ask an AI assistant:</p>
-        <div className="ai-links">
-          <a
-            href={`https://claude.ai/new?q=${encodeURIComponent(getAIExplainPrompt())}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ai-link-button ai-link-claude"
-          >
-            Claude
-          </a>
-          <a
-            href={`https://chatgpt.com/?q=${encodeURIComponent(getAIExplainPrompt())}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ai-link-button ai-link-chatgpt"
-          >
-            ChatGPT
-          </a>
-          <a
-            href={`https://gemini.google.com/app?q=${encodeURIComponent(getAIExplainPrompt())}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ai-link-button ai-link-gemini"
-          >
-            Gemini
-          </a>
-        </div>
-      </section>
-
-      <section className="bill-section" id="sponsors-section">
-        <h2><InfoTip text="The sponsor is the member of Congress who wrote and introduced the bill. Cosponsors are other members who formally endorse it.">Sponsors</InfoTip></h2>
-        <div className="sponsors-list">
-          {sponsor && (
-            <div className="sponsor-item primary-sponsor">
-              <span className="sponsor-badge">Primary Sponsor</span>
-              <Link
-                to={`/politician/${sponsor.bioguideId}`}
-                className="sponsor-name-link"
-              >
-                {sponsor.fullName || sponsor.firstName + ' ' + sponsor.lastName}
               </Link>
-              <span className="sponsor-party">
-                {sponsor.party} - {sponsor.state}
+              <span className={`bill-byline-party ${partyClass(sponsor.party)}`}>
+                {partyAbbrev(sponsor.party)}{sponsor.state ? `-${sponsor.state}` : ''}
               </span>
-            </div>
+              {' '}·{' '}
+            </>
           )}
-
-          {cosponsors.length > 0 && (
-            <div className="cosponsors-section">
-              <h3>{cosponsors.length} Cosponsor{cosponsors.length !== 1 ? 's' : ''}</h3>
-              <div className="cosponsors-grid">
-                {(showAllCosponsors ? cosponsors : cosponsors.slice(0, 10)).map((cosponsor) => (
-                  <Link
-                    key={cosponsor.bioguideId}
-                    to={`/politician/${cosponsor.bioguideId}`}
-                    className="cosponsor-chip"
-                  >
-                    {cosponsor.fullName || cosponsor.firstName + ' ' + cosponsor.lastName}
-                    <span className="cosponsor-party">({cosponsor.party})</span>
-                  </Link>
-                ))}
-                {cosponsors.length > 10 && (
-                  <button
-                    className="more-cosponsors"
-                    onClick={() => setShowAllCosponsors(!showAllCosponsors)}
-                  >
-                    {showAllCosponsors ? 'Show fewer' : `+${cosponsors.length - 10} more`}
-                  </button>
-                )}
-              </div>
-            </div>
+          {bill.introducedDate && <>introduced <span className="bill-byline-mono">{formatDate(bill.introducedDate)}</span></>}
+          {cosponsors.length > 0 && <> · with <strong>{cosponsors.length}</strong> cosponsor{cosponsors.length !== 1 ? 's' : ''}</>}
+          {bill.policyArea?.name && <> · policy area <em>{bill.policyArea.name}</em></>}
+        </p>
+        <div className="bill-masthead-actions">
+          {textVersions[0]?.formats?.[0]?.url && (
+            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Read full text ↗</a>
+          )}
+          {bill.url && (
+            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Congress.gov ↗</a>
           )}
         </div>
-      </section>
+      </header>
 
-      {committees.length > 0 && (
-        <section className="bill-section" id="committees-section">
-          <h2><InfoTip text="Committees are small groups of Congress members who specialize in specific topics. Bills are sent to relevant committees for detailed review before the full chamber votes.">Committees</InfoTip></h2>
-          <div className="committees-list">
-            {committees.map((committee, index) => (
-              <div key={index} className="committee-item">
-                <span className="committee-name">{committee.name}</span>
-                {committee.chamber && (
-                  <span className="committee-chamber">{committee.chamber}</span>
-                )}
-                {committee.subcommittees && committee.subcommittees.length > 0 && (
-                  <div className="subcommittees">
-                    {committee.subcommittees.map((sub, i) => (
-                      <span key={i} className="subcommittee-chip">{sub.name}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* TWO-COLUMN LAYOUT */}
+      <div className="bill-layout">
+        <div className="bill-main">
 
-      {textVersions.length > 0 && (
-        <section className="bill-section">
-          <h2>Bill Text Versions</h2>
-          <div className="text-versions-list">
-            {textVersions.map((version, index) => (
-              <a
-                key={index}
-                href={version.formats?.[0]?.url || bill.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-version-item"
-              >
-                <span className="version-type">{version.type || 'Full Text'}</span>
-                <span className="version-date">{formatDate(version.date)}</span>
-                <span className="view-link">View on Congress.gov →</span>
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {actions.length > 0 && (
-        <section className="bill-section">
-          <h2 id="actions-section"><InfoTip text="Actions are the official steps a bill goes through — from being introduced, to committee review, floor votes, and potentially being signed into law.">Actions Timeline</InfoTip></h2>
-          <div className="actions-timeline">
-            {actions.slice(0, 15).map((action, index) => {
-              const text = (action.text || '').toLowerCase()
-              let actionType = 'default'
-              if (text.includes('signed by president') || text.includes('became public law')) actionType = 'enacted'
-              else if (text.includes('passed') || text.includes('agreed to')) actionType = 'passed'
-              else if (text.includes('committee')) actionType = 'committee'
-              else if (text.includes('introduced')) actionType = 'introduced'
-              else if (text.includes('referred')) actionType = 'referred'
-
-              return (
-                <div key={index} className={`action-item action-item--${actionType}`}>
-                  <div className="action-marker">
-                    <div className={`marker-dot marker-dot--${actionType}`}></div>
-                    {index < actions.slice(0, 15).length - 1 && <div className="marker-line"></div>}
-                  </div>
-                  <div className="action-content">
-                    <span className="action-date">{formatDate(action.actionDate)}</span>
-                    <p className="action-text">{action.text}</p>
-                    {action.actionCode && (
-                      <span className="action-code">Code: {action.actionCode}</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            {actions.length > 15 && (
-              <div className="more-actions">
-                <a
-                  href={`https://www.congress.gov/bill/${congress}th-congress/${billType === 's' ? 'senate-bill' : 'house-bill'}/${number}/all-actions`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View all {actions.length} actions on Congress.gov →
-                </a>
+          {/* AI EXPLANATION — primary content */}
+          <article className="bill-ai-card">
+            <div className="bill-ai-label">
+              <span className="bill-ai-pulse"></span>
+              <InfoTip text="An AI assistant generates this plain-English explanation, grounded in the bill's official summary and title. It's meant to make the legalese accessible.">The bill, in plain English</InfoTip>
+            </div>
+            <div className="bill-ai-byline">Generated by gpt-4o-mini · grounded in the official summary · regenerated when the bill changes</div>
+            <h2 className="bill-ai-headline">What this bill <em>actually does</em></h2>
+            {aiLoading && (
+              <div className="bill-ai-loading">
+                <span className="loading-spinner-small"></span>
+                <span>Generating explanation...</span>
               </div>
             )}
-          </div>
-        </section>
-      )}
+            {!aiLoading && aiExplanation && (
+              <div className="bill-ai-prose">
+                {aiExplanation.paragraphs?.length
+                  ? aiExplanation.paragraphs.map((p, i) => <p key={i}>{p}</p>)
+                  : <p>{aiExplanation.explanation}</p>}
+              </div>
+            )}
+          </article>
 
-      <div className="bill-source-link">
-        <a
-          href={bill.url || `https://www.congress.gov/bill/${congress}th-congress/${billType.toLowerCase()}/${number}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Source: Congress.gov
-        </a>
+          {/* OFFICIAL SUMMARY — collapsed */}
+          {bill.summaries && bill.summaries.length > 0 && (
+            <details className="bill-summary-block">
+              <summary>Show official Congress.gov summary</summary>
+              <div className="bill-summary-body" dangerouslySetInnerHTML={{ __html: bill.summaries[0].text }} />
+            </details>
+          )}
+
+          {/* VOTE TALLIES */}
+          {voteTallies.length > 0 && (
+            <section className="bill-editorial-section">
+              <div className="bill-section-label">Floor votes</div>
+              <h2 className="bill-section-title">How the chambers <em>voted</em></h2>
+              <div className="bill-tally-grid">
+                {voteTallies.map((tally, index) => {
+                  const total = (tally.totalYea || 0) + (tally.totalNay || 0) + (tally.totalNotVoting || 0) + (tally.totalPresent || 0)
+                  const yeaFlex = tally.totalYea || 0
+                  const nayFlex = tally.totalNay || 0
+                  const otherFlex = (tally.totalNotVoting || 0) + (tally.totalPresent || 0)
+                  const passed = tally.result?.toLowerCase().includes('passed') || tally.result?.toLowerCase().includes('agreed')
+                  return (
+                    <div key={index} className="bill-tally-card">
+                      <div className="bill-tally-chamber">{tally.chamber || 'Congress'}</div>
+                      {tally.date && <div className="bill-tally-date">{formatDate(tally.date)}</div>}
+                      <div className={`bill-tally-result ${passed ? 'passed' : 'failed'}`}>{tally.result || 'N/A'}</div>
+                      <div className="bill-tally-bar">
+                        <div className="bill-tally-bar-yea" style={{ flex: yeaFlex }}></div>
+                        <div className="bill-tally-bar-nay" style={{ flex: nayFlex }}></div>
+                        {otherFlex > 0 && <div className="bill-tally-bar-other" style={{ flex: otherFlex }}></div>}
+                      </div>
+                      <div className="bill-tally-counts">
+                        <span>{tally.totalYea || 0} Yea</span>
+                        <span>{tally.totalNay || 0} Nay</span>
+                        {(tally.totalNotVoting > 0 || tally.totalPresent > 0) && (
+                          <span>{(tally.totalNotVoting || 0) + (tally.totalPresent || 0)} Other</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {talliesLoading && voteTallies.length === 0 && (
+            <section className="bill-editorial-section">
+              <div className="bill-section-loading">
+                <span className="loading-spinner-small"></span>
+                <span>Loading vote results...</span>
+              </div>
+            </section>
+          )}
+
+          {/* TIMELINE OF ACTIONS */}
+          {actions.length > 0 && (
+            <section className="bill-editorial-section" id="actions-section">
+              <div className="bill-section-label">Legislative timeline</div>
+              <h2 className="bill-section-title">What's happened <em>so far</em></h2>
+              <div className="bill-timeline">
+                {actions.slice(0, 12).map((action, index) => {
+                  const text = (action.text || '').toLowerCase()
+                  let kind = 'default'
+                  if (text.includes('signed by president') || text.includes('became public law')) kind = 'enacted'
+                  else if (text.includes('passed') || text.includes('agreed to')) kind = 'passed'
+                  else if (text.includes('committee')) kind = 'committee'
+                  else if (text.includes('introduced')) kind = 'introduced'
+
+                  return (
+                    <div key={index} className={`bill-tl-item ${index === 0 ? 'recent' : ''}`}>
+                      <div className="bill-tl-date">{formatDate(action.actionDate)}</div>
+                      <div className="bill-tl-text">
+                        {action.text}
+                        {action.actionCode && <span className="bill-tl-code">{action.actionCode}</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* RIGHT RAIL */}
+        <aside className="bill-rail">
+          {sponsor && (
+            <div className="bill-rail-card bill-sponsor-card">
+              <h3 className="bill-rail-h3">Sponsor</h3>
+              <Link to={`/politician/${sponsor.bioguideId}`} className="bill-sp-name">
+                {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
+              </Link>
+              <div className="bill-sp-meta">
+                {sponsor.party} · {sponsor.state}{sponsor.district ? `-${sponsor.district}` : ''}
+              </div>
+            </div>
+          )}
+
+          {cosponsors.length > 0 && (
+            <div className="bill-rail-card" id="sponsors-section">
+              <h3 className="bill-rail-h3">Cosponsors ({cosponsors.length})</h3>
+              <div className="bill-cosp-breakdown">
+                {cosponsorByParty.dem > 0 && (
+                  <div className="bill-cosp-row">
+                    <span className="bill-cosp-party party-tag-dem">Democrats</span>
+                    <span className="bill-cosp-count">{cosponsorByParty.dem}</span>
+                  </div>
+                )}
+                {cosponsorByParty.rep > 0 && (
+                  <div className="bill-cosp-row">
+                    <span className="bill-cosp-party party-tag-rep">Republicans</span>
+                    <span className="bill-cosp-count">{cosponsorByParty.rep}</span>
+                  </div>
+                )}
+                {cosponsorByParty.ind > 0 && (
+                  <div className="bill-cosp-row">
+                    <span className="bill-cosp-party party-tag-ind">Independents</span>
+                    <span className="bill-cosp-count">{cosponsorByParty.ind}</span>
+                  </div>
+                )}
+              </div>
+              <button
+                className="bill-cosp-toggle"
+                onClick={() => setShowAllCosponsors(!showAllCosponsors)}
+              >
+                {showAllCosponsors ? 'Hide list' : `View all ${cosponsors.length} →`}
+              </button>
+              {showAllCosponsors && (
+                <div className="bill-cosp-list">
+                  {cosponsors.map((c) => (
+                    <Link key={c.bioguideId} to={`/politician/${c.bioguideId}`} className="bill-cosp-item">
+                      {c.fullName || `${c.firstName} ${c.lastName}`}
+                      <span className={`bill-cosp-item-party ${partyClass(c.party)}`}>
+                        {partyAbbrev(c.party)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(committees.length > 0 || bill.committees?.count > 0) && (
+            <div className="bill-rail-card" id="committees-section">
+              <h3 className="bill-rail-h3">
+                <InfoTip text="Committees are small groups of Congress members who specialize in specific topics. Bills are sent to relevant committees for detailed review before the full chamber votes.">Committees</InfoTip>
+              </h3>
+              {committees.length > 0 ? committees.map((c, i) => (
+                <div key={i} className="bill-committee-item">
+                  {c.chamber && <div className="bill-committee-chamber">{c.chamber}</div>}
+                  <div className="bill-committee-name">{c.name}</div>
+                </div>
+              )) : (
+                <div className="bill-committee-item">
+                  <div className="bill-committee-name">{bill.committees.count} referred · see Congress.gov for details</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {textVersions.length > 0 && (
+            <div className="bill-rail-card">
+              <h3 className="bill-rail-h3">Bill text</h3>
+              {textVersions.slice(0, 3).map((v, i) => (
+                <a key={i} href={v.formats?.[0]?.url || bill.url} target="_blank" rel="noopener noreferrer" className="bill-text-version">
+                  <span className="bill-tv-type">{v.type || 'Full Text'}</span>
+                  <span className="bill-tv-date">{formatDate(v.date)}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </aside>
       </div>
     </div>
   )

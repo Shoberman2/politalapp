@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
 import { getDonationsByPoliticianName, formatCurrency, getMoneyVotesCorrelation } from '../services/donations'
 import { getIndustryBreakdown, formatCurrency as formatCompact } from '../data/industryMap'
@@ -9,6 +9,19 @@ import VoteDashboard from './VoteDashboard'
 import VotingPatternAnalysis from './VotingPatternAnalysis'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
+
+const STATE_NAMES = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
+  MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+  NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+  VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'
+}
 
 function PoliticianDetail() {
   const { bioguideId } = useParams()
@@ -30,16 +43,10 @@ function PoliticianDetail() {
   const fetchMemberData = async () => {
     try {
       setLoading(true)
-      console.log('[PoliticianDetail] Fetching data for:', bioguideId)
-
       const memberData = await getMemberDetails(bioguideId)
-      console.log('[PoliticianDetail] Member data received:', memberData?.name || 'Unknown')
-
       setMember(memberData)
       setError(null)
       setLoading(false)
-
-      // Fetch donations after member loads (votes handled by VoteDashboard)
       fetchDonations(memberData)
     } catch (err) {
       setError('Failed to load politician details. Please try again.')
@@ -48,26 +55,14 @@ function PoliticianDetail() {
     }
   }
 
-  // State name to abbreviation mapping
-  const stateNameToAbbr = {
-    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
-    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
-    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
-    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
-    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
-    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
-    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
-    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
-    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
-    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
-  }
+  const stateNameToAbbr = Object.fromEntries(
+    Object.entries(STATE_NAMES).map(([k, v]) => [v.toLowerCase(), k])
+  )
 
   const normalizeState = (state) => {
     if (!state) return ''
     const lower = state.toLowerCase().trim()
-    // If already an abbreviation
     if (lower.length === 2) return state.toUpperCase()
-    // Convert full name to abbreviation
     return stateNameToAbbr[lower] || state
   }
 
@@ -77,18 +72,12 @@ function PoliticianDetail() {
       const displayName = memberData.directOrderName || memberData.invertedOrderName || `${memberData.firstName} ${memberData.lastName}`
       const rawState = memberData.state || memberData.terms?.[0]?.state
       const state = normalizeState(rawState)
-      console.log('[PoliticianDetail] Fetching donations for:', displayName, 'state:', state, '(raw:', rawState, ')')
-
       const donationsData = await getDonationsByPoliticianName(displayName, state)
-      console.log('[PoliticianDetail] Donations data:', donationsData ? 'received' : 'none')
       setDonations(donationsData)
 
-      // Compute industry breakdown from donor data
       if (donationsData?.donors?.length > 0) {
         const breakdown = getIndustryBreakdown(donationsData.donors)
         setIndustryData(breakdown)
-
-        // Compute money-votes correlation using Supabase voting data
         try {
           const dashData = await getMemberDashboardData(bioguideId)
           if (dashData?.votes && dashData.votes.length > 0) {
@@ -108,29 +97,36 @@ function PoliticianDetail() {
     }
   }
 
-  const getPartyColor = (party) => {
-    const p = party?.toLowerCase()
-    if (p?.includes('democrat')) return '#2563eb'
-    if (p?.includes('republican')) return '#dc2626'
-    return '#8b5cf6'
+  const partyClass = (party) => {
+    if (!party) return 'party-tag-ind'
+    const p = party.toLowerCase()
+    if (p.startsWith('d') || p.includes('democrat')) return 'party-tag-dem'
+    if (p.startsWith('r') || p.includes('republican')) return 'party-tag-rep'
+    return 'party-tag-ind'
   }
 
-  const getPartyGradient = (party) => {
-    const p = party?.toLowerCase()
-    if (p?.includes('democrat')) return 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
-    if (p?.includes('republican')) return 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)'
-    return 'linear-gradient(135deg, #a78bfa 0%, #6d28d9 100%)'
+  const partyShort = (party) => {
+    if (!party) return ''
+    const p = party.toLowerCase()
+    if (p.startsWith('d') || p.includes('democrat')) return 'Dem'
+    if (p.startsWith('r') || p.includes('republican')) return 'Rep'
+    return 'Ind'
   }
 
   const getCurrentTerm = (terms) => {
     if (!terms || terms.length === 0) return null
-    const sortedTerms = [...terms].sort((a, b) => (b.startYear || 0) - (a.startYear || 0))
-    return sortedTerms[0]
+    return [...terms].sort((a, b) => (b.startYear || 0) - (a.startYear || 0))[0]
+  }
+
+  const splitName = (full) => {
+    if (!full) return { first: '', rest: '' }
+    const parts = full.trim().split(' ')
+    return { first: parts[0], rest: parts.slice(1).join(' ') }
   }
 
   if (loading) {
     return (
-      <div className="politician-detail-loading">
+      <div className="pol-loading">
         <div className="loading-spinner"></div>
         <p>Loading politician profile...</p>
       </div>
@@ -139,9 +135,9 @@ function PoliticianDetail() {
 
   if (error || !member) {
     return (
-      <div className="politician-detail-error">
+      <div className="pol-error">
         <div className="error-message">{error || 'Politician not found'}</div>
-        <button className="back-button" onClick={() => navigate('/all')}>
+        <button className="pol-back-button" onClick={() => navigate('/all')}>
           Back to All Politicians
         </button>
       </div>
@@ -152,12 +148,54 @@ function PoliticianDetail() {
   const currentTerm = getCurrentTerm(member.terms)
   const displayName = member.directOrderName || member.invertedOrderName || `${member.firstName} ${member.lastName}`
   const party = member.partyHistory?.[0]?.partyName || member.party
-  const state = member.state || currentTerm?.state
+  const rawState = member.state || currentTerm?.state
+  const stateAbbr = normalizeState(rawState)
+  const stateName = STATE_NAMES[stateAbbr] || rawState
   const district = currentTerm?.district
   const chamber = currentTerm?.chamber
+  const termCount = member.terms?.length || 0
+  const firstTermYear = member.terms ? Math.min(...member.terms.map(t => t.startYear || Infinity)) : null
+
+  // Title (Senator vs Representative)
+  const title = chamber?.toLowerCase().includes('senate') ? 'U.S. Senator' : 'U.S. Representative'
+
+  const { first: firstName, rest: restName } = splitName(displayName)
+
+  // Build factual standfirst from real data
+  const buildStandfirst = () => {
+    const pieces = []
+    if (firstTermYear && firstTermYear !== Infinity) {
+      const yrs = new Date().getFullYear() - firstTermYear
+      pieces.push(`Serving since ${firstTermYear}${yrs > 0 ? ` — ${yrs} year${yrs !== 1 ? 's' : ''} in Congress` : ''}.`)
+    }
+    if (chamber?.toLowerCase().includes('senate')) {
+      pieces.push(`Represents ${stateName} in the U.S. Senate.`)
+    } else if (stateName && district) {
+      pieces.push(`Represents ${stateName}'s ${ordinal(district)} congressional district.`)
+    } else if (stateName) {
+      pieces.push(`Represents ${stateName} in the U.S. House.`)
+    }
+    return pieces.join(' ')
+  }
+
+  // Build tenure timeline from member.terms
+  const buildTenureTimeline = () => {
+    if (!member.terms || member.terms.length === 0) return []
+    const sorted = [...member.terms].sort((a, b) => (a.startYear || 0) - (b.startYear || 0))
+    const items = sorted.slice(-4).map((t, i, arr) => ({
+      years: `${t.startYear}–${t.endYear || 'present'}`,
+      congress: t.congress ? `${t.congress}th Congress` : '',
+      chamber: t.chamber,
+      isLast: i === arr.length - 1
+    }))
+    return items
+  }
+
+  const standfirst = buildStandfirst()
+  const tenureItems = buildTenureTimeline()
 
   return (
-    <div className="politician-detail">
+    <div className="pol">
       <SEO
         title={`${displayName} — Voting Record`}
         description={`View ${displayName}'s congressional voting record, sponsored legislation, and campaign finance data.`}
@@ -165,282 +203,252 @@ function PoliticianDetail() {
         schema={{
           '@type': 'Person',
           name: displayName,
-          jobTitle: chamber === 'Senate' ? 'U.S. Senator' : 'U.S. Representative',
+          jobTitle: title,
           affiliation: {
             '@type': 'GovernmentOrganization',
             name: 'United States Congress'
           },
-          memberOf: {
-            '@type': 'Organization',
-            name: party
-          },
-          ...(member.depiction?.imageUrl && {
-            image: member.depiction.imageUrl
-          })
+          memberOf: { '@type': 'Organization', name: party },
+          ...(member.depiction?.imageUrl && { image: member.depiction.imageUrl })
         }}
       />
-      <button className="back-link" onClick={() => navigate('/all')}>
-        ← Back to All Politicians
-      </button>
 
-      {/* Header Section: Photo Left, Info Table Right */}
-      <div className="politician-header-section">
-        <div className="politician-photo-side">
+      {/* CRUMB */}
+      <nav className="pol-crumb">
+        <Link to="/">BallotWatch</Link>
+        <span className="pol-crumb-sep">/</span>
+        <Link to="/all">Representatives</Link>
+        <span className="pol-crumb-sep">/</span>
+        <span>{stateAbbr}{district ? `-${district}` : ''}</span>
+      </nav>
+
+      {/* MASTHEAD */}
+      <header className="pol-masthead">
+        <div className="pol-photo-wrap">
           {!imageError ? (
             <img
               src={imageUrl}
               alt={displayName}
-              className="politician-photo"
+              className="pol-photo"
               onError={() => setImageError(true)}
             />
           ) : (
-            <div
-              className="politician-photo-placeholder"
-              style={{ background: getPartyGradient(party) }}
-            >
+            <div className="pol-photo-placeholder">
               <span>{displayName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
             </div>
           )}
         </div>
-
-        <div className="politician-info-side">
-          <h1 className="politician-name">{displayName}</h1>
-          <span
-            className="party-badge-large"
-            style={{ background: getPartyGradient(party) }}
-          >
-            {party}
-          </span>
-
-          <table className="info-table">
-            <tbody>
-              <tr>
-                <th><InfoTip text="Congress has two chambers: the House of Representatives (435 members, based on population) and the Senate (100 members, 2 per state).">Chamber</InfoTip></th>
-                <td>{chamber || 'N/A'}</td>
-              </tr>
-              <tr>
-                <th>State</th>
-                <td>{state || 'N/A'}</td>
-              </tr>
-              {district && (
-                <tr>
-                  <th><InfoTip text="A congressional district is a geographic area within a state represented by one House member. Each state is divided into districts based on population.">District</InfoTip></th>
-                  <td>{district}</td>
-                </tr>
-              )}
-              <tr>
-                <th>Years in Office</th>
-                <td>{member.terms?.length || 0} term(s)</td>
-              </tr>
-              {member.birthYear && (
-                <tr>
-                  <th>Born</th>
-                  <td>{member.birthYear}</td>
-                </tr>
-              )}
-              {member.addressInformation?.officeAddress && (
-                <tr>
-                  <th>Office</th>
-                  <td>{member.addressInformation.officeAddress}</td>
-                </tr>
-              )}
-              {member.addressInformation?.phoneNumber && (
-                <tr>
-                  <th>Phone</th>
-                  <td>
-                    <a href={`tel:${member.addressInformation.phoneNumber}`}>
-                      {member.addressInformation.phoneNumber}
-                    </a>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          <div className="profile-links">
+        <div className="pol-lede">
+          <div className="pol-kicker">{title} · {currentTerm?.congress ? `${currentTerm.congress}th Congress` : ''}</div>
+          <h1 className="pol-name">
+            <span className="pol-name-first">{firstName}</span>
+            {restName && ' '}
+            {restName}
+            {party && <span className={`pol-party-tag ${partyClass(party)}`}>{partyShort(party)}</span>}
+          </h1>
+          {standfirst && <p className="pol-standfirst">{standfirst}</p>}
+          <dl className="pol-meta-grid">
+            {chamber && (
+              <>
+                <dt>Chamber</dt>
+                <dd>{chamber}</dd>
+              </>
+            )}
+            <dt>State</dt>
+            <dd>{stateName}{stateAbbr ? <> <span className="pol-meta-mono">{stateAbbr}{district ? `-${district}` : ''}</span></> : null}</dd>
+            {firstTermYear && firstTermYear !== Infinity && (
+              <>
+                <dt>In office</dt>
+                <dd>Since <span className="pol-meta-mono">{firstTermYear}</span> · {termCount} term{termCount !== 1 ? 's' : ''}</dd>
+              </>
+            )}
+            {member.birthYear && (
+              <>
+                <dt>Born</dt>
+                <dd><span className="pol-meta-mono">{member.birthYear}</span></dd>
+              </>
+            )}
+            {member.addressInformation?.officeAddress && (
+              <>
+                <dt>Office</dt>
+                <dd>{member.addressInformation.officeAddress}</dd>
+              </>
+            )}
+            {member.addressInformation?.phoneNumber && (
+              <>
+                <dt>Phone</dt>
+                <dd>
+                  <a href={`tel:${member.addressInformation.phoneNumber}`} className="pol-meta-link">
+                    <span className="pol-meta-mono">{member.addressInformation.phoneNumber}</span>
+                  </a>
+                </dd>
+              </>
+            )}
+          </dl>
+          <div className="pol-actions">
             {member.officialWebsiteUrl && (
-              <a
-                href={member.officialWebsiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="profile-link website"
-              >
-                Official Website
+              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary">
+                Official website ↗
               </a>
             )}
             {member.url && (
-              <a
-                href={member.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="profile-link congress"
-              >
-                Congress.gov
+              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn">
+                Congress.gov ↗
               </a>
             )}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Voting Dashboard — replaces old voting history table */}
-      <section className="detail-section votes-section">
+      {/* TENURE TIMELINE */}
+      {tenureItems.length > 0 && (
+        <section className="pol-editorial">
+          <div className="pol-section-label">Tenure</div>
+          <h2 className="pol-section-title"><em>{termCount}</em> term{termCount !== 1 ? 's' : ''}, {firstTermYear && firstTermYear !== Infinity ? `${new Date().getFullYear() - firstTermYear}` : ''} years of votes</h2>
+          <div className="pol-tenure-grid">
+            {tenureItems.map((t, i) => (
+              <div key={i} className={`pol-tenure-item ${i === tenureItems.length - 1 ? '' : 'pol-tenure-past'}`}>
+                <div className="pol-tenure-year">{t.years}</div>
+                <div className="pol-tenure-title">{t.congress || t.chamber}</div>
+                <div className="pol-tenure-note">{i === tenureItems.length - 1 ? 'Current term' : t.chamber}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* VOTES */}
+      <section className="pol-editorial">
+        <div className="pol-section-label">Voting record</div>
+        <h2 className="pol-section-title">How <em>they voted</em></h2>
         <VoteDashboard bioguideId={bioguideId} />
       </section>
 
-      {/* Campaign Funding Section */}
-      <section className="detail-section funding-section">
-        <h2><InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Campaign Funding</InfoTip></h2>
+      {/* CAMPAIGN FINANCE */}
+      <section className="pol-editorial">
+        <div className="pol-section-label">Campaign finance · most recent cycle</div>
+        <h2 className="pol-section-title">
+          <InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Where the <em>money</em> comes from</InfoTip>
+        </h2>
         {donationsLoading ? (
-          <div className="section-loading">
+          <div className="pol-section-loading">
             <div className="loading-spinner"></div>
             <p>Loading campaign finance data...</p>
           </div>
         ) : donations ? (
-          <div className="funding-content">
-            <div className="funding-summary">
-              <div className="funding-stat">
-                <span className="stat-value">{formatCurrency(donations.totalRaised)}</span>
-                <span className="stat-label">Total Raised</span>
+          <div className="pol-money-grid">
+            <div className="pol-money-summary">
+              <div className="pol-money-big-number">{formatCurrency(donations.totalRaised)}</div>
+              <div className="pol-money-big-label">Total raised</div>
+              <div className="pol-money-splits">
+                {donations.individualTotal > 0 && (
+                  <div className="pol-money-split">
+                    <div className="pol-money-split-v">{formatCurrency(donations.individualTotal)}</div>
+                    <div className="pol-money-split-l">From individuals</div>
+                  </div>
+                )}
+                {donations.pacTotal > 0 && (
+                  <div className="pol-money-split">
+                    <div className="pol-money-split-v">{formatCurrency(donations.pacTotal)}</div>
+                    <div className="pol-money-split-l">From PACs</div>
+                  </div>
+                )}
               </div>
-              {donations.individualTotal > 0 && (
-                <div className="funding-stat">
-                  <span className="stat-value">{formatCurrency(donations.individualTotal)}</span>
-                  <span className="stat-label">Individuals</span>
-                </div>
-              )}
-              {donations.pacTotal > 0 && (
-                <div className="funding-stat">
-                  <span className="stat-value">{formatCurrency(donations.pacTotal)}</span>
-                  <span className="stat-label">PACs</span>
-                </div>
-              )}
             </div>
-
-            {/* Industry Breakdown */}
             {industryData.length > 0 && (
-              <div className="industry-breakdown">
-                <h3>Industry Breakdown</h3>
-                <div className="industry-bars">
-                  {industryData.slice(0, 8).map((sector, i) => (
-                    <div key={i} className="industry-bar-row">
-                      <span className="industry-label">{sector.industry}</span>
-                      <div className="industry-bar-track">
-                        <div
-                          className="industry-bar-fill"
-                          style={{ width: `${Math.max(sector.percentage, 2)}%` }}
-                        />
-                      </div>
-                      <span className="industry-amount">{formatCompact(sector.totalAmount)}</span>
-                      <span className="industry-pct">{sector.percentage}%</span>
+              <div className="pol-industry-list">
+                <h3 className="pol-rail-h3">By industry</h3>
+                {industryData.slice(0, 8).map((sector, i) => {
+                  const max = industryData[0]?.totalAmount || 1
+                  const widthPct = Math.max((sector.totalAmount / max) * 100, 2)
+                  return (
+                    <div key={i} className="pol-ind-row">
+                      <div className="pol-ind-label">{sector.industry}</div>
+                      <div className="pol-ind-bar"><div className="pol-ind-fill" style={{ width: `${widthPct}%` }}></div></div>
+                      <div className="pol-ind-amount">{formatCompact(sector.totalAmount)}</div>
                     </div>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
             )}
-
-            {/* Money-Votes Correlation */}
-            {correlationData.length > 0 && (
-              <div className="money-votes-section">
-                <h3><InfoTip text="How often this politician votes 'Yea' on bills related to the industries that fund them. Based on FEC donation data matched to Congress.gov bill policy areas.">Money &amp; Votes</InfoTip></h3>
-                <div className="correlation-cards">
-                  {correlationData.map((corr, i) => (
-                    <div key={i} className="correlation-card">
-                      <div className="correlation-industry">{corr.industry}</div>
-                      <div className="correlation-stats">
-                        <span className="correlation-donated">{formatCompact(corr.donationAmount)} donated</span>
-                        <span className="correlation-votes">
-                          Voted Yea {corr.yeaPercent}% on {corr.billsVotedOn} related bill{corr.billsVotedOn !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                      <div className="correlation-bar-track">
-                        <div
-                          className="correlation-bar-fill"
-                          style={{ width: `${corr.yeaPercent}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Committee Financial Details */}
-            {donations.committees && donations.committees.length > 0 && (
-              <div className="committees-section">
-                <h3><InfoTip text="Official fundraising organizations registered with the FEC to raise and spend money on behalf of a candidate.">Campaign Committees</InfoTip></h3>
-                <div className="committees-grid">
-                  {donations.committees.map((committee, index) => (
-                    <div key={index} className="committee-card">
-                      <span className="committee-name">{committee.name}</span>
-                      <div className="committee-financials">
-                        <span className="committee-stat">
-                          <span className="committee-stat-label" title="Total money received">Receipts</span>
-                          <span className="committee-stat-value">{formatCurrency(committee.receipts)}</span>
-                        </span>
-                        <span className="committee-stat">
-                          <span className="committee-stat-label" title="Total money spent">Disbursements</span>
-                          <span className="committee-stat-value">{formatCurrency(committee.disbursements)}</span>
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Top Donors */}
-            {donations.donors && donations.donors.length > 0 && (
-              <div className="top-donors-section">
-                <h3>Top Donors</h3>
-                <div className="donors-list">
-                  {donations.donors.slice(0, 10).map((donor, i) => (
-                    <div key={i} className="donor-row">
-                      <div className="donor-info">
-                        <span className="donor-name">{donor.name}</span>
-                        {donor.entityType && donor.entityType !== 'IND' && (
-                          <span className={`entity-badge ${donor.entityType.toLowerCase()}`}>
-                            {donor.entityType === 'COM' ? 'PAC' : 'ORG'}
-                          </span>
-                        )}
-                        {donor.employer && <span className="donor-employer">{donor.employer}</span>}
-                      </div>
-                      <span className="donor-amount">{formatCurrency(donor.totalAmount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="funding-source">
-              <a
-                href={`https://www.fec.gov/data/candidate/${donations.candidate?.id || ''}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="fec-link"
-              >
-                View Full FEC Records →
-              </a>
-            </div>
           </div>
         ) : (
-          <p className="no-data-message">
-            Campaign finance data not available for this politician.
-            <br />
-            <small>Data sourced from the Federal Election Commission (FEC)</small>
-          </p>
+          <p className="pol-no-data">Campaign finance data not available for this politician.</p>
+        )}
+
+        {/* MONEY-VOTES CORRELATION */}
+        {correlationData.length > 0 && (
+          <div className="pol-correlation-block">
+            <h3 className="pol-correlation-h3">
+              <InfoTip text="How often this politician votes 'Yea' on bills related to the industries that fund them. Based on FEC donation data matched to Congress.gov bill policy areas.">Money &amp; votes correlation</InfoTip>
+            </h3>
+            <div className="pol-correlation-grid">
+              {correlationData.map((corr, i) => (
+                <div key={i} className="pol-correlation-card">
+                  <div className="pol-correlation-industry">{corr.industry}</div>
+                  <div className="pol-correlation-stats">
+                    <span className="pol-correlation-donated">{formatCompact(corr.donationAmount)} donated</span>
+                    <span className="pol-correlation-votes">
+                      Voted Yea {corr.yeaPercent}% on {corr.billsVotedOn} related bill{corr.billsVotedOn !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="pol-correlation-bar"><div className="pol-correlation-fill" style={{ width: `${corr.yeaPercent}%` }}></div></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TOP DONORS */}
+        {donations?.donors && donations.donors.length > 0 && (
+          <div className="pol-donors-block">
+            <h3 className="pol-correlation-h3">Top donors</h3>
+            <div className="pol-donors-list">
+              {donations.donors.slice(0, 10).map((donor, i) => (
+                <div key={i} className="pol-donor-row">
+                  <div className="pol-donor-info">
+                    <span className="pol-donor-name">{donor.name}</span>
+                    {donor.entityType && donor.entityType !== 'IND' && (
+                      <span className={`pol-donor-entity entity-${donor.entityType.toLowerCase()}`}>
+                        {donor.entityType === 'COM' ? 'PAC' : 'ORG'}
+                      </span>
+                    )}
+                    {donor.employer && <span className="pol-donor-employer">{donor.employer}</span>}
+                  </div>
+                  <span className="pol-donor-amount">{formatCurrency(donor.totalAmount)}</span>
+                </div>
+              ))}
+            </div>
+            {donations.candidate?.id && (
+              <a href={`https://www.fec.gov/data/candidate/${donations.candidate.id}/`} target="_blank" rel="noopener noreferrer" className="pol-fec-link">
+                View full FEC records ↗
+              </a>
+            )}
+          </div>
         )}
       </section>
 
-      {/* Voting Pattern Analysis — new in v2 */}
-      <VotingPatternAnalysis member={{ ...member, bioguideId, state, district, party }} />
+      {/* VOTING PATTERN ANALYSIS */}
+      <section className="pol-editorial">
+        <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
+      </section>
 
       {member.depiction?.attribution && (
-        <div className="photo-attribution">
+        <div className="pol-photo-attribution">
           Photo: {member.depiction.attribution}
         </div>
       )}
     </div>
   )
+}
+
+function ordinal(n) {
+  const i = parseInt(n, 10)
+  if (isNaN(i)) return n
+  if (i === 0) return 'at-large'
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = i % 100
+  return i + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
 export default PoliticianDetail

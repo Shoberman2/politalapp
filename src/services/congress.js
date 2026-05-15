@@ -853,82 +853,37 @@ export const getTrendingBills = async () => {
   return _notableBillsPromise
 }
 
-export const explainBillWithAI = async (billTitle, billSummary, billText = '') => {
-  try {
-    const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
-
-    if (!OPENAI_API_KEY) {
-      const fallbackText = `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`
-      return {
-        explanation: fallbackText,
-        paragraphs: [fallbackText, 'AI explanation requires an OpenAI API key. Add VITE_OPENAI_API_KEY to your .env file to enable AI-powered explanations.'],
-        isPlaceholder: true
-      }
+export const explainBillWithAI = async ({ congress, billType, number, title, summary }) => {
+  const fallback = (msg) => {
+    const text = `This bill, titled "${title}", ${summary ? String(summary).toLowerCase() : 'is currently under review in Congress.'}`
+    return {
+      explanation: text,
+      paragraphs: [text, msg],
+      isPlaceholder: true,
     }
+  }
 
-    const prompt = `You are a nonpartisan expert at explaining U.S. legislation in plain language.
+  if (!congress || !billType || !number || !title) {
+    return fallback('AI explanation unavailable: missing bill identifiers.')
+  }
 
-Explain this bill clearly for an average citizen:
-
-Title: ${billTitle}
-${billSummary ? `Summary: ${billSummary}` : ''}
-${billText ? `Bill Text (excerpt): ${billText.slice(0, 2000)}` : ''}
-
-Write at least 2 full paragraphs in plain English explaining what this bill does, why it matters, and who it affects.
-Do NOT use numbered lists or bullet points. Write in flowing paragraph form only.
-Do NOT include any source citations, references, footnotes, or URLs.
-Keep your response factual and balanced. Avoid political bias.`
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500,
-        temperature: 0.7
-      })
+  try {
+    const { supabase } = await import('../lib/supabase')
+    const { data, error } = await supabase.functions.invoke('explain-bill', {
+      body: { congress, billType, number, title, summary: summary || '' },
     })
 
-    if (!response.ok) {
-      throw new Error('OpenAI API request failed')
-    }
-
-    const data = await response.json()
-    const aiResponse = data.choices[0]?.message?.content || ''
-
-    // Strip any URLs/citations that slip through
-    const cleaned = aiResponse
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/\[\d+\]/g, '')
-      .replace(/\(source:.*?\)/gi, '')
-      .trim()
-
-    // Split into paragraphs on double newlines
-    const paragraphs = cleaned
-      .split(/\n\s*\n/)
-      .map(p => p.replace(/\n/g, ' ').trim())
-      .filter(p => p.length > 0)
-
-    const explanation = paragraphs[0] || `This bill addresses ${billTitle}.`
+    if (error) throw error
+    if (!data?.paragraphs?.length) throw new Error('Empty response')
 
     return {
-      explanation,
-      paragraphs,
-      fullResponse: aiResponse,
-      isPlaceholder: false
+      explanation: data.explanation,
+      paragraphs: data.paragraphs,
+      cached: data.cached,
+      isPlaceholder: false,
     }
-  } catch (error) {
-    console.error('Error explaining bill with AI:', error)
-    const fallbackText = `This bill, titled "${billTitle}", ${billSummary ? billSummary.toLowerCase() : 'is currently under review in Congress.'}`
-    return {
-      explanation: fallbackText,
-      paragraphs: [fallbackText, 'AI explanation temporarily unavailable. Please try again later.'],
-      isPlaceholder: true,
-      error: error.message
-    }
+  } catch (err) {
+    console.error('Error explaining bill with AI:', err)
+    return fallback('AI explanation temporarily unavailable. Please try again later.')
   }
 }

@@ -109,10 +109,13 @@ function VotingHistory({ bioguideId }) {
       setExpandedBill(index)
 
       if (!billExplanations[index]) {
-        const explanation = await explainBillWithAI(
-          bill.title,
-          bill.latestAction?.text || ''
-        )
+        const explanation = await explainBillWithAI({
+          congress: bill.congress,
+          billType: bill.type,
+          number: bill.number,
+          title: bill.title,
+          summary: bill.latestAction?.text || '',
+        })
         setBillExplanations(prev => ({
           ...prev,
           [index]: explanation
