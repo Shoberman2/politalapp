@@ -11,6 +11,7 @@ function BillsPage() {
   const [bills, setBills] = useState([])
   const [trendingBills, setTrendingBills] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searching, setSearching] = useState(false)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [congressFilter, setCongressFilter] = useState('119')
@@ -19,29 +20,36 @@ function BillsPage() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
+  // Tracks whether the bills array is currently search results vs the Congress.gov
+  // browse listing. Toggles only on crossing the 2-char threshold so typing
+  // additional letters within search mode never re-fires the browse effect.
+  const isSearching = searchTerm.trim().length >= 2
+
   useEffect(() => {
     getTrendingBills().then(setTrendingBills).catch(() => {})
   }, [])
 
   const LIMIT = 20
 
-  // Browse mode (no search) — list newest bills from Congress.gov, paginated.
-  // Search mode is handled by a separate debounced effect below that queries
-  // Supabase directly so users can find any bill ingested by the daily ETL,
-  // not just the first 20 in the live feed.
+  // Browse mode — initial load, filter changes, and when search is cleared
+  // (isSearching transitions true → false). searchTerm itself is intentionally
+  // NOT in the deps: typing a single character or two within search mode must
+  // not trigger a full Congress.gov re-fetch.
   useEffect(() => {
-    if (searchTerm.trim().length >= 2) return
+    if (isSearching) return
     fetchBills(true)
-  }, [congressFilter, billTypeFilter, searchTerm])
+  }, [congressFilter, billTypeFilter, isSearching])
 
-  // Search mode — debounce 300 ms, then query bills table by title or bill ID.
+  // Search mode — debounce 300 ms, then query the bills table. No full-page
+  // loader; results swap into place when they arrive so each keystroke feels
+  // incremental, not like a page reload.
   useEffect(() => {
+    if (!isSearching) return
     const term = searchTerm.trim()
-    if (term.length < 2) return
 
+    setSearching(true)
     const handle = setTimeout(async () => {
       try {
-        setLoading(true)
         const results = await searchBillsInDb({
           query: term,
           congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
@@ -56,11 +64,11 @@ function BillsPage() {
         console.error('[BillsPage] Search failed:', err)
         setError(`Search failed: ${err.message || 'Unknown error'}`)
       } finally {
-        setLoading(false)
+        setSearching(false)
       }
     }, 300)
     return () => clearTimeout(handle)
-  }, [searchTerm, congressFilter, billTypeFilter])
+  }, [searchTerm, congressFilter, billTypeFilter, isSearching])
 
   const fetchBills = async (reset = false) => {
     try {
@@ -237,6 +245,7 @@ function BillsPage() {
         <div className="bills-count">
           Showing <strong>{filteredBills.length.toLocaleString()}</strong> bill{filteredBills.length !== 1 ? 's' : ''}
           {searchTerm && <span className="bills-count-filter"> matching "{searchTerm}"</span>}
+          {searching && <span className="bills-count-filter"> · searching…</span>}
         </div>
       </div>
 
