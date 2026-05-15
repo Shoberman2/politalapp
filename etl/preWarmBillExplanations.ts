@@ -133,8 +133,14 @@ async function invokeExplainBill(
 
 export async function preWarmBillExplanations(
   config: ETLConfig,
-  maxBills: number = 200
+  maxBills?: number
 ): Promise<PreWarmResult> {
+  // Resolution order: explicit arg → ETL_PREWARM_MAX env → 200 (daily default).
+  // The backfill workflow sets the env to a large number to drain the backlog
+  // in a single 6-hour run.
+  const effectiveMax =
+    maxBills ?? (parseInt(process.env.ETL_PREWARM_MAX || '200', 10) || 200);
+
   const result: PreWarmResult = { scanned: 0, generated: 0, cacheHits: 0, errors: [] };
 
   const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
@@ -154,7 +160,7 @@ export async function preWarmBillExplanations(
 
   let candidates: BillRow[];
   try {
-    candidates = await fetchCandidateBills(supabase, cachedKeys, maxBills);
+    candidates = await fetchCandidateBills(supabase, cachedKeys, effectiveMax);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     result.errors.push(message);

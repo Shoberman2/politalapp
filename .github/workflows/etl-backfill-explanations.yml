@@ -1,0 +1,68 @@
+# =============================================================================
+# Political Vote Tracker - Long-form Explanation Backfill
+# =============================================================================
+# Drains the bill_explanations backlog in one long run. Invokes the deployed
+# explain-bill Edge Function once per bill that doesn't yet have a cached row,
+# so all bills currently in the `bills` table get a long-form AI explanation
+# users can read on BillDetail.
+#
+# Trigger: manual only (workflow_dispatch). The daily ETL handles incremental
+# top-up — this workflow is for the initial fill or for re-warming after a
+# MODEL / PROMPT_VERSION bump.
+#
+# Cost note: each uncached bill costs one explain-bill Edge Function invocation
+# (which internally calls OpenAI). ~10k bills × ~$0.001/bill ≈ $10 worst case.
+#
+# Required Secrets (same as daily ETL):
+#   CONGRESS_API_KEY          - present for config validation, unused in this run
+#   SUPABASE_URL              - target Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY - service role key (auth's the explain-bill call)
+
+name: Backfill Bill Explanations
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_bills:
+        description: 'Override how many uncached bills to process (default: unlimited)'
+        required: false
+        default: ''
+        type: string
+
+# Share the daily ETL's concurrency group so a 6-hour backfill cannot run
+# concurrently with the daily ETL (both write the same DB).
+concurrency:
+  group: etl-pipeline
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: Backfill bill_explanations
+    runs-on: ubuntu-latest
+    # GitHub Actions max. Sized for ~10k bills × ~1.5 s/call ≈ 4 h, leaving
+    # buffer for cold-start jitter and retries.
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run explanation backfill
+        env:
+          CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # The --backfill-explanations flag passes maxBills=100000 internally;
+          # the input below lets an operator narrow it for testing.
+          ETL_PREWARM_MAX: ${{ github.event.inputs.max_bills }}
+        run: npm run etl -- --backfill-explanations

@@ -23,6 +23,7 @@
 
 import type { ETLRunResult, ETLConfig } from './types.js';
 import { extractRecentVotes } from './extractHouseVotes.js';
+import { extractIntroducedBills } from './extractIntroducedBills.js';
 import { transformVoteData, validateTransformedData, getTransformStats } from './transform.js';
 import { loadToSupabase, checkTablesExist, getExistingCounts } from './load.js';
 import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
@@ -38,6 +39,7 @@ import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
 interface CLIOptions {
   dryRun: boolean;
   enrichOnly: boolean;
+  backfillExplanations: boolean;
   skipEnrich: boolean;
   skipPrewarm: boolean;
   days: number;
@@ -50,6 +52,7 @@ function parseArgs(): CLIOptions {
   const options: CLIOptions = {
     dryRun: args.includes('--dry-run'),
     enrichOnly: args.includes('--enrich-only'),
+    backfillExplanations: args.includes('--backfill-explanations'),
     skipEnrich: args.includes('--skip-enrich'),
     skipPrewarm: args.includes('--skip-prewarm'),
     days: 7,
@@ -121,6 +124,24 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
       return result;
     }
 
+    // Run long-form explanation backfill only (skips extract/transform/load).
+    // Used by the etl-backfill-explanations.yml workflow to drain the
+    // bill_explanations backlog in a single 6-hour run.
+    if (options.backfillExplanations) {
+      logger.info('Running explanation backfill only (skipping all other phases)...');
+      // Let ETL_PREWARM_MAX override (workflow_dispatch input). Default 100k
+      // means "everything" in practice — we'd never actually have that many
+      // bills in the 100-day window.
+      const envCap = parseInt(process.env.ETL_PREWARM_MAX || '', 10);
+      const cap = Number.isFinite(envCap) && envCap > 0 ? envCap : 100_000;
+      const prewarmResult = await preWarmBillExplanations(config, cap);
+      logger.info('Backfill complete', prewarmResult);
+      result.success = prewarmResult.errors.length < Math.max(prewarmResult.scanned, 1);
+      result.errors = prewarmResult.errors.slice(0, 20);
+      result.endTime = new Date();
+      return result;
+    }
+
     // ===========================================
     // EXTRACT PHASE
     // ===========================================
@@ -129,19 +150,51 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     result.extractedVotes = extractedData.length;
 
     if (extractedData.length === 0) {
-      logger.warn('No votes extracted, ending pipeline');
-      result.success = true;
-      result.endTime = new Date();
-      return result;
+      logger.warn('No vote events in window — continuing with introduced-bills phase');
+    } else {
+      logger.info(`Extracted ${extractedData.length} vote events`);
     }
-
-    logger.info(`Extracted ${extractedData.length} vote events`);
 
     // ===========================================
     // TRANSFORM PHASE
     // ===========================================
     logger.info('=== TRANSFORM PHASE ===');
     const transformedData = transformVoteData(extractedData, config);
+
+    // ===========================================
+    // INTRODUCED BILLS PHASE
+    // ===========================================
+    // Runs every ETL execution — see extractIntroducedBills.ts. Bills are
+    // merged into transformedData.bills so they flow through the same
+    // validate/load/enrich/prewarm pipeline as vote-derived bills. A failure
+    // here must not break the vote pipeline, so it's fully isolated.
+    logger.info('=== INTRODUCED BILLS PHASE ===');
+    try {
+      const intro = await extractIntroducedBills(config);
+      for (const bill of intro.bills) {
+        const existing = transformedData.bills.get(bill.id);
+        if (existing) {
+          // Vote-derived bill already present; only fill in fields the vote
+          // path couldn't supply.
+          transformedData.bills.set(bill.id, {
+            ...existing,
+            title: existing.title || bill.title,
+            introduced_at: existing.introduced_at || bill.introduced_at,
+            policy_area: existing.policy_area || bill.policy_area,
+          });
+        } else {
+          transformedData.bills.set(bill.id, bill);
+        }
+      }
+      logger.info('Introduced bills merged', intro.stats);
+      if (intro.stats.errors.length > 0) {
+        result.errors.push(...intro.stats.errors.slice(0, 5));
+      }
+    } catch (introError) {
+      const message = introError instanceof Error ? introError.message : String(introError);
+      logger.warn('Introduced-bills phase failed, continuing', message);
+      result.errors.push(`Introduced bills: ${message}`);
+    }
 
     result.transformedRecords = {
       politicians: transformedData.politicians.size,
