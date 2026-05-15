@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
+import { searchBillsInDb } from '../services/billsDb'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import '../styles/BillsPage.css'
 
@@ -24,9 +25,42 @@ function BillsPage() {
 
   const LIMIT = 20
 
+  // Browse mode (no search) — list newest bills from Congress.gov, paginated.
+  // Search mode is handled by a separate debounced effect below that queries
+  // Supabase directly so users can find any bill ingested by the daily ETL,
+  // not just the first 20 in the live feed.
   useEffect(() => {
+    if (searchTerm.trim().length >= 2) return
     fetchBills(true)
-  }, [congressFilter, billTypeFilter])
+  }, [congressFilter, billTypeFilter, searchTerm])
+
+  // Search mode — debounce 300 ms, then query bills table by title or bill ID.
+  useEffect(() => {
+    const term = searchTerm.trim()
+    if (term.length < 2) return
+
+    const handle = setTimeout(async () => {
+      try {
+        setLoading(true)
+        const results = await searchBillsInDb({
+          query: term,
+          congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
+          billType: billTypeFilter !== 'all' ? billTypeFilter : null,
+          limit: 100,
+        })
+        setBills(results)
+        setHasMore(false)
+        setOffset(results.length)
+        setError(null)
+      } catch (err) {
+        console.error('[BillsPage] Search failed:', err)
+        setError(`Search failed: ${err.message || 'Unknown error'}`)
+      } finally {
+        setLoading(false)
+      }
+    }, 300)
+    return () => clearTimeout(handle)
+  }, [searchTerm, congressFilter, billTypeFilter])
 
   const fetchBills = async (reset = false) => {
     try {
@@ -74,15 +108,8 @@ function BillsPage() {
     }
   }
 
-  const filteredBills = bills.filter(bill => {
-    if (!searchTerm) return true
-    const query = searchTerm.toLowerCase()
-    return (
-      bill.title?.toLowerCase().includes(query) ||
-      bill.number?.toString().includes(query) ||
-      `${bill.type}${bill.number}`.toLowerCase().includes(query)
-    )
-  })
+  // Search is now server-side (Supabase) — render the bills array directly.
+  const filteredBills = bills
 
   const handleLoadMore = () => fetchBills(false)
 
