@@ -4,7 +4,27 @@ import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
 import { searchBillsInDb } from '../services/billsDb'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
+import SponsorFilterPill from './SponsorFilterPill'
 import '../styles/BillsPage.css'
+
+// Feature flag (per outside-voice D16). Off by default; flip
+// VITE_BILLS_SHOW_SPONSOR_FILTER=true in Vercel to enable.
+const SHOW_SPONSOR_FILTER = import.meta.env.VITE_BILLS_SHOW_SPONSOR_FILTER === 'true'
+
+// Fire-and-forget engagement counter. Failures silently ignored — the user
+// must never wait on telemetry.
+function bumpMetric(name) {
+  try {
+    fetch('/api/metrics/inc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ metric_name: name }),
+      keepalive: true,
+    }).catch(() => {})
+  } catch (_) {
+    /* no-op */
+  }
+}
 
 function BillsPage() {
   const navigate = useNavigate()
@@ -16,14 +36,19 @@ function BillsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [congressFilter, setCongressFilter] = useState('119')
   const [billTypeFilter, setBillTypeFilter] = useState('all')
+  const [sponsorFilter, setSponsorFilter] = useState(null)        // { bioguideId, name, party, state } | null
+  const [cosponsorFilter, setCosponsorFilter] = useState(null)
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
   // Tracks whether the bills array is currently search results vs the Congress.gov
-  // browse listing. Toggles only on crossing the 2-char threshold so typing
-  // additional letters within search mode never re-fires the browse effect.
-  const isSearching = searchTerm.trim().length >= 2
+  // browse listing. Toggles when there's free-text search OR an active sponsor/cosponsor
+  // filter — both modes hit Supabase, not the live Congress.gov list.
+  const isSearching =
+    searchTerm.trim().length >= 2 ||
+    sponsorFilter != null ||
+    cosponsorFilter != null
 
   useEffect(() => {
     getTrendingBills().then(setTrendingBills).catch(() => {})
@@ -31,18 +56,15 @@ function BillsPage() {
 
   const LIMIT = 20
 
-  // Browse mode — initial load, filter changes, and when search is cleared
-  // (isSearching transitions true → false). searchTerm itself is intentionally
-  // NOT in the deps: typing a single character or two within search mode must
-  // not trigger a full Congress.gov re-fetch.
+  // Browse mode — initial load and filter changes when no Supabase-filter
+  // (sponsor, cosponsor, free-text search) is active.
   useEffect(() => {
     if (isSearching) return
     fetchBills(true)
   }, [congressFilter, billTypeFilter, isSearching])
 
-  // Search mode — debounce 300 ms, then query the bills table. No full-page
-  // loader; results swap into place when they arrive so each keystroke feels
-  // incremental, not like a page reload.
+  // Search mode — debounce 300 ms, then query the bills table. Triggers on
+  // free-text search OR sponsor/cosponsor selection change.
   useEffect(() => {
     if (!isSearching) return
     const term = searchTerm.trim()
@@ -54,6 +76,8 @@ function BillsPage() {
           query: term,
           congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
           billType: billTypeFilter !== 'all' ? billTypeFilter : null,
+          sponsorBioguideId: sponsorFilter?.bioguideId || null,
+          cosponsorBioguideId: cosponsorFilter?.bioguideId || null,
           limit: 100,
         })
         setBills(results)
@@ -68,7 +92,7 @@ function BillsPage() {
       }
     }, 300)
     return () => clearTimeout(handle)
-  }, [searchTerm, congressFilter, billTypeFilter, isSearching])
+  }, [searchTerm, congressFilter, billTypeFilter, sponsorFilter, cosponsorFilter, isSearching])
 
   const fetchBills = async (reset = false) => {
     try {
@@ -221,6 +245,28 @@ function BillsPage() {
           <option value="hres">House Resolutions</option>
           <option value="sres">Senate Resolutions</option>
         </select>
+        {SHOW_SPONSOR_FILTER && (
+          <>
+            <SponsorFilterPill
+              label="Sponsored by"
+              selected={sponsorFilter}
+              onChange={(p) => {
+                setSponsorFilter(p)
+                if (p) bumpMetric('sponsor_filter_used')
+              }}
+              ariaLabel="Filter by sponsor"
+            />
+            <SponsorFilterPill
+              label="Cosponsored by"
+              selected={cosponsorFilter}
+              onChange={(p) => {
+                setCosponsorFilter(p)
+                if (p) bumpMetric('sponsor_filter_used')
+              }}
+              ariaLabel="Filter by cosponsor"
+            />
+          </>
+        )}
       </div>
 
       {trendingBills.length > 0 && (
@@ -245,6 +291,16 @@ function BillsPage() {
         <div className="bills-count">
           Showing <strong>{filteredBills.length.toLocaleString()}</strong> bill{filteredBills.length !== 1 ? 's' : ''}
           {searchTerm && <span className="bills-count-filter"> matching "{searchTerm}"</span>}
+          {sponsorFilter && (
+            <span className="bills-count-filter">
+              <em> sponsored by</em> <strong>{sponsorFilter.name}</strong>
+            </span>
+          )}
+          {cosponsorFilter && (
+            <span className="bills-count-filter">
+              <em> cosponsored by</em> <strong>{cosponsorFilter.name}</strong>
+            </span>
+          )}
           {searching && <span className="bills-count-filter"> · searching…</span>}
         </div>
       </div>
@@ -280,6 +336,8 @@ function BillsPage() {
             setSearchTerm('')
             setCongressFilter('119')
             setBillTypeFilter('all')
+            setSponsorFilter(null)
+            setCosponsorFilter(null)
           }}>Reset filters</button>
         </div>
       )}

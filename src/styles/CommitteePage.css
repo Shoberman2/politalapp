@@ -1,0 +1,210 @@
+/* CommitteePage — /committee/:code
+   IA per design-review D1. All tokens from DESIGN.md. */
+
+.committee-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.committee-crumb {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+  margin-bottom: 24px;
+}
+.committee-crumb a {
+  color: var(--accent, #1D4ED8);
+  text-decoration: none;
+}
+.committee-crumb a:hover { text-decoration: underline; }
+.committee-crumb-sep {
+  margin: 0 8px;
+  color: var(--text-muted, #9C9789);
+}
+
+/* MASTHEAD */
+.committee-masthead {
+  margin-bottom: 40px;
+}
+
+.committee-kicker {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-secondary, #6B6861);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.committee-title {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.15;
+  color: var(--text-primary, #1A1A18);
+  margin: 0 0 16px;
+}
+.committee-title em { font-style: italic; }
+
+.committee-deck {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--text-secondary, #6B6861);
+  margin: 0 0 16px;
+  max-width: 720px;
+}
+
+.committee-stats {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 13px;
+  color: var(--text-primary, #1A1A18);
+}
+.committee-stats-sep {
+  margin: 0 6px;
+  color: var(--text-muted, #9C9789);
+}
+.committee-stats-insufficient {
+  font-style: italic;
+  color: var(--text-secondary, #6B6861);
+}
+
+.committee-rule {
+  border: 0;
+  border-top: 1px solid var(--border, #E8E6E1);
+  margin: 40px 0;
+}
+
+/* SECTIONS */
+.committee-section {
+  margin: 0 0 16px;
+}
+
+.committee-section-title {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--text-primary, #1A1A18);
+  margin: 0 0 8px;
+}
+.committee-section-title em { font-style: italic; }
+
+.committee-section-subtitle {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+  margin: 0 0 24px;
+}
+
+.committee-loading,
+.committee-empty {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  color: var(--text-secondary, #6B6861);
+  padding: 16px 0;
+}
+.committee-error { color: #DC2626; }
+
+.committee-link-button {
+  background: transparent;
+  border: 0;
+  color: var(--accent, #1D4ED8);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+/* Bills list */
+.committee-bills-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .committee-bills-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
+  }
+}
+
+.committee-bill-row {
+  border-bottom: 1px solid var(--border-light, #F0EEEA);
+  padding-bottom: 12px;
+}
+
+.committee-bill-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+.committee-bill-link:hover .committee-bill-title {
+  color: var(--accent, #1D4ED8);
+}
+
+.committee-bill-id {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  color: var(--text-secondary, #6B6861);
+}
+
+.committee-bill-title {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1A1A18);
+  line-height: 1.35;
+}
+
+.committee-bill-sponsor {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 12px;
+  color: var(--text-secondary, #6B6861);
+}
+
+.committee-bill-party {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 2px;
+}
+
+/* Historical activity */
+.committee-historical {
+  margin: 0;
+}
+.committee-historical-row {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light, #F0EEEA);
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 13px;
+}
+.committee-historical-row dt {
+  flex: 0 0 80px;
+  color: var(--text-secondary, #6B6861);
+}
+.committee-historical-row dd {
+  margin: 0;
+  color: var(--text-primary, #1A1A18);
+}
+
+.committee-methodology-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 13px;
+  color: var(--accent, #1D4ED8);
+  text-decoration: underline;
+}

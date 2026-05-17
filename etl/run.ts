@@ -174,18 +174,28 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
       for (const bill of intro.bills) {
         const existing = transformedData.bills.get(bill.id);
         if (existing) {
-          // Vote-derived bill already present; only fill in fields the vote
-          // path couldn't supply.
+          // Vote-derived bill already present; merge sponsor + stage onto it.
           transformedData.bills.set(bill.id, {
             ...existing,
             title: existing.title || bill.title,
             introduced_at: existing.introduced_at || bill.introduced_at,
             policy_area: existing.policy_area || bill.policy_area,
+            sponsor_bioguide_id: bill.sponsor_bioguide_id ?? existing.sponsor_bioguide_id ?? null,
+            sponsor_name: bill.sponsor_name ?? existing.sponsor_name ?? null,
+            sponsor_party: bill.sponsor_party ?? existing.sponsor_party ?? null,
+            sponsor_state: bill.sponsor_state ?? existing.sponsor_state ?? null,
+            legislative_stage: bill.legislative_stage ?? existing.legislative_stage ?? null,
           });
         } else {
           transformedData.bills.set(bill.id, bill);
         }
       }
+      // Attach routings/cosponsors/unknown codes to the transformed payload.
+      // load.ts persists them in strict order (after bills upsert) per FK requirement.
+      transformedData.billCommitteeRoutings = intro.routings;
+      transformedData.billCosponsors = intro.cosponsors;
+      transformedData.unknownCommitteeCodes = intro.unknownCommitteeCodes;
+
       logger.info('Introduced bills merged', intro.stats);
       if (intro.stats.errors.length > 0) {
         result.errors.push(...intro.stats.errors.slice(0, 5));

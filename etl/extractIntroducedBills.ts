@@ -19,7 +19,12 @@
  * are logged but not fatal — the vote pipeline must not regress if this fails.
  */
 
-import type { Bill, ETLConfig } from './types.js';
+import type {
+  Bill,
+  BillCommitteeRouting,
+  BillCosponsor,
+  ETLConfig,
+} from './types.js';
 import {
   fetchCongressApi,
   generateBillId,
@@ -27,6 +32,8 @@ import {
   logger,
   retry,
 } from './utils.js';
+import { deriveLegislativeStage } from '../shared/legislativeStage.js';
+import { lookupCommittee } from './data/committees.js';
 
 // =============================================================================
 // CONFIG
@@ -72,6 +79,40 @@ interface BillListResponse {
   pagination?: { count?: number; next?: string };
 }
 
+interface SponsorItem {
+  bioguideId?: string;
+  fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  party?: string;
+  state?: string;
+  district?: number;
+}
+
+interface CommitteeActivity {
+  name?: string;
+  date?: string;
+}
+
+interface CommitteeItem {
+  systemCode?: string;
+  name?: string;
+  chamber?: string;
+  type?: string;
+  activities?: CommitteeActivity[];
+  subcommittees?: Array<{
+    systemCode?: string;
+    name?: string;
+    activities?: CommitteeActivity[];
+  }>;
+}
+
+interface CosponsorItem {
+  bioguideId?: string;
+  sponsorshipDate?: string;
+  sponsorshipWithdrawnDate?: string;
+}
+
 interface BillDetailResponse {
   bill?: {
     congress: number;
@@ -82,18 +123,45 @@ interface BillDetailResponse {
     updateDate?: string;
     policyArea?: { name?: string };
     latestAction?: { actionDate?: string; text?: string };
+    sponsors?: SponsorItem[];
+    committees?: { count?: number; url?: string };
+    cosponsors?: { count?: number; url?: string };
   };
+}
+
+interface BillCommitteesResponse {
+  committees?: CommitteeItem[];
+}
+
+interface BillCosponsorsResponse {
+  cosponsors?: CosponsorItem[];
 }
 
 export interface IntroducedBillsResult {
   bills: Bill[];
+  routings: BillCommitteeRouting[];
+  cosponsors: BillCosponsor[];
+  unknownCommitteeCodes: Array<{ committee_code: string; subcommittee_code: string | null }>;
   stats: {
     listed: number;
     unique: number;
     detailed: number;
     emitted: number;
+    routingsEmitted: number;
+    cosponsorsEmitted: number;
     errors: string[];
   };
+}
+
+// Map a Congress.gov committee "activity" name to our activity_type enum.
+function mapActivityType(activityName: string | undefined | null): string {
+  if (!activityName) return 'referred_to';
+  const lower = activityName.toLowerCase();
+  if (lower.includes('reported')) return 'reported_by';
+  if (lower.includes('discharged')) return 'discharged_from';
+  if (lower.includes('markup')) return 'markup';
+  if (lower.includes('consideration')) return 'committee_consideration';
+  return 'referred_to';
 }
 
 // =============================================================================
@@ -108,8 +176,13 @@ export async function extractIntroducedBills(
     unique: 0,
     detailed: 0,
     emitted: 0,
+    routingsEmitted: 0,
+    cosponsorsEmitted: 0,
     errors: [] as string[],
   };
+  const routings: BillCommitteeRouting[] = [];
+  const cosponsors: BillCosponsor[] = [];
+  const unknownCommitteeCodes = new Map<string, { committee_code: string; subcommittee_code: string | null }>();
 
   const congress = getCurrentCongress();
   const { fromDateTime, toDateTime } = getDateTimeRange(DAYS_BACK);
@@ -179,6 +252,9 @@ export async function extractIntroducedBills(
     let title: string | null = listItem.title?.trim() || null;
     let introducedAt: string | null = null;
     let policyArea: string | null = null;
+    let sponsor: SponsorItem | null = null;
+    let billCommittees: CommitteeItem[] | null = null;
+    let billCosponsors: CosponsorItem[] | null = null;
 
     if (detailBudget > 0) {
       detailBudget--;
@@ -194,6 +270,7 @@ export async function extractIntroducedBills(
           title = d.title?.trim() || title;
           introducedAt = d.introducedDate ?? null;
           policyArea = d.policyArea?.name?.trim() || null;
+          sponsor = d.sponsors?.[0] || null;
           stats.detailed++;
         }
       } catch (err) {
@@ -202,11 +279,41 @@ export async function extractIntroducedBills(
         logger.debug(`Detail fetch failed for ${id}: ${message}`);
         if (stats.errors.length < 20) stats.errors.push(`detail ${id}: ${message}`);
       }
+
+      // Sub-fetches: committees and cosponsors. Each is a separate Congress.gov
+      // call but cheap (one HTTP each). Failures are non-fatal — we keep the bill
+      // with whatever data we got. Skipped when detail budget already exhausted.
+      try {
+        const committeesRes = await retry(() =>
+          fetchCongressApi<BillCommitteesResponse>(
+            `/bill/${congressNum}/${typeLower}/${number}/committees`,
+            config.congressApiKey
+          )
+        );
+        billCommittees = committeesRes.committees ?? [];
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.debug(`Committees fetch failed for ${id}: ${message}`);
+      }
+
+      try {
+        const cospRes = await retry(() =>
+          fetchCongressApi<BillCosponsorsResponse>(
+            `/bill/${congressNum}/${typeLower}/${number}/cosponsors`,
+            config.congressApiKey
+          )
+        );
+        billCosponsors = cospRes.cosponsors ?? [];
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.debug(`Cosponsors fetch failed for ${id}: ${message}`);
+      }
     } else {
       skippedForBudget++;
     }
 
     // Fallbacks if detail was skipped or returned nothing useful.
+    const latestActionText = listItem.latestAction?.text ?? null;
     if (!introducedAt) {
       introducedAt =
         listItem.latestAction?.actionDate ??
@@ -224,8 +331,98 @@ export async function extractIntroducedBills(
       crs_summary: null,
       policy_area: policyArea,
       source_url: getBillSourceUrl(congressNum, typeLower, number),
+      // Sponsor cols populated only when detail-fetch succeeded.
+      sponsor_bioguide_id: sponsor?.bioguideId ?? null,
+      sponsor_name:
+        sponsor?.fullName ??
+        (sponsor?.firstName || sponsor?.lastName
+          ? `${sponsor.firstName ?? ''} ${sponsor.lastName ?? ''}`.trim()
+          : null),
+      sponsor_party: sponsor?.party ?? null,
+      sponsor_state: sponsor?.state ?? null,
+      // Stage derived from latestAction text — single source of truth via shared util.
+      legislative_stage: deriveLegislativeStage(latestActionText),
     });
     stats.emitted++;
+
+    // Flatten committees + subcommittees into one routing row per (bill, committee, subcommittee).
+    if (billCommittees) {
+      for (const c of billCommittees) {
+        const committeeCode = c.systemCode?.toUpperCase() ?? null;
+        if (!committeeCode) continue;
+        const firstActivity = c.activities?.[0];
+        const referredAt = firstActivity?.date ?? null;
+        const activityType = mapActivityType(firstActivity?.name);
+
+        // Glossary lookup: if missing, log to unknown_committee_codes for quarterly review.
+        if (!lookupCommittee(committeeCode)) {
+          if (!unknownCommitteeCodes.has(committeeCode)) {
+            unknownCommitteeCodes.set(committeeCode, {
+              committee_code: committeeCode,
+              subcommittee_code: null,
+            });
+          }
+        }
+
+        const subs = c.subcommittees ?? [];
+        if (subs.length === 0) {
+          routings.push({
+            bill_id: id,
+            committee_code: committeeCode,
+            committee_name: c.name ?? null,
+            subcommittee_code: null,
+            subcommittee_name: null,
+            chamber: c.chamber ?? null,
+            referred_at: referredAt,
+            activity_type: activityType,
+          });
+          stats.routingsEmitted++;
+        } else {
+          for (const s of subs) {
+            const subCode = s.systemCode?.toUpperCase() ?? null;
+            const subFirstAct = s.activities?.[0];
+            const subReferredAt = subFirstAct?.date ?? referredAt;
+            const subActivityType = mapActivityType(subFirstAct?.name);
+
+            if (subCode && !lookupCommittee(subCode)) {
+              const key = `${committeeCode}:${subCode}`;
+              if (!unknownCommitteeCodes.has(key)) {
+                unknownCommitteeCodes.set(key, {
+                  committee_code: committeeCode,
+                  subcommittee_code: subCode,
+                });
+              }
+            }
+
+            routings.push({
+              bill_id: id,
+              committee_code: committeeCode,
+              committee_name: c.name ?? null,
+              subcommittee_code: subCode,
+              subcommittee_name: s.name ?? null,
+              chamber: c.chamber ?? null,
+              referred_at: subReferredAt,
+              activity_type: subActivityType,
+            });
+            stats.routingsEmitted++;
+          }
+        }
+      }
+    }
+
+    // Cosponsors — one row per (bill, member).
+    if (billCosponsors) {
+      for (const cs of billCosponsors) {
+        if (!cs.bioguideId) continue;
+        cosponsors.push({
+          bill_id: id,
+          bioguide_id: cs.bioguideId,
+          cosponsored_at: cs.sponsorshipDate ?? null,
+          withdrawn_at: cs.sponsorshipWithdrawnDate ?? null,
+        });
+        stats.cosponsorsEmitted++;
+      }
+    }
   }
 
   if (skippedForBudget > 0) {
@@ -235,10 +432,21 @@ export async function extractIntroducedBills(
   }
 
   logger.info(
-    `Introduced-bills phase complete: ${stats.emitted} bills emitted (${stats.detailed} detailed)`
+    `Introduced-bills phase complete: ${stats.emitted} bills, ${stats.routingsEmitted} routings, ${stats.cosponsorsEmitted} cosponsors (${stats.detailed} detailed)`
   );
+  if (unknownCommitteeCodes.size > 0) {
+    logger.warn(
+      `Encountered ${unknownCommitteeCodes.size} unknown committee codes — will be logged to unknown_committee_codes for quarterly review`
+    );
+  }
 
-  return { bills, stats };
+  return {
+    bills,
+    routings,
+    cosponsors,
+    unknownCommitteeCodes: Array.from(unknownCommitteeCodes.values()),
+    stats,
+  };
 }
 
 // =============================================================================

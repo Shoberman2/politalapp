@@ -74,3 +74,27 @@
 **Blocked by:** Daily Kos Elections publishing new data (typically December of election years) AND the static data becoming stale enough to cause wrong "district mismatch" flags
 **Context:** `src/data/districtLean2024.js` and `src/data/stateLean2024.js` were imported from Daily Kos Elections 2024 presidential-by-CD data. The "district-lean mismatch" dimension of the voting-pattern analysis (shipped 2026-04-17) uses these to detect when a rep voted against their district's partisan lean. Redistricting, special elections, and partisan drift will slowly decay accuracy starting around 2027. Likely fine until 2028 elections publish fresh data.
 **What to do:** When 2028 or 2030 data is available: download the latest Daily Kos spreadsheet (CC BY-SA 4.0), regenerate the two JS files, bump the classifier's cache `schemaVersion` so in-flight caches recompute. Update attribution in UI methodology modal.
+
+## Quarterly committee glossary review
+**Priority:** P3 (Low)
+**Blocked by:** First quarter after the bills-sponsor-and-routing PR ships
+**Context:** From 2026-05-16 CEO review of the sponsor-search + legislative-path explainer. The new `etl/data/committees.ts` glossary is a hand-curated ~160-entry map of committees + subcommittees to one-sentence "what they do" glosses. Subcommittees rename, reorganize, and split every Congress. The runtime `unknown_committee_codes` table catches new codes encountered in the wild — but only quarterly review keeps the existing entries accurate.
+**What to do:** Once per quarter: (1) `SELECT * FROM unknown_committee_codes ORDER BY occurrence_count DESC` — add the top entries to `committees.ts`. (2) Diff `committees.ts` against current House Rule X and Senate Rule XXV jurisdictions; update glosses that no longer match. (3) Confirm subcommittee codes are still valid; mark renamed ones. (4) Bump `methodology_version` on `committee_survival_stats` if the primary-committee attribution rules changed. Effort: human ~1 hour / CC ~10 min.
+
+## Sponsor leaderboard page
+**Priority:** P3 (Low)
+**Blocked by:** Bills-sponsor-and-routing PR shipping (creates the `bills.sponsor_bioguide_id` data this depends on)
+**Context:** Deferred from 2026-05-16 CEO review. Once sponsor data is persisted, a "top 10 most active sponsors on healthcare / defense / etc." page becomes possible. Helps non-expert users discover whose voices matter most on a topic they care about. Aggregates the per-rep sponsor counts (already on PoliticianDetail via D6) into a topic-pivoted leaderboard. Methodology disclosure required (bill count is a notoriously gamed metric — see [[sponsor-count-attackability]]).
+**What to do:** New `/sponsors` page or extension to `/all`. Group `bills` by `policy_area` + `sponsor_bioguide_id`; rank by count. Include the same "median + methodology disclosure" framing from the sponsor activity badge (no percentile, no "effectiveness" implication). Effort: human ~3 days / CC ~30 min.
+
+## Subscribe-to-sponsor notifications
+**Priority:** P3 (Low)
+**Blocked by:** Bills-sponsor-and-routing PR shipping AND any auth-tied notification primitive
+**Context:** Deferred from 2026-05-16 CEO review. Users who care about a specific rep would value "notify me when Senator X introduces a new bill." Reuses the daily ETL detection of new bills + the sponsor data. Needs: an email-send primitive (Resend or Supabase Edge Function), a `sponsor_subscriptions(user_id, bioguide_id)` table, daily diff of new bills per subscribed sponsor. RSS feed alternative for users who don't want email.
+**What to do:** Pick channel (email vs RSS vs both). Build the subscription table + UI on PoliticianDetail. Hook the daily ETL to emit notifications for new sponsored bills per subscriber. Effort: human ~1 week / CC ~2 hours.
+
+## Phase 2 — full fate predictor (Approach C)
+**Priority:** P2 (Medium)
+**Blocked by:** Bills-sponsor-and-routing PR shipping AND enough live engagement data to know whether the survival-stat pill resonates (track via `feature_metrics.survival_pill_opened`)
+**Context:** Deferred from 2026-05-16 CEO review per outside-voice tension D14. The bills-sponsor-and-routing PR ships a "taste" of fate prediction via the per-primary-committee survival stat on the status pill hover. Approach C is the full version: combine committee survival × sponsor track record × cosponsor breadth × amendment activity × time-since-referral into a single calibrated "% chance of advancing" forecast. The most attackable feature in the whole product if done badly. Needs methodology paper.
+**What to do:** (1) Wait for engagement data on the survival pill (Q3 2026 likely). (2) If signal is strong, write a methodology white paper before code: feature engineering, train/test split (predict 119th from 117th+118th), calibration plot, comparison vs GovTrack prognosis. (3) Build the predictor as a periodically-recomputed score in a new `bill_predictions(bill_id, p_advance, model_version, computed_at)` table. (4) UI: replace the single-stat pill hover with a full "Forecast" subsection on BillDetail. Effort: human ~4-6 weeks / CC ~4-6 hours. Strong eval suite + bias audit mandatory.

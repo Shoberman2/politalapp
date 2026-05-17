@@ -1,0 +1,162 @@
+/* SponsorFilterPill — inline dropdown filter for selecting a sponsor or
+   cosponsor. Per design-review D2 + Pass 5 token table. Reuses
+   .bills-filter-pill base; this file layers the dropdown chrome + states. */
+
+.sponsor-pill-container {
+  position: relative;
+  display: inline-block;
+}
+
+.sponsor-pill {
+  cursor: pointer;
+  /* Min 44px tap area for touch accessibility (Pass 6). */
+  min-height: 44px;
+}
+
+.sponsor-pill-active {
+  background: #EFF6FF;
+  border-color: #1D4ED8;
+}
+
+.sponsor-pill-label {
+  color: var(--text-secondary, #6B6861);
+  font-weight: 400;
+}
+
+.sponsor-pill-name {
+  color: var(--text-primary, #1A1A18);
+  font-weight: 500;
+}
+
+.sponsor-pill-placeholder {
+  color: var(--text-primary, #1A1A18);
+  font-weight: 500;
+}
+
+.sponsor-pill-clear {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  color: var(--text-secondary, #6B6861);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  user-select: none;
+}
+.sponsor-pill-clear:hover {
+  color: var(--text-primary, #1A1A18);
+  background: var(--border-light, #F0EEEA);
+}
+
+/* Dropdown chrome */
+.sponsor-pill-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+  /* Minimal-functional motion per DESIGN.md */
+  animation: sponsor-pill-fade-in 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sponsor-pill-dropdown { animation: none; }
+}
+@keyframes sponsor-pill-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sponsor-pill-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 1px solid #E8E6E1;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  color: var(--text-primary, #1A1A18);
+  background: transparent;
+  outline: none;
+  box-sizing: border-box;
+}
+.sponsor-pill-input::placeholder {
+  color: var(--text-muted, #9C9789);
+}
+
+.sponsor-pill-listbox {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.sponsor-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 40px;
+  cursor: pointer;
+  transition: background 100ms ease-out;
+  border-left: 2px solid transparent;
+}
+.sponsor-pill-row:hover {
+  background: var(--bg, #FAFAF7);
+}
+.sponsor-pill-row-focused {
+  background: var(--bg, #FAFAF7);
+  border-left-color: #1D4ED8;
+}
+
+.sponsor-pill-row-name {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1A1A18);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sponsor-pill-row-party {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.sponsor-pill-row-state {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 12px;
+  color: var(--text-secondary, #6B6861);
+}
+
+/* Non-selectable rows: loading, empty, error */
+.sponsor-pill-loading,
+.sponsor-pill-empty,
+.sponsor-pill-error {
+  cursor: default;
+  font-style: italic;
+  color: var(--text-secondary, #6B6861);
+  font-size: 13px;
+}
+.sponsor-pill-loading:hover,
+.sponsor-pill-empty:hover,
+.sponsor-pill-error:hover {
+  background: transparent;
+}
+.sponsor-pill-error {
+  color: #DC2626;
+  font-style: normal;
+}
+
+.sponsor-pill-loading-text {
+  font-style: italic;
+}

@@ -27,6 +27,38 @@ export interface Bill {
   crs_summary: string | null; // Official CRS summary from Congress.gov
   policy_area: string | null; // e.g., "Healthcare", "Defense", from Congress.gov policyArea
   source_url: string;
+  // Sponsor enrichment (migration 006). Optional so older callers compile.
+  sponsor_bioguide_id?: string | null;
+  sponsor_name?: string | null;
+  sponsor_party?: string | null;
+  sponsor_state?: string | null;
+  legislative_stage?: string | null; // see shared/legislativeStage.ts
+}
+
+/**
+ * One row per (bill, committee, subcommittee) referral.
+ * Persisted to bill_committee_routings.
+ */
+export interface BillCommitteeRouting {
+  bill_id: string;
+  committee_code: string;
+  committee_name: string | null;
+  subcommittee_code: string | null;
+  subcommittee_name: string | null;
+  chamber: string | null;
+  referred_at: string | null;        // ISO date
+  activity_type: string | null;      // referred_to | reported_by | discharged_from | committee_consideration | markup
+}
+
+/**
+ * One row per (bill, cosponsor).
+ * Persisted to bill_cosponsors.
+ */
+export interface BillCosponsor {
+  bill_id: string;
+  bioguide_id: string;
+  cosponsored_at: string | null;     // ISO date
+  withdrawn_at: string | null;       // ISO date (null while still active)
 }
 
 export interface Vote {
@@ -207,6 +239,12 @@ export interface TransformedData {
   bills: Map<string, Bill>;
   rollCalls: Map<string, RollCall>;
   votes: Vote[];
+  // Optional bill-enrichment data; emitted only by extractIntroducedBills.
+  // Persisted in strict order (bills → routings → cosponsors) per eng-review D19.
+  billCommitteeRoutings?: BillCommitteeRouting[];
+  billCosponsors?: BillCosponsor[];
+  // Unknown committee codes encountered during transform (logged ETL-only).
+  unknownCommitteeCodes?: Array<{ committee_code: string; subcommittee_code: string | null }>;
 }
 
 export interface LoadResult {
@@ -214,6 +252,9 @@ export interface LoadResult {
   billsUpserted: number;
   rollCallsUpserted: number;
   votesInserted: number;
+  billCommitteeRoutingsUpserted?: number;
+  billCosponsorsUpserted?: number;
+  unknownCommitteeCodesLogged?: number;
   errors: string[];
 }
 

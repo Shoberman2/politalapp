@@ -1,0 +1,223 @@
+/* BillRoutingPanel — "Where this bill goes" section + marginalia narrative
+   + smart status pill popover. All tokens pulled from DESIGN.md. */
+
+.bill-routing-section {
+  margin: 24px 0;
+}
+
+.bill-routing-empty {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+  margin: 0 0 16px;
+}
+
+.bill-routing-error {
+  color: #DC2626;
+  font-size: 13px;
+}
+
+.bill-routing-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.bill-routing-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-light, #F0EEEA);
+}
+.bill-routing-row:last-child {
+  border-bottom: none;
+}
+
+.bill-routing-row-main {
+  flex: 1;
+}
+
+.bill-routing-committee-name {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1A1A18);
+  text-decoration: none;
+}
+.bill-routing-committee-name:hover {
+  color: var(--accent, #1D4ED8);
+  text-decoration: underline;
+}
+
+.bill-routing-subcommittee {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+  margin-left: 12px;
+  margin-top: 2px;
+}
+
+.bill-routing-gloss {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.bill-routing-row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.bill-routing-activity {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--border-light, #F0EEEA);
+  color: var(--text-primary, #1A1A18);
+  border-radius: 3px;
+}
+
+.bill-routing-date {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  color: var(--text-secondary, #6B6861);
+}
+
+/* Marginalia — AI narrative block.
+   Per [[ai-marginalia-civic-tech]] learning + design-review exact CSS pin. */
+.bill-routing-marginalia {
+  display: block;
+  border-left: 3px solid var(--accent, #1D4ED8);
+  padding: 0 0 0 16px;
+  margin: 24px 0 0;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary, #1A1A18);
+}
+
+.bill-routing-marginalia-label {
+  display: block;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-secondary, #6B6861);
+  margin-bottom: 6px;
+}
+
+.bill-routing-marginalia-version {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-style: normal;
+  font-size: 11px;
+  color: var(--text-muted, #9C9789);
+}
+
+.bill-routing-marginalia .methodology-link {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--accent, #1D4ED8);
+  text-decoration: underline;
+}
+
+/* Smart status pill popover.
+   Per design-review Pass 4: NO gauges, NO ring progress, NO color gradients —
+   editorial popover only. */
+.bill-status-pill-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.bill-status-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 12px;
+  z-index: 60;
+  animation: bill-status-popover-in 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bill-status-popover { animation: none; }
+}
+@keyframes bill-status-popover-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bill-status-popover-dl {
+  margin: 0;
+}
+.bill-status-popover-dl dt,
+.bill-status-popover-dl dd {
+  margin: 0;
+}
+
+.bill-status-popover-committee {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1A1A18);
+  margin-bottom: 4px;
+}
+
+.bill-status-popover-pct {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1A1A18);
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.bill-status-popover-caption {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 12px;
+  color: var(--text-secondary, #6B6861);
+}
+
+.bill-status-popover-insufficient {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-secondary, #6B6861);
+}
+
+.bill-status-popover-rule {
+  border: 0;
+  border-top: 1px solid var(--border, #E8E6E1);
+  margin: 10px 0 8px;
+}
+
+.bill-status-popover-method {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 12px;
+  color: var(--accent, #1D4ED8);
+  text-decoration: underline;
+}
+
+/* Mobile: rather than reposition based on scroll, just allow the pill to
+   horizontally shift the popover to stay on screen. Most BillDetail pills
+   render near the top where bottom-anchored popovers fit naturally. */
+@media (max-width: 500px) {
+  .bill-status-popover {
+    left: auto;
+    right: 0;
+  }
+}

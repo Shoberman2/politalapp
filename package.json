@@ -11,8 +11,12 @@
     "etl:dry-run": "npx tsx etl/run.ts --dry-run",
     "etl:enrich": "npx tsx etl/run.ts --enrich-only",
     "etl:verbose": "npx tsx etl/run.ts --verbose",
+    "etl:backfill-sponsors": "npx tsx etl/backfillSponsorAndRoutings.ts --phase a",
+    "etl:backfill-historical-routings": "npx tsx etl/backfillSponsorAndRoutings.ts --phase b",
+    "etl:compute-survival": "npx tsx etl/computeCommitteeSurvival.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.7.0",

@@ -21,6 +21,12 @@ import DeveloperPortal from './components/DeveloperPortal'
 import ApiKeyManager from './components/ApiKeyManager'
 import UsageDashboard from './components/UsageDashboard'
 import ApiDocs from './components/ApiDocs'
+import CommitteePage from './components/CommitteePage'
+
+// Feature flag gates the /committee/:code route registration.
+// When false, requests fall through to the catch-all redirect to "/" — no
+// broken link surface for users on the unflagged build.
+const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
 
 function App() {
   const location = useLocation()
@@ -59,6 +65,11 @@ function App() {
           <Route path="/politician/:bioguideId" element={
             <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
           } />
+          {SHOW_ROUTING_PANEL && (
+            <Route path="/committee/:code" element={
+              <ProtectedRoute><CommitteePage /></ProtectedRoute>
+            } />
+          )}
           <Route path="/shutdown-tracker" element={
             <ProtectedRoute><ShutdownTracker /></ProtectedRoute>
           } />

@@ -59,10 +59,11 @@
   color: var(--text-muted);
 }
 
-/* SEARCH SHELL */
+/* SEARCH SHELL — flex layout with wrapping so any number of filter pills
+   (sponsor + cosponsor + future additions) lay out cleanly on mobile. */
 .bills-search-shell {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 12px;
   background: var(--surface);
@@ -71,6 +72,20 @@
   box-shadow: var(--shadow-sm);
   margin-bottom: 24px;
   align-items: center;
+}
+.bills-search-input-wrap {
+  flex: 1 1 240px;
+  min-width: 240px;
+}
+.bills-search-shell > .bills-filter-pill,
+.bills-search-shell > .sponsor-pill-container {
+  flex: 0 0 auto;
+}
+@media (max-width: 768px) {
+  .bills-search-shell > .sponsor-pill-container,
+  .bills-search-shell > .bills-filter-pill {
+    flex: 1 1 auto;
+  }
 }
 
 .bills-search-input-wrap {

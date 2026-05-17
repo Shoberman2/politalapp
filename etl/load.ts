@@ -18,6 +18,8 @@ import type {
   Bill,
   Vote,
   RollCall,
+  BillCommitteeRouting,
+  BillCosponsor,
   TransformedData,
   LoadResult,
   ETLConfig,
@@ -63,6 +65,9 @@ export async function loadToSupabase(
     billsUpserted: 0,
     rollCallsUpserted: 0,
     votesInserted: 0,
+    billCommitteeRoutingsUpserted: 0,
+    billCosponsorsUpserted: 0,
+    unknownCommitteeCodesLogged: 0,
     errors: [],
   };
 
@@ -72,6 +77,9 @@ export async function loadToSupabase(
     result.billsUpserted = data.bills.size;
     result.rollCallsUpserted = data.rollCalls.size;
     result.votesInserted = data.votes.length;
+    result.billCommitteeRoutingsUpserted = data.billCommitteeRoutings?.length ?? 0;
+    result.billCosponsorsUpserted = data.billCosponsors?.length ?? 0;
+    result.unknownCommitteeCodesLogged = data.unknownCommitteeCodes?.length ?? 0;
     return result;
   }
 
@@ -108,11 +116,38 @@ export async function loadToSupabase(
   result.votesInserted = voteResult.count;
   result.errors.push(...voteResult.errors);
 
+  // Bill enrichment (sponsor/routings/cosponsors) — strict order per eng-review D19.
+  // bills upsert above must complete BEFORE we touch routings or cosponsors,
+  // because both FK back to bills(id). The sequential awaits enforce this.
+  if (data.billCommitteeRoutings && data.billCommitteeRoutings.length > 0) {
+    logger.info(`Loading ${data.billCommitteeRoutings.length} bill_committee_routings...`);
+    const routingResult = await upsertBillCommitteeRoutings(supabase, data.billCommitteeRoutings);
+    result.billCommitteeRoutingsUpserted = routingResult.count;
+    result.errors.push(...routingResult.errors);
+  }
+
+  if (data.billCosponsors && data.billCosponsors.length > 0) {
+    logger.info(`Loading ${data.billCosponsors.length} bill_cosponsors...`);
+    const cospResult = await upsertBillCosponsors(supabase, data.billCosponsors);
+    result.billCosponsorsUpserted = cospResult.count;
+    result.errors.push(...cospResult.errors);
+  }
+
+  if (data.unknownCommitteeCodes && data.unknownCommitteeCodes.length > 0) {
+    logger.info(`Logging ${data.unknownCommitteeCodes.length} unknown committee codes...`);
+    const unkResult = await upsertUnknownCommitteeCodes(supabase, data.unknownCommitteeCodes);
+    result.unknownCommitteeCodesLogged = unkResult.count;
+    result.errors.push(...unkResult.errors);
+  }
+
   logger.info('Load complete', {
     politiciansUpserted: result.politiciansUpserted,
     billsUpserted: result.billsUpserted,
     rollCallsUpserted: result.rollCallsUpserted,
     votesInserted: result.votesInserted,
+    billCommitteeRoutingsUpserted: result.billCommitteeRoutingsUpserted,
+    billCosponsorsUpserted: result.billCosponsorsUpserted,
+    unknownCommitteeCodesLogged: result.unknownCommitteeCodesLogged,
     errorCount: result.errors.length,
   });
 
@@ -226,7 +261,9 @@ async function upsertBills(
         .upsert(
           batch.map((b) => {
             const existing = existingBills.get(b.id);
-            return {
+            // Build payload — only include sponsor cols when we have a value,
+            // so older rows whose detail fetch was skipped don't get null'd out.
+            const row: Record<string, unknown> = {
               id: b.id,
               title: b.title,
               introduced_at: b.introduced_at,
@@ -235,6 +272,12 @@ async function upsertBills(
               policy_area: b.policy_area || (existing as any)?.policy_area || null,
               source_url: b.source_url,
             };
+            if (b.sponsor_bioguide_id != null) row.sponsor_bioguide_id = b.sponsor_bioguide_id;
+            if (b.sponsor_name != null) row.sponsor_name = b.sponsor_name;
+            if (b.sponsor_party != null) row.sponsor_party = b.sponsor_party;
+            if (b.sponsor_state != null) row.sponsor_state = b.sponsor_state;
+            if (b.legislative_stage != null) row.legislative_stage = b.legislative_stage;
+            return row;
           }),
           {
             onConflict: 'id',
@@ -393,6 +436,185 @@ async function upsertVotes(
     }
   }
 
+  return result;
+}
+
+/**
+ * Upserts bill_committee_routings to Supabase.
+ *
+ * Primary key is (bill_id, committee_code, COALESCE(subcommittee_code, '')).
+ * Caller is responsible for ensuring bills are loaded FIRST (FK constraint).
+ */
+async function upsertBillCommitteeRoutings(
+  supabase: SupabaseClient,
+  routings: BillCommitteeRouting[]
+): Promise<LoadOperationResult> {
+  const result: LoadOperationResult = { count: 0, errors: [] };
+  if (routings.length === 0) return result;
+
+  const batches = chunk(routings, 100);
+  for (const batch of batches) {
+    try {
+      const { data, error } = await supabase
+        .from('bill_committee_routings')
+        .upsert(
+          batch.map((r) => ({
+            bill_id: r.bill_id,
+            committee_code: r.committee_code,
+            committee_name: r.committee_name,
+            subcommittee_code: r.subcommittee_code,
+            subcommittee_name: r.subcommittee_name,
+            chamber: r.chamber,
+            referred_at: r.referred_at,
+            activity_type: r.activity_type,
+            updated_at: new Date().toISOString(),
+          })),
+          {
+            // PK is composite (bill_id, committee_code, COALESCE(subcommittee_code, '')).
+            // Supabase upsert only accepts a comma-separated column list for
+            // onConflict; the COALESCE expression in the migration handles the null
+            // case at the DB level. We pass the three columns directly.
+            onConflict: 'bill_id,committee_code,subcommittee_code',
+            ignoreDuplicates: false,
+          }
+        )
+        .select();
+
+      if (error) {
+        if (error.code === '23503') {
+          result.errors.push(`Routings FK error (bills not loaded first?): ${error.message}`);
+          logger.error('Routings FK error', error);
+        } else {
+          result.errors.push(`Routings upsert error: ${error.message}`);
+          logger.error('Routings upsert error', error);
+        }
+      } else {
+        result.count += data?.length || batch.length;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Routings batch error: ${message}`);
+      logger.error('Routings batch error', error);
+    }
+  }
+  return result;
+}
+
+/**
+ * Upserts bill_cosponsors to Supabase.
+ *
+ * Primary key is (bill_id, bioguide_id). Caller ensures bills loaded first.
+ */
+async function upsertBillCosponsors(
+  supabase: SupabaseClient,
+  cosponsors: BillCosponsor[]
+): Promise<LoadOperationResult> {
+  const result: LoadOperationResult = { count: 0, errors: [] };
+  if (cosponsors.length === 0) return result;
+
+  const batches = chunk(cosponsors, 100);
+  for (const batch of batches) {
+    try {
+      const { data, error } = await supabase
+        .from('bill_cosponsors')
+        .upsert(
+          batch.map((c) => ({
+            bill_id: c.bill_id,
+            bioguide_id: c.bioguide_id,
+            cosponsored_at: c.cosponsored_at,
+            withdrawn_at: c.withdrawn_at,
+          })),
+          {
+            onConflict: 'bill_id,bioguide_id',
+            ignoreDuplicates: false,
+          }
+        )
+        .select();
+
+      if (error) {
+        if (error.code === '23503') {
+          result.errors.push(`Cosponsors FK error (bills not loaded first?): ${error.message}`);
+          logger.error('Cosponsors FK error', error);
+        } else {
+          result.errors.push(`Cosponsors upsert error: ${error.message}`);
+          logger.error('Cosponsors upsert error', error);
+        }
+      } else {
+        result.count += data?.length || batch.length;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`Cosponsors batch error: ${message}`);
+      logger.error('Cosponsors batch error', error);
+    }
+  }
+  return result;
+}
+
+/**
+ * Logs committee codes that aren't in our static glossary to
+ * unknown_committee_codes. Increments occurrence_count on conflict.
+ *
+ * Quarterly review picks up the top entries to add to committees.ts.
+ */
+async function upsertUnknownCommitteeCodes(
+  supabase: SupabaseClient,
+  codes: Array<{ committee_code: string; subcommittee_code: string | null }>
+): Promise<LoadOperationResult> {
+  const result: LoadOperationResult = { count: 0, errors: [] };
+  if (codes.length === 0) return result;
+
+  const now = new Date().toISOString();
+  // Try insert; on conflict bump last_seen_at + occurrence_count.
+  // Supabase JS doesn't have native "increment" via upsert payload, so we use
+  // an RPC-free approach: fetch existing, then insert OR update individually.
+  // At realistic volumes (a handful of unknowns per day) this is fine.
+  for (const code of codes) {
+    try {
+      const subKey = code.subcommittee_code ?? '';
+      const { data: existing } = await supabase
+        .from('unknown_committee_codes')
+        .select('occurrence_count')
+        .eq('committee_code', code.committee_code)
+        .filter('subcommittee_code', code.subcommittee_code == null ? 'is' : 'eq', code.subcommittee_code ?? null)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('unknown_committee_codes')
+          .update({
+            last_seen_at: now,
+            occurrence_count: ((existing as any).occurrence_count || 0) + 1,
+          })
+          .eq('committee_code', code.committee_code)
+          .filter('subcommittee_code', code.subcommittee_code == null ? 'is' : 'eq', code.subcommittee_code ?? null);
+        if (error) {
+          result.errors.push(`Unknown committee code update error (${code.committee_code}/${subKey}): ${error.message}`);
+        } else {
+          result.count++;
+        }
+      } else {
+        const { error } = await supabase
+          .from('unknown_committee_codes')
+          .insert({
+            committee_code: code.committee_code,
+            subcommittee_code: code.subcommittee_code,
+            first_seen_at: now,
+            last_seen_at: now,
+            occurrence_count: 1,
+          });
+        if (error) {
+          result.errors.push(`Unknown committee code insert error (${code.committee_code}/${subKey}): ${error.message}`);
+        } else {
+          result.count++;
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      result.errors.push(`Unknown committee codes batch error: ${message}`);
+      logger.error('Unknown committee codes batch error', err);
+    }
+  }
   return result;
 }
 

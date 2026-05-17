@@ -184,6 +184,29 @@ The platform includes an AI-powered feature to explain bills in plain language. 
 
 To integrate a real AI service, update the `explainBillWithAI` function in `src/services/congress.js`.
 
+## Feature Flags
+
+The bills sponsor + routing features ship behind two env-gated flags. Both
+default to `false`. Flip in Vercel env after the corresponding data lands.
+
+| Flag | Default | Enables |
+|------|---------|---------|
+| `VITE_BILLS_SHOW_SPONSOR_FILTER` | `false` | BillsPage sponsor + cosponsor filter pills, `searchBillsInDb` cosponsor join, sponsor activity badge on PoliticianDetail |
+| `VITE_BILLS_SHOW_ROUTING_PANEL` | `false` | "Where this bill goes" panel on BillDetail, smart status pill survival popover, `/committee/:code` route |
+
+Rollout sequence (per CEO review D10):
+
+1. Apply `supabase/migrations/006_bill_sponsor_and_routing.sql`.
+2. Deploy with both flags `false`.
+3. Run `npm run etl:backfill-sponsors` (Phase A — current Congress, ~5 min).
+4. Flip `VITE_BILLS_SHOW_ROUTING_PANEL=true`, redeploy, soak 24h.
+5. Flip `VITE_BILLS_SHOW_SPONSOR_FILTER=true`, redeploy.
+6. Run `npm run etl:backfill-historical-routings` (Phase B — 117th + 118th,
+   ~8 hours throttled; writes `backfill_state` sentinel so the survival cron
+   skips while in progress).
+7. Schedule `npm run etl:compute-survival` weekly — fills committee survival
+   stats once Phase B completes.
+
 ## Troubleshooting
 
 ### API Key Issues

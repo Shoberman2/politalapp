@@ -7,12 +7,12 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "..",
     "resolveJsonModule": true,
     "declaration": true,
     "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "../shared/**/*.ts", "../lib/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

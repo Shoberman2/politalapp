@@ -1,0 +1,111 @@
+/* MethodologyModal — anchor-driven shared modal for survival, narrative,
+   and sponsor methodology. Calibrated to DESIGN.md editorial direction. */
+
+.methodology-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 24, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+  animation: methodology-fade-in 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .methodology-overlay { animation: none; }
+}
+@keyframes methodology-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.methodology-modal {
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  padding: 40px 36px 36px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  outline: none;
+}
+
+.methodology-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: 0;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  color: var(--text-secondary, #6B6861);
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+}
+.methodology-close:hover {
+  color: var(--text-primary, #1A1A18);
+  background: var(--bg, #FAFAF7);
+}
+
+.methodology-title {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-weight: 400;
+  font-size: 28px;
+  color: var(--text-primary, #1A1A18);
+  margin: 0 0 16px;
+}
+.methodology-title em {
+  font-style: italic;
+}
+
+.methodology-section {
+  margin: 0 0 32px;
+  padding: 0;
+  scroll-margin-top: 16px;
+}
+.methodology-section:last-child {
+  margin-bottom: 0;
+}
+.methodology-section-active {
+  /* Pale-blue background so the anchor the user clicked is visually
+     highlighted on open — saves them scrolling/scanning. */
+  background: #EFF6FF;
+  border-left: 3px solid var(--accent, #1D4ED8);
+  padding: 12px 16px;
+  border-radius: 4px;
+}
+
+.methodology-h3 {
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--text-primary, #1A1A18);
+  margin: 0 0 12px;
+}
+
+.methodology-section p {
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-primary, #1A1A18);
+  margin: 0 0 12px;
+}
+
+.methodology-version {
+  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-size: 12px;
+  color: var(--text-muted, #9C9789);
+  margin-top: 8px;
+}
+.methodology-version code {
+  background: var(--border-light, #F0EEEA);
+  padding: 1px 4px;
+  border-radius: 3px;
+}

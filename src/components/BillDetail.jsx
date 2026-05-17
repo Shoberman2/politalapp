@@ -4,7 +4,14 @@ import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBill
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
+import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
+import MethodologyModal from './MethodologyModal'
 import '../styles/BillDetail.css'
+
+// Feature flag (per outside-voice D16). Off by default. Gates:
+//  - "Where this bill goes" section
+//  - Smart status pill survival popover (default pill stays a plain label)
+const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
 
 function BillDetail() {
   const { congress, billType, number } = useParams()
@@ -25,6 +32,7 @@ function BillDetail() {
   const [aiExplanation, setAiExplanation] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [shareLabel, setShareLabel] = useState('Share ↗')
+  const [methodologyAnchor, setMethodologyAnchor] = useState(null)
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/s/bill/${congress}/${billType}/${number}`
@@ -205,9 +213,20 @@ function BillDetail() {
         <div className="bill-id-row">
           <span className="bill-masthead-id">{formatBillId(bill, billType, number)}</span>
           <span className="bill-masthead-congress">{congress}th Congress</span>
-          <span className={`bill-status-pill ${status.cls}`}>
-            <span className="bill-status-pill-dot"></span>{status.label}
-          </span>
+          {SHOW_ROUTING_PANEL && committees.length > 0 ? (
+            <StatusPillWithSurvival
+              status={status}
+              billId={`${congress}-${billType.toLowerCase()}-${number}`}
+              congress={parseInt(congress, 10)}
+              primaryCommitteeCode={committees[0]?.systemCode || committees[0]?.code}
+              primaryCommitteeName={committees[0]?.name}
+              onOpenMethodology={setMethodologyAnchor}
+            />
+          ) : (
+            <span className={`bill-status-pill ${status.cls}`}>
+              <span className="bill-status-pill-dot"></span>{status.label}
+            </span>
+          )}
         </div>
         <h1 className="bill-masthead-title">{displayTitle}</h1>
         <p className="bill-masthead-byline">
@@ -270,6 +289,14 @@ function BillDetail() {
               <summary>Show official Congress.gov summary</summary>
               <div className="bill-summary-body" dangerouslySetInnerHTML={{ __html: bill.summaries[0].text }} />
             </details>
+          )}
+
+          {/* "WHERE THIS BILL GOES" — routing panel + AI narrative (behind flag) */}
+          {SHOW_ROUTING_PANEL && (
+            <BillRoutingPanel
+              billId={`${congress}-${billType.toLowerCase()}-${number}`}
+              onOpenMethodology={setMethodologyAnchor}
+            />
           )}
 
           {/* VOTE TALLIES */}
@@ -404,7 +431,10 @@ function BillDetail() {
             </div>
           )}
 
-          {(committees.length > 0 || bill.committees?.count > 0) && (
+          {/* Flat committee list — only shown when the new routing panel is
+              OFF. When the flag is on, the richer "Where this bill goes"
+              section in the main column covers it. */}
+          {!SHOW_ROUTING_PANEL && (committees.length > 0 || bill.committees?.count > 0) && (
             <div className="bill-rail-card" id="committees-section">
               <h3 className="bill-rail-h3">
                 <InfoTip text="Committees are small groups of Congress members who specialize in specific topics. Bills are sent to relevant committees for detailed review before the full chamber votes.">Committees</InfoTip>
@@ -435,6 +465,14 @@ function BillDetail() {
           )}
         </aside>
       </div>
+
+      {/* Methodology modal — anchor-driven; opened by routing-panel /
+          status-popover "How we compute this" links. */}
+      <MethodologyModal
+        open={!!methodologyAnchor}
+        anchor={methodologyAnchor}
+        onClose={() => setMethodologyAnchor(null)}
+      />
     </div>
   )
 }

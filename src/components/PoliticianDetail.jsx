@@ -7,8 +7,13 @@ import { getMemberDashboardData } from '../services/supabaseVotes'
 import { InfoTip } from './Tooltip'
 import VoteDashboard from './VoteDashboard'
 import VotingPatternAnalysis from './VotingPatternAnalysis'
+import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
+
+// Same feature flag as the BillsPage filter pills — both surfaces depend on
+// the same sponsor data being persisted by migration 006 + Phase A backfill.
+const SHOW_SPONSOR_FILTER = import.meta.env.VITE_BILLS_SHOW_SPONSOR_FILTER === 'true'
 
 const STATE_NAMES = {
   AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
@@ -247,6 +252,9 @@ function PoliticianDetail() {
             {party && <span className={`pol-party-tag ${partyClass(party)}`}>{partyShort(party)}</span>}
           </h1>
           {standfirst && <p className="pol-standfirst">{standfirst}</p>}
+          {SHOW_SPONSOR_FILTER && bioguideId && (
+            <SponsorActivityBadge bioguideId={bioguideId} congress={currentTerm?.congress || 119} />
+          )}
           <dl className="pol-meta-grid">
             {chamber && (
               <>
