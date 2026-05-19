@@ -18,6 +18,15 @@ import { logger, sleep } from './utils.js';
 const MODEL = 'gpt-4o-mini';
 const PROMPT_VERSION = 2;
 const REQUEST_SPACING_MS = 500;
+// Single explain-bill call shouldn't take more than 60s — OpenAI generation
+// budget plus network. Anything longer is a stuck call that would otherwise
+// stall the whole pre-warm loop against the workflow's job timeout.
+const PER_BILL_TIMEOUT_MS = 60_000;
+const PROGRESS_LOG_EVERY = 25;
+// Stop pre-warming if the loop has been running for this long, even if the
+// candidate list isn't drained. Bills we skip get caught by the next day's
+// run (or lazy-loaded on first user view). Tunable via ETL_PREWARM_BUDGET_MS.
+const DEFAULT_BUDGET_MS = 20 * 60 * 1000;
 
 export interface PreWarmResult {
   scanned: number;
@@ -106,29 +115,42 @@ async function invokeExplainBill(
   if (!parsed) throw new Error(`Unparseable bill id: ${bill.id}`);
 
   const url = `${config.supabaseUrl}/functions/v1/explain-bill`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.supabaseServiceKey}`,
-      apikey: config.supabaseServiceKey,
-    },
-    body: JSON.stringify({
-      congress: parsed.congress,
-      billType: parsed.billType,
-      number: parsed.number,
-      title: bill.title,
-      summary: '',
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PER_BILL_TIMEOUT_MS);
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`explain-bill ${res.status}: ${text.slice(0, 200)}`);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.supabaseServiceKey}`,
+        apikey: config.supabaseServiceKey,
+      },
+      body: JSON.stringify({
+        congress: parsed.congress,
+        billType: parsed.billType,
+        number: parsed.number,
+        title: bill.title,
+        summary: '',
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`explain-bill ${res.status}: ${text.slice(0, 200)}`);
+    }
+
+    const body = await res.json();
+    return { cached: Boolean(body.cached) };
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(`explain-bill timeout after ${PER_BILL_TIMEOUT_MS / 1000}s`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const body = await res.json();
-  return { cached: Boolean(body.cached) };
 }
 
 export async function preWarmBillExplanations(
@@ -172,9 +194,22 @@ export async function preWarmBillExplanations(
     return result;
   }
 
-  logger.info(`Pre-warm: generating up to ${candidates.length} explanations`);
+  const budgetMs =
+    parseInt(process.env.ETL_PREWARM_BUDGET_MS || '', 10) || DEFAULT_BUDGET_MS;
+  const startedAt = Date.now();
+  logger.info(
+    `Pre-warm: generating up to ${candidates.length} explanations ` +
+    `(budget ${(budgetMs / 60000).toFixed(0)}m)`
+  );
 
   for (const bill of candidates) {
+    if (Date.now() - startedAt > budgetMs) {
+      logger.info(
+        `Pre-warm: budget exhausted after ${result.scanned} bills; ` +
+        `${candidates.length - result.scanned} skipped (will retry next run)`
+      );
+      break;
+    }
     result.scanned++;
     try {
       const { cached } = await invokeExplainBill(config, bill);
@@ -188,6 +223,12 @@ export async function preWarmBillExplanations(
       const message = err instanceof Error ? err.message : String(err);
       result.errors.push(`${bill.id}: ${message}`);
       logger.error(`Pre-warm failed for ${bill.id}`, err);
+    }
+    if (result.scanned % PROGRESS_LOG_EVERY === 0) {
+      logger.info(
+        `Pre-warm progress: ${result.scanned}/${candidates.length} (` +
+        `${result.generated} generated, ${result.cacheHits} cached, ${result.errors.length} errors)`
+      );
     }
     await sleep(REQUEST_SPACING_MS);
   }
