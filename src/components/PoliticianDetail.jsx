@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
-import { normalizeMemberImageUrl } from '../utils/memberImage'
+import { resolveMemberImageUrl } from '../utils/memberImage'
 import { getDonationsByPoliticianName, formatCurrency, getMoneyVotesCorrelation } from '../services/donations'
 import { getIndustryBreakdown, formatCurrency as formatCompact } from '../data/industryMap'
 import { getMemberDashboardData } from '../services/supabaseVotes'
@@ -150,7 +150,7 @@ function PoliticianDetail() {
     )
   }
 
-  const imageUrl = normalizeMemberImageUrl(member.depiction?.imageUrl)
+  const imageUrl = resolveMemberImageUrl(bioguideId, member.depiction?.imageUrl)
     || `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg`
   const currentTerm = getCurrentTerm(member.terms)
   const displayName = member.directOrderName || member.invertedOrderName || `${member.firstName} ${member.lastName}`

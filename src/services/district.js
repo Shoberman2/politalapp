@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { normalizeMemberImageUrl } from '../utils/memberImage'
+import { resolveMemberImageUrl } from '../utils/memberImage'
 
 // Congress.gov API
 const CONGRESS_API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
@@ -441,7 +441,7 @@ const normalizeMember = (member, chamber) => {
     party: member.partyName || term?.party,
     partyName: member.partyName || term?.party,
     chamber: chamber,
-    imageUrl: normalizeMemberImageUrl(member.depiction?.imageUrl),
+    imageUrl: resolveMemberImageUrl(member.bioguideId, member.depiction?.imageUrl),
     url: member.url || `https://www.congress.gov/member/${member.bioguideId}`
   }
 }
