@@ -53,9 +53,15 @@ CREATE TABLE IF NOT EXISTS bill_committee_routings (
   referred_at DATE,
   activity_type TEXT,            -- referred_to | reported_by | discharged_from | committee_consideration | markup
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (bill_id, committee_code, COALESCE(subcommittee_code, ''))
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Composite uniqueness over (bill, committee, subcommittee). subcommittee_code is
+-- nullable (most referrals have no subcommittee), so this index uses NULLS NOT
+-- DISTINCT (PG15+) — NULL is treated as equal to NULL for dedup, matching what
+-- a PRIMARY KEY with COALESCE(subcommittee_code, '') would have meant.
+CREATE UNIQUE INDEX IF NOT EXISTS bill_committee_routings_unique
+  ON bill_committee_routings (bill_id, committee_code, subcommittee_code) NULLS NOT DISTINCT;
 
 
 -- =============================================================================
@@ -121,9 +127,11 @@ CREATE TABLE IF NOT EXISTS unknown_committee_codes (
   subcommittee_code TEXT,
   first_seen_at TIMESTAMPTZ DEFAULT NOW(),
   last_seen_at TIMESTAMPTZ DEFAULT NOW(),
-  occurrence_count INT NOT NULL DEFAULT 1,
-  PRIMARY KEY (committee_code, COALESCE(subcommittee_code, ''))
+  occurrence_count INT NOT NULL DEFAULT 1
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS unknown_committee_codes_unique
+  ON unknown_committee_codes (committee_code, subcommittee_code) NULLS NOT DISTINCT;
 
 
 -- =============================================================================
