@@ -34,9 +34,10 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
   const displayName = politician.name || `${politician.firstName || ''} ${politician.lastName || ''}`.trim()
   const bioguideId = politician.bioguideId || politician.bioguide_id
-  const imageUrl = bioguideId
-    ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg`
-    : null
+  // Prefer the API-supplied depiction URL — congress.gov/img/member/{bioguide}.jpg
+  // 404s for newer members who get hashed filenames instead.
+  const imageUrl = politician.imageUrl
+    || (bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null)
 
   const location = politician.state + (politician.district ? `-${politician.district}` : '')
   const partyAbbr = getPartyAbbr(politician.party || politician.partyName || '')

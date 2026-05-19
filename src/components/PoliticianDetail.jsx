@@ -149,7 +149,8 @@ function PoliticianDetail() {
     )
   }
 
-  const imageUrl = `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg`
+  const imageUrl = member.depiction?.imageUrl
+    || `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg`
   const currentTerm = getCurrentTerm(member.terms)
   const displayName = member.directOrderName || member.invertedOrderName || `${member.firstName} ${member.lastName}`
   const party = member.partyHistory?.[0]?.partyName || member.party

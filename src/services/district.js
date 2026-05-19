@@ -440,6 +440,7 @@ const normalizeMember = (member, chamber) => {
     party: member.partyName || term?.party,
     partyName: member.partyName || term?.party,
     chamber: chamber,
+    imageUrl: member.depiction?.imageUrl || null,
     url: member.url || `https://www.congress.gov/member/${member.bioguideId}`
   }
 }

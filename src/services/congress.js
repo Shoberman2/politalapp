@@ -85,6 +85,7 @@ export const getCurrentMembers = async (chamber = 'house') => {
         party: partyCode,
         partyName: member.partyName || currentTerm?.party,
         chamber: chamber,
+        imageUrl: member.depiction?.imageUrl || null,
         url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
         updateDate: member.updateDate
       }
@@ -426,6 +427,7 @@ const normalizeMemberBatch = (members) => {
       party: party,
       partyName: member.partyName || currentTerm?.party,
       chamber: chamber,
+      imageUrl: member.depiction?.imageUrl || null,
       url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
       updateDate: member.updateDate
     }
