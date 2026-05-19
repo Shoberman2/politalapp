@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { normalizeMemberImageUrl } from '../utils/memberImage'
 
 const BASE_URL = 'https://api.congress.gov/v3'
 const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
@@ -85,7 +86,7 @@ export const getCurrentMembers = async (chamber = 'house') => {
         party: partyCode,
         partyName: member.partyName || currentTerm?.party,
         chamber: chamber,
-        imageUrl: member.depiction?.imageUrl || null,
+        imageUrl: normalizeMemberImageUrl(member.depiction?.imageUrl),
         url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
         updateDate: member.updateDate
       }
