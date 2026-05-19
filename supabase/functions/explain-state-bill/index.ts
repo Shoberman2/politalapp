@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,6 +7,7 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
+const PROMPT_VERSION = 1
 
 interface StateBill {
   bill_id: string | number
@@ -55,13 +57,37 @@ serve(async (req) => {
 
   try {
     const { bill } = await req.json() as { bill?: StateBill }
-    if (!bill || !bill.title || !bill.number) {
+    if (!bill || !bill.title || !bill.number || bill.bill_id === undefined || bill.bill_id === null) {
       return new Response(
-        JSON.stringify({ error: 'bill.title and bill.number are required' }),
+        JSON.stringify({ error: 'bill.bill_id, bill.title, bill.number are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    const billKey = String(bill.bill_id)
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // 1) Cache lookup
+    const { data: cached } = await supabase
+      .from('state_bill_explanations')
+      .select('paragraphs')
+      .eq('bill_id', billKey)
+      .eq('model', MODEL)
+      .eq('prompt_version', PROMPT_VERSION)
+      .maybeSingle()
+
+    if (cached) {
+      return new Response(
+        JSON.stringify({ paragraphs: cached.paragraphs, cached: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 2) Cache miss → OpenAI
     const openaiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiKey) {
       return new Response(
@@ -104,8 +130,20 @@ serve(async (req) => {
       )
     }
 
+    // 3) Persist
+    await supabase
+      .from('state_bill_explanations')
+      .upsert({
+        bill_id: billKey,
+        state: bill.state || null,
+        bill_title: bill.title,
+        model: MODEL,
+        prompt_version: PROMPT_VERSION,
+        paragraphs,
+      })
+
     return new Response(
-      JSON.stringify({ paragraphs }),
+      JSON.stringify({ paragraphs, cached: false }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {

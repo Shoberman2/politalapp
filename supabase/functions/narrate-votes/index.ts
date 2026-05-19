@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,6 +7,7 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
+const PROMPT_VERSION = 1
 
 const SYSTEM_PROMPT = [
   'You are a neutral civic journalist describing how a U.S. senator or representative voted.',
@@ -19,6 +21,23 @@ const SYSTEM_PROMPT = [
   '{ "narrations": [ { "billTitle": "...", "narration": "..." } ] }',
   'Return narrations in the same order as the input votes.',
 ].join('\n')
+
+// Canonical-JSON stringify: keys sorted recursively so two semantically equal
+// item arrays always produce the same hash. This drives the cache key.
+function canonicalize(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value)
+  if (Array.isArray(value)) return '[' + value.map(canonicalize).join(',') + ']'
+  const keys = Object.keys(value as Record<string, unknown>).sort()
+  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalize((value as Record<string, unknown>)[k])).join(',') + '}'
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = new TextEncoder().encode(input)
+  const hash = await crypto.subtle.digest('SHA-256', buf)
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,6 +53,30 @@ serve(async (req) => {
       )
     }
 
+    const cacheKey = await sha256Hex(canonicalize(items))
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // 1) Cache lookup
+    const { data: cached } = await supabase
+      .from('narration_cache')
+      .select('narrations')
+      .eq('cache_key', cacheKey)
+      .eq('model', MODEL)
+      .eq('prompt_version', PROMPT_VERSION)
+      .maybeSingle()
+
+    if (cached) {
+      return new Response(
+        JSON.stringify({ narrations: cached.narrations, cached: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 2) Cache miss → OpenAI
     const openaiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiKey) {
       return new Response(
@@ -88,8 +131,18 @@ serve(async (req) => {
       )
     }
 
+    // 3) Persist
+    await supabase
+      .from('narration_cache')
+      .upsert({
+        cache_key: cacheKey,
+        model: MODEL,
+        prompt_version: PROMPT_VERSION,
+        narrations: parsed.narrations,
+      })
+
     return new Response(
-      JSON.stringify({ narrations: parsed.narrations }),
+      JSON.stringify({ narrations: parsed.narrations, cached: false }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
