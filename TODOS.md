@@ -33,11 +33,8 @@
 **Context:** The B2B API (api/v1/*) has 12 endpoints and auth middleware with zero test coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
 **What to do:** Create test/api/ directory with auth.test.js, members.test.js, bills.test.js, votes.test.js, stats.test.js. Mock the Supabase admin client. Verify response shapes, status codes, and error handling for every endpoint.
 
-## Move client-side OpenAI calls behind an Edge Function
-**Priority:** Medium
-**Blocked by:** Nothing (but increases in OpenAI spend from abuse are the trigger)
-**Context:** `VITE_OPENAI_API_KEY` is browser-exposed by design of Vite's `VITE_` prefix — anyone viewing page source or devtools can copy it. Today used by `explainBillWithAI` in VoteDashboard and the new voting-pattern narration feature (added 2026-04-17). A scraper can drain the OpenAI account with arbitrary completions. Set a hard monthly spend cap on the OpenAI account as an interim safety net. When worth addressing properly: route all OpenAI calls through a Vercel Edge Function (`/api/ai/narrate`, `/api/ai/explain-bill`) with a per-IP rate limit (e.g., 20 calls/hour) and origin check, then drop the `VITE_` key and use a server-only `OPENAI_API_KEY`.
-**What to do:** 1) Add per-IP rate-limit middleware (use Vercel's KV or Upstash). 2) Create `/api/ai/narrate.js` and `/api/ai/explain-bill.js` Edge Functions that proxy OpenAI. 3) Move `votingPatternNarration.js` and `explainBillWithAI` to call these endpoints. 4) Rename env var to `OPENAI_API_KEY` (server-only). 5) Remove `VITE_OPENAI_API_KEY` from `.env.example`.
+## ~~Move client-side OpenAI calls behind an Edge Function~~
+**Completed:** 2026-05-19 — all three browser-side OpenAI callers now route through Supabase Edge Functions: federal bill explanation via `explain-bill` (already done before this session), voting-pattern narration via `narrate-votes` (new), state-bill explainer via `explain-state-bill` (new). `VITE_OPENAI_API_KEY` is no longer read anywhere in `src/`. Per-IP rate limiting and origin checks were NOT implemented — that's a separate hardening pass once abuse signal appears. The interim safety net (a hard monthly spend cap on the OpenAI account) is still recommended.
 
 ## Committee votes coverage (phase-2 accountability surface)
 **Priority:** Medium (after "go-to place" wedge ships)

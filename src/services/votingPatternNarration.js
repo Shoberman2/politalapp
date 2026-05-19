@@ -1,12 +1,17 @@
 /**
- * Voting Pattern Narration — gpt-4o-mini wrapper
+ * Voting Pattern Narration
  *
  * Takes a list of 12 pre-ranked notable votes and returns one-sentence
  * narrations per vote. The LLM never judges; it only describes what the
  * deterministic stats already show. A forbidden-word filter catches
  * politically-loaded phrasing; retries once; falls back to a deterministic
  * template if the model keeps returning forbidden language or the API fails.
+ *
+ * The OpenAI call lives in the `narrate-votes` Supabase Edge Function so
+ * the API key never enters the browser bundle.
  */
+
+import { supabase } from '../lib/supabase'
 
 // Forbidden in LLM-added clauses (but not in quoted bill titles).
 const FORBIDDEN = /\b(bias(ed)?|anti-american|corrupt(ion)?|influence[- ]peddling)\b/i
@@ -27,64 +32,25 @@ function templateNarration(vote, matched, partyDirection) {
 }
 
 /**
- * Request the LLM to narrate the full set of 12 votes. One call total.
- * Returns an array of { billTitle, narration } objects in input order,
- * or null on any API or parse failure.
+ * Invoke the Edge Function. Returns the narrations array on success,
+ * or null on any error (so the caller can decide whether to retry or fall back).
  */
-async function requestNarrations(items, apiKey) {
-  const systemPrompt = [
-    'You are a neutral civic journalist describing how a U.S. senator or representative voted.',
-    'For each vote I send, write ONE sentence under 25 words.',
-    'Rules:',
-    '- Describe what the rep did and cite at least one number (vote margin, percentage, or count).',
-    '- Do NOT speculate about motive.',
-    '- Do NOT use these words: bias, biased, anti-American, corruption, influence-peddling.',
-    '- Match the register of a newspaper beat reporter, not a pundit.',
-    'Return ONLY valid JSON of the shape:',
-    '{ "narrations": [ { "billTitle": "...", "narration": "..." } ] }',
-    'Return narrations in the same order as the input votes.',
-  ].join('\n')
-
-  const userPrompt = JSON.stringify({ votes: items })
-
-  let response
+async function requestNarrations(items) {
   try {
-    response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 1500,
-        temperature: 0.4,
-        response_format: { type: 'json_object' },
-      }),
+    const { data, error } = await supabase.functions.invoke('narrate-votes', {
+      body: { items },
     })
+    if (error) {
+      console.warn('[VPA Narration] Edge function error:', error.message)
+      return null
+    }
+    if (!data || !Array.isArray(data.narrations)) {
+      console.warn('[VPA Narration] Unexpected response shape')
+      return null
+    }
+    return data.narrations
   } catch (err) {
     console.warn('[VPA Narration] Network error:', err.message)
-    return null
-  }
-
-  if (!response.ok) {
-    console.warn('[VPA Narration] API error:', response.status)
-    return null
-  }
-
-  let body
-  try {
-    body = await response.json()
-    const content = body?.choices?.[0]?.message?.content
-    const parsed = JSON.parse(content)
-    if (!Array.isArray(parsed.narrations)) return null
-    return parsed.narrations
-  } catch (err) {
-    console.warn('[VPA Narration] JSON parse error:', err.message)
     return null
   }
 }
@@ -98,14 +64,6 @@ async function requestNarrations(items, apiKey) {
 export async function narrateVotes(annotated) {
   if (!annotated?.length) return { narrations: [], degraded: false }
 
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-  if (!apiKey) {
-    return {
-      narrations: annotated.map(a => templateNarration(a.vote, a.matched, a.pDir)),
-      degraded: true,
-    }
-  }
-
   // Prepare minimal per-vote context for the LLM.
   const items = annotated.map(a => ({
     billTitle: a.vote.bill?.title ?? 'Unlabeled measure',
@@ -116,13 +74,13 @@ export async function narrateVotes(annotated) {
     voteMargin: a.margin === Number.POSITIVE_INFINITY ? null : a.margin,
   }))
 
-  let narrations = await requestNarrations(items, apiKey)
+  let narrations = await requestNarrations(items)
 
   if (Array.isArray(narrations) && narrations.length === items.length) {
     // Forbidden-word check on narration field only (NOT billTitle).
     const hasForbidden = narrations.some(n => n && FORBIDDEN.test(n.narration || ''))
     if (hasForbidden) {
-      const retry = await requestNarrations(items, apiKey)
+      const retry = await requestNarrations(items)
       if (Array.isArray(retry) && retry.length === items.length) {
         narrations = retry
       }

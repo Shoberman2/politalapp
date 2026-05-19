@@ -1,8 +1,8 @@
 import axios from 'axios'
+import { supabase } from '../lib/supabase'
 
 const LEGISCAN_BASE_URL = 'https://api.legiscan.com'
 const LEGISCAN_API_KEY = import.meta.env.VITE_LEGISCAN_API_KEY
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
 console.log('[StateBills] LegiScan API Key present:', !!LEGISCAN_API_KEY)
 
@@ -254,73 +254,24 @@ const normalizeBillStatus = (status) => {
 // ---------------------------------------------------------------------------
 // AI Features
 // ---------------------------------------------------------------------------
+// The OpenAI call lives in the `explain-state-bill` Supabase Edge Function so
+// the API key never enters the browser bundle.
 
-const aiRequest = async (prompt, maxTokens = 1000) => {
-  if (!OPENAI_API_KEY) return null
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.4
-    })
-  })
-
-  if (!response.ok) throw new Error('OpenAI API request failed')
-  const data = await response.json()
-  return data.choices[0]?.message?.content || ''
-}
-
-// AI Summary: on-demand plain English explanation of a state bill
 export const explainStateBillWithAI = async (bill) => {
   const cacheKey = `sb_ai_explain_${bill.bill_id}`
   const cached = cacheGet(cacheKey)
   if (cached) return cached
 
-  if (!OPENAI_API_KEY) {
-    return {
-      paragraphs: [
-        `This bill, ${bill.number} — "${bill.title}", is currently being considered in the state legislature.`,
-        'AI explanation requires an OpenAI API key. Add VITE_OPENAI_API_KEY to your .env file to enable AI-powered explanations.'
-      ],
-      isPlaceholder: true
-    }
-  }
-
   try {
-    const prompt = `You are a nonpartisan expert at explaining state legislation in plain language.
+    const { data, error } = await supabase.functions.invoke('explain-state-bill', {
+      body: { bill },
+    })
+    if (error) throw new Error(error.message || 'Edge function error')
+    if (!data || !Array.isArray(data.paragraphs) || data.paragraphs.length === 0) {
+      throw new Error('Unexpected response shape')
+    }
 
-Explain this state bill clearly for an average citizen:
-
-Bill Number: ${bill.number}
-Title: ${bill.title}
-${bill.description ? `Description: ${bill.description}` : ''}
-State: ${bill.state}
-Status: ${bill.status}
-${bill.sponsors?.length ? `Sponsors: ${bill.sponsors.map(s => `${s.name} (${s.party})`).join(', ')}` : ''}
-
-Write 2-3 paragraphs in plain English explaining what this bill does, why it matters, and who it affects.
-Do NOT use numbered lists or bullet points. Write in flowing paragraph form only.
-Do NOT include any source citations, references, footnotes, or URLs.
-Keep your response factual and balanced. Avoid political bias.`
-
-    const content = await aiRequest(prompt, 1500)
-
-    const paragraphs = content
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/\[\d+\]/g, '')
-      .trim()
-      .split(/\n\s*\n/)
-      .map(p => p.replace(/\n/g, ' ').trim())
-      .filter(p => p.length > 0)
-
-    const result = { paragraphs, isPlaceholder: false }
+    const result = { paragraphs: data.paragraphs, isPlaceholder: false }
     cacheSet(cacheKey, result, CACHE_TTLS.aiSummary)
     return result
   } catch (error) {
