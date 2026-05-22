@@ -1,0 +1,965 @@
+/* =============================================================================
+ * Chamber.css — historical Senate chamber + House composition styles.
+ *
+ * Tokens derived from DESIGN.md + /plan-design-review Pass 5 token table.
+ * Editorial broadsheet aesthetic; tinted party fills are a chamber-specific
+ * exception to the "party as metadata, not identity" principle (Q4.B decision).
+ * ============================================================================= */
+
+/* ----- Page shell ----- */
+
+.chamber-page {
+  background: #FAFAF7;
+  color: #1A1A18;
+  font-family: 'General Sans', system-ui, sans-serif;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .chamber-page {
+    padding: 20px 16px;
+  }
+}
+
+
+/* ----- Header ----- */
+
+.chamber-header {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.chamber-eyebrow {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6B6861;
+  margin-bottom: 8px;
+}
+
+.chamber-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 0 0 8px 0;
+  color: #1A1A18;
+}
+
+.chamber-title em {
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .chamber-title {
+    font-size: 36px;
+  }
+}
+
+.chamber-subtitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #6B6861;
+  margin-bottom: 8px;
+}
+
+.chamber-caption {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 13px;
+  color: #6B6861;
+}
+
+.chamber-header-aside {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1A1A18;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .chamber-header-aside {
+    position: static;
+    margin-top: 12px;
+  }
+}
+
+.chamber-fidelity-dot-inline {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.chamber-fidelity-label {
+  font-weight: 500;
+}
+
+
+/* ----- Thin rule dividers ----- */
+
+.chamber-rule {
+  border: 0;
+  height: 1px;
+  background: #E8E6E1;
+  margin: 24px 0;
+}
+
+
+/* ----- Chamber toggle (Senate / House tabs) ----- */
+
+.chamber-toggle {
+  display: flex;
+  gap: 0;
+  margin: 24px 0 16px 0;
+  border-bottom: 1px solid #E8E6E1;
+}
+
+.chamber-toggle-btn {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B6861;
+  padding: 8px 24px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.chamber-toggle-btn:hover {
+  color: #1A1A18;
+}
+
+.chamber-toggle-btn.is-active {
+  color: #1A1A18;
+  border-bottom-color: #1D4ED8;
+}
+
+.chamber-toggle-btn:focus-visible {
+  outline: 2px solid #1D4ED8;
+  outline-offset: 2px;
+}
+
+
+/* ----- Senate chamber map (SVG hemicycle) ----- */
+
+.chamber-visual {
+  position: relative;
+  margin: 24px 0;
+}
+
+.senate-chamber-map {
+  width: 100%;
+}
+
+.senate-chamber-svg {
+  width: 100%;
+  height: auto;
+  max-height: 680px;
+}
+
+.rostrum-label {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  fill: #9C9789;
+}
+
+.chamber-desk {
+  cursor: pointer;
+  transition: filter 150ms ease-out;
+}
+
+.chamber-desk:hover,
+.chamber-desk.is-focused {
+  filter: brightness(0.96);
+}
+
+.chamber-desk:focus-visible rect:not([fill="transparent"]),
+.chamber-desk:focus-visible rect[stroke-dasharray] {
+  outline: 2px solid #1D4ED8;
+  outline-offset: 2px;
+}
+
+.desk-number {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.desk-name {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 9.5px;
+  font-weight: 500;
+  fill: #1A1A18;
+}
+
+.desk-number-mobile {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 8px;
+}
+
+.desk-vacant {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 11px;
+}
+
+
+/* ----- Fidelity caveat banner ----- */
+
+.chamber-fidelity-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  font-style: italic;
+}
+
+.chamber-fidelity-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+
+/* ----- Composition-only Senate fallback ----- */
+
+.senate-composition-only {
+  padding: 24px 0;
+}
+
+.composition-banner {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #6B6861;
+  padding: 16px;
+  border: 1px solid #E8E6E1;
+  border-radius: 4px;
+  background: #FFFFFF;
+  margin-bottom: 24px;
+}
+
+.composition-hemicycle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.composition-half {
+  flex: 1 1 280px;
+  max-width: 480px;
+}
+
+.composition-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  justify-content: center;
+}
+
+.composition-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid;
+}
+
+.composition-dot-d {
+  background: rgba(37, 99, 235, 0.10);
+  border-color: #2563EB;
+}
+
+.composition-dot-r {
+  background: rgba(220, 38, 38, 0.10);
+  border-color: #DC2626;
+}
+
+.composition-aisle {
+  width: 1px;
+  background: #E8E6E1;
+  align-self: stretch;
+}
+
+.composition-label {
+  text-align: center;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A18;
+}
+
+.composition-count {
+  font-family: 'Geist Mono', Menlo, monospace;
+  color: #6B6861;
+  margin-left: 8px;
+}
+
+
+/* ----- House composition map ----- */
+
+.house-composition-map {
+  padding: 16px 0;
+}
+
+.house-composition-disclosure {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #6B6861;
+  padding: 16px;
+  border: 1px solid #E8E6E1;
+  border-radius: 4px;
+  background: #FFFFFF;
+  margin-bottom: 24px;
+}
+
+.house-composition-totals {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 14px;
+  color: #6B6861;
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.house-composition-total-d {
+  color: #2563EB;
+}
+
+.house-composition-total-r {
+  color: #DC2626;
+}
+
+.house-composition-total-i {
+  color: #7C3AED;
+}
+
+.house-composition-total-v,
+.house-composition-total-all {
+  color: #6B6861;
+}
+
+.house-composition-separator {
+  color: #9C9789;
+}
+
+.house-composition-grid {
+  gap: 3px;
+  max-width: 100%;
+}
+
+.house-composition-dot {
+  display: inline-block;
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 50%;
+  border: 1px solid;
+}
+
+.house-composition-dot-d {
+  background: rgba(37, 99, 235, 0.10);
+  border-color: #2563EB;
+}
+
+.house-composition-dot-r {
+  background: rgba(220, 38, 38, 0.10);
+  border-color: #DC2626;
+}
+
+.house-composition-dot-i {
+  background: rgba(124, 58, 237, 0.10);
+  border-color: #7C3AED;
+}
+
+.house-composition-dot-v {
+  background: transparent;
+  border-color: #9C9789;
+  border-style: dashed;
+}
+
+
+/* ----- Scrubber ----- */
+
+.chamber-scrubber {
+  padding: 8px 0;
+  position: relative;
+}
+
+.chamber-scrubber-caption {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-style: italic;
+  color: #6B6861;
+  margin-bottom: 8px;
+}
+
+.chamber-scrubber-track {
+  position: relative;
+  height: 48px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.chamber-scrubber-track:focus-visible .chamber-scrubber-rail {
+  background: #1D4ED8;
+}
+
+.chamber-scrubber-rail {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #E8E6E1;
+  pointer-events: none;
+  transition: background-color 150ms ease-out;
+}
+
+.chamber-scrubber-fidelity-row {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  pointer-events: none;
+}
+
+.chamber-scrubber-fidelity-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  transform: translateX(-2px);
+}
+
+.chamber-scrubber-tick-row {
+  position: absolute;
+  top: 30px;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+}
+
+.chamber-scrubber-tick {
+  position: absolute;
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 10px;
+  color: #6B6861;
+  transform: translateX(-50%);
+}
+
+.chamber-scrubber-marker {
+  position: absolute;
+  top: 12px;
+  width: 2px;
+  height: 12px;
+  background: #1D4ED8;
+  transform: translateX(-1px);
+  pointer-events: none;
+}
+
+.chamber-scrubber-marker-label {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: #1D4ED8;
+  background: #FAFAF7;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+.chamber-scrubber-hint {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-style: italic;
+  color: #6B6861;
+  margin-top: 8px;
+  opacity: 1;
+  transition: opacity 400ms ease-out;
+}
+
+.chamber-scrubber-hint.is-fading-out {
+  opacity: 0;
+}
+
+
+/* ----- Drawer (desktop slide-in) / modal (mobile) ----- */
+
+.chamber-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40%;
+  background: rgba(26, 26, 24, 0.20);
+  z-index: 100;
+  animation: chamber-fade-in 200ms ease-out;
+}
+
+@media (max-width: 1023px) {
+  .chamber-drawer-backdrop {
+    left: 0;
+    width: 100%;
+    background: rgba(26, 26, 24, 0.40);
+  }
+}
+
+.chamber-drawer {
+  position: fixed;
+  z-index: 101;
+  background: #FFFFFF;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+}
+
+.chamber-drawer.is-slide-in {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 448px;
+  animation: chamber-slide-in 200ms ease-out;
+}
+
+.chamber-drawer.is-modal {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 448px;
+  max-height: 80vh;
+  border-radius: 8px;
+  animation: chamber-fade-in 200ms ease-out;
+}
+
+.chamber-drawer:focus {
+  outline: none;
+}
+
+.chamber-drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: 0;
+  font-size: 28px;
+  line-height: 1;
+  color: #1A1A18;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.chamber-drawer-close:hover {
+  color: #1D4ED8;
+}
+
+.chamber-drawer-close:focus-visible {
+  outline: 2px solid #1D4ED8;
+  outline-offset: 2px;
+}
+
+.chamber-drawer-header {
+  padding: 24px;
+  border-bottom: 1px solid #F0EEEA;
+}
+
+.chamber-drawer-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  color: #1A1A18;
+}
+
+.chamber-drawer-subtitle {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  color: #6B6861;
+  margin-top: 4px;
+}
+
+.chamber-drawer-description {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.chamber-drawer-body {
+  padding: 24px;
+}
+
+.chamber-drawer-section-heading {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6B6861;
+  margin: 0 0 16px 0;
+}
+
+.chamber-drawer-current {
+  margin-bottom: 32px;
+}
+
+.chamber-drawer-row {
+  padding: 16px 0;
+  border-top: 1px solid #F0EEEA;
+}
+
+.chamber-drawer-row-name {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A1A18;
+}
+
+.chamber-drawer-row-meta,
+.chamber-drawer-row-years,
+.chamber-drawer-row-party {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 12px;
+  color: #6B6861;
+  margin-top: 2px;
+}
+
+.chamber-drawer-row-notes {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.chamber-drawer-lineage-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chamber-drawer-lineage-row {
+  padding: 16px 0;
+  border-top: 1px solid #F0EEEA;
+}
+
+.chamber-drawer-lineage-row.is-vacancy .chamber-drawer-row-name {
+  color: #9C9789;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.chamber-drawer-loading {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  font-style: italic;
+}
+
+.chamber-drawer-empty {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+}
+
+.chamber-drawer-error {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #DC2626;
+}
+
+
+/* ----- Mobile tap-to-reveal label ----- */
+
+.chamber-mobile-reveal {
+  position: sticky;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: #1A1A18;
+  z-index: 50;
+}
+
+.chamber-mobile-reveal-meta {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 12px;
+  color: #6B6861;
+}
+
+
+/* ----- Historic moments overlay ----- */
+
+.historic-moment-overlay {
+  padding: 16px 0;
+}
+
+.historic-moment-header {
+  margin-bottom: 24px;
+}
+
+.historic-moment-section-heading {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0 0 8px 0;
+  color: #1A1A18;
+}
+
+.historic-moment-blurb {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #6B6861;
+  margin: 0;
+}
+
+.historic-moment-method-link {
+  color: #1D4ED8;
+  text-decoration: none;
+}
+
+.historic-moment-method-link:hover {
+  color: #1E40AF;
+  text-decoration: underline;
+}
+
+.historic-moment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.historic-moment-item {
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #1A1A18;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease-out;
+  min-width: 200px;
+}
+
+.historic-moment-item:hover {
+  border-color: #1D4ED8;
+}
+
+.historic-moment-item.is-selected {
+  border-color: #1D4ED8;
+  background: rgba(29, 78, 216, 0.04);
+}
+
+.historic-moment-item:focus-visible {
+  outline: 2px solid #1D4ED8;
+  outline-offset: 2px;
+}
+
+.historic-moment-item-title {
+  display: block;
+  font-weight: 500;
+}
+
+.historic-moment-item-meta {
+  display: block;
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 11px;
+  color: #6B6861;
+  margin-top: 4px;
+}
+
+.historic-moment-detail {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #E8E6E1;
+}
+
+.historic-moment-detail-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0 0 4px 0;
+}
+
+.historic-moment-detail-tally {
+  font-family: 'Geist Mono', Menlo, monospace;
+  font-size: 14px;
+  color: #6B6861;
+  margin-bottom: 12px;
+}
+
+.historic-moment-detail-blurb {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: #1A1A18;
+  max-width: 60ch;
+  margin: 0 0 16px 0;
+}
+
+.historic-moment-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.historic-moment-legend-item {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 12px;
+  color: #6B6861;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.historic-moment-legend-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid;
+}
+
+.historic-moment-legend-yea {
+  background: rgba(22, 163, 74, 0.10);
+  border-color: #16A34A;
+}
+
+.historic-moment-legend-nay {
+  background: rgba(220, 38, 38, 0.10);
+  border-color: #DC2626;
+}
+
+.historic-moment-legend-notvoting {
+  background: transparent;
+  border-color: #9C9789;
+  border-style: dashed;
+}
+
+
+/* ----- Footer ----- */
+
+.chamber-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+}
+
+.chamber-footer-caption {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #6B6861;
+}
+
+.chamber-footer-link a {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-size: 13px;
+  color: #1D4ED8;
+  text-decoration: none;
+}
+
+.chamber-footer-link a:hover {
+  color: #1E40AF;
+  text-decoration: underline;
+}
+
+
+/* ----- Loading state ----- */
+
+.chamber-loading {
+  font-family: 'General Sans', system-ui, sans-serif;
+  font-style: italic;
+  font-size: 14px;
+  color: #6B6861;
+  text-align: center;
+  padding: 48px 0;
+}
+
+
+/* ----- Animations ----- */
+
+@keyframes chamber-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes chamber-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chamber-drawer.is-slide-in,
+  .chamber-drawer.is-modal,
+  .chamber-drawer-backdrop,
+  .chamber-scrubber-hint {
+    animation: none;
+    transition: none;
+  }
+}
