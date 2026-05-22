@@ -95,3 +95,39 @@
 **Blocked by:** Bills-sponsor-and-routing PR shipping AND enough live engagement data to know whether the survival-stat pill resonates (track via `feature_metrics.survival_pill_opened`)
 **Context:** Deferred from 2026-05-16 CEO review per outside-voice tension D14. The bills-sponsor-and-routing PR ships a "taste" of fate prediction via the per-primary-committee survival stat on the status pill hover. Approach C is the full version: combine committee survival × sponsor track record × cosponsor breadth × amendment activity × time-since-referral into a single calibrated "% chance of advancing" forecast. The most attackable feature in the whole product if done badly. Needs methodology paper.
 **What to do:** (1) Wait for engagement data on the survival pill (Q3 2026 likely). (2) If signal is strong, write a methodology white paper before code: feature engineering, train/test split (predict 119th from 117th+118th), calibration plot, comparison vs GovTrack prognosis. (3) Build the predictor as a periodically-recomputed score in a new `bill_predictions(bill_id, p_advance, model_version, computed_at)` table. (4) UI: replace the single-stat pill hover with a full "Forecast" subsection on BillDetail. Effort: human ~4-6 weeks / CC ~4-6 hours. Strong eval suite + bias audit mandatory.
+
+## Senate desk drawer inscriptions (E2)
+**Priority:** P3 (Low)
+**Blocked by:** Historical Congress Chamber feature (2026-05-21 CEO plan) Phase 5 shipping AND engagement signal on the chamber chart
+**Context:** Deferred during 2026-05-21 CEO review cherry-pick ceremony. Senators inscribe their names inside the desk drawer when they leave; Webster's desk has signatures going back nearly two centuries. Surfacing these — even just modern, photographable ones — turns the chamber chart from a civic-tech-novelty into an editorial artifact with a real "wow" moment. Sourcing risk: photo permissions, transcription accuracy, Senate Historical Office cooperation.
+**What to do:** (1) Contact Senate Historical Office about permissions for desk-drawer photography. (2) Identify ~15 famous-desk photos already in public-domain Senate archives. (3) Build a `senate_desk_inscriptions(desk_id, bioguide_id, photo_url, transcription, year)` table. (4) Add inscription gallery to lineage panel. Effort: human ~1 week / CC ~45 min. High differentiation, real sourcing risk.
+
+## Career arcs on PoliticianDetail (E5 — auto-follow-up from historical archive)
+**Priority:** P2 (Medium)
+**Blocked by:** Historical Congress Chamber Phase 1 (member backfill) landing in production
+**Context:** Auto-follow-up from 2026-05-21 CEO review. Once `member_congress_terms` is populated, "plot every desk this senator sat in across their career, or for House: every term + party block, on a single chamber view" becomes a near-trivial extension. Sits naturally as a new section on `PoliticianDetail.jsx` between voting-pattern analysis and campaign finance. Strong editorial moment for senior members (Schumer, McConnell, Sanders, Leahy).
+**What to do:** New `CareerArc` component reading from `member_congress_terms` + `senate_desk_assignments`. Render as a small chamber-shaped sparkline showing desks held across Congresses. Click any era to deep-link to that Congress's chamber view. Effort: human ~3 days / CC ~30 min.
+
+## AI explanations for top-traffic historical bills (E7)
+**Priority:** P2 (Medium)
+**Blocked by:** Historical Congress Chamber Phase 2 (bill backfill) shipping AND 6-12 weeks of engagement signal showing which historical bills get traffic
+**Context:** Deferred during 2026-05-21 CEO review cherry-pick ceremony. Approach B explicitly out-of-scoped AI explanations on all 280K-350K historical bills (~$500-$2000 OpenAI cost on bills with Pareto-distribution traffic). Selective approach: traffic-driven backfill of explanations for the top ~500 most-viewed historical bills after live signal exists. Reuses existing `bill_explanations` server-side cache pattern.
+**What to do:** (1) Instrument `BillDetail.jsx` to record pageview counts per (bill, time-period) in a `bill_pageviews` rollup table. (2) Wait 6-12 weeks post-Phase-2 launch. (3) Run a one-shot `etl/backfillHistoricalExplanations.ts` that explains top-500 by traffic. Bounded cost: ~$15-50. (4) Optional: monthly cron to extend coverage as new bills accumulate traffic. Effort: human ~3 days / CC ~1 hr + ~$15-50 OpenAI.
+
+## Extend Senate desk lineage beyond famous desks (full 100)
+**Priority:** P3 (Low)
+**Blocked by:** Historical Congress Chamber Phase 5 shipping AND Senate Historical Office data acquisition for non-famous desks
+**Context:** Deferred during 2026-05-21 CEO review. The v1 lineage covers ~15 famous desks tracked by Senate Historical Office (Webster, Clay, candy desk, etc.). Extending to all 100 is purely additive but requires sourcing the historical occupant chain for the other 85 desks — typically requires per-Congress assignment-chart cross-referencing. With CC, this is mechanical but tedious.
+**What to do:** (1) Cross-reference `senate_desk_assignments` rows by `desk_id` ordered by `congress` ASC. (2) Validate the lineage chain has no gaps where data exists. (3) Hand-curate gaps using public Senate Historical Office data. (4) Populate `senate_desk_lineage` for all 100 desks, not just the famous 15. Effort: human ~1 week / CC ~2 hrs (most work is data validation, not code).
+
+## Photo coverage stretch for historical members
+**Priority:** P3 (Low)
+**Blocked by:** Historical Congress Chamber Phase 1 (member backfill) shipping AND engagement signal showing historical-member profiles get traffic worth the photo-sourcing effort
+**Context:** Deferred during 2026-05-21 CEO review. Phase 1 of the historical archive ships with silhouette placeholders for the ~5-15% of historical members where Congress.gov returns no photo. This is the same problem recently addressed for current members (commits e0b5592, d1fbe3d), but historical coverage will be thinner. Stretch enhancement: scrape Wikipedia + Library of Congress Bioguide photos to fill gaps.
+**What to do:** (1) Query for members with `photo_url IS NULL` in `members` after Phase 1. (2) For each, attempt: Library of Congress Bioguide API → Wikipedia (etiquette: low rate, attribution) → state-archive sources. (3) Validate license + add attribution metadata to a new `member_photo_source` column. (4) Surface attribution in the `MethodologyModal`. Effort: human ~1 week / CC ~3 hrs (most work is license validation + per-source rate-limit handling).
+
+## Quarterly identity-reconciliation review (operational)
+**Priority:** P3 (Low)
+**Blocked by:** Historical Congress Chamber Phase 1 shipping
+**Context:** From 2026-05-21 CEO review operational debt (Section 8 observability). The `member_reconciliation_log` table accumulates rows whenever the multi-source ETL hits a conflict between Congress.gov + GovInfo + Senate Historical Office data. Without quarterly review, conflicts pile up and silent data-drift sets in. Pattern matches the existing "Quarterly committee glossary review" TODO.
+**What to do:** Once per quarter: (1) `SELECT * FROM member_reconciliation_log WHERE resolved = false ORDER BY occurrence_count DESC` — review top conflicts. (2) For each, decide: (a) update precedence rule, (b) hand-curate the canonical record, (c) escalate to feature-flag-off for that Congress's chart if structural. (3) Mark resolved with reason. Effort: human ~1 hour / CC ~10 min.
