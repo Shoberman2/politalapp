@@ -53,6 +53,36 @@ function normalizeChamber(raw: string): 'house' | 'senate' | null {
 }
 
 /**
+ * Congress.gov returns full state names like "California". Our schema
+ * (politicians.state, member_congress_terms.state) requires 2-letter codes.
+ * Mirrors etl/extractHouseVotes.ts STATE_TO_ABBR.
+ */
+const STATE_NAME_TO_ABBR: Record<string, string> = {
+  'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+  'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+  'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+  'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD', 'massachusetts': 'MA',
+  'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO', 'montana': 'MT',
+  'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM',
+  'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+  'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+  'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+  'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
+  'district of columbia': 'DC', 'american samoa': 'AS', 'guam': 'GU',
+  'northern mariana islands': 'MP', 'puerto rico': 'PR', 'u.s. virgin islands': 'VI',
+};
+
+function normalizeState(raw: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  // Already a 2-letter code
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  // Full name lookup
+  const code = STATE_NAME_TO_ABBR[trimmed.toLowerCase()];
+  return code ?? null;
+}
+
+/**
  * Maps Congress.gov party names to single-letter party codes.
  */
 function normalizeParty(raw: string): string {
@@ -119,6 +149,17 @@ export async function fetchMembersForCongress(
         continue;
       }
 
+      // Congress.gov returns full state names ("California"); our schema
+      // requires 2-letter codes. Skip records we can't normalize (territories
+      // not in our map are rare but possible).
+      const stateAbbr = normalizeState(m.state);
+      if (!stateAbbr) {
+        errors.push(
+          `skipped member ${m.bioguideId}: unrecognized state "${m.state}"`
+        );
+        continue;
+      }
+
       // Determine chamber from the member's terms array. The terms list may
       // include multiple chambers across a long career; pick the one matching
       // this congress's chamber if discoverable, else fall back to the first term.
@@ -141,7 +182,7 @@ export async function fetchMembersForCongress(
         congress,
         term_start: congressStartDate,
         chamber,
-        state: m.state,
+        state: stateAbbr,
         district: m.district != null ? String(m.district) : null,
         party: normalizeParty(m.partyName ?? ''),
         caucus: null,
