@@ -3,6 +3,10 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 // import { useAuth } from '../context/AuthContext'
 import '../styles/Navigation.css'
 
+// Match the feature flag in App.jsx so the nav slot only appears when the
+// chamber routes are registered.
+const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER === 'true'
+
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -65,6 +69,14 @@ function Navigation() {
             >
               District Map
             </NavLink>
+            {SHOW_CHAMBER && (
+              <NavLink
+                to="/chamber"
+                className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+              >
+                Chamber
+              </NavLink>
+            )}
             <NavLink
               to="/shutdown-tracker"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
