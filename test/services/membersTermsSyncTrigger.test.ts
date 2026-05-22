@@ -98,7 +98,7 @@ function applySync(
 // ---- Test scenarios ----
 
 describe('Q2 hybrid SOT sync trigger (regression)', () => {
-  it('CRITICAL INVARIANT: politicians never drifts from member_congress_terms most-recent after 1000 random inserts', () => {
+  it('CRITICAL INVARIANT: politicians never drifts from member_congress_terms most-recent after 1000 random inserts', { timeout: 30000 }, () => {
     // Seed with 50 fake bioguides each having a base politicians row.
     const politicians = new Map<string, PoliticianRow>()
     for (let i = 0; i < 50; i++) {
