@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { autocompletePoliticians } from '../utils/politicianMatch'
+import { CONGRESS_MAX } from '../utils/congressUtil'
 
 // Maps the Supabase `bills` row shape to the Congress.gov-style shape BillRow
 // expects (type/number/congress/introducedDate/policyArea.name). This keeps
@@ -62,17 +63,21 @@ function billIdPattern(query) {
  * @param {string|null} opts.query
  * @param {number|null} opts.congress
  * @param {string|null} opts.billType
+ * @param {string|null} opts.introducedFrom
  * @param {string|null} opts.sponsorBioguideId
  * @param {string|null} opts.cosponsorBioguideId
  * @param {number}      opts.limit
+ * @param {number}      opts.offset
  */
 export async function searchBillsInDb({
   query,
   congress = null,
   billType = null,
+  introducedFrom = null,
   sponsorBioguideId = null,
   cosponsorBioguideId = null,
   limit = 100,
+  offset = 0,
 }) {
   const baseSelect =
     'id, title, introduced_at, policy_area, summary, source_url, sponsor_bioguide_id, sponsor_name, sponsor_party, sponsor_state, legislative_stage'
@@ -126,8 +131,17 @@ export async function searchBillsInDb({
     }
   }
 
-  // Order + limit last (these return a non-filterable transform builder).
-  q = q.order('introduced_at', { ascending: false, nullsFirst: false }).limit(limit)
+  if (introducedFrom) {
+    q = q.gte('introduced_at', introducedFrom)
+  }
+
+  // Order + pagination last (these return a non-filterable transform builder).
+  q = q.order('introduced_at', { ascending: false, nullsFirst: false })
+  if (offset > 0) {
+    q = q.range(offset, offset + limit - 1)
+  } else {
+    q = q.limit(limit)
+  }
 
   const { data, error } = await q
   if (error) throw error
@@ -309,7 +323,7 @@ export async function getAllBillsForCommittee(committeeCode, { limit = 100 } = {
  * Excludes members with <30 days served from the median pool to avoid degenerate
  * denominators, but still returns the candidate's count if they're a freshman.
  */
-export async function getSponsorActivity(bioguideId, congress = 119) {
+export async function getSponsorActivity(bioguideId, congress = CONGRESS_MAX) {
   // 1) Candidate's count via Supabase HEAD + count:'exact'.
   // The response carries the count number directly; we don't need the rows.
   const ownQuery = await supabase

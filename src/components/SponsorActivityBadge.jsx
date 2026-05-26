@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getSponsorActivity } from '../services/billsDb'
+import { CONGRESS_MAX } from '../utils/congressUtil'
 import { InfoTip } from './Tooltip'
 import '../styles/SponsorActivityBadge.css'
 
@@ -11,7 +12,7 @@ import '../styles/SponsorActivityBadge.css'
  * Behind VITE_BILLS_SHOW_SPONSOR_FILTER (same flag as the BillsPage pills —
  * both surfaces depend on the same sponsor data being persisted).
  */
-export default function SponsorActivityBadge({ bioguideId, congress = 119 }) {
+export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_MAX }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)

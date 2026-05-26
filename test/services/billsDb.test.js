@@ -31,12 +31,20 @@ vi.mock('../../src/lib/supabase', () => {
         supabaseCalls.push({ op: 'like', table: tableName, col, pattern })
         return chain
       },
+      gte(col, val) {
+        supabaseCalls.push({ op: 'gte', table: tableName, col, val })
+        return chain
+      },
       or(filter) {
         supabaseCalls.push({ op: 'or', table: tableName, filter })
         return chain
       },
       order() { return chain },
       limit() {
+        return Promise.resolve({ data: [], error: null })
+      },
+      range(from, to) {
+        supabaseCalls.push({ op: 'range', table: tableName, from, to })
         return Promise.resolve({ data: [], error: null })
       },
       not() { return chain },
@@ -122,5 +130,22 @@ describe('searchBillsInDb — sponsor + cosponsor filters', () => {
     expect(orFilter).toBeDefined()
     expect(orFilter.filter).toContain('title.ilike')
     expect(orFilter.filter).toContain('id.ilike')
+  })
+
+  it('supports an introducedFrom floor for all-Congress archive search', async () => {
+    const { searchBillsInDb } = await import('../../src/services/billsDb')
+    await searchBillsInDb({ query: 'education', introducedFrom: '2001-01-03' })
+    const dateFloor = supabaseCalls.find((c) => c.op === 'gte' && c.col === 'introduced_at')
+    expect(dateFloor).toBeDefined()
+    expect(dateFloor.val).toBe('2001-01-03')
+  })
+
+  it('supports offset pagination for archive browsing', async () => {
+    const { searchBillsInDb } = await import('../../src/services/billsDb')
+    await searchBillsInDb({ congress: 107, limit: 20, offset: 40 })
+    const range = supabaseCalls.find((c) => c.op === 'range')
+    expect(range).toBeDefined()
+    expect(range.from).toBe(40)
+    expect(range.to).toBe(59)
   })
 })

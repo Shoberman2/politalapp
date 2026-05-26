@@ -20,6 +20,12 @@
 /** Lowest Congress backfilled by the historical-chamber feature (E6 cherry-pick). */
 export const CONGRESS_MIN = 93;
 
+/** Earliest Congress shown in bill/history browse surfaces (107th = 2001-2003). */
+export const BILL_CONGRESS_MIN = 107;
+
+/** Start date for the 107th Congress, used to keep all-Congress bill search in range. */
+export const BILL_ARCHIVE_START_DATE = '2001-01-03';
+
 /**
  * Highest Congress the app knows about. Bump this when a new Congress begins.
  * `getCurrentCongress()` derives this dynamically from today's date too, but

@@ -4,12 +4,29 @@ import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
 import { searchBillsInDb } from '../services/billsDb'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
+import {
+  BILL_ARCHIVE_START_DATE,
+  BILL_CONGRESS_MIN,
+  CONGRESS_MAX,
+  formatCongressLabel,
+} from '../utils/congressUtil'
 import SponsorFilterPill from './SponsorFilterPill'
 import '../styles/BillsPage.css'
 
 // Feature flag (per outside-voice D16). Off by default; flip
 // VITE_BILLS_SHOW_SPONSOR_FILTER=true in Vercel to enable.
 const SHOW_SPONSOR_FILTER = import.meta.env.VITE_BILLS_SHOW_SPONSOR_FILTER === 'true'
+
+const DEFAULT_CONGRESS_FILTER = String(CONGRESS_MAX)
+const BILL_CONGRESS_OPTIONS = Array.from(
+  { length: CONGRESS_MAX - BILL_CONGRESS_MIN + 1 },
+  (_, i) => CONGRESS_MAX - i
+)
+
+function formatCongressFilterLabel(value) {
+  if (value === 'all') return 'All Congresses Since 2001'
+  return formatCongressLabel(Number(value))
+}
 
 // Fire-and-forget engagement counter. Failures silently ignored — the user
 // must never wait on telemetry.
@@ -34,7 +51,7 @@ function BillsPage() {
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [congressFilter, setCongressFilter] = useState('119')
+  const [congressFilter, setCongressFilter] = useState(DEFAULT_CONGRESS_FILTER)
   const [billTypeFilter, setBillTypeFilter] = useState('all')
   const [sponsorFilter, setSponsorFilter] = useState(null)        // { bioguideId, name, party, state } | null
   const [cosponsorFilter, setCosponsorFilter] = useState(null)
@@ -42,13 +59,16 @@ function BillsPage() {
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  // Tracks whether the bills array is currently search results vs the Congress.gov
-  // browse listing. Toggles when there's free-text search OR an active sponsor/cosponsor
-  // filter — both modes hit Supabase, not the live Congress.gov list.
+  // Tracks whether the bills array is currently filtered search results.
+  // Free-text search and sponsor/cosponsor facets hit Supabase.
   const isSearching =
     searchTerm.trim().length >= 2 ||
     sponsorFilter != null ||
     cosponsorFilter != null
+  const selectedCongress = congressFilter !== 'all' ? parseInt(congressFilter, 10) : null
+  const usesArchiveBrowse =
+    !isSearching &&
+    (congressFilter === 'all' || (selectedCongress != null && selectedCongress < CONGRESS_MAX))
 
   useEffect(() => {
     getTrendingBills().then(setTrendingBills).catch(() => {})
@@ -56,8 +76,8 @@ function BillsPage() {
 
   const LIMIT = 20
 
-  // Browse mode — initial load and filter changes when no Supabase-filter
-  // (sponsor, cosponsor, free-text search) is active.
+  // Browse mode — current Congress uses the live Congress.gov feed; historical
+  // Congresses and all-since-2001 page through the local bills archive.
   useEffect(() => {
     if (isSearching) return
     fetchBills(true)
@@ -75,6 +95,7 @@ function BillsPage() {
         const results = await searchBillsInDb({
           query: term,
           congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
+          introducedFrom: congressFilter === 'all' ? BILL_ARCHIVE_START_DATE : null,
           billType: billTypeFilter !== 'all' ? billTypeFilter : null,
           sponsorBioguideId: sponsorFilter?.bioguideId || null,
           cosponsorBioguideId: cosponsorFilter?.bioguideId || null,
@@ -105,14 +126,20 @@ function BillsPage() {
 
       const currentOffset = reset ? 0 : offset
 
-      const result = await searchBills({
-        congress: congressFilter !== 'all' ? parseInt(congressFilter) : null,
-        billType: billTypeFilter !== 'all' ? billTypeFilter : null,
-        limit: LIMIT,
-        offset: currentOffset
-      })
-
-      const newBills = result.bills || []
+      const newBills = usesArchiveBrowse
+        ? await searchBillsInDb({
+            congress: selectedCongress,
+            introducedFrom: congressFilter === 'all' ? BILL_ARCHIVE_START_DATE : null,
+            billType: billTypeFilter !== 'all' ? billTypeFilter : null,
+            limit: LIMIT,
+            offset: currentOffset,
+          })
+        : (await searchBills({
+            congress: selectedCongress,
+            billType: billTypeFilter !== 'all' ? billTypeFilter : null,
+            limit: LIMIT,
+            offset: currentOffset
+          })).bills || []
 
       if (reset) {
         setBills(newBills)
@@ -198,7 +225,7 @@ function BillsPage() {
       />
 
       <header className="bills-masthead">
-        <div className="masthead-kicker">Congressional Index · {congressFilter === 'all' ? 'All Congresses' : `${congressFilter}th Congress`}</div>
+        <div className="masthead-kicker">Congressional Index · {formatCongressFilterLabel(congressFilter)}</div>
         <h1 className="masthead-title">The <em>Bills</em> Desk</h1>
         <p className="masthead-deck">Every bill introduced in the U.S. House and Senate, searchable and explained in plain English. Updated daily from Congress.gov.</p>
         <div className="masthead-date-row">
@@ -226,11 +253,12 @@ function BillsPage() {
           onChange={(e) => setCongressFilter(e.target.value)}
           className="bills-filter-pill"
         >
-          <option value="119">119th Congress</option>
-          <option value="118">118th Congress</option>
-          <option value="117">117th Congress</option>
-          <option value="116">116th Congress</option>
-          <option value="all">All Congresses</option>
+          {BILL_CONGRESS_OPTIONS.map((congress) => (
+            <option key={congress} value={String(congress)}>
+              {formatCongressLabel(congress)}
+            </option>
+          ))}
+          <option value="all">All Congresses Since 2001</option>
         </select>
         <select
           value={billTypeFilter}
@@ -334,7 +362,7 @@ function BillsPage() {
           <p>No bills found matching your criteria</p>
           <button className="bills-reset-button" onClick={() => {
             setSearchTerm('')
-            setCongressFilter('119')
+            setCongressFilter(DEFAULT_CONGRESS_FILTER)
             setBillTypeFilter('all')
             setSponsorFilter(null)
             setCosponsorFilter(null)

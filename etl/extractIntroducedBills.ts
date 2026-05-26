@@ -153,6 +153,20 @@ export interface IntroducedBillsResult {
   };
 }
 
+export interface ExtractIntroducedBillsOptions {
+  congress?: number;
+  billTypes?: ReadonlyArray<typeof BILL_TYPES[number]>;
+  /**
+   * Number of days to include in the updateDate window. Use null for a full
+   * Congress/type listing, which is what the historical bill backfill needs.
+   */
+  daysBack?: number | null;
+  maxListPagesPerType?: number;
+  maxDetailCalls?: number;
+  includeCommittees?: boolean;
+  includeCosponsors?: boolean;
+}
+
 // Map a Congress.gov committee "activity" name to our activity_type enum.
 function mapActivityType(activityName: string | undefined | null): string {
   if (!activityName) return 'referred_to';
@@ -169,7 +183,8 @@ function mapActivityType(activityName: string | undefined | null): string {
 // =============================================================================
 
 export async function extractIntroducedBills(
-  config: ETLConfig
+  config: ETLConfig,
+  options: ExtractIntroducedBillsOptions = {}
 ): Promise<IntroducedBillsResult> {
   const stats = {
     listed: 0,
@@ -184,32 +199,44 @@ export async function extractIntroducedBills(
   const cosponsors: BillCosponsor[] = [];
   const unknownCommitteeCodes = new Map<string, { committee_code: string; subcommittee_code: string | null }>();
 
-  const congress = getCurrentCongress();
-  const { fromDateTime, toDateTime } = getDateTimeRange(DAYS_BACK);
+  const congress = options.congress ?? getCurrentCongress();
+  const billTypes = options.billTypes ?? BILL_TYPES;
+  const daysBack = options.daysBack === undefined ? DAYS_BACK : options.daysBack;
+  const maxListPagesPerType = options.maxListPagesPerType ?? MAX_LIST_PAGES_PER_TYPE;
+  const maxDetailCalls = options.maxDetailCalls ?? MAX_DETAIL_CALLS;
+  const includeCommittees = options.includeCommittees ?? true;
+  const includeCosponsors = options.includeCosponsors ?? true;
+  const dateRange = daysBack == null ? null : getDateTimeRange(daysBack);
 
   logger.info(
-    `Extracting introduced bills: congress=${congress}, window=${fromDateTime} → ${toDateTime}`
+    dateRange
+      ? `Extracting introduced bills: congress=${congress}, window=${dateRange.fromDateTime} → ${dateRange.toDateTime}`
+      : `Extracting introduced bills: congress=${congress}, full Congress listing`
   );
 
   // -------- Phase 1: list bills per type --------
   const candidates = new Map<string, BillListItem>();
 
-  for (const type of BILL_TYPES) {
+  for (const type of billTypes) {
     let offset = 0;
-    for (let page = 0; page < MAX_LIST_PAGES_PER_TYPE; page++) {
+    for (let page = 0; page < maxListPagesPerType; page++) {
+      const params: Record<string, string | number> = {
+        sort: 'updateDate+desc',
+        limit: LIST_PAGE_SIZE,
+        offset,
+      };
+      if (dateRange) {
+        params.fromDateTime = dateRange.fromDateTime;
+        params.toDateTime = dateRange.toDateTime;
+      }
+
       let response: BillListResponse;
       try {
         response = await retry(() =>
           fetchCongressApi<BillListResponse>(
             `/bill/${congress}/${type}`,
             config.congressApiKey,
-            {
-              fromDateTime,
-              toDateTime,
-              sort: 'updateDate+desc',
-              limit: LIST_PAGE_SIZE,
-              offset,
-            }
+            params
           )
         );
       } catch (err) {
@@ -236,12 +263,12 @@ export async function extractIntroducedBills(
 
   stats.unique = candidates.size;
   logger.info(
-    `Listed ${stats.listed} bill rows, ${stats.unique} unique across ${BILL_TYPES.length} types`
+    `Listed ${stats.listed} bill rows, ${stats.unique} unique across ${billTypes.length} types`
   );
 
   // -------- Phase 2: per-bill detail fetch for true introducedDate + policyArea --------
   const bills: Bill[] = [];
-  let detailBudget = MAX_DETAIL_CALLS;
+  let detailBudget = maxDetailCalls;
   let skippedForBudget = 0;
 
   for (const [id, listItem] of candidates) {
@@ -280,33 +307,37 @@ export async function extractIntroducedBills(
         if (stats.errors.length < 20) stats.errors.push(`detail ${id}: ${message}`);
       }
 
-      // Sub-fetches: committees and cosponsors. Each is a separate Congress.gov
-      // call but cheap (one HTTP each). Failures are non-fatal — we keep the bill
-      // with whatever data we got. Skipped when detail budget already exhausted.
-      try {
-        const committeesRes = await retry(() =>
-          fetchCongressApi<BillCommitteesResponse>(
-            `/bill/${congressNum}/${typeLower}/${number}/committees`,
-            config.congressApiKey
-          )
-        );
-        billCommittees = committeesRes.committees ?? [];
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        logger.debug(`Committees fetch failed for ${id}: ${message}`);
+      // Optional sub-fetches. The daily ETL keeps these on; the historical
+      // bill backfill can disable them so bill visibility is not blocked by
+      // much larger routing/cosponsor call volume.
+      if (includeCommittees) {
+        try {
+          const committeesRes = await retry(() =>
+            fetchCongressApi<BillCommitteesResponse>(
+              `/bill/${congressNum}/${typeLower}/${number}/committees`,
+              config.congressApiKey
+            )
+          );
+          billCommittees = committeesRes.committees ?? [];
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.debug(`Committees fetch failed for ${id}: ${message}`);
+        }
       }
 
-      try {
-        const cospRes = await retry(() =>
-          fetchCongressApi<BillCosponsorsResponse>(
-            `/bill/${congressNum}/${typeLower}/${number}/cosponsors`,
-            config.congressApiKey
-          )
-        );
-        billCosponsors = cospRes.cosponsors ?? [];
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        logger.debug(`Cosponsors fetch failed for ${id}: ${message}`);
+      if (includeCosponsors) {
+        try {
+          const cospRes = await retry(() =>
+            fetchCongressApi<BillCosponsorsResponse>(
+              `/bill/${congressNum}/${typeLower}/${number}/cosponsors`,
+              config.congressApiKey
+            )
+          );
+          billCosponsors = cospRes.cosponsors ?? [];
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.debug(`Cosponsors fetch failed for ${id}: ${message}`);
+        }
       }
     } else {
       skippedForBudget++;

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
+import { CONGRESS_MAX } from '../utils/congressUtil'
 
 const BASE_URL = 'https://api.congress.gov/v3'
 const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
@@ -484,7 +485,8 @@ export const getAllCurrentMembers = async (onBatch) => {
 
 export const searchBills = async (options = {}) => {
   try {
-    const { query, congress = 119, billType, limit = 20, offset = 0 } = options
+    const { query, congress = CONGRESS_MAX, billType, limit = 20, offset = 0 } = options
+    const normalizedBillType = billType?.toLowerCase()
 
     const params = {
       limit,
@@ -498,12 +500,16 @@ export const searchBills = async (options = {}) => {
       endpoint = `/bill/${congress}`
     }
 
-    if (billType) {
-      endpoint = `/bill/${congress}/${billType.toLowerCase()}`
+    if (normalizedBillType && congress) {
+      endpoint = `/bill/${congress}/${normalizedBillType}`
     }
 
     const response = await congressApi.get(endpoint, { params })
     let bills = response.data.bills || []
+
+    if (normalizedBillType && !congress) {
+      bills = bills.filter((bill) => bill.type?.toLowerCase() === normalizedBillType)
+    }
 
     // Client-side filtering by query if provided
     if (query) {

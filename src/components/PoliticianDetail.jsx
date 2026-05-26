@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
+import { getAllTermsForMember } from '../services/memberTerms'
 import { resolveMemberImageUrl } from '../utils/memberImage'
+import {
+  BILL_CONGRESS_MIN,
+  CONGRESS_MAX,
+  formatCongressLabel,
+  getCongressEndYear,
+  getCongressStartYear,
+} from '../utils/congressUtil'
 import { getDonationsByPoliticianName, formatCurrency, getMoneyVotesCorrelation } from '../services/donations'
 import { getIndustryBreakdown, formatCurrency as formatCompact } from '../data/industryMap'
 import { getMemberDashboardData } from '../services/supabaseVotes'
@@ -34,6 +42,7 @@ function PoliticianDetail() {
   const navigate = useNavigate()
 
   const [member, setMember] = useState(null)
+  const [careerTerms, setCareerTerms] = useState([])
   const [donations, setDonations] = useState(null)
   const [industryData, setIndustryData] = useState([])
   const [correlationData, setCorrelationData] = useState([])
@@ -49,8 +58,12 @@ function PoliticianDetail() {
   const fetchMemberData = async () => {
     try {
       setLoading(true)
-      const memberData = await getMemberDetails(bioguideId)
+      const [memberData, termRows] = await Promise.all([
+        getMemberDetails(bioguideId),
+        getAllTermsForMember(bioguideId),
+      ])
       setMember(memberData)
+      setCareerTerms(termRows)
       setError(null)
       setLoading(false)
       fetchDonations(memberData)
@@ -72,11 +85,17 @@ function PoliticianDetail() {
     return stateNameToAbbr[lower] || state
   }
 
+  const getTermsArray = (terms) => {
+    if (Array.isArray(terms)) return terms
+    if (Array.isArray(terms?.item)) return terms.item
+    return []
+  }
+
   const fetchDonations = async (memberData) => {
     try {
       setDonationsLoading(true)
       const displayName = memberData.directOrderName || memberData.invertedOrderName || `${memberData.firstName} ${memberData.lastName}`
-      const rawState = memberData.state || memberData.terms?.[0]?.state
+      const rawState = memberData.state || getTermsArray(memberData.terms)[0]?.state
       const state = normalizeState(rawState)
       const donationsData = await getDonationsByPoliticianName(displayName, state)
       setDonations(donationsData)
@@ -120,14 +139,46 @@ function PoliticianDetail() {
   }
 
   const getCurrentTerm = (terms) => {
-    if (!terms || terms.length === 0) return null
-    return [...terms].sort((a, b) => (b.startYear || 0) - (a.startYear || 0))[0]
+    const termsArray = getTermsArray(terms)
+    if (termsArray.length === 0) return null
+    return [...termsArray].sort((a, b) => (b.startYear || 0) - (a.startYear || 0))[0]
   }
 
   const splitName = (full) => {
     if (!full) return { first: '', rest: '' }
     const parts = full.trim().split(' ')
     return { first: parts[0], rest: parts.slice(1).join(' ') }
+  }
+
+  const yearFromDate = (value) => {
+    if (!value) return null
+    const match = String(value).match(/^(\d{4})/)
+    return match ? Number(match[1]) : null
+  }
+
+  const formatChamberName = (value) => {
+    const chamberValue = String(value || '').toLowerCase()
+    if (chamberValue.includes('senate')) return 'Senate'
+    if (chamberValue.includes('house') || chamberValue.includes('representative')) return 'House'
+    return value || ''
+  }
+
+  const getTermCongress = (term) => {
+    const explicitCongress = Number(term.congress)
+    if (Number.isInteger(explicitCongress)) return explicitCongress
+    return null
+  }
+
+  const formatTermYears = (term) => {
+    const congress = getTermCongress(term)
+    const startYear = yearFromDate(term.term_start)
+      || term.startYear
+      || (congress ? getCongressStartYear(congress) : null)
+    const endYear = term.term_end
+      ? yearFromDate(term.term_end)
+      : term.endYear || (congress ? getCongressEndYear(congress) : 'present')
+    if (!startYear) return 'Dates unavailable'
+    return `${startYear}-${endYear || 'present'}`
   }
 
   if (loading) {
@@ -152,6 +203,7 @@ function PoliticianDetail() {
 
   const imageUrl = resolveMemberImageUrl(bioguideId, member.depiction?.imageUrl)
     || `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg`
+  const memberTermsArray = getTermsArray(member.terms)
   const currentTerm = getCurrentTerm(member.terms)
   const displayName = member.directOrderName || member.invertedOrderName || `${member.firstName} ${member.lastName}`
   const party = member.partyHistory?.[0]?.partyName || member.party
@@ -160,8 +212,8 @@ function PoliticianDetail() {
   const stateName = STATE_NAMES[stateAbbr] || rawState
   const district = currentTerm?.district
   const chamber = currentTerm?.chamber
-  const termCount = member.terms?.length || 0
-  const firstTermYear = member.terms ? Math.min(...member.terms.map(t => t.startYear || Infinity)) : null
+  const termCount = memberTermsArray.length
+  const firstTermYear = memberTermsArray.length > 0 ? Math.min(...memberTermsArray.map(t => t.startYear || Infinity)) : null
 
   // Title (Senator vs Representative)
   const title = chamber?.toLowerCase().includes('senate') ? 'U.S. Senator' : 'U.S. Representative'
@@ -185,17 +237,48 @@ function PoliticianDetail() {
     return pieces.join(' ')
   }
 
-  // Build tenure timeline from member.terms
+  // Build tenure timeline from per-Congress history when available, with the
+  // Congress.gov member terms as a fallback for local/offline data.
   const buildTenureTimeline = () => {
-    if (!member.terms || member.terms.length === 0) return []
-    const sorted = [...member.terms].sort((a, b) => (a.startYear || 0) - (b.startYear || 0))
-    const items = sorted.slice(-4).map((t, i, arr) => ({
-      years: `${t.startYear}–${t.endYear || 'present'}`,
-      congress: t.congress ? `${t.congress}th Congress` : '',
-      chamber: t.chamber,
-      isLast: i === arr.length - 1
+    const sourceTerms = careerTerms.length > 0 ? careerTerms : memberTermsArray
+    if (!sourceTerms || sourceTerms.length === 0) return []
+
+    const normalized = sourceTerms.map((term) => {
+      const congress = getTermCongress(term)
+      const startYear = yearFromDate(term.term_start) || term.startYear || (congress ? null : 0)
+      const endYear = term.term_end
+        ? yearFromDate(term.term_end)
+        : term.endYear || (congress ? getCongressEndYear(congress) : null)
+      const chamberName = formatChamberName(term.chamber)
+      const party = (term.caucus || term.party || '').toUpperCase()
+      const districtLabel = term.district != null ? `${term.state}-${term.district}` : term.state
+      const note = [chamberName, party, districtLabel].filter(Boolean).join(' · ')
+
+      return {
+        years: formatTermYears(term),
+        congress,
+        congressLabel: congress ? formatCongressLabel(congress) : '',
+        chamber: chamberName,
+        note,
+        startYear: startYear || 0,
+        termStart: term.term_start || `${term.startYear || ''}`,
+        isCurrent: !term.term_end && !term.endYear && (!congress || congress === CONGRESS_MAX),
+        endYear,
+      }
+    })
+      .filter((term) => {
+        if (term.congress) return term.congress >= BILL_CONGRESS_MIN
+        return !term.endYear || term.endYear >= 2001
+      })
+      .sort((a, b) => {
+        if (a.congress !== b.congress) return (a.congress || 0) - (b.congress || 0)
+        return String(a.termStart).localeCompare(String(b.termStart))
+      })
+
+    return normalized.map((term, i, arr) => ({
+      ...term,
+      isLast: term.isCurrent || i === arr.length - 1,
     }))
-    return items
   }
 
   const standfirst = buildStandfirst()
@@ -255,7 +338,7 @@ function PoliticianDetail() {
           </h1>
           {standfirst && <p className="pol-standfirst">{standfirst}</p>}
           {SHOW_SPONSOR_FILTER && bioguideId && (
-            <SponsorActivityBadge bioguideId={bioguideId} congress={currentTerm?.congress || 119} />
+            <SponsorActivityBadge bioguideId={bioguideId} congress={currentTerm?.congress || CONGRESS_MAX} />
           )}
           <dl className="pol-meta-grid">
             {chamber && (
@@ -313,14 +396,16 @@ function PoliticianDetail() {
       {/* TENURE TIMELINE */}
       {tenureItems.length > 0 && (
         <section className="pol-editorial">
-          <div className="pol-section-label">Tenure</div>
-          <h2 className="pol-section-title"><em>{termCount}</em> term{termCount !== 1 ? 's' : ''}, {firstTermYear && firstTermYear !== Infinity ? `${new Date().getFullYear() - firstTermYear}` : ''} years of votes</h2>
+          <div className="pol-section-label">Congress history · since 2001</div>
+          <h2 className="pol-section-title">
+            <em>{tenureItems.length}</em> record{tenureItems.length !== 1 ? 's' : ''} of service
+          </h2>
           <div className="pol-tenure-grid">
             {tenureItems.map((t, i) => (
-              <div key={i} className={`pol-tenure-item ${i === tenureItems.length - 1 ? '' : 'pol-tenure-past'}`}>
+              <div key={`${t.congress || t.years}-${i}`} className={`pol-tenure-item ${t.isLast ? '' : 'pol-tenure-past'}`}>
                 <div className="pol-tenure-year">{t.years}</div>
-                <div className="pol-tenure-title">{t.congress || t.chamber}</div>
-                <div className="pol-tenure-note">{i === tenureItems.length - 1 ? 'Current term' : t.chamber}</div>
+                <div className="pol-tenure-title">{t.congressLabel || t.chamber}</div>
+                <div className="pol-tenure-note">{t.isCurrent ? 'Current term' : t.note || t.chamber}</div>
               </div>
             ))}
           </div>

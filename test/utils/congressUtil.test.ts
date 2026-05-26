@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
+  BILL_ARCHIVE_START_DATE,
+  BILL_CONGRESS_MIN,
   CONGRESS_MIN,
   CONGRESS_MAX,
   getCurrentCongress,
@@ -10,6 +12,13 @@ import {
   formatCongressLabel,
   InvalidCongressError,
 } from '../../src/utils/congressUtil'
+
+describe('bill archive bounds', () => {
+  it('starts public bill/history browsing at the 107th Congress in 2001', () => {
+    expect(BILL_CONGRESS_MIN).toBe(107)
+    expect(BILL_ARCHIVE_START_DATE).toBe('2001-01-03')
+  })
+})
 
 describe('getCurrentCongressForDate', () => {
   it('returns 119 for any date during the 119th Congress (Jan 2025 to Jan 2027)', () => {
