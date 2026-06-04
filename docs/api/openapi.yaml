@@ -1,0 +1,411 @@
+openapi: 3.1.0
+info:
+  title: BallotWatch API
+  version: 1.0.0
+  summary: Congressional member, bill, vote, search, and aggregate statistics API.
+  description: >
+    BallotWatch exposes congressional data for civic applications, newsroom
+    tools, research projects, and internal analysis. Hosted access requires an
+    API key. Public sample data is available in /data.
+servers:
+  - url: https://www.ballotwatch.io
+    description: Production
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/members:
+    get:
+      summary: List members of Congress
+      parameters:
+        - $ref: "#/components/parameters/state"
+        - $ref: "#/components/parameters/chamber"
+        - $ref: "#/components/parameters/party"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Member list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedMembers"
+  /api/v1/members/{bioguideId}:
+    get:
+      summary: Get one member
+      parameters:
+        - $ref: "#/components/parameters/bioguideId"
+      responses:
+        "200":
+          description: Member detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Member"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/members/{bioguideId}/votes:
+    get:
+      summary: Get voting history for one member
+      parameters:
+        - $ref: "#/components/parameters/bioguideId"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Member votes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedVotes"
+  /api/v1/members/{bioguideId}/stats:
+    get:
+      summary: Get voting statistics for one member
+      parameters:
+        - $ref: "#/components/parameters/bioguideId"
+      responses:
+        "200":
+          description: Member statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+  /api/v1/bills:
+    get:
+      summary: List bills
+      parameters:
+        - name: policy_area
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Bill list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedBills"
+  /api/v1/bills/{id}:
+    get:
+      summary: Get one bill
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 119-hr-1234
+      responses:
+        "200":
+          description: Bill detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Bill"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/votes:
+    get:
+      summary: List roll call votes
+      parameters:
+        - $ref: "#/components/parameters/chamber"
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Vote list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedVotes"
+  /api/v1/votes/{rollCallId}:
+    get:
+      summary: Get one roll call vote
+      parameters:
+        - name: rollCallId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: house-119-1-123
+      responses:
+        "200":
+          description: Roll call detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Vote"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+  /api/v1/stats:
+    get:
+      summary: Get aggregate statistics
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [party_loyalty, attendance, bills_by_area]
+        - $ref: "#/components/parameters/chamber"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Aggregate statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+  /api/v1/search:
+    get:
+      summary: Search members and bills
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [members, bills]
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      members:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Member"
+                      bills:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Bill"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    bioguideId:
+      name: bioguideId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: P000197
+    state:
+      name: state
+      in: query
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 2
+      example: CA
+    chamber:
+      name: chamber
+      in: query
+      schema:
+        type: string
+        enum: [house, senate]
+    party:
+      name: party
+      in: query
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Meta:
+      type: object
+      properties:
+        api_version:
+          type: string
+          example: v1
+        data_updated_at:
+          type: string
+          format: date-time
+    Pagination:
+      type: object
+      properties:
+        offset:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+    Member:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        chamber:
+          type: string
+        state:
+          type: string
+        district:
+          type: string
+          nullable: true
+        party:
+          type: string
+        photo_url:
+          type: string
+          nullable: true
+    Bill:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        number:
+          type: string
+        congress:
+          type: integer
+        policy_area:
+          type: string
+          nullable: true
+        introduced_at:
+          type: string
+          format: date
+          nullable: true
+        source_url:
+          type: string
+    Vote:
+      type: object
+      properties:
+        id:
+          type: [integer, string]
+        roll_call_id:
+          type: string
+        position:
+          type: string
+        voted_at:
+          type: string
+          format: date
+        member:
+          $ref: "#/components/schemas/Member"
+        bill:
+          $ref: "#/components/schemas/Bill"
+    PaginatedMembers:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        meta:
+          $ref: "#/components/schemas/Meta"
+    PaginatedBills:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bill"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        meta:
+          $ref: "#/components/schemas/Meta"
+    PaginatedVotes:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vote"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        meta:
+          $ref: "#/components/schemas/Meta"
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string

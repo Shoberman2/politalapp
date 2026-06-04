@@ -1,0 +1,105 @@
+{
+  "profile": "tabular-data-package",
+  "name": "ballotwatch-sample-data",
+  "title": "BallotWatch Sample Data",
+  "description": "Schema samples for BallotWatch congressional member, bill, roll call, and committee survival data. These are not full production exports.",
+  "homepage": "https://www.ballotwatch.io/open",
+  "version": "0.1.0",
+  "created": "2026-06-03",
+  "licenses": [
+    {
+      "name": "LicenseRef-SourceTermsVary",
+      "title": "Source terms vary by upstream dataset",
+      "path": "https://www.ballotwatch.io/methodology/data-sources"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Congress.gov",
+      "path": "https://api.congress.gov/"
+    },
+    {
+      "title": "U.S. Census Bureau",
+      "path": "https://www.census.gov/"
+    },
+    {
+      "title": "Federal Election Commission",
+      "path": "https://www.fec.gov/data/"
+    }
+  ],
+  "resources": [
+    {
+      "name": "members-current-sample",
+      "path": "members-current.sample.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          { "name": "id", "type": "string" },
+          { "name": "name", "type": "string" },
+          { "name": "chamber", "type": "string" },
+          { "name": "state", "type": "string" },
+          { "name": "district", "type": "string" },
+          { "name": "party", "type": "string" },
+          { "name": "source_url", "type": "string" },
+          { "name": "updated_at", "type": "date" }
+        ],
+        "primaryKey": "id"
+      }
+    },
+    {
+      "name": "bills-current-congress-sample",
+      "path": "bills-current-congress.sample.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          { "name": "id", "type": "string" },
+          { "name": "congress", "type": "integer" },
+          { "name": "type", "type": "string" },
+          { "name": "number", "type": "string" },
+          { "name": "title", "type": "string" },
+          { "name": "policy_area", "type": "string" },
+          { "name": "introduced_at", "type": "date" },
+          { "name": "source_url", "type": "string" },
+          { "name": "updated_at", "type": "date" }
+        ],
+        "primaryKey": "id"
+      }
+    },
+    {
+      "name": "roll-calls-current-congress-sample",
+      "path": "roll-calls-current-congress.sample.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          { "name": "roll_call_id", "type": "string" },
+          { "name": "congress", "type": "integer" },
+          { "name": "chamber", "type": "string" },
+          { "name": "session", "type": "integer" },
+          { "name": "roll_number", "type": "integer" },
+          { "name": "question", "type": "string" },
+          { "name": "result", "type": "string" },
+          { "name": "voted_at", "type": "date" },
+          { "name": "source_url", "type": "string" }
+        ],
+        "primaryKey": "roll_call_id"
+      }
+    },
+    {
+      "name": "committee-survival-v1-sample",
+      "path": "committee-survival-v1.sample.csv",
+      "profile": "tabular-data-resource",
+      "schema": {
+        "fields": [
+          { "name": "congress", "type": "integer" },
+          { "name": "committee_code", "type": "string" },
+          { "name": "committee_name", "type": "string" },
+          { "name": "primary_referrals", "type": "integer" },
+          { "name": "advanced_count", "type": "integer" },
+          { "name": "survival_rate", "type": "number" },
+          { "name": "methodology_version", "type": "string" },
+          { "name": "computed_at", "type": "date" }
+        ]
+      }
+    }
+  ]
+}

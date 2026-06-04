@@ -50,19 +50,22 @@ function DeveloperPortal() {
   return (
     <div className="dev-portal">
       <SEO
-        title="BallotWatch API — Congressional Data for Developers"
-        description="REST API for congressional voting records, bills, member profiles, and political statistics. Built for journalists, advocacy orgs, and political analysts."
+        title="BallotWatch API and Open Data"
+        description="OpenAPI docs, public sample data, and hosted API access for congressional voting records, bills, member profiles, and civic statistics."
         path="/developers"
       />
 
       <section className="dev-hero">
-        <span className="dev-label">BallotWatch API</span>
-        <h1>Congressional intelligence, delivered as JSON</h1>
+        <span className="dev-label">BallotWatch API and Open Data</span>
+        <h1>Build on source-backed congressional data</h1>
         <p className="dev-hero-subtitle">
-          535 members. 10,000+ bills. Every roll call vote. Pre-computed stats.
-          One API, updated daily from Congress.gov.
+          Start with public samples, inspect the OpenAPI contract, then use hosted
+          access when you need fresh congressional data at production volume.
         </p>
         <div className="dev-hero-actions">
+          <button className="btn-secondary dev-open-button" onClick={() => navigate('/open')}>
+            Explore Open Data
+          </button>
           {user ? (
             <button className="btn-primary" onClick={() => navigate('/developers/keys')}>
               Get Your API Key
@@ -108,9 +111,28 @@ function DeveloperPortal() {
         </div>
       </section>
 
+      <section className="dev-open-data">
+        <div className="dev-open-data-copy">
+          <span className="dev-label">Open first</span>
+          <h2>Use the samples before you need a key</h2>
+          <p>
+            BallotWatch publishes schema samples and an OpenAPI spec so civic
+            hackers, classrooms, and newsrooms can prototype without a paid plan.
+            Hosted API plans cover freshness, uptime, volume, and support.
+          </p>
+        </div>
+        <div className="dev-open-data-links">
+          <a href="/data/datapackage.json">Data Package metadata</a>
+          <a href="/data/members-current.sample.csv">Members CSV sample</a>
+          <a href="/data/bills-current-congress.sample.csv">Bills CSV sample</a>
+          <a href="/data/sample-votes.json">Votes JSON sample</a>
+          <a href="https://github.com/Shoberman2/politalapp/blob/main/docs/api/openapi.yaml">OpenAPI source</a>
+        </div>
+      </section>
+
       <section className="dev-pricing" id="pricing">
-        <h2>Simple, transparent pricing</h2>
-        <p className="dev-pricing-subtitle">No hidden fees. Cancel anytime. All plans include every endpoint.</p>
+        <h2>Hosted API plans</h2>
+        <p className="dev-pricing-subtitle">Public samples are open. Hosted plans add keys, freshness, request volume, usage tracking, and support.</p>
         <div className="dev-tier-grid">
           {TIERS.map(tier => (
             <div key={tier.name} className={`dev-tier-card ${tier.popular ? 'dev-tier-popular' : ''}`}>
@@ -137,8 +159,8 @@ function DeveloperPortal() {
       </section>
 
       <section className="dev-cta">
-        <h2>Ready to build?</h2>
-        <p>Sign up, grab your API key, and make your first request in under 2 minutes.</p>
+        <h2>Ready to build on the live API?</h2>
+        <p>Start from the samples, then sign up when your project needs fresh hosted data.</p>
         <button className="btn-primary" onClick={() => user ? navigate('/developers/keys') : navigate('/auth')}>
           {user ? 'Go to API Keys' : 'Create Account'}
         </button>

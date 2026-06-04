@@ -24,6 +24,8 @@ import ApiDocs from './components/ApiDocs'
 import CommitteePage from './components/CommitteePage'
 import ChamberPage from './components/ChamberPage'
 import ChamberMethodology from './components/ChamberMethodology'
+import OpenSourcePage from './components/OpenSourcePage'
+import MethodologyPage from './components/MethodologyPage'
 
 // Feature flag gates the /committee/:code route registration.
 // When false, requests fall through to the catch-all redirect to "/" — no
@@ -48,6 +50,9 @@ function App() {
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/open" element={<OpenSourcePage />} />
+          <Route path="/methodology" element={<MethodologyPage />} />
+          <Route path="/methodology/:slug" element={<MethodologyPage />} />
 
           {/* Developer portal */}
           <Route path="/developers" element={<DeveloperPortal />} />

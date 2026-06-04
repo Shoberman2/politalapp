@@ -60,6 +60,23 @@
   color: var(--text-primary, #1A1A18);
   margin: 0 0 16px;
 }
+
+.methodology-intro {
+  margin: -0.5rem 0 1.5rem;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.methodology-intro a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.methodology-intro a:hover {
+  color: var(--accent-hover);
+}
 .methodology-title em {
   font-style: italic;
 }

@@ -25,13 +25,13 @@ function Navigation() {
   return (
     <>
       <div className="announcement-bar">
-        <span>Congressional voting data &mdash; powered by Congress.gov</span>
+        <span>Open-source congressional accountability data, powered by public sources</span>
       </div>
       <nav className="navigation">
         <div className="nav-container">
           <div className="nav-brand" onClick={() => navigate('/')}>
             <img src="/capitol-logo.svg" alt="" className="brand-logo" />
-            <h1 className="brand-name">BallotWatch</h1>
+            <span className="brand-name">BallotWatch</span>
           </div>
 
           <button
@@ -49,13 +49,13 @@ function Navigation() {
               to="/my-representative"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             >
-              My Representative
+              My Rep
             </NavLink>
             <NavLink
               to="/all"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             >
-              All Politicians
+              Members
             </NavLink>
             <NavLink
               to="/bills"
@@ -81,7 +81,19 @@ function Navigation() {
               to="/shutdown-tracker"
               className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
             >
-              Shutdown Tracker
+              Shutdown
+            </NavLink>
+            <NavLink
+              to="/open"
+              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+            >
+              Open Source
+            </NavLink>
+            <NavLink
+              to="/developers"
+              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+            >
+              API
             </NavLink>
             <NavLink
               to="/blog"

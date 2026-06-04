@@ -1,0 +1,22 @@
+name: Documentation improvement
+description: Improve setup, API, methodology, examples, or public copy.
+title: "[Docs]: "
+labels: ["docs", "triage"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      placeholder: "README.md, docs/open-source.md, /methodology/..."
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is confusing or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Suggested improvement

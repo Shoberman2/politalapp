@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use BallotWatch code, data samples, or methodology in published work, please cite it."
+title: "BallotWatch"
+type: software
+authors:
+  - name: "BallotWatch contributors"
+repository-code: "https://github.com/Shoberman2/politalapp"
+url: "https://www.ballotwatch.io"
+license: MIT
+version: "0.1.0.0"
+date-released: "2026-06-03"
+abstract: "Open-source congressional voting tracker with bill, vote, member, methodology, and API surfaces for civic accountability."

@@ -1,0 +1,38 @@
+name: Source-backed data correction
+description: Report a factual data issue with a public source.
+title: "[Correction]: "
+labels: ["data-qa", "correction", "triage"]
+body:
+  - type: input
+    id: record
+    attributes:
+      label: BallotWatch page or record
+      placeholder: "URL, bill ID, BioGuide ID, roll call ID, or committee code"
+    validations:
+      required: true
+  - type: input
+    id: field
+    attributes:
+      label: Field that appears wrong
+      placeholder: "vote position, sponsor, title, party, district, source URL..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected value
+      description: What should BallotWatch show?
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Public source URL
+      description: Corrections need a public source.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes or caveats
+      description: Add context if the source is ambiguous.

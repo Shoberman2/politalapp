@@ -54,6 +54,9 @@ export default function MethodologyModal({ open, anchor, onClose }) {
         <h2 id="methodology-title" className="methodology-title">
           <em>Methodology</em>
         </h2>
+        <p className="methodology-intro">
+          Public methodology pages are available at <a href="/methodology">/methodology</a>.
+        </p>
 
         <section
           className={`methodology-section ${anchor === 'committee-survival' ? 'methodology-section-active' : ''}`}

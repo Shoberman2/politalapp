@@ -3,6 +3,23 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.1.1.0] - 2026-06-03
+
+### Added
+
+- **Open-source public hub** at `/open` with contribution paths, public sample data links, methodology links, GitHub entry points, and source-backed correction guidance.
+- **Methodology library** at `/methodology` and `/methodology/:slug` covering data sources, AI explanations, committee survival, sponsor activity, campaign-finance matching, and corrections.
+- **Open-source repository front door**: MIT license, contribution guide, code of conduct, security policy, governance notes, citation metadata, issue templates, PR template, and OpenSSF Scorecard workflow.
+- **Open data artifacts**: OpenAPI 3.1 spec, public Data Package metadata, sample member/bill/roll-call/committee CSVs, and sample vote JSON for no-key prototyping.
+- **Public roadmap and starter issues** for docs, data QA, frontend, API, accessibility, and test contributions.
+
+### Changed
+
+- Reframed the landing page around BallotWatch as open-source congressional accountability infrastructure, while preserving the voter-first representative lookup path.
+- Updated navigation, footer, API docs, developer portal, and methodology modal so open source, sample data, and methodology are first-class paths through the site.
+- Rewrote README to match the current product, design system, API surface, methodology docs, and contribution model.
+- Removed stale client-side OpenAI key guidance from `.env.example`; OpenAI keys are server-side only.
+
 ## [0.1.0.0] - 2026-05-21
 
 ### Added

@@ -38,8 +38,8 @@ function Landing() {
   return (
     <div className="landing">
       <SEO
-        title="Track Your Congress"
-        description="Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status."
+        title="Open-Source Congressional Accountability"
+        description="BallotWatch is an open-source congressional accountability platform for tracking representatives, bills, votes, methodology, and civic data."
         path="/"
         schema={{
           '@graph': [
@@ -81,14 +81,15 @@ function Landing() {
           BallotWatch
         </div>
         <div className="nav-links">
-          <a href="#about">Representatives</a>
-          <a href="#features">Bills</a>
-          <a href="#how-it-works">Tracker</a>
+          <a href="#about">Workbench</a>
+          <a href="#database">Sources</a>
+          <a href="#features">Features</a>
+          <a href="/open" onClick={(e) => { e.preventDefault(); navigate('/open') }}>Open Source</a>
           <a href="#articles">Articles</a>
         </div>
         <div className="nav-cta">
-          <button onClick={() => navigate('/my-representative')} className="nav-btn-primary">
-            Explore Representatives &rsaquo;
+          <button onClick={() => navigate('/open')} className="nav-btn-primary">
+            Open the Commons &rsaquo;
           </button>
         </div>
       </nav>
@@ -96,17 +97,19 @@ function Landing() {
       {/* Hero Section with Congress.jpg Background */}
       <section className={`hero ${introComplete ? 'hero-visible' : ''}`}>
         <div className="hero-background">
-          <img src="/congress.jpg" alt="United States Capitol Building — Congressional voting records and bill tracker" />
+          <img src="/congress.jpg" alt="United States Capitol Building - Congressional voting records and bill tracker" />
           <div className="hero-overlay"></div>
         </div>
         <div className="hero-content">
           <h1 className="hero-title">
-            <span className="hero-line-1">Track Your</span>
-            <span className="hero-line-2">Congress</span>
+            <span className="hero-line-1">BallotWatch</span>
+            {' '}
+            <span className="hero-line-2">Open Congress Data</span>
           </h1>
           <p className="hero-subtitle">
-            Look up your senators and house representatives, track their congressional voting records,
-            and understand every bill with AI-powered explanations.
+            Track representatives, bills, votes, methodology, and public civic data.
+            Built open source so voters, journalists, researchers, and developers can
+            inspect the work behind every number.
           </p>
           <div className="hero-cta">
             <button onClick={() => navigate('/my-representative')} className="btn-primary">
@@ -115,8 +118,11 @@ function Landing() {
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
+            <button onClick={() => navigate('/open')} className="hero-secondary">
+              Open Source Commons
+            </button>
           </div>
-          <p className="hero-note">Powered by Congress.gov, the Census Bureau, and the FEC.</p>
+          <p className="hero-note">Source-backed. OpenAPI documented. Public methodology. Built from Congress.gov, Census, and FEC data.</p>
         </div>
         <button
           className="scroll-indicator"
@@ -134,22 +140,22 @@ function Landing() {
         <div className="trust-container">
           <div className="trust-item">
             <span className="trust-number">535</span>
-            <span className="trust-label">Members Tracked</span>
+            <span className="trust-label">Members</span>
           </div>
           <div className="trust-divider"></div>
           <div className="trust-item">
             <span className="trust-number">10K+</span>
-            <span className="trust-label">Bills Indexed</span>
+            <span className="trust-label">Bills</span>
           </div>
           <div className="trust-divider"></div>
           <div className="trust-item">
-            <span className="trust-number">100%</span>
-            <span className="trust-label">Official Sources</span>
+            <span className="trust-number">MIT</span>
+            <span className="trust-label">Code License</span>
           </div>
           <div className="trust-divider"></div>
           <div className="trust-item">
-            <span className="trust-number">Free</span>
-            <span className="trust-label">No Account Required</span>
+            <span className="trust-number">API</span>
+            <span className="trust-label">OpenAPI Spec</span>
           </div>
         </div>
       </section>
@@ -158,36 +164,36 @@ function Landing() {
       <section className="value-prop" id="about">
         <div className="section-container">
           <div className="section-header">
-            <h2 className="section-title">What you can do here</h2>
+            <h2 className="section-title">A public workbench for Congress</h2>
             <p className="section-description">
-              Track how your senators and representatives vote. Browse legislation.
-              Follow the money.
+              Use the app, inspect the methodology, build with the data, or
+              contribute source-backed fixes.
             </p>
           </div>
           <div className="value-grid">
             <div className="value-card" onClick={() => navigate('/my-representative')}>
               <div className="value-card-number">01</div>
-              <h3>Find Your Representative</h3>
-              <p>Enter your address to find out who represents you in the U.S. Senate and House of Representatives.</p>
-              <span className="value-card-link">Look Up &rsaquo;</span>
+              <h3>Use the App</h3>
+              <p>Find your representatives, read their voting records, and follow bills without decoding congressional databases.</p>
+              <span className="value-card-link">Find Reps &rsaquo;</span>
             </div>
-            <div className="value-card" onClick={() => navigate('/bills')}>
+            <div className="value-card" onClick={() => navigate('/methodology')}>
               <div className="value-card-number">02</div>
-              <h3>Congressional Bill Tracker</h3>
-              <p>Search and track 10,000+ congressional bills from introduction to law with AI-powered plain-English explanations.</p>
-              <span className="value-card-link">Browse Bills &rsaquo;</span>
+              <h3>Check the Work</h3>
+              <p>Open methodology pages explain source, cadence, caveat, and code references for computed features.</p>
+              <span className="value-card-link">Read Methodology &rsaquo;</span>
             </div>
-            <div className="value-card" onClick={() => navigate('/all')}>
+            <div className="value-card" onClick={() => navigate('/developers')}>
               <div className="value-card-number">03</div>
-              <h3>Voting Records & History</h3>
-              <p>See how every senator and house member votes on legislation — with full roll call breakdowns and party alignment.</p>
-              <span className="value-card-link">View Votes &rsaquo;</span>
+              <h3>Build With Data</h3>
+              <p>Use OpenAPI docs, schema samples, and hosted API access for newsroom, research, and civic projects.</p>
+              <span className="value-card-link">Explore API &rsaquo;</span>
             </div>
-            <div className="value-card" onClick={() => navigate('/shutdown-tracker')}>
+            <div className="value-card" onClick={() => navigate('/open')}>
               <div className="value-card-number">04</div>
-              <h3>Government Shutdown Tracker</h3>
-              <p>Monitor government shutdown risk with live funding deadlines, appropriations progress, and historical shutdown data.</p>
-              <span className="value-card-link">Check Status &rsaquo;</span>
+              <h3>Contribute Corrections</h3>
+              <p>Report source-backed data issues, improve docs, add examples, test edge cases, or help make features clearer.</p>
+              <span className="value-card-link">Open Commons &rsaquo;</span>
             </div>
           </div>
         </div>
@@ -197,11 +203,11 @@ function Landing() {
       <section className="how-it-works" id="how-it-works">
         <div className="section-container">
           <div className="section-header">
-            <h2 className="section-title">Your address. Your representatives. Their votes.</h2>
+            <h2 className="section-title">Every feature should be readable at a glance.</h2>
             <p className="section-description">
-              Enter your address and BallotWatch identifies your senators and house representative.
-              From there, you can see every vote they've cast, every bill they've sponsored, and
-              how they compare to their party.
+              BallotWatch explains what question a feature answers, what source
+              backs it, how often it updates, what caveat matters, and what you
+              can do next.
             </p>
           </div>
         </div>
@@ -214,36 +220,37 @@ function Landing() {
             <div className="premium-db-content">
               <h2 className="section-title">Where the data comes from</h2>
               <p className="section-description">
-                BallotWatch pulls from four official sources. No middlemen, no editorializing.
+                BallotWatch separates source facts, deterministic calculations,
+                and AI-assisted explanations so readers can audit the difference.
               </p>
               <ul className="premium-db-list">
                 <li>
                   <div>
                     <strong>Congress.gov</strong>
-                    <span>10,000+ bills, every roll call vote, committee assignments, and bill status from the official legislative database.</span>
+                    <span>Bills, roll calls, actions, sponsors, committees, and official legislative records.</span>
                   </div>
                 </li>
                 <li>
                   <div>
                     <strong>U.S. Census Bureau</strong>
-                    <span>Address-to-district mapping so you can find your exact representative, not just your state's senators.</span>
+                    <span>Address-to-district matching for representative lookup.</span>
                   </div>
                 </li>
                 <li>
                   <div>
                     <strong>Federal Election Commission</strong>
-                    <span>Campaign donations, committee fundraising, and individual contributor data linked to each member.</span>
+                    <span>Campaign finance context linked to members and policy areas with visible caveats.</span>
                   </div>
                 </li>
                 <li>
                   <div>
-                    <strong>Updated daily</strong>
-                    <span>An automated pipeline runs every morning at 6 AM ET, pulling new votes and bill updates.</span>
+                    <strong>Open methodology</strong>
+                    <span>Public pages explain data sources, AI explanations, committee survival, sponsor activity, finance matching, and corrections.</span>
                   </div>
                 </li>
               </ul>
-              <button onClick={() => navigate('/bills')} className="btn-primary">
-                Browse Bills
+              <button onClick={() => navigate('/methodology')} className="btn-primary">
+                Read Methodology
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
@@ -258,7 +265,7 @@ function Landing() {
         <div className="section-container">
           <div className="section-header section-header-center">
             <span className="section-label">Features</span>
-            <h2 className="section-title">Your complete congressional tracking toolkit</h2>
+            <h2 className="section-title">Readable by citizens. Useful to builders.</h2>
           </div>
           <div className="features-grid">
             <div className="feature-card">
@@ -271,13 +278,13 @@ function Landing() {
                     <line x1="16" y1="17" x2="8" y2="17"/>
                   </svg>
                 </div>
-                <h3>Congressional Bill Tracking</h3>
+                <h3>Source-Backed Bill Tracking</h3>
               </div>
-              <p>Search and filter 10,000+ congressional bills and resolutions. Track legislation from introduction through committee to final vote.</p>
+              <p>Search bills and see the source record, current status, plain-English explanation, and methodology caveat together.</p>
               <ul className="feature-list">
-                <li>Full-text bill search</li>
-                <li>Filter by Senate, House, status</li>
-                <li>Bill sponsor and cosponsor details</li>
+                <li>Question: what is moving?</li>
+                <li>Source: Congress.gov</li>
+                <li>Action: search and cite</li>
               </ul>
             </div>
             <div className="feature-card">
@@ -290,13 +297,13 @@ function Landing() {
                     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                   </svg>
                 </div>
-                <h3>Senator & Representative Profiles</h3>
+                <h3>Representative Accountability Pages</h3>
               </div>
-              <p>Detailed profiles for all 535 members of Congress — senators and house representatives — with their full legislative record.</p>
+              <p>Profiles organize a member's votes, sponsorship, party alignment, finance context, and source links in one place.</p>
               <ul className="feature-list">
-                <li>Official contact information</li>
-                <li>Committee assignments</li>
-                <li>Congressional voting history</li>
+                <li>Question: who represents me?</li>
+                <li>Source: member records</li>
+                <li>Action: inspect votes</li>
               </ul>
             </div>
             <div className="feature-card">
@@ -306,13 +313,13 @@ function Landing() {
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                   </svg>
                 </div>
-                <h3>AI-Powered Bill Explanations</h3>
+                <h3>Auditable AI Explanations</h3>
               </div>
-              <p>Complex legislation explained in plain English. Understand what Congress is voting on without reading hundreds of pages.</p>
+              <p>AI helps translate dense records, but source facts stay separate and methodology explains the guardrails.</p>
               <ul className="feature-list">
-                <li>Plain-English bill summaries</li>
-                <li>Key provisions and impact analysis</li>
-                <li>Related legislation links</li>
+                <li>Question: what does it mean?</li>
+                <li>Source: structured inputs</li>
+                <li>Action: read caveats</li>
               </ul>
             </div>
             <div className="feature-card">
@@ -323,13 +330,13 @@ function Landing() {
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                   </svg>
                 </div>
-                <h3>Congressional Roll Call Votes</h3>
+                <h3>Open Roll Call Records</h3>
               </div>
-              <p>See exactly how your senators and representatives vote on every roll call — with yea/nay breakdowns and party-line analysis.</p>
+              <p>Every vote surface should tell you how a member voted, what the chamber voted on, and where the record came from.</p>
               <ul className="feature-list">
-                <li>Complete voting history timeline</li>
-                <li>Yea/Nay/Present breakdown</li>
-                <li>Party alignment statistics</li>
+                <li>Question: how did they vote?</li>
+                <li>Source: roll calls</li>
+                <li>Action: filter records</li>
               </ul>
             </div>
             <div className="feature-card">
@@ -341,13 +348,13 @@ function Landing() {
                     <line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
                 </div>
-                <h3>Government Shutdown Tracker</h3>
+                <h3>Open Data and API</h3>
               </div>
-              <p>Live government shutdown risk monitor with funding deadline countdowns, appropriations bill progress, and historical shutdown data.</p>
+              <p>Developers can start from sample data and OpenAPI docs, then move to hosted API access when they need freshness and volume.</p>
               <ul className="feature-list">
-                <li>Real-time risk assessment</li>
-                <li>Federal funding deadline countdown</li>
-                <li>Historical government shutdown data</li>
+                <li>Question: can I build with it?</li>
+                <li>Source: API contract</li>
+                <li>Action: download samples</li>
               </ul>
             </div>
           </div>
@@ -435,17 +442,23 @@ function Landing() {
                 <img src="/capitol-logo.svg" alt="" className="footer-logo-img" />
                 BallotWatch
               </span>
-              <p>Premium congressional intelligence — making democracy accessible to every American.</p>
+              <p>Open-source congressional accountability, built from public sources and readable methodology.</p>
             </div>
             <div className="footer-links">
               <div className="footer-column">
                 <h4>Explore</h4>
                 <button onClick={() => navigate('/my-representative')}>My Representatives</button>
                 <button onClick={() => navigate('/all')}>All Politicians</button>
+                <button onClick={() => navigate('/bills')}>Bills</button>
+              </div>
+              <div className="footer-column">
+                <h4>Open</h4>
+                <button onClick={() => navigate('/open')}>Open Source</button>
+                <button onClick={() => navigate('/methodology')}>Methodology</button>
+                <button onClick={() => navigate('/developers')}>API</button>
               </div>
               <div className="footer-column">
                 <h4>Resources</h4>
-                <button onClick={() => navigate('/bills')}>Bills</button>
                 <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
                 <button onClick={() => navigate('/blog')}>Blog</button>
               </div>
@@ -459,11 +472,13 @@ function Landing() {
                 <h4>Data</h4>
                 <span className="footer-text">Congress.gov</span>
                 <span className="footer-text">US Census Bureau</span>
+                <span className="footer-text">Federal Election Commission</span>
+                <span className="footer-text">OpenAPI + sample datasets</span>
               </div>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2026 BallotWatch. Data sourced from Congress.gov</p>
+            <p>&copy; 2026 BallotWatch. Code MIT licensed. Source data terms vary by upstream provider.</p>
           </div>
         </div>
       </footer>

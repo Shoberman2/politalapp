@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SEO from './SEO'
 import '../styles/ApiDocs.css'
 
 const ENDPOINTS = [
@@ -170,10 +171,19 @@ function ApiDocs() {
 
   return (
     <div className="api-docs">
+      <SEO
+        title="BallotWatch API Reference"
+        description="Hosted API reference, OpenAPI source, and sample data links for BallotWatch congressional data."
+        path="/developers/docs"
+      />
       <div className="api-docs-header">
         <h1>API Reference</h1>
         <p>Base URL: <code>https://www.ballotwatch.io</code></p>
         <p>Authentication: <code>Authorization: Bearer bw_live_xxx</code></p>
+        <p>
+          OpenAPI source: <a href="https://github.com/Shoberman2/politalapp/blob/main/docs/api/openapi.yaml">docs/api/openapi.yaml</a>
+          {' '} · Sample data: <a href="/data/datapackage.json">/data/datapackage.json</a>
+        </p>
       </div>
 
       <div className="api-docs-layout">
@@ -193,6 +203,9 @@ function ApiDocs() {
           <div className="api-docs-nav-divider" />
           <button className="api-docs-nav-cta" onClick={() => navigate('/developers/keys')}>
             Get API Key
+          </button>
+          <button className="api-docs-nav-secondary" onClick={() => navigate('/open')}>
+            Open Data
           </button>
         </nav>
 
@@ -256,6 +269,12 @@ function ApiDocs() {
             <p>All API requests require a valid API key in the Authorization header:</p>
             <pre className="api-docs-code">Authorization: Bearer bw_live_your_key_here</pre>
             <p>Get your API key at <a href="/developers/keys">/developers/keys</a>.</p>
+
+            <h3>Open Data Samples</h3>
+            <p>
+              You can inspect schema samples without an API key at <a href="/data/datapackage.json">/data/datapackage.json</a>.
+              These samples are for prototyping and documentation, not full production exports.
+            </p>
 
             <h3>Rate Limits</h3>
             <table className="api-docs-params-table">

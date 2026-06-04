@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "description": "Small BallotWatch vote sample for examples and local prototypes.",
+    "schema": "https://www.ballotwatch.io/data/datapackage.json",
+    "updated_at": "2026-06-03",
+    "sample_only": true
+  },
+  "data": [
+    {
+      "roll_call_id": "house-119-1-123",
+      "member_id": "P000197",
+      "member_name": "Nancy Pelosi",
+      "position": "Yea",
+      "bill_id": "119-hr-1234",
+      "voted_at": "2026-04-10"
+    },
+    {
+      "roll_call_id": "senate-119-1-45",
+      "member_id": "M000355",
+      "member_name": "Mitch McConnell",
+      "position": "Nay",
+      "bill_id": "119-s-432",
+      "voted_at": "2026-03-19"
+    }
+  ]
+}

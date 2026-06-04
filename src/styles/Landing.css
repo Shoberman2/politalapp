@@ -124,7 +124,7 @@ html {
   font-size: 1.5rem;
   font-weight: 400;
   color: #ffffff;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -263,7 +263,7 @@ html {
   color: #ffffff;
   line-height: 1.05;
   margin: 0 0 2rem 0;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   text-transform: none;
 }
 
@@ -383,6 +383,31 @@ html {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.hero-secondary:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .btn-tertiary {
@@ -561,14 +586,14 @@ html {
 
 .value-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   justify-items: center;
 }
 
 .value-card:last-child {
-  grid-column: 1 / -1;
-  max-width: calc((100% - 1.5rem * 2) / 3);
+  grid-column: auto;
+  max-width: none;
 }
 
 .value-card {
@@ -1093,7 +1118,8 @@ html {
 
 .footer-links {
   display: flex;
-  gap: 3rem;
+  flex-wrap: wrap;
+  gap: 2rem;
 }
 
 .footer-column {
@@ -1200,7 +1226,7 @@ html {
   }
 
   .value-card:last-child {
-    max-width: calc((100% - 1.25rem) / 2);
+    max-width: none;
   }
 
   .step-number {
@@ -1287,7 +1313,8 @@ html {
 
   .btn-primary,
   .btn-secondary,
-  .btn-tertiary {
+  .btn-tertiary,
+  .hero-secondary {
     width: 100%;
     max-width: 320px;
     justify-content: center;

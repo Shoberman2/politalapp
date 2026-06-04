@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a civic feature, API improvement, or contribution path.
+title: "[Feature]: "
+labels: ["feature", "triage"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: What question would this help someone answer?
+      description: Keep it user-facing and specific.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: What source would back it?
+      description: Link to the data source or explain what records are needed.
+  - type: textarea
+    id: users
+    attributes:
+      label: Who would use this?
+      placeholder: "Voter, journalist, researcher, developer, educator..."
+  - type: textarea
+    id: caveat
+    attributes:
+      label: What caveat should be visible?

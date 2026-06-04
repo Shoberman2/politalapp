@@ -19,6 +19,12 @@
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
   color: #6B6861;
+  margin: 4px 0;
+}
+
+.api-docs-header a {
+  color: #1D4ED8;
+  text-decoration: none;
 }
 
 .api-docs-header code {
@@ -117,6 +123,28 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.api-docs-nav-secondary {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 8px;
+  padding: 10px;
+  font-family: 'General Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A18;
+  background: transparent;
+  border: 1px solid #E8E6E1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.api-docs-nav-secondary:hover {
+  border-color: #1D4ED8;
+  color: #1D4ED8;
+  background: rgba(29, 78, 216, 0.08);
 }
 
 /* Content */
