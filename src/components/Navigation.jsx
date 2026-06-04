@@ -1,112 +1,80 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-// import { useAuth } from '../context/AuthContext'
+import ThemeToggle from './ThemeToggle'
 import '../styles/Navigation.css'
 
-// Match the feature flag in App.jsx so the nav slot only appears when the
-// chamber routes are registered.
-const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER === 'true'
+// Per-route announcement copy for the strip above the masthead.
+function announceFor(pathname) {
+  if (pathname === '/') {
+    return 'Open-source congressional accountability / Built from public Congress.gov, Census & FEC data'
+  }
+  if (pathname.startsWith('/all')) {
+    return 'Open-source congressional accountability / All 535 members of the 119th Congress'
+  }
+  if (pathname.startsWith('/bills') || pathname.startsWith('/bill/')) {
+    return 'Open-source congressional accountability / Updated daily from Congress.gov'
+  }
+  return 'Open-source congressional accountability data, powered by public sources'
+}
+
+const NAV_LINKS = [
+  { to: '/my-representative', label: 'My Rep' },
+  { to: '/all', label: 'Members' },
+  { to: '/bills', label: 'Bills' },
+  { to: '/methodology', label: 'Methodology' },
+  { to: '/open', label: 'Open Source' },
+  { to: '/developers', label: 'API' },
+]
 
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  // const { user, signOut } = useAuth()
-
-  // const handleSignOut = async () => {
-  //   await signOut()
-  //   navigate('/')
-  // }
 
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
 
   return (
-    <>
-      <div className="announcement-bar">
-        <span>Open-source congressional accountability data, powered by public sources</span>
-      </div>
-      <nav className="navigation">
-        <div className="nav-container">
-          <div className="nav-brand" onClick={() => navigate('/')}>
-            <img src="/capitol-logo.svg" alt="" className="brand-logo" />
+    <div className="bw bw-masthead">
+      <div className="announce"><span>{announceFor(location.pathname)}</span></div>
+      <div className="topbar-wrap">
+        <div className="topbar">
+          <button className="brand" onClick={() => navigate('/')} aria-label="BallotWatch home">
+            <span className="brand-mark"><img src="/capitol-logo.svg" alt="" /></span>
             <span className="brand-name">BallotWatch</span>
-          </div>
-
-          <button
-            className={`nav-hamburger ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle navigation menu"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
           </button>
 
-          <div className={`nav-tabs ${menuOpen ? 'nav-tabs-open' : ''}`}>
-            <NavLink
-              to="/my-representative"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              My Rep
-            </NavLink>
-            <NavLink
-              to="/all"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              Members
-            </NavLink>
-            <NavLink
-              to="/bills"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              Bills
-            </NavLink>
-            <NavLink
-              to="/map"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              District Map
-            </NavLink>
-            {SHOW_CHAMBER && (
+          <nav className={`topnav ${menuOpen ? 'open-mobile' : ''}`}>
+            {NAV_LINKS.map((link) => (
               <NavLink
-                to="/chamber"
-                className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => (isActive ? 'active' : undefined)}
               >
-                Chamber
+                {link.label}
               </NavLink>
-            )}
-            <NavLink
-              to="/shutdown-tracker"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              Shutdown
-            </NavLink>
-            <NavLink
-              to="/open"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              Open Source
-            </NavLink>
-            <NavLink
-              to="/developers"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              API
-            </NavLink>
-            <NavLink
-              to="/blog"
-              className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-            >
-              Blog
-            </NavLink>
-          </div>
+            ))}
+          </nav>
 
-          <div className="nav-spacer"></div>
+          <div className="topbar-right">
+            <ThemeToggle />
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/my-representative')}>
+              Find My Rep
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </button>
+            <button
+              className="nav-burger"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Toggle navigation menu"
+              aria-expanded={menuOpen}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+            </button>
+          </div>
         </div>
-      </nav>
-    </>
+      </div>
+    </div>
   )
 }
 

@@ -17,7 +17,7 @@ test.describe('Sponsor filter pill', () => {
     await page.goto('/bills')
 
     // Wait for the initial bills grid to render so we know the page is ready.
-    await expect(page.locator('.bills-editorial-list')).toBeVisible()
+    await expect(page.locator('.bill-list')).toBeVisible()
 
     // Open the "Sponsored by" pill. (When the feature flag is off, this
     // selector won't exist — the test will fail with a clear message.)
@@ -37,11 +37,11 @@ test.describe('Sponsor filter pill', () => {
     // The pill should now show the selected name + ×, and the count line
     // should reflect the active filter.
     await expect(page.locator('.sponsor-pill-name')).toBeVisible()
-    await expect(page.locator('.bills-count-filter')).toContainText(/sponsored by/i)
+    await expect(page.locator('.results-filter')).toContainText(/sponsored by/i)
 
     // Bills list should re-render. We don't assert a specific count (depends
     // on data), but it should still be a list.
-    await expect(page.locator('.bills-editorial-list')).toBeVisible()
+    await expect(page.locator('.bill-list')).toBeVisible()
   })
 
   test('Esc dismisses dropdown without applying a filter', async ({ page }) => {

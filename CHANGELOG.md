@@ -3,6 +3,26 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.1.1.1] - 2026-06-04
+
+### Added
+
+- Shared broadsheet chrome with a route-aware masthead, dark-mode toggle, and open-source footer for the redesigned public pages.
+- Member Register composition bars, leadership filter, member photo cards, sticky search, quick chips, and load-more paging.
+- Bills Desk facets for status, policy area, chamber, and sorting, with clearer source/date/status metadata for each bill row.
+
+### Changed
+
+- Reworked the landing page into a civic front page with a dateline, floor rail, source ledger, readable feature matrix, correction workflow, and open-source calls to action.
+- Restyled the Bills and Members indexes around the editorial design system instead of generic card grids and SaaS-style navigation.
+- Normalized the redesigned typography to fixed editorial type steps with responsive breakpoints instead of viewport-scaled font sizes.
+- Updated the open-source pages to use the same type discipline as the redesigned app surfaces.
+
+### Fixed
+
+- Replaced clickable anchor elements without destinations in redesigned rows, cards, and footer links with semantic buttons or router links.
+- Updated sponsor-filter e2e selectors to match the new Bills Desk result list and filter count classes.
+
 ## [0.1.1.0] - 2026-06-03
 
 ### Added

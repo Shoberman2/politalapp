@@ -39,12 +39,13 @@ const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER === 'true'
 function App() {
   const location = useLocation()
   const isLanding = location.pathname === '/'
-  const hideChrome = isLanding
 
   return (
     <div className="app">
-      {!hideChrome && <ShutdownBanner />}
-      {!hideChrome && <Navigation />}
+      {/* The shutdown banner stays off the landing's clean masthead; the
+          broadsheet masthead itself now renders on every page. */}
+      {!isLanding && <ShutdownBanner />}
+      <Navigation />
       <main className="main-content">
         <Routes>
           {/* Public routes */}

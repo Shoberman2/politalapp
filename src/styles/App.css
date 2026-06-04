@@ -5,29 +5,63 @@
 }
 
 :root {
-  /* BallotWatch Design System — see DESIGN.md */
+  /* ==========================================================
+     BallotWatch Design System — see DESIGN.md
+     Light theme = warm paper. Both the editorial broadsheet
+     token names (--ink, --rule, --serif…) and the original
+     token names (--text-primary, --border…) are defined here
+     and mirrored in [data-theme="dark"] so the whole app is
+     theme-aware.
+     ========================================================== */
+
+  /* Surfaces */
   --bg: #FAFAF7;
+  --bg-tint: #F4F2EC;
   --surface: #FFFFFF;
   --surface-raised: #FFFFFF;
+
+  /* Ink (broadsheet) + legacy text aliases */
+  --ink: #1A1A18;
+  --ink-2: #6B6861;
+  --ink-3: #9C9789;
   --text-primary: #1A1A18;
   --text-secondary: #6B6861;
   --text-muted: #9C9789;
+
+  /* Accent */
   --accent: #1D4ED8;
   --accent-hover: #1E40AF;
+  --accent-soft: rgba(29, 78, 216, 0.08);
   --accent-subtle: rgba(29, 78, 216, 0.08);
+
+  /* Rules / borders (broadsheet) + legacy aliases */
+  --rule: #E8E6E1;
+  --rule-strong: #1A1A18;
+  --rule-light: #F0EEEA;
+  --border: #E8E6E1;
+  --border-light: #F0EEEA;
+
+  /* Semantic */
   --error: #DC2626;
   --error-subtle: rgba(220, 38, 38, 0.08);
   --success: #16A34A;
   --success-subtle: rgba(22, 163, 74, 0.08);
-  --warning: #D97706;
-  --warning-subtle: rgba(217, 119, 6, 0.08);
+  --warning: #B45309;
+  --warning-subtle: rgba(180, 83, 9, 0.08);
   --info: #0284C7;
   --info-subtle: rgba(2, 132, 199, 0.08);
-  --border: #E8E6E1;
-  --border-light: #F0EEEA;
+
+  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow: 0 1px 2px rgba(26,26,24,0.04), 0 8px 24px -12px rgba(26,26,24,0.12);
+  --shadow-broad-lg: 0 2px 4px rgba(26,26,24,0.05), 0 24px 48px -20px rgba(26,26,24,0.22);
+
+  /* Radii (broadsheet) + legacy aliases */
+  --r-sm: 3px;
+  --r-md: 7px;
+  --r-lg: 12px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -43,15 +77,78 @@
   --space-8: 48px;
 
   /* Party colors — secondary, not dominant */
+  --dem: #2563EB;
+  --rep: #DC2626;
+  --ind: #7C3AED;
   --party-dem: #2563EB;
   --party-rep: #DC2626;
   --party-ind: #7C3AED;
 
+  /* Layout */
+  --maxw: 1180px;
+
   /* Typography */
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --sans: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   --font-display: 'Instrument Serif', Georgia, serif;
   --font-body: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 }
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #111110;
+  --bg-tint: #1A1A18;
+  --surface: #1C1C1A;
+  --surface-raised: #242422;
+
+  --ink: #E8E6E1;
+  --ink-2: #9C9789;
+  --ink-3: #6B6861;
+  --text-primary: #E8E6E1;
+  --text-secondary: #9C9789;
+  --text-muted: #6B6861;
+
+  --accent: #5B8DEF;
+  --accent-hover: #7BA3F3;
+  --accent-soft: rgba(91, 141, 239, 0.12);
+  --accent-subtle: rgba(91, 141, 239, 0.12);
+
+  --rule: #2A2A27;
+  --rule-strong: #5C5A54;
+  --rule-light: #232320;
+  --border: #2A2A27;
+  --border-light: #232320;
+
+  --success: #34C77B;
+  --success-subtle: rgba(52, 199, 123, 0.12);
+  --warning: #D9962B;
+  --warning-subtle: rgba(217, 150, 43, 0.12);
+  --error: #EF5B5B;
+  --error-subtle: rgba(239, 91, 91, 0.12);
+  --info: #3DA8E0;
+  --info-subtle: rgba(61, 168, 224, 0.12);
+
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+  --shadow-broad-lg: 0 2px 6px rgba(0,0,0,0.4), 0 28px 56px -22px rgba(0,0,0,0.7);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  --dem: #60A5FA;
+  --rep: #F87171;
+  --ind: #A78BFA;
+  --party-dem: #60A5FA;
+  --party-rep: #F87171;
+  --party-ind: #A78BFA;
+}
+
+/* Defeat any host-injected `html, body { background: none }` reset and keep
+   the page background tracking the active theme. */
+:root { background: var(--bg); }
+html body { background: var(--bg); }
 
 html {
   scroll-behavior: smooth;
@@ -65,6 +162,8 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   font-weight: 400;
+  font-feature-settings: "ss01";
+  transition: background 0.35s ease, color 0.35s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -99,7 +198,10 @@ small { font-weight: 300; }
   animation: fadeInUp 0.4s ease-out;
 }
 
-.main-content:has(.landing) {
+/* Redesigned broadsheet pages manage their own full-bleed layout. */
+.main-content:has(.landing),
+.main-content:has(.members-register),
+.main-content:has(.bills-desk) {
   max-width: 100%;
   padding: 0;
 }

@@ -39,7 +39,7 @@
 
 .open-hero h1 {
   max-width: 760px;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: 4.25rem;
   line-height: 1;
 }
 
@@ -149,7 +149,7 @@
 .open-section-heading h2,
 .open-split h2,
 .open-callout h2 {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: 2.75rem;
   line-height: 1.05;
 }
 
@@ -309,7 +309,7 @@
 }
 
 .methodology-article h1 {
-  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  font-size: 4rem;
   line-height: 1;
 }
 
@@ -384,6 +384,17 @@
 }
 
 @media (max-width: 980px) {
+  .open-hero h1,
+  .methodology-article h1 {
+    font-size: 3.25rem;
+  }
+
+  .open-section-heading h2,
+  .open-split h2,
+  .open-callout h2 {
+    font-size: 2.25rem;
+  }
+
   .open-hero,
   .open-split {
     grid-template-columns: 1fr;
@@ -398,6 +409,17 @@
 }
 
 @media (max-width: 640px) {
+  .open-hero h1,
+  .methodology-article h1 {
+    font-size: 2.5rem;
+  }
+
+  .open-section-heading h2,
+  .open-split h2,
+  .open-callout h2 {
+    font-size: 2rem;
+  }
+
   .open-hero {
     padding-top: var(--space-6);
   }

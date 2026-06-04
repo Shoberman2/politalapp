@@ -1,42 +1,52 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import articles from '../data/articles'
+import Footer from './Footer'
 import SEO from './SEO'
 import '../styles/Landing.css'
 
+const ArrowRight = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+)
+
+const FLOOR_ITEMS = [
+  { id: 'H.R. 4821', text: 'Passed House, 248-176', sub: 'Energy Permitting Modernization Act' },
+  { id: 'S. 1402', text: 'Cloture invoked, 61-38', sub: 'Rural Broadband Access Act' },
+  { id: 'H.R. 9', text: 'In committee markup', sub: 'Federal Permitting Reform' },
+]
+
+const STATS = [
+  { n: '535', l: 'Members tracked' },
+  { n: '10K', small: '+', l: 'Bills indexed' },
+  { n: '119', small: 'th', l: 'Congress, live' },
+  { n: 'MIT', l: 'Code license' },
+  { n: 'API', l: 'OpenAPI spec' },
+]
+
+const SOURCES = [
+  { num: '01', name: 'Congress.gov', desc: 'Bills, roll calls, actions, sponsors, committees and official legislative records.', type: 'Primary source' },
+  { num: '02', name: 'U.S. Census Bureau', desc: 'Address-to-district matching for representative lookup.', type: 'Primary source' },
+  { num: '03', name: 'Federal Election Commission', desc: 'Campaign-finance context linked to members and policy areas, with visible caveats.', type: 'Primary source' },
+  { num: '04', name: 'Open Methodology', desc: 'Public pages cover AI explanations, committee survival, sponsor activity, finance matching and corrections.', type: 'Computed' },
+]
+
+const FEATURES = [
+  { tag: 'Bill Tracking', title: 'Source-backed bill tracking', body: "Search bills and see the source record, current status, plain-English explanation and methodology caveat together.", meta: [['Asks', "What's moving?"], ['Source', 'Congress.gov'], ['Do', 'Search & cite']] },
+  { tag: 'Accountability', title: 'Representative profile pages', body: "Profiles organize a member's votes, sponsorship, party alignment and finance context with source links in one place.", meta: [['Asks', 'Who represents me?'], ['Source', 'Member records'], ['Do', 'Inspect votes']] },
+  { tag: 'AI, Audited', title: 'Auditable AI explanations', body: 'AI helps translate dense records, but source facts stay separate and methodology explains the guardrails.', meta: [['Asks', 'What does it mean?'], ['Source', 'Structured inputs'], ['Do', 'Read caveats']] },
+  { tag: 'Roll Calls', title: 'Open roll-call records', body: 'Every vote surface tells you how a member voted, what the chamber decided and where the record came from.', meta: [['Asks', "How'd they vote?"], ['Source', 'Roll calls'], ['Do', 'Filter records']] },
+  { tag: 'Open Data', title: 'Open data & public API', body: 'Start from sample data and OpenAPI docs, then move to hosted API access when you need freshness and volume.', meta: [['Asks', 'Can I build it?'], ['Source', 'API contract'], ['Do', 'Pull samples']] },
+  { tag: 'Corrections', title: 'Source-backed corrections', body: 'Spot something wrong? File a correction with a record, the field, the expected value and a public source URL.', meta: [['Asks', 'Is this right?'], ['Source', 'Public URL'], ['Do', 'Open an issue']] },
+]
+
 function Landing() {
   const navigate = useNavigate()
-  const hasSeenIntro = sessionStorage.getItem('hasSeenIntro')
-  const [introComplete, setIntroComplete] = useState(!!hasSeenIntro)
-  const [introExiting, setIntroExiting] = useState(!!hasSeenIntro)
 
-  const playIntro = () => {
-    setIntroComplete(false)
-    setIntroExiting(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-
-    const exitTimer = setTimeout(() => {
-      setIntroExiting(true)
-    }, 3000)
-
-    const completeTimer = setTimeout(() => {
-      setIntroComplete(true)
-      sessionStorage.setItem('hasSeenIntro', 'true')
-    }, 4000)
-
-    return () => {
-      clearTimeout(exitTimer)
-      clearTimeout(completeTimer)
-    }
-  }
-
-  useEffect(() => {
-    if (hasSeenIntro) return
-    return playIntro()
-  }, [])
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  })
 
   return (
-    <div className="landing">
+    <div className="bw landing">
       <SEO
         title="Open-Source Congressional Accountability"
         description="BallotWatch is an open-source congressional accountability platform for tracking representatives, bills, votes, methodology, and civic data."
@@ -50,438 +60,213 @@ function Landing() {
               potentialAction: {
                 '@type': 'SearchAction',
                 target: 'https://www.ballotwatch.io/bills?search={search_term_string}',
-                'query-input': 'required name=search_term_string'
-              }
+                'query-input': 'required name=search_term_string',
+              },
             },
             {
               '@type': 'Organization',
               name: 'BallotWatch',
               url: 'https://www.ballotwatch.io',
-              logo: 'https://www.ballotwatch.io/capitol-logo.svg'
-            }
-          ]
+              logo: 'https://www.ballotwatch.io/capitol-logo.svg',
+            },
+          ],
         }}
       />
-      {/* Intro Quote Screen */}
-      {!introComplete && (
-        <div className={`intro-screen ${introExiting ? 'intro-exiting' : ''}`}>
-          <div className="intro-quote">
-            <blockquote>
-              "An informed citizenry is at the heart of a dynamic democracy."
-            </blockquote>
-            <cite>— Thomas Jefferson</cite>
-          </div>
-        </div>
-      )}
 
-      {/* Sticky Navigation Bar */}
-      <nav className={`landing-nav ${introComplete ? 'nav-visible' : ''}`}>
-        <div className="nav-logo" onClick={playIntro} style={{ cursor: 'pointer' }}>
-          <img src="/capitol-logo.svg" alt="" className="landing-nav-logo-img" />
-          BallotWatch
+      {/* ===== DATELINE ===== */}
+      <div className="dateline-strip">
+        <div className="inner">
+          <span className="dateline">Washington, D.C. / {today}</span>
+          <span className="dateline mid">119th Congress / 1st Session</span>
+          <span className="dateline">Vol. I / No. 217 / Edition: Public</span>
         </div>
-        <div className="nav-links">
-          <a href="#about">Workbench</a>
-          <a href="#database">Sources</a>
-          <a href="#features">Features</a>
-          <a href="/open" onClick={(e) => { e.preventDefault(); navigate('/open') }}>Open Source</a>
-          <a href="#articles">Articles</a>
-        </div>
-        <div className="nav-cta">
-          <button onClick={() => navigate('/open')} className="nav-btn-primary">
-            Open the Commons &rsaquo;
-          </button>
-        </div>
-      </nav>
+      </div>
 
-      {/* Hero Section with Congress.jpg Background */}
-      <section className={`hero ${introComplete ? 'hero-visible' : ''}`}>
-        <div className="hero-background">
-          <img src="/congress.jpg" alt="United States Capitol Building - Congressional voting records and bill tracker" />
-          <div className="hero-overlay"></div>
-        </div>
-        <div className="hero-content">
-          <h1 className="hero-title">
-            <span className="hero-line-1">BallotWatch</span>
-            {' '}
-            <span className="hero-line-2">Open Congress Data</span>
-          </h1>
-          <p className="hero-subtitle">
-            Track representatives, bills, votes, methodology, and public civic data.
-            Built open source so voters, journalists, researchers, and developers can
-            inspect the work behind every number.
-          </p>
-          <div className="hero-cta">
-            <button onClick={() => navigate('/my-representative')} className="btn-primary">
-              Find My Representative
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
+      {/* ===== LEAD ===== */}
+      <header className="lead">
+        <div className="lead-left">
+          <span className="lead-kicker kicker">The Open Congressional Record</span>
+          <h1>Every vote, every bill, every dollar, <em>on the record.</em></h1>
+          <p className="lead-deck">BallotWatch tracks representatives, legislation, roll-call votes and campaign finance, then shows the source behind every number. Built open-source so voters, journalists and developers can audit the work.</p>
+          <div className="lead-cta">
+            <button className="btn btn-primary" onClick={() => navigate('/my-representative')}>
+              Find My Representative<ArrowRight />
             </button>
-            <button onClick={() => navigate('/open')} className="hero-secondary">
-              Open Source Commons
-            </button>
+            <button className="btn btn-ghost" onClick={() => navigate('/bills')}>Browse the Bills Desk</button>
           </div>
-          <p className="hero-note">Source-backed. OpenAPI documented. Public methodology. Built from Congress.gov, Census, and FEC data.</p>
+          <p className="lead-source">Source-backed / OpenAPI documented / Public methodology<br />Drawn from <b>Congress.gov</b>, <b>U.S. Census Bureau</b> &amp; the <b>Federal Election Commission</b>.</p>
         </div>
-        <button
-          className="scroll-indicator"
-          onClick={() => document.getElementById('explore-start')?.scrollIntoView({ behavior: 'smooth' })}
-        >
-          <span>Scroll to explore</span>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12l7 7 7-7"/>
-          </svg>
-        </button>
-      </section>
 
-      {/* Trust Bar */}
-      <section className="trust-bar" id="explore-start">
-        <div className="trust-container">
-          <div className="trust-item">
-            <span className="trust-number">535</span>
-            <span className="trust-label">Members</span>
-          </div>
-          <div className="trust-divider"></div>
-          <div className="trust-item">
-            <span className="trust-number">10K+</span>
-            <span className="trust-label">Bills</span>
-          </div>
-          <div className="trust-divider"></div>
-          <div className="trust-item">
-            <span className="trust-number">MIT</span>
-            <span className="trust-label">Code License</span>
-          </div>
-          <div className="trust-divider"></div>
-          <div className="trust-item">
-            <span className="trust-number">API</span>
-            <span className="trust-label">OpenAPI Spec</span>
-          </div>
-        </div>
-      </section>
+        <div className="lead-divider"></div>
 
-      {/* Explore Congress Collection Cards */}
-      <section className="value-prop" id="about">
-        <div className="section-container">
-          <div className="section-header">
-            <h2 className="section-title">A public workbench for Congress</h2>
-            <p className="section-description">
-              Use the app, inspect the methodology, build with the data, or
-              contribute source-backed fixes.
-            </p>
-          </div>
-          <div className="value-grid">
-            <div className="value-card" onClick={() => navigate('/my-representative')}>
-              <div className="value-card-number">01</div>
-              <h3>Use the App</h3>
-              <p>Find your representatives, read their voting records, and follow bills without decoding congressional databases.</p>
-              <span className="value-card-link">Find Reps &rsaquo;</span>
+        <div className="lead-right">
+          <figure className="lead-figure">
+            <div className="frame"><img src="/congress.jpg" alt="The United States Capitol" /></div>
+            <figcaption>The 119th Congress convenes at the U.S. Capitol. BallotWatch indexes its public record daily.</figcaption>
+          </figure>
+          <div className="today-rail">
+            <div className="rail-head">
+              <span className="t">Today on the Floor</span>
+              <span className="live-dot">Live</span>
             </div>
-            <div className="value-card" onClick={() => navigate('/methodology')}>
-              <div className="value-card-number">02</div>
-              <h3>Check the Work</h3>
-              <p>Open methodology pages explain source, cadence, caveat, and code references for computed features.</p>
-              <span className="value-card-link">Read Methodology &rsaquo;</span>
-            </div>
-            <div className="value-card" onClick={() => navigate('/developers')}>
-              <div className="value-card-number">03</div>
-              <h3>Build With Data</h3>
-              <p>Use OpenAPI docs, schema samples, and hosted API access for newsroom, research, and civic projects.</p>
-              <span className="value-card-link">Explore API &rsaquo;</span>
-            </div>
-            <div className="value-card" onClick={() => navigate('/open')}>
-              <div className="value-card-number">04</div>
-              <h3>Contribute Corrections</h3>
-              <p>Report source-backed data issues, improve docs, add examples, test edge cases, or help make features clearer.</p>
-              <span className="value-card-link">Open Commons &rsaquo;</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works — editorial style, not numbered steps */}
-      <section className="how-it-works" id="how-it-works">
-        <div className="section-container">
-          <div className="section-header">
-            <h2 className="section-title">Every feature should be readable at a glance.</h2>
-            <p className="section-description">
-              BallotWatch explains what question a feature answers, what source
-              backs it, how often it updates, what caveat matters, and what you
-              can do next.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Data Sources — editorial, no icons-in-circles */}
-      <section className="premium-db" id="database">
-        <div className="section-container">
-          <div className="premium-db-layout">
-            <div className="premium-db-content">
-              <h2 className="section-title">Where the data comes from</h2>
-              <p className="section-description">
-                BallotWatch separates source facts, deterministic calculations,
-                and AI-assisted explanations so readers can audit the difference.
-              </p>
-              <ul className="premium-db-list">
-                <li>
-                  <div>
-                    <strong>Congress.gov</strong>
-                    <span>Bills, roll calls, actions, sponsors, committees, and official legislative records.</span>
-                  </div>
-                </li>
-                <li>
-                  <div>
-                    <strong>U.S. Census Bureau</strong>
-                    <span>Address-to-district matching for representative lookup.</span>
-                  </div>
-                </li>
-                <li>
-                  <div>
-                    <strong>Federal Election Commission</strong>
-                    <span>Campaign finance context linked to members and policy areas with visible caveats.</span>
-                  </div>
-                </li>
-                <li>
-                  <div>
-                    <strong>Open methodology</strong>
-                    <span>Public pages explain data sources, AI explanations, committee survival, sponsor activity, finance matching, and corrections.</span>
-                  </div>
-                </li>
-              </ul>
-              <button onClick={() => navigate('/methodology')} className="btn-primary">
-                Read Methodology
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Deep Dive */}
-      <section className="features" id="features">
-        <div className="section-container">
-          <div className="section-header section-header-center">
-            <span className="section-label">Features</span>
-            <h2 className="section-title">Readable by citizens. Useful to builders.</h2>
-          </div>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-header">
-                <div className="feature-icon-wrap">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                  </svg>
-                </div>
-                <h3>Source-Backed Bill Tracking</h3>
-              </div>
-              <p>Search bills and see the source record, current status, plain-English explanation, and methodology caveat together.</p>
-              <ul className="feature-list">
-                <li>Question: what is moving?</li>
-                <li>Source: Congress.gov</li>
-                <li>Action: search and cite</li>
-              </ul>
-            </div>
-            <div className="feature-card">
-              <div className="feature-header">
-                <div className="feature-icon-wrap">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <h3>Representative Accountability Pages</h3>
-              </div>
-              <p>Profiles organize a member's votes, sponsorship, party alignment, finance context, and source links in one place.</p>
-              <ul className="feature-list">
-                <li>Question: who represents me?</li>
-                <li>Source: member records</li>
-                <li>Action: inspect votes</li>
-              </ul>
-            </div>
-            <div className="feature-card">
-              <div className="feature-header">
-                <div className="feature-icon-wrap">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                </div>
-                <h3>Auditable AI Explanations</h3>
-              </div>
-              <p>AI helps translate dense records, but source facts stay separate and methodology explains the guardrails.</p>
-              <ul className="feature-list">
-                <li>Question: what does it mean?</li>
-                <li>Source: structured inputs</li>
-                <li>Action: read caveats</li>
-              </ul>
-            </div>
-            <div className="feature-card">
-              <div className="feature-header">
-                <div className="feature-icon-wrap">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <polyline points="9 11 12 14 22 4"/>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                  </svg>
-                </div>
-                <h3>Open Roll Call Records</h3>
-              </div>
-              <p>Every vote surface should tell you how a member voted, what the chamber voted on, and where the record came from.</p>
-              <ul className="feature-list">
-                <li>Question: how did they vote?</li>
-                <li>Source: roll calls</li>
-                <li>Action: filter records</li>
-              </ul>
-            </div>
-            <div className="feature-card">
-              <div className="feature-header">
-                <div className="feature-icon-wrap">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <h3>Open Data and API</h3>
-              </div>
-              <p>Developers can start from sample data and OpenAPI docs, then move to hosted API access when they need freshness and volume.</p>
-              <ul className="feature-list">
-                <li>Question: can I build with it?</li>
-                <li>Source: API contract</li>
-                <li>Action: download samples</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="social-proof">
-        <div className="section-container">
-          <div className="proof-content">
-            <div className="proof-quote">
-              <div className="proof-gold-line"></div>
-              <blockquote>
-                "An informed citizenry is at the heart of a dynamic democracy."
-              </blockquote>
-              <cite>— Thomas Jefferson</cite>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="final-cta">
-        <div className="section-container">
-          <div className="cta-content">
-            <h2>Start Tracking Your Congress Today</h2>
-            <p>Find your elected officials, review their voting records, and stay informed on the legislation that shapes your life.</p>
-            <div className="cta-buttons">
-              <button onClick={() => navigate('/my-representative')} className="btn-primary btn-gold btn-large">
-                Find My Representative
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-              <button onClick={() => navigate('/bills')} className="btn-tertiary">
-                Browse Congressional Bills
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Articles */}
-      <section className="landing-articles" id="articles">
-        <div className="section-container">
-          <div className="section-header section-header-center">
-            <span className="section-label">From the Blog</span>
-            <h2 className="section-title">Understand how Congress really works</h2>
-            <p className="section-description">
-              Nonpartisan explainers on legislation, voting records, campaign finance, and the procedures that shape American law.
-            </p>
-          </div>
-          <div className="articles-grid">
-            {articles.slice(0, 6).map(article => (
-              <div
-                key={article.slug}
-                className="article-preview-card"
-                onClick={() => navigate(`/blog/${article.slug}`)}
-              >
-                <div className="article-preview-tags">
-                  {article.tags.map(tag => (
-                    <span key={tag} className="article-preview-tag">{tag}</span>
-                  ))}
-                </div>
-                <h3>{article.title}</h3>
-                <p>{article.excerpt}</p>
-                <span className="article-preview-link">Read Article &rsaquo;</span>
+            {FLOOR_ITEMS.map((item) => (
+              <div className="rail-item" key={item.id}>
+                <span className="rid">{item.id}</span>
+                <span className="rtxt">{item.text}<small>{item.sub}</small></span>
               </div>
             ))}
           </div>
-          <div className="articles-cta">
-            <button onClick={() => navigate('/blog')} className="btn-tertiary">
-              View All Articles
-            </button>
-          </div>
+        </div>
+      </header>
+
+      {/* ===== STATS ===== */}
+      <section className="stats-ribbon">
+        <div className="stats-inner">
+          {STATS.map((s) => (
+            <div className="stat" key={s.l}>
+              <div className="n">{s.n}{s.small && <small>{s.small}</small>}</div>
+              <div className="l">{s.l}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="landing-footer">
-        <div className="footer-container">
-          <div className="footer-top">
-            <div className="footer-brand">
-              <span className="footer-logo">
-                <img src="/capitol-logo.svg" alt="" className="footer-logo-img" />
-                BallotWatch
-              </span>
-              <p>Open-source congressional accountability, built from public sources and readable methodology.</p>
+      {/* ===== WORKBENCH ===== */}
+      <section className="flow">
+        <div className="flow-head">
+          <span className="kicker">A public workbench for Congress</span>
+          <h2>Use it. Check it. Build on it. <em>Then improve it.</em></h2>
+          <p>Four ways into the same open record for readers, auditors, builders and contributors alike.</p>
+        </div>
+        <div className="flow-items">
+          <button className="flow-item" onClick={() => navigate('/my-representative')}>
+            <span className="flow-num">01</span>
+            <div className="flow-body">
+              <h3>Use the App</h3>
+              <p>Find your representatives, read their voting records and follow bills without decoding congressional databases.</p>
             </div>
-            <div className="footer-links">
-              <div className="footer-column">
-                <h4>Explore</h4>
-                <button onClick={() => navigate('/my-representative')}>My Representatives</button>
-                <button onClick={() => navigate('/all')}>All Politicians</button>
-                <button onClick={() => navigate('/bills')}>Bills</button>
-              </div>
-              <div className="footer-column">
-                <h4>Open</h4>
-                <button onClick={() => navigate('/open')}>Open Source</button>
-                <button onClick={() => navigate('/methodology')}>Methodology</button>
-                <button onClick={() => navigate('/developers')}>API</button>
-              </div>
-              <div className="footer-column">
-                <h4>Resources</h4>
-                <button onClick={() => navigate('/shutdown-tracker')}>Shutdown Tracker</button>
-                <button onClick={() => navigate('/blog')}>Blog</button>
-              </div>
-              <div className="footer-column">
-                <h4>Articles</h4>
-                {articles.slice(0, 3).map(article => (
-                  <button key={article.slug} onClick={() => navigate(`/blog/${article.slug}`)}>{article.title}</button>
+            <span className="flow-link btn-text">Find Reps →</span>
+          </button>
+          <button className="flow-item" onClick={() => navigate('/methodology')}>
+            <span className="flow-num">02</span>
+            <div className="flow-body">
+              <h3>Check the Work</h3>
+              <p>Open methodology pages explain the source, cadence, caveat and code reference behind every computed feature.</p>
+            </div>
+            <span className="flow-link btn-text">Read Methodology →</span>
+          </button>
+          <button className="flow-item" onClick={() => navigate('/developers')}>
+            <span className="flow-num">03</span>
+            <div className="flow-body">
+              <h3>Build With Data</h3>
+              <p>OpenAPI docs, schema samples and hosted API access for newsroom, research and civic projects.</p>
+            </div>
+            <span className="flow-link btn-text">Explore the API →</span>
+          </button>
+          <button className="flow-item" onClick={() => navigate('/open')}>
+            <span className="flow-num">04</span>
+            <div className="flow-body">
+              <h3>Contribute Fixes</h3>
+              <p>Report source-backed data issues, improve docs, add examples or help make features clearer for everyone.</p>
+            </div>
+            <span className="flow-link btn-text">Open the Commons →</span>
+          </button>
+        </div>
+      </section>
+
+      {/* ===== DATA SOURCES ===== */}
+      <section className="sources" id="methodology">
+        <div className="sources-inner">
+          <div className="sources-left">
+            <span className="kicker">Where the data comes from</span>
+            <h2 className="serif-display sources-title">Source facts, calculations and AI explanations, kept separate.</h2>
+            <p className="sources-deck">So a reader can always audit the difference between what the record says, what we computed, and what a model summarized.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/methodology')}>
+              Read the Methodology<ArrowRight />
+            </button>
+          </div>
+          <ul className="src-list">
+            {SOURCES.map((s) => (
+              <li className="src-item" key={s.num}>
+                <span className="si-num">{s.num}</span>
+                <div><h4>{s.name}</h4><p>{s.desc}</p></div>
+                <span className="si-type">{s.type}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ===== FEATURES ===== */}
+      <section className="section features" id="features">
+        <div className="sec-head">
+          <span className="kicker">Features</span>
+          <h2>Readable by citizens. Useful to builders.</h2>
+        </div>
+        <div className="feat-grid">
+          {FEATURES.map((f) => (
+            <div className="feat" key={f.title}>
+              <span className="feat-tag">{f.tag}</span>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+              <div className="feat-meta">
+                {f.meta.map(([k, v]) => (
+                  <div key={k}><span className="k">{k}</span><span className="v">{v}</span></div>
                 ))}
               </div>
-              <div className="footer-column">
-                <h4>Data</h4>
-                <span className="footer-text">Congress.gov</span>
-                <span className="footer-text">US Census Bureau</span>
-                <span className="footer-text">Federal Election Commission</span>
-                <span className="footer-text">OpenAPI + sample datasets</span>
-              </div>
             </div>
-          </div>
-          <div className="footer-bottom">
-            <p>&copy; 2026 BallotWatch. Code MIT licensed. Source data terms vary by upstream provider.</p>
-          </div>
+          ))}
         </div>
-      </footer>
+      </section>
+
+      {/* ===== CORRECTION DESK ===== */}
+      <section className="record-note">
+        <div className="record-note-inner">
+          <span className="kicker">Correction Desk</span>
+          <h2>Public records get better when the audit trail is visible.</h2>
+          <p>Every correction asks for the page, field, expected value and a public source URL. That keeps fixes useful to readers, maintainers and downstream projects.</p>
+          <button className="btn btn-ghost" onClick={() => navigate('/open')}>Contribute a Correction</button>
+        </div>
+      </section>
+
+      {/* ===== ARTICLES ===== */}
+      <section className="section" id="articles">
+        <div className="sec-head">
+          <span className="kicker">From the Desk</span>
+          <h2>Understand how Congress <em>really</em> works</h2>
+          <p>Nonpartisan explainers on legislation, voting records, campaign finance and the procedures that shape American law.</p>
+        </div>
+        <div className="articles-grid">
+          {articles.slice(0, 3).map((article) => (
+            <article className="art" key={article.slug} onClick={() => navigate(`/blog/${article.slug}`)}>
+              <div className="art-tags">
+                {article.tags.map((tag) => <span className="art-tag" key={tag}>{tag}</span>)}
+              </div>
+              <h3>{article.title}</h3>
+              <p>{article.excerpt}</p>
+              <span className="btn-text">Read Article →</span>
+            </article>
+          ))}
+        </div>
+        <div className="articles-foot"><button className="btn btn-ghost" onClick={() => navigate('/blog')}>View All Articles</button></div>
+      </section>
+
+      {/* ===== FINAL CTA ===== */}
+      <section className="final" id="open">
+        <div>
+          <span className="kicker">Start with your district</span>
+          <h2>Open the record for <em>your</em> Congress.</h2>
+          <p>Find your elected officials, review their voting records, and follow the legislation that shapes your life.</p>
+        </div>
+        <div className="final-cta">
+          <button className="btn btn-primary" onClick={() => navigate('/my-representative')}>
+            Find My Representative<ArrowRight />
+          </button>
+          <button className="btn btn-ghost" onClick={() => navigate('/bills')}>Browse Congressional Bills</button>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   )
 }

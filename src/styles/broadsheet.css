@@ -1,0 +1,301 @@
+/* ============================================================
+   BallotWatch: Shared broadsheet system
+   Ported from the Claude Design handoff (shared.css).
+   Everything is scoped under `.bw` so these generic class
+   names (.btn, .footer, .kicker, .ptag...) never leak into the
+   ~80 non-redesigned components that reuse the same names.
+   Design tokens live in App.css (:root + [data-theme="dark"]).
+   ============================================================ */
+
+.bw ::selection { background: var(--accent); color: #fff; }
+
+/* ---- typographic helpers ---- */
+.bw .kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.bw .dateline {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.bw .serif-display {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+.bw .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 32px; }
+
+.bw a { color: inherit; text-decoration: none; }
+.bw em { font-style: italic; }
+
+/* ============ MASTHEAD / NAV ============ */
+.bw .announce {
+  background: var(--ink);
+  color: var(--bg);
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+}
+[data-theme="dark"] .bw .announce { background: var(--bg-tint); color: var(--ink-2); border-bottom: 1px solid var(--rule); }
+.bw .announce span { opacity: 0.92; }
+
+.bw .topbar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--rule);
+}
+.bw .topbar {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.bw .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.bw .brand-mark {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  background: var(--ink);
+  border-radius: var(--r-sm);
+}
+.bw .brand-mark img { width: 22px; height: 22px; }
+[data-theme="dark"] .bw .brand-mark img { filter: invert(1); }
+.bw .brand-name {
+  font-family: var(--serif);
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: 0;
+  margin-top: 2px;
+  color: var(--ink);
+}
+.bw .topnav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: 22px;
+  padding-left: 22px;
+  border-left: 1px solid var(--rule);
+}
+.bw .topnav a {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0;
+  position: relative;
+  padding: 4px 0;
+  transition: color .15s ease;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.bw .topnav a:hover { color: var(--ink); }
+.bw .topnav a.active { color: var(--ink); }
+.bw .topnav a.active::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 2px;
+  background: var(--accent);
+}
+.bw .topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bw .theme-toggle {
+  width: 36px; height: 36px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  display: grid; place-items: center;
+  color: var(--ink-2);
+  background: none;
+  cursor: pointer;
+  transition: all .2s ease;
+  flex-shrink: 0;
+}
+.bw .theme-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+.bw .theme-toggle svg { width: 17px; height: 17px; }
+.bw .theme-toggle .sun { display: none; }
+[data-theme="dark"] .bw .theme-toggle .sun { display: block; }
+[data-theme="dark"] .bw .theme-toggle .moon { display: none; }
+
+/* ============ BUTTONS ============ */
+.bw .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 12px 20px;
+  border-radius: var(--r-sm);
+  transition: all .18s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+.bw .btn svg { width: 18px; height: 18px; }
+.bw .btn-primary { background: var(--accent); color: #fff; }
+.bw .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.bw .btn-primary:hover svg { transform: translateX(3px); }
+.bw .btn-primary svg { transition: transform .2s ease; }
+.bw .btn-ghost { color: var(--ink); border: 1px solid var(--rule-strong); }
+.bw .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+.bw .btn-sm { padding: 8px 14px; font-size: 13px; }
+.bw .btn-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.bw .btn-text:hover { gap: 9px; }
+
+/* ============ PARTY TAGS ============ */
+.bw .ptag {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: var(--r-sm);
+  border: 1px solid currentColor;
+  line-height: 1.5;
+}
+.bw .ptag.d { color: var(--dem); }
+.bw .ptag.r { color: var(--rep); }
+.bw .ptag.i { color: var(--ind); }
+
+/* ============ RULES ============ */
+.bw .rule { height: 1px; background: var(--rule); border: none; }
+.bw .rule-strong { height: 2px; background: var(--rule-strong); border: none; }
+
+/* ============ FOOTER ============ */
+.bw .footer {
+  border-top: 3px solid var(--rule-strong);
+  margin-top: 0;
+  background: var(--bg);
+}
+.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 48px 32px 36px; }
+.bw .footer-masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.bw .footer-wordmark { font-family: var(--serif); font-size: 40px; line-height: 1; letter-spacing: 0; color: var(--ink); }
+.bw .footer-tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); max-width: 320px; text-align: right; }
+.bw .footer-cols {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 28px;
+  padding: 32px 0;
+}
+.bw .footer-col h4 {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+}
+.bw .footer-col a, .bw .footer-col span {
+  display: block;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink-2);
+  padding: 4px 0;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color .15s ease;
+}
+.bw .footer-col span { cursor: default; }
+.bw .footer-col a:hover { color: var(--accent); }
+.bw .footer-bottom {
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.bw .footer-bottom p { font-size: 12.5px; color: var(--ink-3); }
+
+/* ============ MOBILE NAV ============ */
+.bw .nav-burger { display: none; }
+@media (max-width: 940px) {
+  .bw .topnav {
+    display: none;
+    position: absolute;
+    top: 62px; left: 0; right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 8px 0;
+    border-left: none;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg);
+  }
+  .bw .topnav.open-mobile { display: flex; }
+  .bw .topnav a { padding: 12px 32px; }
+  .bw .topnav a.active::after { display: none; }
+  .bw .nav-burger {
+    display: grid; place-items: center;
+    width: 36px; height: 36px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r-sm);
+    color: var(--ink-2);
+    background: none;
+    cursor: pointer;
+  }
+  .bw .footer-cols { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .bw .topbar, .bw .footer-inner { padding-left: 18px; padding-right: 18px; }
+  .bw .footer-cols { grid-template-columns: 1fr; }
+}
