@@ -3,6 +3,19 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.1.2.0] - 2026-06-10
+
+### Changed
+
+- Simplified the landing page from nine sections to five: a full-bleed Capitol hero with a word-by-word animated Jefferson quote, a centered ZIP-code representative lookup, a live "On the floor" ticker, a closing call to action, and a one-line colophon footer.
+- The ZIP lookup now resolves your state (and district, for at-large states) inline and hands off to the representative page with your location prefilled — no account needed.
+- The stats line now shows live counts of members tracked, bills indexed, and roll calls from the database instead of static numbers.
+- The floor ticker now streams the latest congressional actions from Congress.gov instead of sample copy.
+
+### Removed
+
+- The landing page's dateline strip, stats ribbon, workbench, data-sources ledger, features matrix, correction desk, and articles sections.
+
 ## [0.1.1.1] - 2026-06-04
 
 ### Added
