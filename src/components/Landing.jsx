@@ -1,6 +1,9 @@
-import { useNavigate } from 'react-router-dom'
-import articles from '../data/articles'
-import Footer from './Footer'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { getDistrictFromAddress, US_STATES } from '../services/district'
+import { getRecentBills } from '../services/congress'
+import { saveUserAddress } from '../services/userService'
+import { supabase } from '../lib/supabase'
 import SEO from './SEO'
 import '../styles/Landing.css'
 
@@ -8,42 +11,132 @@ const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
 )
 
-const FLOOR_ITEMS = [
-  { id: 'H.R. 4821', text: 'Passed House, 248-176', sub: 'Energy Permitting Modernization Act' },
-  { id: 'S. 1402', text: 'Cloture invoked, 61-38', sub: 'Rural Broadband Access Act' },
-  { id: 'H.R. 9', text: 'In committee markup', sub: 'Federal Permitting Reform' },
+const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
+
+const QUOTE_WORDS = '“Whenever the people are well-informed, they can be trusted with their own government.”'.split(' ')
+
+// Sample copy shown until (or in case) the live floor-actions fetch resolves.
+const FALLBACK_TICKER = [
+  { id: 'H.R. 4821', text: 'Passed House, 248–176 — Energy Permitting Modernization Act' },
+  { id: 'S. 1402', text: 'Cloture invoked, 61–38 — Rural Broadband Access Act' },
+  { id: 'H.R. 9', text: 'In committee markup — Federal Permitting Reform' },
+  { id: 'S. 2210', text: 'Reported to Senate — Veterans Telehealth Expansion Act' },
 ]
 
-const STATS = [
-  { n: '535', l: 'Members tracked' },
-  { n: '10K', small: '+', l: 'Bills indexed' },
-  { n: '119', small: 'th', l: 'Congress, live' },
-  { n: 'MIT', l: 'Code license' },
-  { n: 'API', l: 'OpenAPI spec' },
-]
+const BILL_TYPE_LABELS = {
+  HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
+  HJRES: 'H.J.Res.', SJRES: 'S.J.Res.', HCONRES: 'H.Con.Res.', SCONRES: 'S.Con.Res.',
+}
 
-const SOURCES = [
-  { num: '01', name: 'Congress.gov', desc: 'Bills, roll calls, actions, sponsors, committees and official legislative records.', type: 'Primary source' },
-  { num: '02', name: 'U.S. Census Bureau', desc: 'Address-to-district matching for representative lookup.', type: 'Primary source' },
-  { num: '03', name: 'Federal Election Commission', desc: 'Campaign-finance context linked to members and policy areas, with visible caveats.', type: 'Primary source' },
-  { num: '04', name: 'Open Methodology', desc: 'Public pages cover AI explanations, committee survival, sponsor activity, finance matching and corrections.', type: 'Computed' },
-]
+const truncate = (str, max) => (str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str)
 
-const FEATURES = [
-  { tag: 'Bill Tracking', title: 'Source-backed bill tracking', body: "Search bills and see the source record, current status, plain-English explanation and methodology caveat together.", meta: [['Asks', "What's moving?"], ['Source', 'Congress.gov'], ['Do', 'Search & cite']] },
-  { tag: 'Accountability', title: 'Representative profile pages', body: "Profiles organize a member's votes, sponsorship, party alignment and finance context with source links in one place.", meta: [['Asks', 'Who represents me?'], ['Source', 'Member records'], ['Do', 'Inspect votes']] },
-  { tag: 'AI, Audited', title: 'Auditable AI explanations', body: 'AI helps translate dense records, but source facts stay separate and methodology explains the guardrails.', meta: [['Asks', 'What does it mean?'], ['Source', 'Structured inputs'], ['Do', 'Read caveats']] },
-  { tag: 'Roll Calls', title: 'Open roll-call records', body: 'Every vote surface tells you how a member voted, what the chamber decided and where the record came from.', meta: [['Asks', "How'd they vote?"], ['Source', 'Roll calls'], ['Do', 'Filter records']] },
-  { tag: 'Open Data', title: 'Open data & public API', body: 'Start from sample data and OpenAPI docs, then move to hosted API access when you need freshness and volume.', meta: [['Asks', 'Can I build it?'], ['Source', 'API contract'], ['Do', 'Pull samples']] },
-  { tag: 'Corrections', title: 'Source-backed corrections', body: 'Spot something wrong? File a correction with a record, the field, the expected value and a public source URL.', meta: [['Asks', 'Is this right?'], ['Source', 'Public URL'], ['Do', 'Open an issue']] },
-]
+const stateName = (abbr) => US_STATES.find((s) => s.abbr === abbr)?.name || abbr
+
+async function countRows(table) {
+  try {
+    const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
+    return error ? null : count
+  } catch {
+    return null
+  }
+}
 
 function Landing() {
   const navigate = useNavigate()
+  const zipInputRef = useRef(null)
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  })
+  const [zip, setZip] = useState('')
+  const [lookup, setLookup] = useState(null)
+  const [stats, setStats] = useState({ members: 535, bills: 10482, rollCalls: 2196 })
+  const [tickerItems, setTickerItems] = useState(FALLBACK_TICKER)
+
+  // Stats line — real counts from the database, with the design's numbers as fallback.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([countRows('politicians'), countRows('bills'), countRows('roll_calls')]).then(
+      ([members, bills, rollCalls]) => {
+        if (cancelled) return
+        setStats((prev) => ({
+          members: members || prev.members,
+          bills: bills || prev.bills,
+          rollCalls: rollCalls || prev.rollCalls,
+        }))
+      }
+    )
+    return () => { cancelled = true }
+  }, [])
+
+  // Floor ticker — latest actions from Congress.gov.
+  useEffect(() => {
+    let cancelled = false
+    getRecentBills(8)
+      .then((bills) => {
+        if (cancelled) return
+        const items = bills
+          .filter((b) => b.latestAction?.text && b.title && b.number)
+          .map((b) => ({
+            id: `${BILL_TYPE_LABELS[b.type] || b.type} ${b.number}`,
+            text: `${truncate(b.latestAction.text, 90)} — ${truncate(b.title, 80)}`,
+          }))
+        if (items.length >= 3) setTickerItems(items)
+      })
+      .catch(() => { /* keep fallback copy */ })
+    return () => { cancelled = true }
+  }, [])
+
+  const handleLookup = async (e) => {
+    e.preventDefault()
+    const value = zip.trim()
+    if (!/^\d{5}$/.test(value)) {
+      setLookup({
+        code: '— — —',
+        body: 'Enter a five-digit ZIP code to find your district.',
+        sub: 'Address-to-district matching uses U.S. Census data.',
+      })
+      return
+    }
+
+    setLookup({ code: value, body: 'Matching your ZIP to a district…', sub: '' })
+    const info = await getDistrictFromAddress(value)
+
+    if (!info?.state) {
+      setLookup({
+        code: '— — —',
+        body: `We couldn't match ZIP ${value} to a state.`,
+        sub: 'Check the ZIP code, or use the full address form on the representative page.',
+      })
+      return
+    }
+
+    const address = { street: '', city: info.city || '', state: info.state, zip: value }
+    if (info.district != null) {
+      setLookup({
+        code: `${info.state}-AL`,
+        body: '1 Representative and 2 Senators found.',
+        sub: `${stateName(info.state)}, at-large district — voting records, sponsorships and finance context, with sources.`,
+        address,
+      })
+    } else {
+      setLookup({
+        code: info.state,
+        body: `2 Senators found — ${stateName(info.state)} elects its House members by district.`,
+        sub: 'View profiles and add your street address for exact district matching.',
+        address,
+      })
+    }
+  }
+
+  const handleViewProfiles = () => {
+    if (lookup?.address) saveUserAddress(lookup.address)
+    navigate('/my-representative')
+  }
+
+  const focusLookup = () => {
+    const input = zipInputRef.current
+    if (!input) return
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    input.focus({ preventScroll: true })
+  }
 
   return (
     <div className="bw landing">
@@ -73,200 +166,118 @@ function Landing() {
         }}
       />
 
-      {/* ===== DATELINE ===== */}
-      <div className="dateline-strip">
-        <div className="inner">
-          <span className="dateline">Washington, D.C. / {today}</span>
-          <span className="dateline mid">119th Congress / 1st Session</span>
-          <span className="dateline">Vol. I / No. 217 / Edition: Public</span>
-        </div>
-      </div>
-
-      {/* ===== LEAD ===== */}
-      <header className="lead">
-        <div className="lead-left">
-          <span className="lead-kicker kicker">The Open Congressional Record</span>
-          <h1>Every vote, every bill, every dollar, <em>on the record.</em></h1>
-          <p className="lead-deck">BallotWatch tracks representatives, legislation, roll-call votes and campaign finance, then shows the source behind every number. Built open-source so voters, journalists and developers can audit the work.</p>
-          <div className="lead-cta">
-            <button className="btn btn-primary" onClick={() => navigate('/my-representative')}>
-              Find My Representative<ArrowRight />
-            </button>
-            <button className="btn btn-ghost" onClick={() => navigate('/bills')}>Browse the Bills Desk</button>
-          </div>
-          <p className="lead-source">Source-backed / OpenAPI documented / Public methodology<br />Drawn from <b>Congress.gov</b>, <b>U.S. Census Bureau</b> &amp; the <b>Federal Election Commission</b>.</p>
-        </div>
-
-        <div className="lead-divider"></div>
-
-        <div className="lead-right">
-          <figure className="lead-figure">
-            <div className="frame"><img src="/congress.jpg" alt="The United States Capitol" /></div>
-            <figcaption>The 119th Congress convenes at the U.S. Capitol. BallotWatch indexes its public record daily.</figcaption>
-          </figure>
-          <div className="today-rail">
-            <div className="rail-head">
-              <span className="t">Today on the Floor</span>
-              <span className="live-dot">Live</span>
-            </div>
-            {FLOOR_ITEMS.map((item) => (
-              <div className="rail-item" key={item.id}>
-                <span className="rid">{item.id}</span>
-                <span className="rtxt">{item.text}<small>{item.sub}</small></span>
-              </div>
+      {/* ===== HERO BANNER ===== */}
+      <section className="hero-banner">
+        <img className="hero-bg" src="/congress.jpg" alt="The United States Capitol" />
+        <div className="hero-shade"></div>
+        <div className="hero-banner-inner">
+          <span className="mono-label hero-kicker reveal">The Open Congressional Record</span>
+          <h1 className="reveal d1">Congress, <em>on the record.</em></h1>
+          <p className="hero-quote">
+            {QUOTE_WORDS.map((word, i) => (
+              <Fragment key={i}>
+                <span className="qw" style={{ animationDelay: `${(0.9 + i * 0.15).toFixed(2)}s` }}>{word}</span>
+                {i < QUOTE_WORDS.length - 1 && ' '}
+              </Fragment>
             ))}
-          </div>
-        </div>
-      </header>
-
-      {/* ===== STATS ===== */}
-      <section className="stats-ribbon">
-        <div className="stats-inner">
-          {STATS.map((s) => (
-            <div className="stat" key={s.l}>
-              <div className="n">{s.n}{s.small && <small>{s.small}</small>}</div>
-              <div className="l">{s.l}</div>
-            </div>
-          ))}
+          </p>
+          <p className="quote-attr">&mdash; Thomas Jefferson, letter to Richard Price, 1789</p>
         </div>
       </section>
 
-      {/* ===== WORKBENCH ===== */}
-      <section className="flow">
-        <div className="flow-head">
-          <span className="kicker">A public workbench for Congress</span>
-          <h2>Use it. Check it. Build on it. <em>Then improve it.</em></h2>
-          <p>Four ways into the same open record for readers, auditors, builders and contributors alike.</p>
-        </div>
-        <div className="flow-items">
-          <button className="flow-item" onClick={() => navigate('/my-representative')}>
-            <span className="flow-num">01</span>
-            <div className="flow-body">
-              <h3>Use the App</h3>
-              <p>Find your representatives, read their voting records and follow bills without decoding congressional databases.</p>
-            </div>
-            <span className="flow-link btn-text">Find Reps →</span>
-          </button>
-          <button className="flow-item" onClick={() => navigate('/methodology')}>
-            <span className="flow-num">02</span>
-            <div className="flow-body">
-              <h3>Check the Work</h3>
-              <p>Open methodology pages explain the source, cadence, caveat and code reference behind every computed feature.</p>
-            </div>
-            <span className="flow-link btn-text">Read Methodology →</span>
-          </button>
-          <button className="flow-item" onClick={() => navigate('/developers')}>
-            <span className="flow-num">03</span>
-            <div className="flow-body">
-              <h3>Build With Data</h3>
-              <p>OpenAPI docs, schema samples and hosted API access for newsroom, research and civic projects.</p>
-            </div>
-            <span className="flow-link btn-text">Explore the API →</span>
-          </button>
-          <button className="flow-item" onClick={() => navigate('/open')}>
-            <span className="flow-num">04</span>
-            <div className="flow-body">
-              <h3>Contribute Fixes</h3>
-              <p>Report source-backed data issues, improve docs, add examples or help make features clearer for everyone.</p>
-            </div>
-            <span className="flow-link btn-text">Open the Commons →</span>
-          </button>
-        </div>
-      </section>
+      {/* ===== ZIP LOOKUP BAND ===== */}
+      <section className="lookup-band">
+        <p className="hero-deck reveal d2">Every vote, every bill, every dollar — drawn from <b>Congress.gov</b>, the <b>Census</b> and the <b>FEC</b>, with the source behind every number. Open-source, so you can audit the work.</p>
 
-      {/* ===== DATA SOURCES ===== */}
-      <section className="sources" id="methodology">
-        <div className="sources-inner">
-          <div className="sources-left">
-            <span className="kicker">Where the data comes from</span>
-            <h2 className="serif-display sources-title">Source facts, calculations and AI explanations, kept separate.</h2>
-            <p className="sources-deck">So a reader can always audit the difference between what the record says, what we computed, and what a model summarized.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/methodology')}>
-              Read the Methodology<ArrowRight />
+        <div className="lookup reveal d3">
+          <form className="lookup-form" onSubmit={handleLookup}>
+            <label htmlFor="zipInput" className="visually-hidden">ZIP code</label>
+            <input
+              id="zipInput"
+              ref={zipInputRef}
+              type="text"
+              inputMode="numeric"
+              maxLength={5}
+              placeholder="Your ZIP code"
+              autoComplete="postal-code"
+              value={zip}
+              onChange={(e) => setZip(e.target.value)}
+            />
+            <button type="submit">
+              <span className="btn-word">Find my rep</span>
+              <ArrowRight />
             </button>
-          </div>
-          <ul className="src-list">
-            {SOURCES.map((s) => (
-              <li className="src-item" key={s.num}>
-                <span className="si-num">{s.num}</span>
-                <div><h4>{s.name}</h4><p>{s.desc}</p></div>
-                <span className="si-type">{s.type}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ===== FEATURES ===== */}
-      <section className="section features" id="features">
-        <div className="sec-head">
-          <span className="kicker">Features</span>
-          <h2>Readable by citizens. Useful to builders.</h2>
-        </div>
-        <div className="feat-grid">
-          {FEATURES.map((f) => (
-            <div className="feat" key={f.title}>
-              <span className="feat-tag">{f.tag}</span>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
-              <div className="feat-meta">
-                {f.meta.map(([k, v]) => (
-                  <div key={k}><span className="k">{k}</span><span className="v">{v}</span></div>
-                ))}
-              </div>
+          </form>
+          <p className="lookup-hint">Free · No account · Source-linked</p>
+          {lookup && (
+            <div className="lookup-result visible" role="status">
+              <span className="lr-district">{lookup.code}</span>
+              <span className="lr-body">
+                {lookup.body}
+                {lookup.sub && <small>{lookup.sub}</small>}
+              </span>
+              {lookup.address && (
+                <button type="button" className="lr-go" onClick={handleViewProfiles}>View profiles →</button>
+              )}
             </div>
-          ))}
+          )}
+        </div>
+
+        <div className="hero-meta reveal d3">
+          <span><b>{stats.members.toLocaleString()}</b> members tracked</span>
+          <span><b>{stats.bills.toLocaleString()}</b> bills indexed</span>
+          <span><b>{stats.rollCalls.toLocaleString()}</b> roll calls</span>
+          <span>MIT licensed</span>
         </div>
       </section>
 
-      {/* ===== CORRECTION DESK ===== */}
-      <section className="record-note">
-        <div className="record-note-inner">
-          <span className="kicker">Correction Desk</span>
-          <h2>Public records get better when the audit trail is visible.</h2>
-          <p>Every correction asks for the page, field, expected value and a public source URL. That keeps fixes useful to readers, maintainers and downstream projects.</p>
-          <button className="btn btn-ghost" onClick={() => navigate('/open')}>Contribute a Correction</button>
+      {/* ===== FLOOR TICKER ===== */}
+      <aside className="ticker" aria-label="Today on the floor">
+        <div className="ticker-inner">
+          <span className="ticker-label">Live — On the floor</span>
+          <div className="ticker-viewport">
+            <div className="ticker-track">
+              {[false, true].map((isCopy) => (
+                <div className="ticker-group" key={isCopy ? 'copy' : 'main'} aria-hidden={isCopy || undefined}>
+                  {tickerItems.map((item, i) => (
+                    <span className="ticker-item" key={`${item.id}-${i}`}>
+                      <span className="tid">{item.id}</span>{item.text}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </section>
+      </aside>
 
-      {/* ===== ARTICLES ===== */}
-      <section className="section" id="articles">
-        <div className="sec-head">
-          <span className="kicker">From the Desk</span>
-          <h2>Understand how Congress <em>really</em> works</h2>
-          <p>Nonpartisan explainers on legislation, voting records, campaign finance and the procedures that shape American law.</p>
-        </div>
-        <div className="articles-grid">
-          {articles.slice(0, 3).map((article) => (
-            <article className="art" key={article.slug} onClick={() => navigate(`/blog/${article.slug}`)}>
-              <div className="art-tags">
-                {article.tags.map((tag) => <span className="art-tag" key={tag}>{tag}</span>)}
-              </div>
-              <h3>{article.title}</h3>
-              <p>{article.excerpt}</p>
-              <span className="btn-text">Read Article →</span>
-            </article>
-          ))}
-        </div>
-        <div className="articles-foot"><button className="btn btn-ghost" onClick={() => navigate('/blog')}>View All Articles</button></div>
-      </section>
-
-      {/* ===== FINAL CTA ===== */}
-      <section className="final" id="open">
-        <div>
-          <span className="kicker">Start with your district</span>
-          <h2>Open the record for <em>your</em> Congress.</h2>
-          <p>Find your elected officials, review their voting records, and follow the legislation that shapes your life.</p>
-        </div>
-        <div className="final-cta">
-          <button className="btn btn-primary" onClick={() => navigate('/my-representative')}>
-            Find My Representative<ArrowRight />
+      {/* ===== CLOSING CTA ===== */}
+      <section className="closing" id="open">
+        <span className="mono-label closing-kicker">Open the record</span>
+        <h2>Built in public, for <em>your</em> Congress.</h2>
+        <div className="closing-cta">
+          <button className="btn btn-primary" onClick={focusLookup}>
+            Find my representative
+            <ArrowRight />
           </button>
-          <button className="btn btn-ghost" onClick={() => navigate('/bills')}>Browse Congressional Bills</button>
+          <a className="btn btn-ghost" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">View on GitHub</a>
         </div>
       </section>
 
-      <Footer />
+      {/* ===== COLOPHON ===== */}
+      <footer className="colophon">
+        <div className="colophon-inner">
+          <span className="colophon-word">BallotWatch</span>
+          <span>© 2026 · Public data, public methods</span>
+          <div className="colophon-links">
+            <Link to="/methodology">Methodology</Link>
+            <Link to="/developers">API</Link>
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
+            <Link to="/open">Corrections</Link>
+            <span>MIT</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
