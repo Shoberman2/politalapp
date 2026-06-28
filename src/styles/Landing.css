@@ -314,6 +314,9 @@
   justify-content: center;
   flex-wrap: wrap;
 }
+/* Keep the CTA button at its natural width (a global .btn-primary sets
+   flex:1, which would stretch a lone button across the whole row). */
+.landing .closing-cta .btn { flex: 0 0 auto; }
 
 /* ---- colophon ---- */
 .landing .colophon { border-top: 1px solid var(--rule); }

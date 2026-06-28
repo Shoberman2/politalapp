@@ -1,9 +1,8 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills } from '../services/congress'
 import { saveUserAddress } from '../services/userService'
-import { supabase } from '../lib/supabase'
 import SEO from './SEO'
 import '../styles/Landing.css'
 
@@ -13,14 +12,12 @@ const ArrowRight = () => (
 
 const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
 
-const QUOTE_WORDS = '“Whenever the people are well-informed, they can be trusted with their own government.”'.split(' ')
-
 // Sample copy shown until (or in case) the live floor-actions fetch resolves.
 const FALLBACK_TICKER = [
-  { id: 'H.R. 4821', text: 'Passed House, 248–176 — Energy Permitting Modernization Act' },
-  { id: 'S. 1402', text: 'Cloture invoked, 61–38 — Rural Broadband Access Act' },
-  { id: 'H.R. 9', text: 'In committee markup — Federal Permitting Reform' },
-  { id: 'S. 2210', text: 'Reported to Senate — Veterans Telehealth Expansion Act' },
+  { id: 'H.R. 4821', text: 'Passed House 248-176 · Energy Permitting Modernization Act' },
+  { id: 'S. 1402', text: 'Cloture invoked 61-38 · Rural Broadband Access Act' },
+  { id: 'H.R. 9', text: 'In committee markup · Federal Permitting Reform' },
+  { id: 'S. 2210', text: 'Reported to Senate · Veterans Telehealth Expansion Act' },
 ]
 
 const BILL_TYPE_LABELS = {
@@ -32,41 +29,15 @@ const truncate = (str, max) => (str.length > max ? `${str.slice(0, max - 1).trim
 
 const stateName = (abbr) => US_STATES.find((s) => s.abbr === abbr)?.name || abbr
 
-async function countRows(table) {
-  try {
-    const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true })
-    return error ? null : count
-  } catch {
-    return null
-  }
-}
-
 function Landing() {
   const navigate = useNavigate()
   const zipInputRef = useRef(null)
 
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
-  const [stats, setStats] = useState({ members: 535, bills: 10482, rollCalls: 2196 })
   const [tickerItems, setTickerItems] = useState(FALLBACK_TICKER)
 
-  // Stats line — real counts from the database, with the design's numbers as fallback.
-  useEffect(() => {
-    let cancelled = false
-    Promise.all([countRows('politicians'), countRows('bills'), countRows('roll_calls')]).then(
-      ([members, bills, rollCalls]) => {
-        if (cancelled) return
-        setStats((prev) => ({
-          members: members || prev.members,
-          bills: bills || prev.bills,
-          rollCalls: rollCalls || prev.rollCalls,
-        }))
-      }
-    )
-    return () => { cancelled = true }
-  }, [])
-
-  // Floor ticker — latest actions from Congress.gov.
+  // Floor ticker: latest actions from Congress.gov.
   useEffect(() => {
     let cancelled = false
     getRecentBills(8)
@@ -76,7 +47,7 @@ function Landing() {
           .filter((b) => b.latestAction?.text && b.title && b.number)
           .map((b) => ({
             id: `${BILL_TYPE_LABELS[b.type] || b.type} ${b.number}`,
-            text: `${truncate(b.latestAction.text, 90)} — ${truncate(b.title, 80)}`,
+            text: `${truncate(b.latestAction.text, 90)} · ${truncate(b.title, 80)}`,
           }))
         if (items.length >= 3) setTickerItems(items)
       })
@@ -89,7 +60,7 @@ function Landing() {
     const value = zip.trim()
     if (!/^\d{5}$/.test(value)) {
       setLookup({
-        code: '— — —',
+        code: '· · ·',
         body: 'Enter a five-digit ZIP code to find your district.',
         sub: 'Address-to-district matching uses U.S. Census data.',
       })
@@ -101,9 +72,9 @@ function Landing() {
 
     if (!info?.state) {
       setLookup({
-        code: '— — —',
+        code: '· · ·',
         body: `We couldn't match ZIP ${value} to a state.`,
-        sub: 'Check the ZIP code, or use the full address form on the representative page.',
+        sub: 'Check the ZIP code or try the full address form.',
       })
       return
     }
@@ -113,14 +84,14 @@ function Landing() {
       setLookup({
         code: `${info.state}-AL`,
         body: '1 Representative and 2 Senators found.',
-        sub: `${stateName(info.state)}, at-large district — voting records, sponsorships and finance context, with sources.`,
+        sub: `${stateName(info.state)} at-large district. Voting records and finance with sources.`,
         address,
       })
     } else {
       setLookup({
         code: info.state,
-        body: `2 Senators found — ${stateName(info.state)} elects its House members by district.`,
-        sub: 'View profiles and add your street address for exact district matching.',
+        body: '2 Senators found.',
+        sub: `${stateName(info.state)} elects its House members by district. Add your street address for an exact match.`,
         address,
       })
     }
@@ -171,23 +142,13 @@ function Landing() {
         <img className="hero-bg" src="/congress.jpg" alt="The United States Capitol" />
         <div className="hero-shade"></div>
         <div className="hero-banner-inner">
-          <span className="mono-label hero-kicker reveal">The Open Congressional Record</span>
-          <h1 className="reveal d1">Congress, <em>on the record.</em></h1>
-          <p className="hero-quote">
-            {QUOTE_WORDS.map((word, i) => (
-              <Fragment key={i}>
-                <span className="qw" style={{ animationDelay: `${(0.9 + i * 0.15).toFixed(2)}s` }}>{word}</span>
-                {i < QUOTE_WORDS.length - 1 && ' '}
-              </Fragment>
-            ))}
-          </p>
-          <p className="quote-attr">&mdash; Thomas Jefferson, letter to Richard Price, 1789</p>
+          <h1 className="reveal d1">Congress <em>on the record.</em></h1>
         </div>
       </section>
 
       {/* ===== ZIP LOOKUP BAND ===== */}
       <section className="lookup-band">
-        <p className="hero-deck reveal d2">Every vote, every bill, every dollar — drawn from <b>Congress.gov</b>, the <b>Census</b> and the <b>FEC</b>, with the source behind every number. Open-source, so you can audit the work.</p>
+        <p className="hero-deck reveal d2">Every vote. Every bill. Every dollar. With the source behind every number.</p>
 
         <div className="lookup reveal d3">
           <form className="lookup-form" onSubmit={handleLookup}>
@@ -222,19 +183,12 @@ function Landing() {
             </div>
           )}
         </div>
-
-        <div className="hero-meta reveal d3">
-          <span><b>{stats.members.toLocaleString()}</b> members tracked</span>
-          <span><b>{stats.bills.toLocaleString()}</b> bills indexed</span>
-          <span><b>{stats.rollCalls.toLocaleString()}</b> roll calls</span>
-          <span>MIT licensed</span>
-        </div>
       </section>
 
       {/* ===== FLOOR TICKER ===== */}
       <aside className="ticker" aria-label="Today on the floor">
         <div className="ticker-inner">
-          <span className="ticker-label">Live — On the floor</span>
+          <span className="ticker-label">Live · On the floor</span>
           <div className="ticker-viewport">
             <div className="ticker-track">
               {[false, true].map((isCopy) => (
@@ -253,14 +207,12 @@ function Landing() {
 
       {/* ===== CLOSING CTA ===== */}
       <section className="closing" id="open">
-        <span className="mono-label closing-kicker">Open the record</span>
-        <h2>Built in public, for <em>your</em> Congress.</h2>
+        <h2>Know how <em>your</em> Congress votes.</h2>
         <div className="closing-cta">
           <button className="btn btn-primary" onClick={focusLookup}>
             Find my representative
             <ArrowRight />
           </button>
-          <a className="btn btn-ghost" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">View on GitHub</a>
         </div>
       </section>
 
@@ -268,7 +220,7 @@ function Landing() {
       <footer className="colophon">
         <div className="colophon-inner">
           <span className="colophon-word">BallotWatch</span>
-          <span>© 2026 · Public data, public methods</span>
+          <span>© 2026 · Public data and public methods</span>
           <div className="colophon-links">
             <Link to="/methodology">Methodology</Link>
             <Link to="/developers">API</Link>
