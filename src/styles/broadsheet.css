@@ -147,6 +147,7 @@
 .bw .theme-toggle .sun { display: none; }
 [data-theme="dark"] .bw .theme-toggle .sun { display: block; }
 [data-theme="dark"] .bw .theme-toggle .moon { display: none; }
+.bw .nav-cta-short { display: none; }
 
 /* ============ BUTTONS ============ */
 .bw .btn {
@@ -297,5 +298,10 @@
 }
 @media (max-width: 560px) {
   .bw .topbar, .bw .footer-inner { padding-left: 18px; padding-right: 18px; }
+  .bw .topbar { gap: 10px; }
+  .bw .brand-name { font-size: 22px; }
+  .bw .topbar-right { gap: 8px; }
+  .bw .nav-cta-full { display: none; }
+  .bw .nav-cta-short { display: inline; }
   .bw .footer-cols { grid-template-columns: 1fr; }
 }
