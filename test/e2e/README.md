@@ -16,13 +16,13 @@ npx playwright install chromium
 npm run dev
 
 # In another:
-npx playwright test --base-url=http://localhost:5173
+PLAYWRIGHT_BASE_URL=http://localhost:5173 npm run test:e2e
 ```
 
 ## Run against a Vercel preview
 
 ```sh
-PLAYWRIGHT_BASE_URL=https://politicalapp-pr-123.vercel.app npx playwright test
+PLAYWRIGHT_BASE_URL=https://politicalapp-pr-123.vercel.app npm run test:e2e
 ```
 
 ## Specs
@@ -43,6 +43,6 @@ ship to prove the wiring. The other 5 are TODO — same shape, different selecto
 ## Feature flag gating
 
 The sponsor + routing features ship behind `VITE_BILLS_SHOW_SPONSOR_FILTER`
-and `VITE_BILLS_SHOW_ROUTING_PANEL`. The Vercel preview deploy needs both
-set to `true` for the relevant specs to pass; otherwise the gated UI never
-renders and the assertions miss elements.
+and `VITE_BILLS_SHOW_ROUTING_PANEL`. The Vercel preview deploy and the
+Playwright process both need the relevant flag set to `true` for those specs to
+run; otherwise the gated sponsor specs are skipped because the UI is not present.
