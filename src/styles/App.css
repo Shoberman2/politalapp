@@ -181,6 +181,13 @@ p { font-weight: 400; }
 label { font-weight: 500; }
 small { font-weight: 300; }
 
+/* Form controls don't inherit font-family by default — without this they fall
+   back to the browser's system font (Arial/Times), which is why unstyled
+   buttons and inputs drifted off-brand. Force the design system everywhere. */
+button, input, select, textarea, optgroup {
+  font-family: inherit;
+}
+
 .app {
   min-height: 100vh;
   display: flex;

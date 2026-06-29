@@ -19,10 +19,9 @@ function announceFor(pathname) {
 
 const NAV_LINKS = [
   { to: '/my-representative', label: 'My Rep' },
-  { to: '/all', label: 'Members' },
   { to: '/bills', label: 'Bills' },
+  { to: '/all', label: 'Members' },
   { to: '/methodology', label: 'Methodology' },
-  { to: '/open', label: 'Open Source' },
   { to: '/developers', label: 'API' },
 ]
 
