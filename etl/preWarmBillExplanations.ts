@@ -40,6 +40,65 @@ interface BillRow {
   title: string;
 }
 
+interface GeneratedExplanation {
+  explanation: string;
+  paragraphs: string[];
+}
+
+function buildPrompt(title: string, summary: string): string {
+  const summaryBlock = summary
+    ? `Here is the official summary from Congress.gov to ground your explanation:\n${summary}\n`
+    : `No official summary is available yet. Reason from the title and your general knowledge of how this kind of legislation typically works. Be explicit when you are inferring vs. citing the bill itself.\n`;
+
+  return `You are a nonpartisan expert at explaining U.S. legislation to ordinary citizens. You write like a great civics teacher: clear, specific, never condescending.
+
+Bill: ${title}
+
+${summaryBlock}
+Write a depth explanation of this bill. Aim for 4 to 6 substantive paragraphs, written in plain English. Cover each of these in order, in flowing prose (no headers, no bullet points, no numbered lists):
+
+1. What the bill actually does. The specific changes to law, programs, agencies, eligibility, funding, or rules. If the title is vague, say what category of bill this is and what the most likely concrete effects would be based on the text or category.
+2. Why this bill exists right now. What problem its sponsors say it solves, what political or current event likely motivated it, what tradeoffs it makes.
+3. Who is directly affected. Name the groups: which taxpayers, which workers, which industries, which states, which agencies, which beneficiaries. Use concrete examples ("a single parent earning $40k", "small farms in the Midwest", "Medicare Part D enrollees").
+4. The likely real-world impact if it became law. Both the intended outcomes and the second-order effects opponents typically raise.
+5. Realistic chances of becoming law. Note whether it is bipartisan or single-party, whether it has cleared committee, whether similar bills have failed before. Do not predict, just describe the situation.
+6. Why a regular citizen should care, in one direct paragraph.
+
+Hard rules:
+- Plain language. No legalese, no jargon, no acronyms without expanding them once.
+- Be specific. "This affects taxpayers" is useless. "This affects single filers earning over $200,000" is useful.
+- Be balanced. Present both sides where there is genuine disagreement.
+- No citations, URLs, footnotes, or bracketed source markers.
+- No headers, no bullets, no numbered lists. Flowing paragraphs only.
+- Do not invent specific dollar amounts, dates, or vote tallies you are not sure of. If you do not know, describe in general terms.`;
+}
+
+function cleanResponse(text: string): GeneratedExplanation {
+  const cleaned = text
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\[\d+\]/g, '')
+    .replace(/\(source:.*?\)/gi, '')
+    .trim();
+
+  const paragraphs = cleaned
+    .split(/\n\s*\n/)
+    .map(p => p.replace(/\n/g, ' ').trim())
+    .filter(p => p.length > 0);
+
+  return {
+    explanation: paragraphs[0] || '',
+    paragraphs,
+  };
+}
+
+function shouldStopPrewarmAfterError(message: string): boolean {
+  return (
+    /OPENAI_API_KEY not configured/i.test(message) ||
+    /OpenAI 429/i.test(message) ||
+    /quota/i.test(message)
+  );
+}
+
 function parseBillId(id: string): { congress: number; billType: string; number: number } | null {
   const match = /^(\d+)-([a-z]+)-(\d+)$/i.exec(id);
   if (!match) return null;
@@ -105,6 +164,77 @@ async function fetchCandidateBills(
   }
 
   return candidates;
+}
+
+async function generateExplanationWithOpenAI(
+  config: ETLConfig,
+  bill: BillRow
+): Promise<GeneratedExplanation> {
+  if (!config.openaiApiKey) {
+    throw new Error('OPENAI_API_KEY not configured');
+  }
+
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.openaiApiKey}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [{ role: 'user', content: buildPrompt(bill.title, '') }],
+      max_tokens: 2500,
+      temperature: 0.5,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`OpenAI ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const body = await res.json() as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const raw = body.choices?.[0]?.message?.content || '';
+  const generated = cleanResponse(raw);
+
+  if (!generated.explanation || generated.paragraphs.length === 0) {
+    throw new Error('Empty response from model');
+  }
+
+  return generated;
+}
+
+async function upsertGeneratedExplanation(
+  supabase: SupabaseClient,
+  bill: BillRow,
+  generated: GeneratedExplanation
+): Promise<void> {
+  const { error } = await supabase
+    .from('bill_explanations')
+    .upsert({
+      bill_key: bill.id.toLowerCase(),
+      model: MODEL,
+      prompt_version: PROMPT_VERSION,
+      bill_title: bill.title,
+      explanation: generated.explanation,
+      paragraphs: generated.paragraphs,
+    }, { onConflict: 'bill_key,model,prompt_version' });
+
+  if (error) {
+    throw new Error(`Failed to write bill_explanations: ${error.message}`);
+  }
+}
+
+async function generateAndStoreExplanation(
+  supabase: SupabaseClient,
+  config: ETLConfig,
+  bill: BillRow
+): Promise<{ cached: boolean }> {
+  const generated = await generateExplanationWithOpenAI(config, bill);
+  await upsertGeneratedExplanation(supabase, bill, generated);
+  return { cached: false };
 }
 
 async function invokeExplainBill(
@@ -201,6 +331,11 @@ export async function preWarmBillExplanations(
     `Pre-warm: generating up to ${candidates.length} explanations ` +
     `(budget ${(budgetMs / 60000).toFixed(0)}m)`
   );
+  if (config.openaiApiKey) {
+    logger.info('Pre-warm: using ETL OPENAI_API_KEY for direct generation');
+  } else {
+    logger.info('Pre-warm: using explain-bill Edge Function fallback');
+  }
 
   for (const bill of candidates) {
     if (Date.now() - startedAt > budgetMs) {
@@ -212,7 +347,9 @@ export async function preWarmBillExplanations(
     }
     result.scanned++;
     try {
-      const { cached } = await invokeExplainBill(config, bill);
+      const { cached } = config.openaiApiKey
+        ? await generateAndStoreExplanation(supabase, config, bill)
+        : await invokeExplainBill(config, bill);
       if (cached) {
         result.cacheHits++;
       } else {
@@ -222,7 +359,11 @@ export async function preWarmBillExplanations(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       result.errors.push(`${bill.id}: ${message}`);
-      logger.error(`Pre-warm failed for ${bill.id}`, err);
+      logger.error(`Pre-warm failed for ${bill.id}: ${message}`);
+      if (shouldStopPrewarmAfterError(message)) {
+        logger.warn('Pre-warm stopped early because generation is not currently available');
+        break;
+      }
     }
     if (result.scanned % PROGRESS_LOG_EVERY === 0) {
       logger.info(

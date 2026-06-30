@@ -17,6 +17,21 @@ interface CRSResult {
   errors: string[];
 }
 
+interface CRSSummaryResponse {
+  summaries?: Array<{
+    text?: string;
+  }>;
+}
+
+interface CRSBillResponse {
+  bill?: {
+    title?: string;
+    policyArea?: {
+      name?: string;
+    };
+  };
+}
+
 /**
  * Fetch CRS summaries and policy areas for bills that need them.
  */
@@ -64,7 +79,7 @@ export async function fetchCRSSummaries(
     // Fetch CRS summary if missing
     if (!bill.crs_summary) {
       try {
-        const summaryResponse = await fetchCongressApi(
+        const summaryResponse = await fetchCongressApi<CRSSummaryResponse>(
           `/bill/${congress}/${type}/${number}/summaries`,
           config.congressApiKey
         );
@@ -89,7 +104,7 @@ export async function fetchCRSSummaries(
     const needsTitle = !bill.title || /^(HR|S|HRES|SRES|HJRES|SJRES|HCONRES|SCONRES)\s+\d+$/i.test(bill.title);
     if (!bill.policy_area || needsTitle) {
       try {
-        const billResponse = await fetchCongressApi(
+        const billResponse = await fetchCongressApi<CRSBillResponse>(
           `/bill/${congress}/${type}/${number}`,
           config.congressApiKey
         );

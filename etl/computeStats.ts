@@ -5,6 +5,8 @@
  * Queries all votes for the current congress from Supabase,
  * computes party loyalty and vote breakdowns, and upserts
  * into the member_stats table.
+ * The ETL runner owns last_successful_run metadata after all critical
+ * phases are known to have passed.
  *
  * Party loyalty = % of roll calls where member voted with
  * their party's majority position (CQ Roll Call methodology).
@@ -328,15 +330,6 @@ export async function computeMemberStats(
         result.membersProcessed += batch.length;
       }
     }
-
-    // 7. Update ETL metadata timestamp
-    await supabase
-      .from('etl_metadata')
-      .upsert({
-        key: 'last_successful_run',
-        value: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'key' });
 
     logger.info(`Stats computation complete: ${result.membersProcessed} members processed`);
   } catch (error) {
