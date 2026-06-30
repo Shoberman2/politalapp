@@ -28,7 +28,7 @@
   text-decoration: none;
 }
 .bill-crumb a:hover { text-decoration: underline; }
-.bill-crumb-sep { color: var(--border); }
+.bill-crumb-sep { color: var(--text-muted); }
 
 /* MASTHEAD */
 .bill-masthead {
