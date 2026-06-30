@@ -96,14 +96,13 @@ CREATE TABLE IF NOT EXISTS votes (
   source_url TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
-  UNIQUE(politician_id, bill_id, voted_at)
+  CONSTRAINT votes_roll_call_politician_unique UNIQUE(roll_call_id, politician_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_votes_politician ON votes(politician_id);
 CREATE INDEX IF NOT EXISTS idx_votes_bill ON votes(bill_id);
 CREATE INDEX IF NOT EXISTS idx_votes_date ON votes(voted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_votes_politician_date ON votes(politician_id, voted_at DESC);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_roll_call_politician ON votes(roll_call_id, politician_id);
 
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
 
