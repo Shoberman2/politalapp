@@ -377,7 +377,7 @@ async function upsertRollCalls(
 /**
  * Upserts votes to Supabase.
  *
- * Uses a composite key (politician_id, bill_id, voted_at) for deduplication.
+ * Uses the canonical roll-call/member key for deduplication.
  * Votes are considered immutable facts - we don't overwrite existing votes.
  */
 async function upsertVotes(
@@ -409,8 +409,8 @@ async function upsertVotes(
             source_url: v.source_url,
           })),
           {
-            // Create a unique constraint on (politician_id, bill_id, voted_at)
-            // or use the default primary key behavior
+            // Migration 003 promotes this to the canonical UNIQUE constraint.
+            onConflict: 'roll_call_id,politician_id',
             ignoreDuplicates: true, // Don't update existing votes
           }
         )

@@ -22,13 +22,17 @@
  */
 
 import type { ETLRunResult, ETLConfig } from './types.js';
+import type { LoadResult } from './types.js';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createClient } from '@supabase/supabase-js';
 import { extractRecentVotes } from './extractHouseVotes.js';
 import { extractIntroducedBills } from './extractIntroducedBills.js';
 import { transformVoteData, validateTransformedData, getTransformStats } from './transform.js';
 import { loadToSupabase, checkTablesExist, getExistingCounts } from './load.js';
 import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
 import { preWarmBillExplanations } from './preWarmBillExplanations.js';
-import { computeMemberStats } from './computeStats.js';
+import { computeMemberStats, type ComputeStatsResult } from './computeStats.js';
 import { fetchCRSSummaries } from './fetchCRS.js';
 import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
 
@@ -69,6 +73,45 @@ function parseArgs(): CLIOptions {
   }
 
   return options;
+}
+
+export function shouldMarkSuccessfulRun(
+  loadResult: LoadResult,
+  statsResult: ComputeStatsResult | null,
+  config: ETLConfig
+): boolean {
+  return (
+    !config.dryRun &&
+    loadResult.errors.length === 0 &&
+    (statsResult?.errors.length ?? 0) === 0
+  );
+}
+
+export async function markLastSuccessfulRun(
+  config: ETLConfig,
+  timestamp: Date = new Date()
+): Promise<void> {
+  if (config.dryRun) return;
+
+  const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const iso = timestamp.toISOString();
+  const { error } = await supabase
+    .from('etl_metadata')
+    .upsert({
+      key: 'last_successful_run',
+      value: iso,
+      updated_at: iso,
+    }, { onConflict: 'key' });
+
+  if (error) {
+    throw new Error(`Failed to update last_successful_run: ${error.message}`);
+  }
 }
 
 // =============================================================================
@@ -289,21 +332,44 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     // COMPUTE STATS PHASE
     // ===========================================
     logger.info('=== COMPUTE STATS PHASE ===');
+    let statsResult: ComputeStatsResult | null = null;
     try {
-      const statsResult = await computeMemberStats(config);
+      statsResult = await computeMemberStats(config);
       logger.info('Stats computation complete', statsResult);
       if (statsResult.errors.length > 0) {
         result.errors.push(...statsResult.errors.slice(0, 5));
       }
     } catch (statsError) {
-      logger.warn('Stats computation failed, continuing', statsError);
+      const message = statsError instanceof Error ? statsError.message : String(statsError);
+      statsResult = { membersProcessed: 0, errors: [message] };
+      result.errors.push(`Stats computation: ${message}`);
+      logger.warn('Stats computation failed', statsError);
     }
 
     // ===========================================
     // FINAL SUMMARY
     // ===========================================
-    result.success = loadResult.errors.length === 0;
     result.endTime = new Date();
+    result.success = loadResult.errors.length === 0 && (statsResult?.errors.length ?? 0) === 0;
+
+    if (shouldMarkSuccessfulRun(loadResult, statsResult, config)) {
+      try {
+        await markLastSuccessfulRun(config, result.endTime);
+        logger.info('ETL metadata updated', {
+          last_successful_run: result.endTime.toISOString(),
+        });
+      } catch (metadataError) {
+        const message = metadataError instanceof Error ? metadataError.message : String(metadataError);
+        result.errors.push(message);
+        result.success = false;
+        logger.error('ETL metadata update failed', metadataError);
+      }
+    } else if (!config.dryRun) {
+      logger.warn('Skipping last_successful_run update because critical ETL errors occurred', {
+        loadErrors: loadResult.errors.length,
+        statsErrors: statsResult?.errors.length ?? 0,
+      });
+    }
 
     const duration = (result.endTime.getTime() - result.startTime.getTime()) / 1000;
     logger.info('=== ETL PIPELINE COMPLETE ===', {
@@ -375,10 +441,16 @@ async function main(): Promise<void> {
   }
 }
 
-// Run if this is the main module
-main().catch((error) => {
-  console.error('Unhandled error:', error);
-  process.exit(1);
-});
+// Run if this is the main module.
+const isMain = process.argv[1]
+  ? fileURLToPath(import.meta.url) === resolve(process.argv[1])
+  : false;
+
+if (isMain) {
+  main().catch((error) => {
+    console.error('Unhandled error:', error);
+    process.exit(1);
+  });
+}
 
 export { runETLPipeline };
