@@ -26,6 +26,15 @@ interface AIConfig {
   model: string;
 }
 
+function isAIUnavailableError(message: string): boolean {
+  return (
+    /API key.*not configured/i.test(message) ||
+    /429/.test(message) ||
+    /quota/i.test(message) ||
+    /billing/i.test(message)
+  );
+}
+
 function getAIConfig(config: ETLConfig): AIConfig | null {
   const openaiKey = config.openaiApiKey || process.env.OPENAI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -86,16 +95,11 @@ async function generateBillSummary(
 ): Promise<string | null> {
   const prompt = SUMMARY_USER_PROMPT(bill.title, bill.id);
 
-  try {
-    if (aiConfig.provider === 'openai') {
-      return await callOpenAI(aiConfig, SUMMARY_SYSTEM_PROMPT, prompt);
-    } else {
-      return await callAnthropic(aiConfig, SUMMARY_SYSTEM_PROMPT, prompt);
-    }
-  } catch (error) {
-    logger.error(`Failed to generate summary for bill ${bill.id}`, error);
-    return null;
+  if (aiConfig.provider === 'openai') {
+    return await callOpenAI(aiConfig, SUMMARY_SYSTEM_PROMPT, prompt);
   }
+
+  return await callAnthropic(aiConfig, SUMMARY_SYSTEM_PROMPT, prompt);
 }
 
 /**
@@ -241,7 +245,11 @@ export async function enrichBillsWithSummaries(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       result.errors.push(`Bill ${bill.id}: ${message}`);
-      logger.error(`Error enriching bill ${bill.id}`, error);
+      if (isAIUnavailableError(message)) {
+        logger.warn(`AI enrichment stopped early: ${message}`);
+        break;
+      }
+      logger.error(`Error enriching bill ${bill.id}: ${message}`);
     }
   }
 

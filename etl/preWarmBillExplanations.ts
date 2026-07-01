@@ -359,11 +359,11 @@ export async function preWarmBillExplanations(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       result.errors.push(`${bill.id}: ${message}`);
-      logger.error(`Pre-warm failed for ${bill.id}: ${message}`);
       if (shouldStopPrewarmAfterError(message)) {
-        logger.warn('Pre-warm stopped early because generation is not currently available');
+        logger.warn(`Pre-warm stopped early because generation is not currently available: ${message}`);
         break;
       }
+      logger.error(`Pre-warm failed for ${bill.id}: ${message}`);
     }
     if (result.scanned % PROGRESS_LOG_EVERY === 0) {
       logger.info(
