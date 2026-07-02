@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
-const PROMPT_VERSION = 1
+const PROMPT_VERSION = 2
 
 interface StateBill {
   bill_id: string | number
@@ -25,7 +25,7 @@ function buildPrompt(bill: StateBill): string {
     : ''
   return `You are a nonpartisan expert at explaining state legislation in plain language.
 
-Explain this state bill clearly for an average citizen:
+Explain this state bill clearly for a general reader:
 
 Bill Number: ${bill.number}
 Title: ${bill.title}
@@ -34,10 +34,10 @@ State: ${bill.state}
 Status: ${bill.status}
 ${sponsors}
 
-Write 2-3 paragraphs in plain English explaining what this bill does, why it matters, and who it affects.
+Write 2-3 paragraphs in plain English explaining what this bill does, what public issue it addresses, and who it affects.
 Do NOT use numbered lists or bullet points. Write in flowing paragraph form only.
 Do NOT include any source citations, references, footnotes, or URLs.
-Keep your response factual and balanced. Avoid political bias.`
+Keep your response factual and balanced. Avoid political bias, advocacy language, praise, criticism, endorsement, or opposition.`
 }
 
 function toParagraphs(raw: string): string[] {

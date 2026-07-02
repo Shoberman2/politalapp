@@ -39,10 +39,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 1.1rem;
-  background: var(--text-primary);
+  background: var(--bg-tint);
 }
 
 .card-info {
@@ -85,15 +85,31 @@
 
 .card-party {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  border: 1px solid currentColor;
+  background: transparent;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.card-party.dem {
+  color: var(--party-dem);
+}
+
+.card-party.rep {
+  color: var(--party-rep);
+}
+
+.card-party.ind {
+  color: var(--party-ind);
 }
 
 .favorite-btn {
@@ -139,8 +155,8 @@
   }
 
   .card-party {
-    width: 32px;
-    height: 32px;
-    font-size: 0.85rem;
+    min-width: 30px;
+    height: 26px;
+    font-size: 0.75rem;
   }
 }

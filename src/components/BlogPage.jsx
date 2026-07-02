@@ -30,7 +30,7 @@ function BlogPage() {
     <div className="blog-page">
       <SEO
         title="Blog"
-        description="Civic education articles explaining how Congress works, legislation tracking, campaign finance, and government accountability."
+        description="Civic education articles explaining how Congress works, legislation tracking, campaign finance, and public records."
         path="/blog"
       />
       <div className="blog-header">

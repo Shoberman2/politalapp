@@ -18,8 +18,8 @@ describe('FORBIDDEN regex', () => {
 
   it.each([
     'Voted YES on the infrastructure bill.',
-    'Aligned with party on 9 of 11 healthcare votes.',
-    'Crossed party on a 215-220 margin vote.',
+    'Matched the party majority on 9 of 11 healthcare votes.',
+    'Differed from the party majority on a 215-220 margin vote.',
     'The Anti-Corruption Act passed with broad support.', // bill title containing forbidden word
     // Note: our implementation only scans narration field, not bill title,
     // so the Anti-Corruption case is tested separately in the filter context.
@@ -43,20 +43,20 @@ describe('templateNarration', () => {
     const text = templateNarration(billVote, 1, 1)
     expect(text).toContain('YES')
     expect(text).toContain('Medicare Advantage Reform')
-    expect(text).toContain('aligned')
+    expect(text).toContain('matched')
   })
 
   it('produces a Nay template when diverged', () => {
     const text = templateNarration({ position: 'Nay', bill: { title: 'H.R. 5 Reform Bill' } }, 0, 1)
     expect(text).toContain('NO')
-    expect(text).toContain('diverged')
+    expect(text).toContain('differed from')
   })
 
   it('handles unknown match state', () => {
     const text = templateNarration(billVote, null, null)
     expect(text).toContain('YES')
-    expect(text).not.toContain('aligned')
-    expect(text).not.toContain('diverged')
+    expect(text).not.toContain('matched')
+    expect(text).not.toContain('differed from')
   })
 
   it('handles missing bill title gracefully', () => {

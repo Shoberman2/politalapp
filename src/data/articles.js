@@ -1,11 +1,11 @@
 const articles = [
   {
     slug: 'why-congressional-transparency-matters',
-    title: 'Why Congressional Transparency Matters More Than Ever',
+    title: 'How Congressional Transparency Works',
     date: '2026-01-06',
     author: 'BallotWatch Editorial',
-    excerpt: 'In a polarized era, knowing what your representatives actually do in Washington isn\'t a luxury, it\'s the foundation of self-government.',
-    tags: ['Transparency', 'Accountability'],
+    excerpt: 'A plain-language look at the public records, vote data, and process details that help readers follow Congress.',
+    tags: ['Transparency', 'Public Records'],
     content: [
       'There\'s a question that comes up in almost every conversation about Congress: "What are they actually doing up there?" It sounds rhetorical, maybe even cynical. But it deserves a genuine answer, and getting that answer is harder than most people realize.',
       'Congressional transparency isn\'t just a feel-good principle. It\'s the mechanism that connects voters to the people who make laws on their behalf. When the process is opaque, trust erodes. When trust erodes, participation drops. And when participation drops, the people who do show up get outsized influence over everyone else.',
@@ -21,10 +21,10 @@ const articles = [
   },
   {
     slug: 'how-a-bill-becomes-law-2026',
-    title: 'How a Bill Actually Becomes a Law in 2026',
+    title: 'How a Bill Becomes Law in 2026',
     date: '2026-01-09',
     author: 'BallotWatch Editorial',
-    excerpt: 'The Schoolhouse Rock version leaves out about 90% of what really happens. Here\'s the full picture of how legislation moves through Congress today.',
+    excerpt: 'A step-by-step explanation of how legislation moves through committees, floor votes, both chambers, and the president.',
     tags: ['Legislation', 'Process'],
     content: [
       'Most Americans learned about the legislative process from a cartoon bill sitting on the steps of the Capitol. That version goes something like: a bill gets introduced, it goes to committee, it gets debated on the floor, both chambers pass it, and the president signs it into law. Simple enough. Also wildly incomplete.',
@@ -35,8 +35,8 @@ const articles = [
       'The Senate works differently. There\'s no equivalent of the Rules Committee, and any senator can theoretically offer any amendment to any bill. This sounds more democratic, but it also means that the Senate often can\'t do anything without unanimous consent agreements, negotiated deals about what will be debated and voted on. When those agreements break down, the Senate grinds to a halt.',
       'Then there\'s the filibuster. In the Senate, most legislation needs 60 votes to overcome a filibuster and proceed to a final vote. With neither party typically holding 60 seats, this means that controversial bills need at least some bipartisan support to pass, or leadership has to use special budget procedures that bypass the filibuster.',
       'If both chambers pass a bill, the two versions almost never match exactly. That\'s where conference committees or informal negotiations come in. Differences get worked out, a final version is produced, and both chambers have to vote on it again. Only then does the bill go to the president, who can sign it or veto it.',
-      'The whole process is designed to make passing laws difficult. That\'s intentional, the founders wanted to prevent hasty legislation. But it also means that most of the real power in Congress isn\'t about voting on bills. It\'s about controlling which bills get a vote in the first place.',
-      'Understanding this process matters because it changes how you evaluate your representatives. A member might support a popular policy on paper but never push to get it through committee. Another might vote against a bill they actually agree with because of an unrelated provision that was added in conference. The legislative process is full of these kinds of complexities, and understanding them is the first step toward holding Congress accountable.'
+      'The whole process is designed to make passing laws difficult. That\'s intentional, the founders wanted to prevent hasty legislation. It also means that procedural control, including which bills receive a vote, can matter as much as final passage votes.',
+      'Understanding this process matters because it changes how you read the public record. A member might support a policy on paper but not move it through committee. Another might vote against a bill because of an unrelated provision that was added in conference. The legislative process is full of these complexities, and understanding them helps readers interpret congressional records more accurately.'
     ]
   },
   {
@@ -44,8 +44,8 @@ const articles = [
     title: 'What Roll Call Votes Reveal About Your Representative',
     date: '2026-01-13',
     author: 'BallotWatch Editorial',
-    excerpt: 'A representative\'s voting record is the closest thing to a report card in politics. But reading it takes more context than you might expect.',
-    tags: ['Voting Records', 'Accountability'],
+    excerpt: 'Voting records are useful public data, but individual votes often need procedural and bill-context details to interpret.',
+    tags: ['Voting Records', 'Public Records'],
     content: [
       'Every time the House or Senate takes a recorded vote, each member\'s position becomes part of the permanent public record. These roll call votes are the most concrete, verifiable data points available about what your representatives actually do in Washington. They\'re also frequently misunderstood.',
       'A roll call vote records each member\'s yea, nay, present, or not voting status. In the House, votes are typically cast electronically, with members inserting a card into a voting station. In the Senate, it\'s done the old-fashioned way: the clerk calls each senator\'s name, and they respond verbally. The whole thing gets published online within hours.',
@@ -56,15 +56,15 @@ const articles = [
       'Then there are procedural votes, which most constituents never hear about. Votes on rules, motions to table, cloture motions, and other procedural maneuvers are often more consequential than final passage votes. A member might vote "yes" on final passage of a popular bill after voting to block it procedurally three times. If you only look at the final vote, you miss the real story.',
       'Amendment votes are equally revealing. When a member proposes an amendment, it shows what changes they think are important. When they vote against someone else\'s amendment, it shows what they\'re willing to reject. These votes don\'t get headlines, but they\'re some of the most honest indicators of a member\'s priorities.',
       'The most useful way to read a voting record is to pick issues you care about and trace the full legislative history. Don\'t just ask how your representative voted on the final bill, ask how they voted on amendments, procedural motions, and committee markups. The more granular your view, the more accurate your understanding.',
-      'Voting records aren\'t perfect accountability tools. They don\'t capture what a member says in closed-door meetings, how they negotiate behind the scenes, or what trade-offs they make to get other priorities funded. But they\'re the best public data available, and they reward anyone willing to look closely.'
+      'Voting records are not complete records of representation. They do not capture what a member says in closed-door meetings, how they negotiate behind the scenes, or what trade-offs they make to get other priorities funded. But they are among the clearest public data available for understanding congressional action.'
     ]
   },
   {
     slug: 'committee-assignments-real-power',
-    title: 'Why Committee Assignments Are the Real Power in Congress',
+    title: 'How Committee Assignments Shape Congressional Work',
     date: '2026-01-16',
     author: 'BallotWatch Editorial',
-    excerpt: 'Floor votes get the attention, but committees are where legislation lives or dies. Your representative\'s committee seat may matter more than their vote.',
+    excerpt: 'Committees review bills, hold hearings, and shape amendments before many measures reach a full chamber vote.',
     tags: ['Committees', 'Process'],
     content: [
       'When a new Congress convenes, one of the first orders of business is assigning members to committees. It\'s a process that happens almost entirely out of public view, usually decided by party leadership. And yet, committee assignments shape more legislative outcomes than almost anything that happens on the House or Senate floor.',
@@ -72,7 +72,7 @@ const articles = [
       'Why do committees matter so much? Because most bills die in committee. The committee chair controls the agenda, which bills get hearings, which get markups, and which get reported to the full chamber. A chair who doesn\'t want a bill to move can simply never schedule it. This gives committee chairs enormous negative power: the ability to block legislation without ever casting a public vote against it.',
       'But committees also have constructive power. Members who sit on the right committee can shape legislation before anyone else sees it. They ask questions at hearings that frame the debate. They propose amendments during markup that alter what the final bill looks like. They develop expertise in their committee\'s subject area that gives them outsized influence when the bill reaches the floor.',
       'For individual members, committee assignments are career-defining. A freshman representative assigned to the Agriculture Committee will spend years developing relationships with farm-state interests and learning the ins and outs of food policy. A senator on the Foreign Relations Committee will have access to classified briefings and become a key voice on international affairs. These assignments often track a member\'s career trajectory for decades.',
-      'The assignment process itself is political. In both parties, committee slots are distributed by steering committees controlled by leadership. Members lobby hard for the assignments they want, and leadership uses the process to reward loyalty and punish dissent. Getting kicked off a committee, as has happened in recent years, sends a powerful message about who\'s in charge.',
+      'The assignment process itself is political. In both parties, committee slots are distributed by steering committees controlled by leadership. Members lobby for the assignments they want, and leadership decisions can reflect caucus priorities, seniority, relationships, and internal party rules.',
       'Some committees are considered more prestigious than others. The House Ways and Means Committee, which controls tax policy, is one of the most sought-after assignments. The Senate Judiciary Committee, which handles judicial nominations, has become increasingly high-profile. Members of the Appropriations committees in both chambers have direct influence over federal spending, which gives them leverage over virtually every other policy area.',
       'For constituents, your representative\'s committee assignments should influence how you evaluate their work. A member on the Transportation Committee is in a much better position to advocate for local infrastructure projects than one on the Judiciary Committee. Understanding which committees your representative sits on helps you understand what kind of influence they actually have.',
       'Committees also play a critical oversight role. They hold hearings to examine how executive agencies are implementing the law, investigate waste and abuse, and review presidential nominations. This oversight function is supposed to be one of Congress\'s most important responsibilities, though how aggressively it\'s exercised depends heavily on political dynamics.',
@@ -101,10 +101,10 @@ const articles = [
   },
   {
     slug: 'government-shutdown-explained',
-    title: 'What a Government Shutdown Actually Does to the Country',
+    title: 'What Happens During a Government Shutdown',
     date: '2026-01-23',
     author: 'BallotWatch Editorial',
-    excerpt: 'Shutdowns have become a recurring feature of American politics. But what actually happens when the government "shuts down", and who bears the cost?',
+    excerpt: 'A factual overview of funding deadlines, agency operations, workers, services, and the effects of a lapse in appropriations.',
     tags: ['Shutdowns', 'Budget'],
     content: [
       'The phrase "government shutdown" sounds dramatic, like someone flipped a switch and turned off the federal government. The reality is both less apocalyptic and more disruptive than that image suggests. A shutdown doesn\'t mean the entire government stops working. It means that federal agencies that haven\'t received appropriations can\'t spend money, which means hundreds of thousands of federal employees are either furloughed or required to work without pay.',
@@ -124,7 +124,7 @@ const articles = [
     title: 'How to Read a Congressional Bill Without a Law Degree',
     date: '2026-01-27',
     author: 'BallotWatch Editorial',
-    excerpt: 'Legislative text is dense, jargon-heavy, and sometimes deliberately confusing. But with a few tricks, anyone can make sense of what Congress is actually proposing.',
+    excerpt: 'Legislative text can be dense. This guide explains bill structure, summaries, definitions, and source documents.',
     tags: ['Legislation', 'Civic Education'],
     content: [
       'Congressional bills are not written for a general audience. They\'re written by lawyers, for lawyers, using language that references other laws, amends existing statutes, and sometimes seems designed to obscure rather than clarify. But that doesn\'t mean ordinary citizens can\'t read them. It just means you need to know what you\'re looking at.',
@@ -161,10 +161,10 @@ const articles = [
   },
   {
     slug: 'party-line-votes-bipartisanship',
-    title: 'Party-Line Votes and the Decline of Bipartisanship',
+    title: 'Party-Line Votes and Bipartisanship',
     date: '2026-02-02',
     author: 'BallotWatch Editorial',
-    excerpt: 'Members of Congress vote with their party more often than at any point in modern history. What does that mean for legislation, and for the country?',
+    excerpt: 'A data-oriented look at party-line voting, cross-party coalitions, and how voting patterns affect legislation.',
     tags: ['Partisanship', 'Voting Records'],
     content: [
       'Here\'s a number that tells a story: in recent Congresses, the average member of the House votes with their party roughly 90 percent of the time on party-unity votes, those where a majority of one party opposes a majority of the other. In the Senate, the numbers are similar. These figures are historically high, and they\'ve been climbing for decades.',
@@ -172,10 +172,10 @@ const articles = [
       'Several forces drove this change. Geographic sorting, the process by which conservative voters concentrated in some areas and liberal voters in others, eliminated many competitive districts, rewarding members who appeal to their base rather than the middle. Primary elections increasingly elevate ideologically committed candidates. And media ecosystems reinforce partisan identities in ways they didn\'t a generation ago.',
       'The practical effect on legislation is significant. When parties vote as blocs, the majority party can pass anything it wants in the House, where simple majorities rule. But the Senate\'s 60-vote threshold for most legislation means that the minority party has real veto power. The result is a system where the House passes party-priority bills that stall in the Senate, and the few things that do become law tend to be either bipartisan compromises or measures passed through special budget procedures.',
       'Critics of high party-line voting argue that it produces worse policy outcomes. When legislation is crafted by one party with no input from the other, it may be more ideologically pure but less durable. Laws passed on party-line votes are more likely to be reversed or undermined when the other party takes power. The Affordable Care Act and the 2017 tax overhaul, both passed with essentially no votes from the opposing party, have been targets of revision ever since.',
-      'Defenders argue that strong party cohesion is a feature, not a bug. Parties exist to offer voters clear choices. If both parties voted the same way on everything, elections wouldn\'t mean much. Party-line voting gives voters the ability to change policy direction by changing which party controls Congress. Muddled bipartisanship, in this view, obscures accountability.',
+      'Defenders argue that strong party cohesion can give voters clearer policy choices. Parties exist to organize governing agendas. If both parties voted the same way on everything, elections would offer less directional choice. Party-line voting can make party control easier to interpret, while mixed coalitions can make responsibility harder to assign.',
       'The reality is probably somewhere in between. Some degree of party cohesion is healthy for democratic governance, it lets voters know what they\'re voting for. But when cohesion hardens into tribalism, it can prevent even widely popular ideas from moving through the process. Polls consistently show bipartisan public support for measures on infrastructure, drug pricing, and veterans\' care, yet these issues frequently get caught up in partisan standoffs.',
       'Individual members who break from their party often face consequences. Primary challenges, loss of committee assignments, reduced campaign support from party organizations, these are real costs. The system punishes deviation, which reinforces the trend toward uniformity.',
-      'Looking at voting data over time reveals interesting nuances. Even in a highly partisan era, there are members in both parties who cross the aisle more frequently. These members often represent competitive districts or states, or they come from regions with strong independent political traditions. Identifying and understanding these exceptions can provide insight into where bipartisan cooperation might still be possible.',
+      'Looking at voting data over time reveals important variation. Even in a highly partisan era, there are members in both parties who vote with the other party more frequently. These members often represent competitive districts or states, or they come from regions with strong independent political traditions. Identifying those patterns can show where cross-party coalitions still appear.',
       'The trend toward party-line voting isn\'t likely to reverse itself anytime soon. But understanding it is essential for anyone trying to make sense of why Congress seems unable to act on issues where broad public agreement exists. The problem isn\'t usually that members disagree on goals, it\'s that the political incentives make cooperation more costly than confrontation.'
     ]
   },
@@ -184,7 +184,7 @@ const articles = [
     title: 'The Federal Appropriations Process, Explained Simply',
     date: '2026-02-04',
     author: 'BallotWatch Editorial',
-    excerpt: 'The annual fight over federal spending is one of Congress\'s most important, and least understood, responsibilities. Here\'s how the money actually gets allocated.',
+    excerpt: 'How authorization, appropriations, committees, and deadlines structure federal spending decisions.',
     tags: ['Budget', 'Process'],
     content: [
       'Every year, the federal government spends roughly $6 trillion. About two-thirds of that is mandatory spending, Social Security, Medicare, Medicaid, and other entitlements that run on autopilot. The remaining third is discretionary spending, and it\'s the subject of an annual ritual that involves more committees, deadlines, and political drama than almost anything else Congress does.',
@@ -201,10 +201,10 @@ const articles = [
   },
   {
     slug: 'why-voter-turnout-drops-midterms',
-    title: 'Why Voter Turnout Drops in Midterm Elections',
+    title: 'How Voter Turnout Changes in Midterm Elections',
     date: '2026-02-06',
     author: 'BallotWatch Editorial',
-    excerpt: 'Presidential elections bring out roughly two-thirds of eligible voters. Midterms? Barely half. The gap has real consequences for who governs and how.',
+    excerpt: 'Turnout differs across election types. This explainer summarizes common patterns and why they matter for representation.',
     tags: ['Elections', 'Civic Engagement'],
     content: [
       'In presidential election years, voter turnout in the United States typically hovers around 60 to 66 percent of eligible voters. In midterm election years, when all 435 House seats and about a third of the Senate are on the ballot, turnout drops to somewhere around 45 to 50 percent. That gap matters more than most people realize.',
@@ -221,10 +221,10 @@ const articles = [
   },
   {
     slug: 'conference-committees-explained',
-    title: 'Conference Committees: Where Bills Go to Get Rewritten',
+    title: 'Conference Committees and Final Bill Text',
     date: '2026-02-08',
     author: 'BallotWatch Editorial',
-    excerpt: 'When the House and Senate pass different versions of a bill, a small group of members meets to work out the differences. What happens in that room shapes the final law.',
+    excerpt: 'When the House and Senate pass different versions of a bill, conferees or negotiators work toward final text.',
     tags: ['Process', 'Legislation'],
     content: [
       'Here\'s a common scenario: the House passes a bill. The Senate passes a different version of the same bill. The two versions don\'t match. Now what? The answer, in many cases, is a conference committee, a temporary panel of members from both chambers appointed to reconcile the differences.',
@@ -241,10 +241,10 @@ const articles = [
   },
   {
     slug: 'filibuster-explained',
-    title: 'The Filibuster, Explained: How 60 Votes Became the New Majority',
+    title: 'The Filibuster and the Senate 60-Vote Threshold',
     date: '2026-02-10',
     author: 'BallotWatch Editorial',
-    excerpt: 'The Senate was designed to slow things down. The filibuster slows things to a crawl. Here\'s how a procedural tool became the defining feature of modern Senate politics.',
+    excerpt: 'How cloture, unanimous consent, and the 60-vote threshold shape the Senate legislative process.',
     tags: ['Senate', 'Process'],
     content: [
       'The United States Senate operates on a principle that would baffle anyone who\'s only familiar with the House: a simple majority of 51 votes is almost never enough to pass anything. Thanks to the filibuster, most legislation effectively needs 60 votes to move forward. This single procedural rule shapes more outcomes in Washington than almost any other feature of the legislative process.',
@@ -264,12 +264,12 @@ const articles = [
     title: 'How Congressional Oversight Is Supposed to Work',
     date: '2026-02-12',
     author: 'BallotWatch Editorial',
-    excerpt: 'Congress doesn\'t just make laws, it\'s supposed to make sure the executive branch follows them. That oversight power is one of the most important checks in the system.',
-    tags: ['Oversight', 'Accountability'],
+    excerpt: 'A procedural overview of hearings, subpoenas, reports, and other tools Congress uses to review executive-branch activity.',
+    tags: ['Oversight', 'Process'],
     content: [
       'When people think about what Congress does, they usually think about passing laws. But there\'s another function that\'s equally important and arguably even more consequential: oversight. Congress is supposed to monitor how the executive branch implements the laws it passes, investigate waste and abuse, and hold officials accountable. This oversight power is one of the core checks and balances in the constitutional system.',
       'The authority for congressional oversight comes from the Constitution\'s grant of legislative power, the power of the purse, and the implied power to investigate. The Supreme Court has repeatedly affirmed that Congress needs the ability to gather information in order to legislate effectively. This means that congressional committees can hold hearings, issue subpoenas, demand documents, and compel testimony.',
-      'In practice, oversight takes many forms. Committee hearings are the most visible, chairs call witnesses, ask questions, and create a public record. Inspector general reports, which are produced by independent watchdogs within each agency, often trigger oversight hearings. The Government Accountability Office (GAO), Congress\'s nonpartisan investigative arm, produces hundreds of reports each year identifying inefficiencies, waste, and recommendations for improvement.',
+      'In practice, oversight takes many forms. Committee hearings are the most visible, chairs call witnesses, ask questions, and create a public record. Inspector general reports, which are produced by independent review offices within each agency, often trigger oversight hearings. The Government Accountability Office (GAO), Congress\'s nonpartisan investigative arm, produces hundreds of reports each year identifying inefficiencies, waste, and recommendations for improvement.',
       'The effectiveness of oversight depends heavily on who\'s doing it and why. When the same party controls both Congress and the presidency, oversight tends to be less aggressive. The majority party may be reluctant to embarrass an administration from their own party. When government is divided, one party in Congress, the other in the White House, oversight becomes much more vigorous, sometimes bordering on confrontational.',
       'Subpoena power is the sharpest tool in the oversight toolbox. Congressional committees can subpoena documents and testimony from executive branch officials, private citizens, and organizations. But enforcing subpoenas is complicated. If a witness refuses to comply, Congress can hold them in contempt, but actually compelling compliance usually requires going to court, a process that can take months or years.',
       'Executive privilege, the president\'s claimed right to withhold certain information from Congress, is one of the most common points of friction in oversight battles. Presidents of both parties have invoked executive privilege to shield internal White House communications from congressional investigators. The courts have generally held that executive privilege exists but isn\'t absolute, and that Congress\'s need for information must be balanced against the president\'s need for candid advice.',
@@ -281,10 +281,10 @@ const articles = [
   },
   {
     slug: 'earmarks-pork-barrel-spending',
-    title: 'Earmarks and Pork Barrel Spending: Are They Really That Bad?',
+    title: 'Earmarks and Directed Congressional Spending',
     date: '2026-02-14',
     author: 'BallotWatch Editorial',
-    excerpt: 'Earmarks are one of Congress\'s most controversial tools. Critics call them wasteful. Defenders call them democracy. The truth is more complicated.',
+    excerpt: 'What earmarks are, how disclosure rules work, and how supporters and critics describe their role in budgeting.',
     tags: ['Budget', 'Spending'],
     content: [
       '"Pork barrel spending" is one of those phrases that everyone has heard and almost everyone uses as a pejorative. It refers to government spending directed to specific projects in a particular district or state, often inserted into larger spending bills by members of Congress to benefit their constituents, and, critics argue, to benefit their own reelection prospects.',
@@ -304,7 +304,7 @@ const articles = [
     title: 'How Gerrymandering Shapes Who Represents You',
     date: '2026-02-16',
     author: 'BallotWatch Editorial',
-    excerpt: 'Every ten years, congressional district lines get redrawn. The way those lines are drawn determines not just who wins, but who even gets to compete.',
+    excerpt: 'Every ten years, congressional district lines are redrawn. The process affects districts, candidates, and representation.',
     tags: ['Elections', 'Redistricting'],
     content: [
       'After every decennial census, the 435 seats in the House of Representatives get redistributed among the states based on population, and each state redraws its congressional district boundaries. This process, redistricting, is supposed to ensure equal representation. In practice, it\'s become one of the most powerful tools in American politics for predetermining election outcomes.',
@@ -314,17 +314,17 @@ const articles = [
       'Gerrymandering also reduces electoral competition. When districts are drawn to be "safe" for one party, the general election becomes a formality, the real contest is the primary. This shifts power to the most engaged partisan voters and incentivizes candidates to appeal to their base rather than the broader electorate. The result is more ideologically extreme representatives and less incentive for compromise.',
       'The Supreme Court has addressed gerrymandering multiple times, with mixed results. Racial gerrymandering, drawing districts to dilute the voting power of racial minorities, is unconstitutional under the Voting Rights Act and the Equal Protection Clause. But partisan gerrymandering, the Court ruled in 2019, is a political question that federal courts can\'t resolve. This means that challenges to partisan gerrymanders must go through state courts or the political process.',
       'Some states have attempted reforms. Independent redistricting commissions, used in states like California, Arizona, and Michigan, take map-drawing out of the hands of legislators and give it to nonpartisan or bipartisan bodies. These commissions generally produce more competitive districts and maps that better reflect the state\'s political balance, though they\'re not immune to political pressure.',
-      'Technology has made gerrymandering more precise. With detailed voter data and sophisticated mapping software, map-drawers can predict electoral outcomes with remarkable accuracy. A district drawn to favor one party by just a few percentage points is likely to hold through the entire decade. This technological advantage has made the stakes of redistricting even higher.',
-      'For voters, gerrymandering is frustrating because it often feels like the game is rigged before it starts. If you live in a heavily gerrymandered district, your vote in congressional elections may feel like it doesn\'t matter, and in a narrow sense, it may not, at least for the general election. But engaging in the redistricting process itself, supporting reform efforts, and participating in state-level elections that determine who draws the maps can all make a difference.',
+      'Technology has made gerrymandering more precise. With detailed voter data and sophisticated mapping software, map-drawers can estimate electoral outcomes with remarkable accuracy. A district drawn to favor one party by just a few percentage points may hold through the entire decade. This technological advantage has increased the practical importance of redistricting.',
+      'For voters, gerrymandering can be frustrating because district boundaries may strongly favor one party before a campaign begins. In heavily gerrymandered districts, general-election competition may be limited. But engaging in the redistricting process itself, supporting reform efforts, and participating in state-level elections that determine who draws the maps can all make a difference.',
       'Redistricting reform won\'t solve every problem in American democracy, but it addresses one of the most fundamental: whether voters choose their representatives, or representatives choose their voters. The way districts are drawn sets the table for everything else that happens in Congress.'
     ]
   },
   {
     slug: 'whip-counts-how-congress-operates',
-    title: 'What Whip Counts Tell Us About How Congress Really Operates',
+    title: 'What Whip Counts Show About Legislative Strategy',
     date: '2026-02-18',
     author: 'BallotWatch Editorial',
-    excerpt: 'Before a big vote, party leaders already know the result. The whip count, an informal tally of where members stand, reveals the hidden mechanics of legislative power.',
+    excerpt: 'Whip counts are informal vote tallies that help leaders decide whether, when, and how to bring measures to the floor.',
     tags: ['Process', 'Leadership'],
     content: [
       'When a major vote approaches in Congress, you\'ll sometimes see media reports referencing a "whip count", an informal tally of how members intend to vote. These counts are compiled by party whips (the leadership members responsible for counting votes) and by journalists tracking the same information. They\'re a window into how Congress really works behind the scenes.',
@@ -336,22 +336,22 @@ const articles = [
       'For the public, whip counts published by media outlets provide valuable insight. When you see that a bill is five votes short, it tells you something about the political dynamics at play. It also tells you which members are in play, which means those members are likely hearing from leadership, colleagues, interest groups, and constituents simultaneously.',
       'The whipping process also reveals fault lines within parties. When a significant number of members from one party are undecided or leaning no on a leadership priority, it signals internal disagreement. These internal fights are often more significant than the public battles between parties, because they determine what the party\'s actual governing agenda looks like.',
       'Modern whip operations are sophisticated data-driven enterprises. Whip teams track not just vote intentions but also members\' policy preferences, constituent pressures, and political vulnerabilities. They know which arguments work with which members and which concessions might flip a vote. It\'s a combination of relationship management, data analysis, and political instinct.',
-      'Understanding whip counts changes how you watch Congress. Instead of treating floor votes as the moment of decision, you start to see them as the public ratification of decisions that were made in hallways, leadership offices, and phone calls over the preceding days and weeks. The real power in Congress isn\'t the power to vote, it\'s the power to shape the choices that other members face.'
+      'Understanding whip counts changes how you watch Congress. Instead of treating floor votes as the only moment of decision, you can read them alongside the negotiations that happen before a bill reaches the floor. Agenda-setting and vote timing shape the choices members face.'
     ]
   },
   {
     slug: 'debt-ceiling-explained',
-    title: 'The Debt Ceiling, Explained: Why Congress Keeps Fighting Over It',
+    title: 'The Debt Ceiling and Congressional Fiscal Deadlines',
     date: '2026-02-20',
     author: 'BallotWatch Editorial',
-    excerpt: 'The debt ceiling doesn\'t control spending, it controls whether the government can pay for spending it already approved. So why does it keep causing crises?',
+    excerpt: 'What the debt ceiling does, how it differs from appropriations, and why deadlines can affect federal operations.',
     tags: ['Budget', 'Debt'],
     content: [
       'Every few years, the United States government approaches a self-imposed borrowing limit called the debt ceiling, and Congress turns what should be a routine administrative action into a political crisis. The debt ceiling has been raised or suspended dozens of times since it was created in 1917. And yet each time it comes up, it generates brinkmanship, market anxiety, and breathless media coverage. Why?',
       'First, the basics. The debt ceiling is a statutory limit on how much money the federal government can borrow. It doesn\'t authorize new spending, it simply allows the Treasury to pay for obligations that Congress has already approved. Think of it like a credit card limit. Congress decides what to buy (through spending bills and tax policy), and the debt ceiling determines whether the government can pay the bill.',
       'When the government hits the debt ceiling, the Treasury Department uses "extraordinary measures", accounting maneuvers that free up cash to keep paying bills. These measures buy time, typically a few months, but they don\'t solve the problem. If the ceiling isn\'t raised or suspended before the measures run out, the government faces the prospect of defaulting on its obligations.',
-      'A default would be unprecedented and potentially catastrophic. The U.S. government\'s ability to borrow at low interest rates depends on its reputation as the safest borrower in the world. A default, even a brief, technical one, could shatter that reputation, raise borrowing costs across the economy, and trigger financial market turmoil. The last time Congress came close, in 2011, the U.S. credit rating was downgraded for the first time in history.',
-      'So why doesn\'t Congress just raise the ceiling and move on? Because the debt ceiling vote has become a leverage point. The party that doesn\'t control the White House often uses the debt ceiling as a bargaining chip, demanding spending cuts or policy concessions in exchange for their votes. Since a default would be catastrophic, the threat of allowing it creates enormous pressure to make a deal.',
+      'A default would be unprecedented and could have serious economic effects. The U.S. government\'s ability to borrow at low interest rates depends on its reputation as a safe borrower. A default, even a brief, technical one, could weaken that reputation, raise borrowing costs across the economy, and trigger financial market turmoil. The last time Congress came close, in 2011, the U.S. credit rating was downgraded for the first time in history.',
+      'So why doesn\'t Congress just raise the ceiling and move on? Because the debt ceiling vote has become a negotiating point. The party that doesn\'t control the White House often uses the debt ceiling to seek spending cuts or policy concessions in exchange for votes. Because default risk carries serious economic consequences, the deadline creates pressure to reach an agreement.',
       'This dynamic is bipartisan, both parties have used the debt ceiling as leverage when they\'re in the minority. The difference is in degree. Some standoffs are resolved quickly with minimal drama. Others, like the 2011 crisis and the 2023 negotiations, go down to the wire and cause real economic damage even before a default occurs, as markets price in the uncertainty.',
       'Critics of the debt ceiling argue that it\'s a fundamentally illogical mechanism. Congress controls spending through the appropriations and authorization processes. The debt ceiling doesn\'t prevent spending, it just prevents the government from paying for spending it already committed to. It\'s like eating at a restaurant, receiving the bill, and then debating whether to pay it. The spending already happened.',
       'Proposals to reform or eliminate the debt ceiling come up regularly. Some economists and lawmakers favor repealing it entirely. Others suggest automatically raising it whenever Congress passes spending legislation that would increase the debt. Still others prefer keeping it but removing the possibility of default by prioritizing debt service payments. None of these proposals have gained enough political support to pass.',
@@ -364,7 +364,7 @@ const articles = [
     title: 'Civic Engagement Beyond the Ballot Box',
     date: '2026-02-22',
     author: 'BallotWatch Editorial',
-    excerpt: 'Voting is the most visible form of civic participation. But it\'s far from the only one, and for most people, it might not even be the most impactful.',
+    excerpt: 'Voting is one form of civic participation. This article surveys other ways people follow and engage with government.',
     tags: ['Civic Engagement', 'Participation'],
     content: [
       'Every election cycle, the message is the same: go vote. And voting matters, it\'s the most basic expression of democratic citizenship. But if voting every two or four years is the extent of your civic engagement, you\'re leaving most of your potential influence on the table.',
@@ -381,10 +381,10 @@ const articles = [
   },
   {
     slug: 'how-lobbyists-influence-laws',
-    title: 'How Lobbyists Actually Influence the Laws That Get Passed',
+    title: 'How Lobbying Fits Into the Legislative Process',
     date: '2026-02-25',
     author: 'BallotWatch Editorial',
-    excerpt: 'Lobbying is legal, ubiquitous, and widely misunderstood. Here\'s what lobbyists actually do, how they do it, and why it matters for the laws that govern your life.',
+    excerpt: 'A factual overview of lobbying, disclosure rules, meetings, policy information, and advocacy around legislation.',
     tags: ['Lobbying', 'Influence'],
     content: [
       'The word "lobbyist" has become shorthand for everything people dislike about Washington. It conjures images of shadowy figures handing cash to politicians in exchange for favorable legislation. The reality is both less dramatic and more concerning than that caricature suggests.',
@@ -404,7 +404,7 @@ const articles = [
     title: 'Executive Orders: What They Can and Can\'t Actually Do',
     date: '2026-02-26',
     author: 'BallotWatch Editorial',
-    excerpt: 'Presidents sign executive orders with great fanfare, but their power has real limits. Here\'s what executive orders actually are and why they matter.',
+    excerpt: 'What executive orders are, where their authority comes from, and how Congress and courts can respond.',
     tags: ['Executive Power', 'Process'],
     content: [
       'Every new administration kicks off with a flurry of executive orders. Cameras flash, pens are held aloft, and the president signs document after document while surrounded by aides. The imagery suggests sweeping power. The reality is more complicated.',
@@ -424,7 +424,7 @@ const articles = [
     title: 'How the Supreme Court Shapes the Laws Congress Writes',
     date: '2026-02-27',
     author: 'BallotWatch Editorial',
-    excerpt: 'Congress writes the laws, but the Supreme Court decides what they mean. That dynamic shapes legislation in ways most people never see.',
+    excerpt: 'How judicial review, statutory interpretation, and constitutional rulings affect laws passed by Congress.',
     tags: ['Supreme Court', 'Legislation'],
     content: [
       'The relationship between Congress and the Supreme Court is one of the most consequential dynamics in American government, and one of the least understood by the general public. Most people know the Court can strike down laws as unconstitutional. Fewer understand how the Court\'s interpretive decisions shape what Congress can and does write in the first place.',
@@ -441,10 +441,10 @@ const articles = [
   },
   {
     slug: 'primary-elections-who-really-chooses',
-    title: 'Primary Elections: Who Really Chooses Your Candidates',
+    title: 'Primary Elections and Candidate Selection',
     date: '2026-02-28',
     author: 'BallotWatch Editorial',
-    excerpt: 'By the time November arrives, most of the important choices have already been made. Here\'s why primary elections matter more than most voters think.',
+    excerpt: 'How primary rules, turnout, and district competitiveness affect which candidates reach the general election ballot.',
     tags: ['Elections', 'Voting'],
     content: [
       'In most congressional districts across the country, the general election is a foregone conclusion. Thanks to gerrymandering, geographic sorting, and partisan polarization, the vast majority of House seats are safely held by one party or the other. That means the real contest isn\'t in November. It\'s in the primary.',
@@ -464,7 +464,7 @@ const articles = [
     title: 'Continuing Resolutions: How Congress Governs by Deadline',
     date: '2026-03-02',
     author: 'BallotWatch Editorial',
-    excerpt: 'Congress almost never passes its spending bills on time. Continuing resolutions have become the default way to keep the government open, and that has real consequences.',
+    excerpt: 'How temporary funding measures work when annual appropriations are not enacted before a deadline.',
     tags: ['Budget', 'Process'],
     content: [
       'The federal government\'s fiscal year begins on October 1. By that date, Congress is supposed to have passed twelve individual appropriations bills funding everything from the military to national parks to food safety inspections. In practice, Congress almost never meets this deadline. The gap is filled by continuing resolutions, temporary funding bills that keep the government running at existing levels until a real budget deal is reached.',
@@ -484,7 +484,7 @@ const articles = [
     title: 'The Electoral College: Why Your Presidential Vote Works Differently',
     date: '2026-03-04',
     author: 'BallotWatch Editorial',
-    excerpt: 'Americans don\'t directly elect their president. The Electoral College adds a layer most voters don\'t fully understand, and it shapes campaign strategy in profound ways.',
+    excerpt: 'How electors, state rules, and the winner-take-all system shape presidential election outcomes and campaign strategy.',
     tags: ['Elections', 'Process'],
     content: [
       'Every four years, Americans go to the polls believing they\'re voting for president. Technically, they\'re not. They\'re voting for a slate of electors who will then cast the actual votes for president in the Electoral College. This distinction isn\'t just a technicality. It\'s a structural feature that shapes everything about how presidential campaigns are run and how presidents govern.',
@@ -501,18 +501,18 @@ const articles = [
   },
   {
     slug: 'congressional-ethics-enforcement',
-    title: 'Congressional Ethics: Who Watches the Watchmen?',
+    title: 'Congressional Ethics and Enforcement',
     date: '2026-03-06',
     author: 'BallotWatch Editorial',
-    excerpt: 'Members of Congress are supposed to follow strict ethical rules. But the enforcement system has gaps that most constituents don\'t know about.',
-    tags: ['Ethics', 'Accountability'],
+    excerpt: 'An overview of ethics rules, disclosure requirements, House and Senate committees, and independent review mechanisms.',
+    tags: ['Ethics', 'Oversight'],
     content: [
       'Members of Congress are subject to a web of ethical rules governing everything from financial disclosures to gift acceptance to outside employment. These rules exist to prevent corruption and maintain public trust. But the system for enforcing them has long been criticized as slow, secretive, and insufficiently independent.',
       'The primary enforcement bodies are the House Committee on Ethics and the Senate Select Committee on Ethics. Both are evenly divided between the two parties, which is meant to ensure bipartisan fairness but often produces deadlock. Investigating a colleague is politically uncomfortable regardless of party, and the committees have been accused of moving slowly and imposing light punishments.',
       'The Office of Congressional Ethics, established by the House in 2008, added an independent layer. The OCE is a nonpartisan body that can initiate preliminary investigations and refer cases to the Ethics Committee. It can\'t impose punishments, but its public reports create pressure for the Ethics Committee to act. The Senate has no equivalent body.',
       'Financial disclosure is one of the most visible ethical requirements. Members must publicly report their assets, income, liabilities, and financial transactions. The STOCK Act, passed in 2012, explicitly banned insider trading by members of Congress and required more timely disclosure of stock trades. But compliance has been uneven, and penalties for late filings are minimal.',
       'The question of whether members trade stocks based on nonpublic information they receive through their official duties remains one of the most contentious ethics issues in Washington. Several studies have found that members\' stock portfolios outperform the market at rates that are difficult to explain by chance alone. Proposals to ban individual stock trading by members of Congress have gained bipartisan support but have not yet become law.',
-      'Gift rules are designed to prevent lobbyists and special interests from currying favor through lavish perks. Members generally cannot accept gifts worth more than a nominal amount from lobbyists or organizations that lobby. But the rules have exceptions, such as gifts from personal friends, campaign-related travel, and events where the member is a speaker, which create gray areas.',
+      'Gift rules are designed to limit outside influence through valuable perks. Members generally cannot accept gifts worth more than a nominal amount from lobbyists or organizations that lobby. But the rules have exceptions, such as gifts from personal friends, campaign-related travel, and events where the member is a speaker, which create gray areas.',
       'The revolving door between Congress and lobbying firms raises its own ethical questions. When members or senior staffers leave government and immediately begin lobbying their former colleagues, it creates at least the appearance that they were serving future employers rather than the public. Cooling-off periods exist but are limited in scope and duration.',
       'Campaign finance is technically separate from congressional ethics, but the two overlap in practice. Members spend enormous amounts of time fundraising, often from the same industries their committees oversee. While direct exchanges of money for votes would be bribery, the ambient influence of constant fundraising on legislative behavior is difficult to measure and impossible to ignore.',
       'Expulsion, the ultimate sanction, requires a two-thirds vote and has been used only five times in the House and fifteen times in the Senate in all of American history. Censure and formal reprimand are more common but still rare. The rarity of serious punishments leads critics to argue that the system is designed more to protect members than to hold them accountable.',
@@ -524,13 +524,13 @@ const articles = [
     title: 'Federal Agencies: The Government You Interact With Most',
     date: '2026-03-09',
     author: 'BallotWatch Editorial',
-    excerpt: 'Congress writes the laws, but federal agencies decide how they work in practice. Understanding this "fourth branch" of government is essential to understanding how policy affects your life.',
+    excerpt: 'Federal agencies implement statutes through programs, regulations, guidance, enforcement, and public services.',
     tags: ['Agencies', 'Regulation'],
     content: [
       'When most people think about government, they think about Congress, the president, and the courts. But the part of government that most directly affects daily life is the sprawling network of federal agencies that implement and enforce the laws Congress passes. From the food you eat to the air you breathe to the interest rate on your mortgage, federal agencies are involved.',
       'There are roughly 440 federal agencies and sub-agencies, including cabinet departments like Defense and Health and Human Services, independent agencies like the EPA and NASA, and regulatory commissions like the SEC and FCC. Together, they employ about two million civilian workers and spend trillions of dollars annually. This is the administrative state, and it\'s where policy meets reality.',
       'Congress typically writes laws in broad strokes, setting goals and establishing frameworks but leaving the details to agencies. The Clean Air Act, for example, directs the EPA to regulate air pollutants but doesn\'t specify exact emissions limits for every factory. The EPA writes those specific rules through a process called rulemaking, which involves proposing regulations, accepting public comments, and issuing final rules that carry the force of law.',
-      'This delegation of authority is practical, Congress doesn\'t have the technical expertise to write detailed regulations for every industry, but it also raises questions about accountability. When an agency writes a rule that affects millions of people, those people didn\'t vote for the officials who wrote it. Agency heads are appointed by the president and confirmed by the Senate, but the career staff who do most of the regulatory work are civil servants insulated from political pressure by design.',
+      'This delegation of authority is practical, Congress doesn\'t have the technical expertise to write detailed regulations for every industry, but it also raises questions about democratic oversight. When an agency writes a rule that affects millions of people, those people didn\'t vote for the officials who wrote it. Agency heads are appointed by the president and confirmed by the Senate, but the career staff who do most of the regulatory work are civil servants insulated from political pressure by design.',
       'The rulemaking process is more open than most people realize. When agencies propose new rules, they\'re required to publish them in the Federal Register and accept public comments, typically for 30 to 60 days. Anyone can submit a comment: individuals, businesses, advocacy groups, other government entities. Agencies must consider these comments and respond to significant ones in the final rule.',
       'Judicial review serves as a check on agency power. People and organizations affected by agency rules can challenge them in federal court. Courts review whether the agency acted within its statutory authority, followed proper procedures, and based its decision on a reasonable interpretation of the evidence. This review keeps agencies from straying too far from what Congress intended.',
       'Congressional oversight is another check. Committees hold hearings to question agency officials, investigate problems, and evaluate whether agencies are fulfilling their missions. Congress also controls agency budgets, which gives it leverage over agency behavior. An agency that displeases its appropriators may find its funding cut or its programs restricted.',
@@ -541,17 +541,17 @@ const articles = [
   },
   {
     slug: 'census-redistricting-political-maps',
-    title: 'The Census and Redistricting: How Political Maps Get Drawn',
+    title: 'The Census and Congressional District Maps',
     date: '2026-03-11',
     author: 'BallotWatch Editorial',
-    excerpt: 'Every ten years, the census reshuffles political power across the country. The redistricting process that follows determines representation for a decade.',
+    excerpt: 'How census counts, apportionment, and redistricting rules shape congressional district boundaries.',
     tags: ['Redistricting', 'Representation'],
     content: [
       'The U.S. Constitution requires a census every ten years, and the results trigger one of the most consequential processes in American politics: redistricting. Based on population changes, congressional seats are reapportioned among the states, and new district boundaries are drawn. These maps determine which communities share a representative and which are split apart. They shape political outcomes for an entire decade.',
       'Reapportionment is the first step. The 435 House seats are distributed among the states based on population. States that grew faster gain seats; states that grew slower lose them. After the 2020 census, Texas gained two seats while states including New York, Ohio, and Illinois each lost one. These shifts don\'t just change numbers; they redirect political power from one region to another.',
       'Once seats are allocated, someone has to draw the actual district boundaries. This is redistricting, and it\'s where the process gets contentious. In most states, the state legislature draws the maps, which means the party in power controls how districts are shaped. The temptation to draw maps that favor the ruling party, known as gerrymandering, is as old as the republic itself.',
       'Modern gerrymandering is a sophisticated operation. Using detailed voter data, demographic information, and powerful mapping software, mapmakers can draw districts that virtually guarantee predetermined outcomes. The two main techniques are "packing," concentrating the opposing party\'s voters into a few districts, and "cracking," spreading them across many districts so they can\'t win a majority anywhere.',
-      'The effects of gerrymandering are measurable. In some states, the party that controls redistricting wins a share of congressional seats wildly disproportionate to its share of the statewide vote. This distortion doesn\'t just affect partisan outcomes; it reduces electoral competition, which means fewer contested elections, less accountability, and representatives who have more reason to fear primary challenges than general election opponents.',
+      'The effects of gerrymandering are measurable. In some states, the party that controls redistricting wins a share of congressional seats disproportionate to its share of the statewide vote. This distortion does not just affect partisan outcomes; it can reduce electoral competition, creating fewer contested general elections and shifting attention toward primary challenges.',
       'Some states have moved toward independent redistricting commissions to remove legislators from the mapmaking process. Arizona, California, Michigan, and several others now use commissions with varying degrees of independence. These commissions aren\'t perfect, they still face political pressures and legal challenges, but they generally produce maps that are more competitive and less partisan than those drawn by legislatures.',
       'The legal landscape around redistricting is complex. Federal law requires districts to be roughly equal in population. The Voting Rights Act prohibits maps that dilute the voting power of racial minorities. But in 2019, the Supreme Court ruled that partisan gerrymandering claims are not justiciable in federal court, meaning federal judges can\'t strike down maps solely because they\'re drawn to favor one party.',
       'State courts have stepped into the gap. In several states, courts have struck down congressional and legislative maps under state constitutional provisions requiring fair elections or prohibiting partisan favoritism. This has made state judicial elections and state constitutional law increasingly important to the redistricting process.',
@@ -561,10 +561,10 @@ const articles = [
   },
   {
     slug: 'war-powers-congress-vs-president',
-    title: 'War Powers: The Ongoing Struggle Between Congress and the President',
+    title: 'War Powers and the Roles of Congress and the President',
     date: '2026-03-13',
     author: 'BallotWatch Editorial',
-    excerpt: 'The Constitution gives Congress the power to declare war, but presidents have been deploying troops without that declaration for decades. Here\'s how the balance of power actually works.',
+    excerpt: 'How declarations of war, authorizations for use of military force, and executive action divide military authority.',
     tags: ['War Powers', 'Executive Power'],
     content: [
       'Article I of the Constitution is clear: Congress has the power to declare war. Article II makes the president the commander-in-chief of the armed forces. These two provisions have been in tension since the founding, and that tension has only grown as the United States became a global military power. The result is a system where presidents routinely commit troops to combat without a formal declaration of war, and Congress struggles to reassert its constitutional role.',
@@ -574,7 +574,7 @@ const articles = [
       'The 2001 Authorization for Use of Military Force, passed three days after the September 11 attacks, has become one of the most expansive grants of military authority in American history. It authorized the president to use force against those responsible for the attacks and anyone who harbored them. Successive presidents have interpreted this authorization to cover military operations in countries and against groups that didn\'t exist in 2001.',
       'Efforts to repeal or replace outdated authorizations have gained momentum but face political obstacles. Many members of Congress prefer the status quo because it lets them avoid taking politically risky votes on specific military operations. If things go well, they can claim to support the troops. If things go badly, they can criticize the president. The ambiguity serves their political interests even as it weakens their institutional power.',
       'The rise of drone warfare, cyber operations, and special forces deployments has further complicated the picture. These operations can be conducted with a small footprint, minimal casualties, and little public visibility. They often fall below the threshold that triggers War Powers Resolution requirements, which means they can continue indefinitely without meaningful congressional input.',
-      'Some scholars argue that the shift of war powers to the president is irreversible given the speed of modern warfare and the need for unified command. Others contend that the founders\' judgment remains sound: decisions to send Americans into combat should require broad political consensus, which a congressional vote provides. The debate goes to the heart of how the country balances security needs with democratic accountability.',
+      'Some scholars argue that the shift of war powers to the president is irreversible given the speed of modern warfare and the need for unified command. Others contend that the founders\' judgment remains sound: decisions to send Americans into combat should require broad political consensus, which a congressional vote provides. The debate goes to the heart of how the country balances security needs with democratic oversight.',
       'Congress retains powerful tools if it chooses to use them. The power of the purse means Congress can defund military operations. It can pass binding resolutions directing withdrawal. It can hold hearings and conduct investigations that shape public opinion. The question isn\'t whether Congress has the authority; it\'s whether it has the political will to exercise it.',
       'For citizens, the war powers debate matters because it determines who decides when and where American troops fight. Military action has consequences that last generations, for service members, for the communities they come from, and for the countries where they\'re deployed. Whether those decisions should be made by one person or by the people\'s elected representatives is a question that remains very much unresolved.'
     ]
@@ -604,17 +604,17 @@ const articles = [
     title: 'How Congressional Leadership Works: Speakers, Leaders, and Whips',
     date: '2026-03-19',
     author: 'BallotWatch Editorial',
-    excerpt: 'The Speaker of the House and Senate Majority Leader wield enormous power. Here\'s how congressional leadership is structured and why it matters.',
+    excerpt: 'How the Speaker, majority and minority leaders, whips, and committees organize chamber business.',
     tags: ['Leadership', 'Process'],
     content: [
       'When most people think about Congress, they picture 535 legislators debating and voting on bills. What they often miss is the leadership structure that determines which bills get debated and voted on in the first place. Congressional leaders don\'t just manage logistics. They set the agenda, negotiate deals, enforce party discipline, and serve as the public face of their parties in Washington.',
       'In the House, the most powerful figure is the Speaker. The Speaker is elected by the full House at the start of each Congress, but in practice, the majority party\'s choice becomes Speaker. The role is both constitutional and political. The Speaker presides over debate, decides which bills come to the floor, assigns bills to committees, and controls the flow of legislative business. When the Speaker doesn\'t want a vote to happen, it usually doesn\'t.',
       'Below the Speaker, each party has a hierarchy. The majority party has a Majority Leader, who manages the floor schedule, and a Majority Whip, whose job is to count votes and ensure party members fall in line. The minority party mirrors this structure with a Minority Leader and Minority Whip. These positions are elected by each party\'s caucus, and the races can be fiercely competitive.',
-      'The Senate operates differently. The Vice President is technically the presiding officer, but rarely shows up except to break ties. The real power belongs to the Majority Leader, who controls the Senate floor schedule through the right of first recognition. This means the Majority Leader gets to speak first and can make procedural motions before anyone else, effectively deciding what the Senate considers.',
+      'The Senate operates differently. The Vice President is technically the presiding officer, but rarely appears except to break ties. The Majority Leader has primary scheduling authority through the right of first recognition. This means the Majority Leader gets to speak first and can make procedural motions before anyone else, shaping what the Senate considers.',
       'The Senate Minority Leader plays a more significant role than the House equivalent because of the filibuster. Since most legislation needs 60 votes to advance in the Senate, the Minority Leader can leverage the filibuster threat to extract concessions or block bills entirely. This makes the minority party in the Senate far more powerful than in the House.',
       'Whips are the unsung workhorses of congressional leadership. The term comes from fox hunting, where the "whipper-in" keeps the hounds running together. In Congress, whips count votes before bills come to the floor, identify members who are undecided, and apply pressure to secure the votes leadership needs. A good whip operation can mean the difference between passing and failing a bill.',
       'Leadership positions come with tangible benefits. Leaders get larger staffs, more office space, and greater fundraising capabilities. They also control the flow of information within their party. When a crisis breaks, rank-and-file members often learn about the leadership\'s response strategy in caucus meetings run by these figures. This information advantage reinforces the power hierarchy.',
-      'The relationship between leadership and rank-and-file members is a constant negotiation. Leaders need votes from their members to pass legislation. Members need leadership support for committee assignments, floor time for their bills, and campaign fundraising help. This mutual dependence creates a system where loyalty is rewarded and dissent has consequences, but leaders can\'t push too far without risking rebellion.',
+      'The relationship between leadership and rank-and-file members is a constant negotiation. Leaders need votes from their members to pass legislation. Members often seek leadership support for committee assignments, floor time for bills, and campaign fundraising help. This mutual dependence creates incentives for cooperation, but leaders still have to account for member priorities and local constituencies.',
       'Recent years have shown how fragile leadership authority can be. Speakers have been ousted or forced to resign when they lost the confidence of their caucus. Majority Leaders have struggled to pass bills when small factions within their party demanded concessions. The formal power of leadership is enormous, but it ultimately rests on the consent of the members they lead.',
       'For citizens trying to understand why Congress acts the way it does, following leadership dynamics is essential. When a popular bill stalls, it\'s often not because a majority opposes it but because leadership has decided not to bring it up. Understanding who holds the gavel, and what they choose to do with it, explains more about legislative outcomes than any individual member\'s vote.'
     ]
@@ -624,8 +624,8 @@ const articles = [
     title: 'The Impeachment Process: How It Works and What It Means',
     date: '2026-03-23',
     author: 'BallotWatch Editorial',
-    excerpt: 'Impeachment is one of the most consequential powers Congress holds. But the process is widely misunderstood. Here\'s what actually happens.',
-    tags: ['Impeachment', 'Accountability'],
+    excerpt: 'How impeachment starts in the House, how trials work in the Senate, and what the Constitution requires.',
+    tags: ['Impeachment', 'Process'],
     content: [
       'Impeachment is one of the most dramatic tools in the American constitutional system, and one of the most misunderstood. Many people equate impeachment with removal from office. They\'re not the same thing. Impeachment is more like an indictment: a formal accusation of wrongdoing. Removal requires a separate trial and conviction. Understanding this distinction is the first step toward understanding the process.',
       'The Constitution gives the House of Representatives "the sole Power of Impeachment." This means only the House can formally charge a federal official, whether the president, a judge, a cabinet secretary, or another civil officer, with "high Crimes and Misdemeanors." The phrase is deliberately vague and has been interpreted broadly to include not just criminal conduct but also abuse of power, obstruction, and violations of public trust.',
@@ -644,7 +644,7 @@ const articles = [
     title: 'How Amendments Shape Legislation Before It Becomes Law',
     date: '2026-03-26',
     author: 'BallotWatch Editorial',
-    excerpt: 'The amendment process is where bills get transformed, sometimes improved, sometimes sabotaged. Understanding amendments reveals the hidden politics of lawmaking.',
+    excerpt: 'How amendments are offered, limited, debated, and recorded before final passage votes.',
     tags: ['Legislation', 'Process'],
     content: [
       'A bill introduced in Congress is rarely the same bill that becomes law. Between introduction and final passage, legislation gets reshaped through amendments, changes proposed by members that can add provisions, remove sections, alter funding levels, or completely rewrite the text. The amendment process is where much of the real legislating happens, and it\'s where political strategy plays out in ways that don\'t always make the news.',
@@ -664,8 +664,8 @@ const articles = [
     title: 'How Congressional Investigations Work',
     date: '2026-03-30',
     author: 'BallotWatch Editorial',
-    excerpt: 'Congressional investigations can topple officials, reshape policy, and captivate the nation. Here\'s how the investigative power of Congress actually functions.',
-    tags: ['Oversight', 'Accountability'],
+    excerpt: 'How committees use hearings, subpoenas, records, and reports to gather information for legislation and oversight.',
+    tags: ['Oversight', 'Process'],
     content: [
       'Congressional investigations are one of the most powerful and visible tools Congress has for holding the executive branch, private industry, and even its own members accountable. From Watergate to the January 6th hearings, investigations have shaped American politics and public understanding in profound ways. But the mechanics of how they work are often poorly understood.',
       'The investigative power of Congress isn\'t explicitly mentioned in the Constitution, but the Supreme Court has recognized it as an essential part of the legislative function. Congress needs information to write good laws and to oversee how existing laws are being implemented. Investigations are the mechanism for getting that information, whether witnesses cooperate willingly or not.',
@@ -675,7 +675,7 @@ const articles = [
       'The partisan dynamics of investigations are impossible to ignore. The majority party controls the committee, the subpoena power, and the narrative. The minority party gets time to ask questions but has limited ability to call witnesses or steer the investigation. This asymmetry means that investigations are often perceived, sometimes accurately, as politically motivated exercises rather than neutral fact-finding.',
       'Despite the partisan overlay, investigations have produced genuinely important results. The Church Committee hearings in the 1970s exposed illegal surveillance by the CIA and FBI, leading to the creation of the Foreign Intelligence Surveillance Act. The Watergate hearings brought down a presidency. Investigations into corporate misconduct after the Enron scandal led to the Sarbanes-Oxley Act. When investigations work, they work precisely because public attention forces action.',
       'Witness testimony is the centerpiece of most investigations, and it comes with its own complications. Witnesses can invoke the Fifth Amendment and refuse to answer questions that might incriminate them. Executive privilege allows the president to shield certain communications from congressional scrutiny. These legal doctrines create genuine tensions between Congress\'s need for information and other constitutional principles.',
-      'The investigative power also extends to the private sector. Congressional committees regularly investigate corporate behavior, from tech companies\' data practices to pharmaceutical pricing to financial industry risks. These investigations can lead to legislation, regulatory action, or simply public pressure that changes corporate behavior. The threat of being hauled before a congressional committee is itself a form of accountability.',
+      'The investigative power also extends to the private sector. Congressional committees regularly investigate corporate behavior, from tech companies\' data practices to pharmaceutical pricing to financial industry risks. These investigations can lead to legislation, regulatory action, or public scrutiny that changes corporate behavior.',
       'For citizens, congressional investigations are one of the most accessible windows into how government operates. Hearings are publicly broadcast, transcripts are published, and committee reports summarize findings. Paying attention to investigations, not just the headline-grabbing moments but the underlying evidence and conclusions, is one of the best ways to understand what\'s actually happening in Washington.'
     ]
   },
@@ -701,13 +701,13 @@ const articles = [
   },
   {
     slug: 'role-of-inspector-generals',
-    title: 'Inspectors General: The Government\'s Internal Watchdogs',
+    title: 'Inspectors General and Agency Oversight',
     date: '2026-04-06',
     author: 'BallotWatch Editorial',
-    excerpt: 'Inspectors General operate inside federal agencies to root out waste, fraud, and abuse. They\'re among the most important accountability mechanisms most people have never heard of.',
-    tags: ['Oversight', 'Accountability'],
+    excerpt: 'What inspectors general do inside federal agencies, how they report findings, and how Congress uses their work.',
+    tags: ['Oversight', 'Agencies'],
     content: [
-      'Tucked inside nearly every major federal agency is an office most Americans have never heard of: the Office of Inspector General. These offices exist for a single purpose, to independently investigate waste, fraud, abuse, and mismanagement within the agencies they oversee. Inspectors General, or IGs, are the government\'s internal watchdogs, and their work saves taxpayers billions of dollars every year.',
+      'Tucked inside nearly every major federal agency is an office many Americans have never heard of: the Office of Inspector General. These offices independently investigate waste, fraud, abuse, and mismanagement within the agencies they oversee. Inspectors General, or IGs, are internal oversight offices, and their work can identify billions of dollars in savings and recoveries every year.',
       'The modern IG system was created by the Inspector General Act of 1978, following the Watergate scandal and a series of government corruption cases. The idea was simple: give independent investigators the authority to audit agency operations, investigate misconduct, and report their findings to both agency leadership and Congress. The key word is "independent." IGs are supposed to operate without interference from the agencies they\'re watching.',
       'There are currently over 70 Inspectors General across the federal government, covering agencies from the Department of Defense to the Social Security Administration to the Environmental Protection Agency. Some are appointed by the president and confirmed by the Senate. Others are appointed by agency heads. The distinction matters because it affects how much political pressure an IG might face.',
       'IG offices conduct two main types of work: audits and investigations. Audits examine agency programs and operations to assess whether taxpayer dollars are being spent effectively and in compliance with the law. Investigations look into specific allegations of misconduct, whether by agency employees, contractors, or grant recipients. Both types of work can lead to criminal referrals, disciplinary actions, and recommendations for policy changes.',
@@ -744,7 +744,7 @@ const articles = [
     title: 'How Social Security Works and Why Congress Can\'t Ignore It',
     date: '2026-04-13',
     author: 'BallotWatch Editorial',
-    excerpt: 'Social Security is the largest federal program and affects nearly every American. Understanding how it works is essential for evaluating the policy debates surrounding it.',
+    excerpt: 'How Social Security is funded, how benefits are calculated, and why Congress regularly debates its finances.',
     tags: ['Social Security', 'Budget'],
     content: [
       'Social Security is the single largest program in the federal government, paying benefits to roughly 70 million Americans every month. It provides retirement income for workers, disability benefits for those who can\'t work, and survivor benefits for families who\'ve lost a wage earner. For about half of elderly Americans, Social Security provides the majority of their income. For about a quarter, it\'s nearly all of it.',
@@ -761,10 +761,10 @@ const articles = [
   },
   {
     slug: 'how-immigration-law-works',
-    title: 'How Immigration Law Works: Visas, Enforcement, and Congressional Gridlock',
+    title: 'How Immigration Law Works: Visas, Enforcement, and Congress',
     date: '2026-04-16',
     author: 'BallotWatch Editorial',
-    excerpt: 'Immigration is one of the most debated topics in American politics, but the legal framework is rarely explained clearly. Here\'s how the system actually works.',
+    excerpt: 'A plain-language overview of visas, asylum, enforcement agencies, courts, and Congress\'s role in immigration law.',
     tags: ['Immigration', 'Process'],
     content: [
       'Few policy areas generate as much heat and as little light as immigration. The debates are passionate, the rhetoric is intense, and the underlying legal framework is almost never explained in a way that helps ordinary citizens understand what\'s actually happening. Immigration law is genuinely complex, but its basic structure is comprehensible, and understanding it is essential for evaluating the proposals that politicians put forward.',
@@ -784,7 +784,7 @@ const articles = [
     title: 'How Infrastructure Gets Funded: Roads, Bridges, and the Federal Budget',
     date: '2026-04-20',
     author: 'BallotWatch Editorial',
-    excerpt: 'Infrastructure is one of the few areas where bipartisan agreement seems possible. But the politics and financing of infrastructure spending are more complicated than "just fix the roads."',
+    excerpt: 'How federal infrastructure funding moves through authorization, appropriations, grants, and state-local implementation.',
     tags: ['Infrastructure', 'Budget'],
     content: [
       'Everyone agrees that America needs better infrastructure. Roads are crumbling, bridges are structurally deficient, water systems are aging, and broadband access remains spotty in rural areas. The American Society of Civil Engineers has been giving the nation\'s infrastructure a near-failing grade for years. Where agreement breaks down is on how to pay for it, who should be in charge, and which projects should come first.',

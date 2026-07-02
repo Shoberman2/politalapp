@@ -286,7 +286,7 @@ function VoteDashboard({ bioguideId }) {
               <span className={`dash-stat-number ${statsAnimated ? 'animated' : ''}`}>
                 {stats.party_loyalty_pct}%
               </span>
-              <span className="dash-stat-label">Party Loyalty</span>
+              <span className="dash-stat-label">Party-Majority Match</span>
               <div className="dash-loyalty-bar">
                 <div
                   className="dash-loyalty-fill"

@@ -6,15 +6,15 @@ import '../styles/Navigation.css'
 // Per-route announcement copy for the strip above the masthead.
 function announceFor(pathname) {
   if (pathname === '/') {
-    return 'Open-source congressional accountability / Built from public Congress.gov, Census & FEC data'
+    return 'Open-source congressional records / Built from public Congress.gov, Census & FEC data'
   }
   if (pathname.startsWith('/all')) {
-    return 'Open-source congressional accountability / All 535 members of the 119th Congress'
+    return 'Open-source congressional records / All 535 members of the 119th Congress'
   }
   if (pathname.startsWith('/bills') || pathname.startsWith('/bill/')) {
-    return 'Open-source congressional accountability / Updated daily from Congress.gov'
+    return 'Open-source congressional records / Updated daily from Congress.gov'
   }
-  return 'Open-source congressional accountability data, powered by public sources'
+  return 'Open-source congressional data, powered by public sources'
 }
 
 const NAV_LINKS = [

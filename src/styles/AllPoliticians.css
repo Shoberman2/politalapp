@@ -29,20 +29,20 @@
 }
 .members-register .comp-head .ch-name { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); font-weight: 600; white-space: nowrap; }
 .members-register .comp-head .ch-total { font-family: var(--mono); font-size: 11px; color: var(--ink-3); white-space: nowrap; }
-.members-register .comp-bar { display: flex; height: 26px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--rule-strong); }
-.members-register .comp-seg { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 600; color: #fff; min-width: 0; }
-.members-register .comp-seg.d { background: var(--dem); }
-.members-register .comp-seg.r { background: var(--rep); }
-.members-register .comp-seg.i { background: var(--ind); }
-.members-register .comp-seg.v { background: var(--ink-3); }
-[data-theme="dark"] .members-register .comp-seg { color: #111110; }
+.members-register .comp-bar { display: flex; height: 26px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--rule-strong); background: var(--surface); }
+.members-register .comp-seg { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 600; min-width: 0; border-right: 1px solid color-mix(in srgb, var(--rule-strong) 36%, transparent); }
+.members-register .comp-seg:last-child { border-right: 0; }
+.members-register .comp-seg.d { background: color-mix(in srgb, var(--dem) 14%, var(--surface)); color: var(--dem); }
+.members-register .comp-seg.r { background: color-mix(in srgb, var(--rep) 14%, var(--surface)); color: var(--rep); }
+.members-register .comp-seg.i { background: color-mix(in srgb, var(--ind) 14%, var(--surface)); color: var(--ind); }
+.members-register .comp-seg.v { background: var(--bg-tint); color: var(--ink-3); }
 .members-register .comp-legend { display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap; }
 .members-register .comp-legend span { font-family: var(--mono); font-size: 11px; letter-spacing: 0.03em; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
-.members-register .comp-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
-.members-register .lg-d { background: var(--dem); }
-.members-register .lg-r { background: var(--rep); }
-.members-register .lg-i { background: var(--ind); }
-.members-register .lg-v { background: var(--ink-3); }
+.members-register .comp-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; border: 1px solid currentColor; }
+.members-register .lg-d { color: var(--dem); background: color-mix(in srgb, var(--dem) 12%, transparent); }
+.members-register .lg-r { color: var(--rep); background: color-mix(in srgb, var(--rep) 12%, transparent); }
+.members-register .lg-i { color: var(--ind); background: color-mix(in srgb, var(--ind) 12%, transparent); }
+.members-register .lg-v { color: var(--ink-3); background: var(--bg-tint); }
 
 /* ---- search shell (sticky) ---- */
 .members-register .search-shell { border-bottom: 1px solid var(--rule); background: var(--surface); position: sticky; top: 62px; z-index: 50; }
@@ -107,9 +107,9 @@
 .members-register .member-card::before {
   content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 2;
 }
-.members-register .member-card.d::before { background: var(--dem); }
-.members-register .member-card.r::before { background: var(--rep); }
-.members-register .member-card.i::before { background: var(--ind); }
+.members-register .member-card.d::before { background: color-mix(in srgb, var(--dem) 64%, var(--rule)); }
+.members-register .member-card.r::before { background: color-mix(in srgb, var(--rep) 64%, var(--rule)); }
+.members-register .member-card.i::before { background: color-mix(in srgb, var(--ind) 64%, var(--rule)); }
 .members-register .member-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--ink-3); }
 .members-register .mc-photo {
   aspect-ratio: 1 / 1; background: var(--bg-tint); position: relative; overflow: hidden;

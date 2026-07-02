@@ -13,18 +13,6 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
     }
   }, [politician.bioguideId, showFavorite])
 
-  const getPartyColor = (party) => {
-    if (party === 'D' || party === 'Democrat' || party === 'Democratic') return '#2563eb'
-    if (party === 'R' || party === 'Republican') return '#dc2626'
-    return '#8b5cf6'
-  }
-
-  const getPartyGradient = (party) => {
-    if (party === 'D' || party === 'Democrat' || party === 'Democratic') return 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
-    if (party === 'R' || party === 'Republican') return 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)'
-    return 'linear-gradient(135deg, #a78bfa 0%, #6d28d9 100%)'
-  }
-
   const getPartyAbbr = (party) => {
     if (party === 'Democrat' || party === 'Democratic') return 'D'
     if (party === 'Republican') return 'R'
@@ -41,6 +29,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
   const location = politician.state + (politician.district ? `-${politician.district}` : '')
   const partyAbbr = getPartyAbbr(politician.party || politician.partyName || '')
+  const partyClass = partyAbbr === 'D' ? 'dem' : partyAbbr === 'R' ? 'rep' : 'ind'
   const chamber = politician.chamber === 'senate' ? 'Senator' : 'Representative'
 
   const handleClick = () => {
@@ -76,7 +65,6 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
             className="photo-placeholder"
             style={{
               display: imageUrl ? 'none' : 'flex',
-              background: getPartyGradient(partyAbbr)
             }}
           >
             <span>{displayName.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
@@ -91,11 +79,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
         <div className="card-actions">
           <div
-            className="card-party"
-            style={{
-              background: getPartyGradient(partyAbbr),
-              boxShadow: `0 2px 10px ${getPartyColor(partyAbbr)}40`
-            }}
+            className={`card-party ${partyClass}`}
             title={partyAbbr === 'D' ? 'Democrat' : partyAbbr === 'R' ? 'Republican' : partyAbbr === 'I' ? 'Independent' : partyAbbr}
           >
             {partyAbbr}

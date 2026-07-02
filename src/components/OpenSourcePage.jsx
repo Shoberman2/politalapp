@@ -17,11 +17,11 @@ function OpenSourcePage() {
       <section className="open-hero">
         <div className="open-hero-copy">
           <span className="open-kicker">Open BallotWatch</span>
-          <h1>Congressional accountability you can inspect.</h1>
+          <h1>Congressional records you can inspect.</h1>
           <p>
-            BallotWatch is built as an open civic commons: source-backed data,
+            BallotWatch is built as an open civic reference: source-linked data,
             readable methodology, public samples, API docs, and contribution paths
-            for people who want to improve the work.
+            for people who want to inspect or improve the work.
           </p>
           <div className="open-actions">
             <button className="open-primary" onClick={() => navigate('/methodology')}>
@@ -55,7 +55,7 @@ function OpenSourcePage() {
       <section className="open-band">
         <div className="open-section-heading">
           <span className="open-kicker">Public workbench</span>
-          <h2>Four ways into the commons</h2>
+          <h2>Four ways into the public record</h2>
         </div>
         <div className="open-track-grid">
           {OPEN_TRACKS.map(track => (
@@ -108,7 +108,7 @@ function OpenSourcePage() {
       <section className="open-band">
         <div className="open-section-heading">
           <span className="open-kicker">Methodology</span>
-          <h2>Audit the parts that need trust.</h2>
+          <h2>Inspect the parts that need trust.</h2>
         </div>
         <div className="open-method-grid">
           {METHODOLOGY_PAGES.map(page => (
@@ -145,7 +145,7 @@ function OpenSourcePage() {
           wrong, the expected value, and a public source URL.
         </p>
         <a href="https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml">
-          Report a source-backed correction
+          Report a source-linked correction
         </a>
       </section>
     </div>

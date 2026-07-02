@@ -36,14 +36,14 @@ function Pricing() {
             <span className="pricing-number">2</span>
             <span className="pricing-period">/month</span>
           </div>
-          <p className="pricing-tagline">Full access to congressional intelligence</p>
+          <p className="pricing-tagline">Full access to congressional records and source links</p>
         </div>
 
         <ul className="pricing-features">
           <li>Track your representatives' voting records</li>
           <li>Browse all 535+ members of Congress</li>
-          <li>Search and analyze congressional bills</li>
-          <li>AI-powered bill explanations</li>
+          <li>Search and review congressional bills</li>
+          <li>Source-linked bill explanations</li>
           <li>Campaign finance and FEC data</li>
           <li>Government shutdown risk tracker</li>
         </ul>

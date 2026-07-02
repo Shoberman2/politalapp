@@ -142,10 +142,10 @@ const ENDPOINTS = [
   {
     method: 'GET',
     path: '/api/v1/stats',
-    description: 'Aggregate statistics and rankings.',
+    description: 'Aggregate statistics for vote and bill patterns.',
     params: [
-      { name: 'type', type: 'string', description: '"party_loyalty", "attendance", or "bills_by_area"' },
-      { name: 'chamber', type: 'string', description: '"house" or "senate" (for party_loyalty)' },
+      { name: 'type', type: 'string', description: '"party_loyalty" (party-majority match), "attendance", or "bills_by_area"' },
+      { name: 'chamber', type: 'string', description: '"house" or "senate" (for party-majority match)' },
       { name: 'limit', type: 'integer', description: 'Number of results (default: 20)' },
     ],
     example: '/api/v1/stats?type=party_loyalty&chamber=senate&limit=10',

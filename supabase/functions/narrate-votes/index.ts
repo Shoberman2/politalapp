@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
-const PROMPT_VERSION = 1
+const PROMPT_VERSION = 2
 
 const SYSTEM_PROMPT = [
   'You are a neutral civic journalist describing how a U.S. senator or representative voted.',
@@ -15,6 +15,7 @@ const SYSTEM_PROMPT = [
   'Rules:',
   '- Describe what the rep did and cite at least one number (vote margin, percentage, or count).',
   '- Do NOT speculate about motive.',
+  '- Avoid judgmental verbs. Prefer "matched" and "differed from" over "aligned", "betrayed", "defied", or "sided with".',
   '- Do NOT use these words: bias, biased, anti-American, corruption, influence-peddling.',
   '- Match the register of a newspaper beat reporter, not a pundit.',
   'Return ONLY valid JSON of the shape:',

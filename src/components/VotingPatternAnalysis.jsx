@@ -7,7 +7,7 @@
  *       → votingPatterns.js (pure compute)
  *       → votingPatternNarration.js (gpt-4o-mini + forbidden filter)
  *       → write localStorage (vpa_ + vpa_index eviction at 25 reps)
- *       → render Pattern Match score + 3 flag bars + 6 typical + 6 atypical
+ *       → render Signal Agreement percentage + 3 comparison bars + notable vote groups
  *   Degraded mode: OpenAI fails → show stats + template sentences
  * ─────────────────────────────────────────────
  */
@@ -186,8 +186,8 @@ export default function VotingPatternAnalysis({ member }) {
       {!analysis && !loading && !error && (
         <div className="vpa-default">
           <p className="vpa-teaser">
-            See how often this senator's votes match what party, donors, and district
-            expectations predict. 12 notable moments narrated.
+            Compare this member's votes with party-majority direction, district lean,
+            and donor-industry context. Notable votes are narrated from the recorded data.
           </p>
           <button
             type="button"
@@ -258,7 +258,7 @@ function ScoreBlock({ analysis, onMethodologyClick }) {
     return (
       <div className="vpa-score-block">
         <p className="vpa-score-caption">
-          Pattern match score unavailable — insufficient signal coverage across votes.
+          Signal agreement unavailable — insufficient comparison coverage across votes.
         </p>
       </div>
     )
@@ -267,17 +267,17 @@ function ScoreBlock({ analysis, onMethodologyClick }) {
     <div className="vpa-score-block">
       <div className="vpa-score-number-row">
         <span className="vpa-score-number" aria-hidden="true">{s.score}%</span>
-        <span className="vpa-score-label">Pattern Match</span>
+        <span className="vpa-score-label">Signal Agreement</span>
       </div>
       <p className="vpa-score-caption">
-        How often this member's votes match what party, donors, and district predict.
+        Share of substantive votes that matched the available comparison signals.
         Based on {s.signalCoverage?.usable ?? 0} substantive votes.{' '}
         <button type="button" className="vpa-inline-link" onClick={onMethodologyClick}>
           See methodology
         </button>
       </p>
       <span className="visually-hidden">
-        Pattern Match: {s.score} out of 100, based on {s.signalCoverage?.usable ?? 0} substantive votes.
+        Signal Agreement: {s.score} out of 100, based on {s.signalCoverage?.usable ?? 0} substantive votes.
       </span>
     </div>
   )
@@ -310,13 +310,13 @@ function Flags({ analysis }) {
   const { crossover, mismatch, money } = analysis
 
   const moneyDesc = money?.available
-    ? `Of ${money.industryVotes} industry-tagged votes, ${money.alignedCount} aligned with top donor industries.`
+    ? `Of ${money.industryVotes} industry-tagged votes, ${money.alignedCount} matched the recorded vote pattern for top donor industries.`
     : money?.industryVotes > 0
       ? `Insufficient industry-tagged votes for money alignment.`
       : `No donor-industry data available for this member.`
 
   const crossoverDesc = crossover?.substantiveCount
-    ? `Voted against party majority on ${crossover.crossoverCount} of ${crossover.substantiveCount} substantive votes${
+    ? `Voted differently from the party majority on ${crossover.crossoverCount} of ${crossover.substantiveCount} substantive votes${
         crossover.topPolicyAreas.length > 0
           ? `. Most crossovers: ${crossover.topPolicyAreas.map(p => `${p.area} (${p.crossPct}%)`).join(', ')}.`
           : '.'
@@ -324,28 +324,28 @@ function Flags({ analysis }) {
     : 'Not enough comparable votes to compute crossover rate.'
 
   const mismatchDesc = mismatch?.available
-    ? `${mismatch.mismatchCount} votes diverged from the district's 2024 presidential lean out of ${mismatch.substantiveCount} substantive votes.`
+    ? `${mismatch.mismatchCount} votes differed from the district's 2024 presidential lean out of ${mismatch.substantiveCount} substantive votes.`
     : `District lean not available — shown as a rate when this member's district is included in the data set.`
 
   return (
     <div className="vpa-flags">
       <FlagBar
-        label="Money-aligned votes"
+        label="Donor-industry overlap"
         rate={money?.available ? money.alignmentRate : null}
         description={moneyDesc}
-        ariaLabel={`Money-aligned votes: ${money?.alignmentRate ?? 'unavailable'}%`}
+        ariaLabel={`Donor-industry overlap: ${money?.alignmentRate ?? 'unavailable'}%`}
       />
       <FlagBar
-        label="Party crossover rate"
+        label="Different from party majority"
         rate={crossover?.substantiveCount ? crossover.crossoverRate : null}
         description={crossoverDesc}
-        ariaLabel={`Party crossover rate: ${crossover?.crossoverRate ?? 'unavailable'}%`}
+        ariaLabel={`Different from party majority: ${crossover?.crossoverRate ?? 'unavailable'}%`}
       />
       <FlagBar
-        label="District-lean mismatch"
+        label="District-lean difference"
         rate={mismatch?.available ? mismatch.mismatchRate : null}
         description={mismatchDesc}
-        ariaLabel={`District-lean mismatch: ${mismatch?.mismatchRate ?? 'unavailable'}%`}
+        ariaLabel={`District-lean difference: ${mismatch?.mismatchRate ?? 'unavailable'}%`}
       />
     </div>
   )
@@ -357,11 +357,11 @@ function NotableVotes({ analysis }) {
     <div className="vpa-notable">
       <h3 className="vpa-notable-heading">Notable Votes</h3>
       <p className="vpa-notable-subtitle">
-        Ranked by vote margin. {typical?.length ?? 0} typical + {atypical?.length ?? 0} exceptions.
+        Ranked by vote margin. {typical?.length ?? 0} matched the party majority + {atypical?.length ?? 0} differed from it.
       </p>
       <div className="vpa-notable-grid">
-        <NotableColumn title="Typical" items={typical ?? []} empty="No typical votes with substantive roll-call data." />
-        <NotableColumn title="Exceptions" items={atypical ?? []} empty="No exception votes (this member voted with their party on every substantive vote)." />
+        <NotableColumn title="Matched Party Majority" items={typical ?? []} empty="No party-majority matches with substantive roll-call data." />
+        <NotableColumn title="Different From Party Majority" items={atypical ?? []} empty="No substantive votes differed from the party majority in this data set." />
       </div>
     </div>
   )
@@ -402,23 +402,23 @@ function MethodologyModal({ onClose }) {
         <h2 id="vpa-method-title" className="vpa-modal-title">Methodology</h2>
         <div className="vpa-modal-body">
           <p>
-            <strong>Pattern Match</strong> is the percentage of substantive votes (Yea / Nay)
-            where the member's position matched a deterministic prediction. The prediction
-            combines up to three signals:
+            <strong>Signal Agreement</strong> is the percentage of substantive votes (Yea / Nay)
+            where the member's position matched a deterministic comparison. The comparison
+            combines up to three descriptive signals:
           </p>
           <ul>
             <li><strong>Party majority direction</strong> — how most of the member's effective party voted on that roll call (weight 60%).</li>
             <li><strong>Donor-industry direction</strong> — when the bill's policy area matches the member's top 5 donor industries, uses the member's historical voting pattern on that industry (weight 25%).</li>
-            <li><strong>District lean</strong> — predicts party-line voting in districts that leaned the member's party in 2024, and against-party voting in districts that leaned the other way (weight 15%).</li>
+            <li><strong>District lean</strong> — compares the vote with the district's 2024 presidential lean relative to the member's party (weight 15%).</li>
           </ul>
           <p>
             Missing signals are handled by renormalizing the remaining weights.
-            Predicted Yea if the weighted sum ≥ 0.5.
+            The comparison baseline is Yea when the weighted sum is at least 0.5.
           </p>
           <p>
             <strong>Notable votes</strong> are ranked by vote margin (closest first), then by
-            most recent. The top 6 "typical" votes are closest substantive agreements with
-            the member's party. The top 6 "exceptions" are closest substantive crossings.
+            most recent. One column lists close substantive votes matching the member's
+            party majority. The other lists close substantive votes that differed from it.
             Ranking is deterministic and does not use the LLM.
           </p>
           <p>

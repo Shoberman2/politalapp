@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 const SITE_NAME = 'BallotWatch'
 const BASE_URL = 'https://www.ballotwatch.io'
 const DEFAULT_IMAGE = `${BASE_URL}/congress.jpg`
-const DEFAULT_DESCRIPTION = 'Track how your senators and house representatives vote on congressional bills. Look up your elected officials by address, browse 10,000+ bills with AI-powered explanations, and monitor government shutdown status.'
+const DEFAULT_DESCRIPTION = 'Look up your senators and representative, review congressional voting records, browse bills with source-linked explanations, and inspect public methodology.'
 
 function SEO({ title, description, path = '/', type = 'website', image, article, schema }) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Congressional Voting Records, Bill Tracker & Representative Lookup`

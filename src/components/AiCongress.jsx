@@ -38,7 +38,7 @@ function AiCongress() {
     <div className="ai-congress">
       <SEO
         title="AI Congress"
-        description="What laws would pass if Congress voted on evidence instead of party lines? An AI simulation of the US legislature."
+        description="An experimental AI simulation of legislative debate. This page is separate from BallotWatch's real congressional records."
         path="/ai-congress"
       />
       <Helmet>
@@ -46,7 +46,7 @@ function AiCongress() {
       </Helmet>
 
       <div className="ai-disclaimer">
-        This is an AI simulation exploring what an evidence-based Congress might pass.
+        This is an AI simulation of legislative debate, not a rating of real members.
         These are not real votes or legislation.{' '}
         <Link to="/all">See real Congressional votes &rarr;</Link>
       </div>
@@ -54,7 +54,7 @@ function AiCongress() {
       <div className="ai-congress-header">
         <h1>AI Congress</h1>
         <p className="ai-congress-subtitle">
-          What laws would pass if Congress voted on evidence instead of party lines?
+          Experimental sessions that model hypothetical bill debate separately from real congressional records.
         </p>
       </div>
 

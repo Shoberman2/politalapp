@@ -25,7 +25,7 @@ const TIERS = [
       '100,000 API requests/month',
       'Everything in Starter',
       'Priority support',
-      'AI-generated bill summaries included',
+      'Source-linked bill summaries included',
       'CRS official summaries',
     ],
   },
@@ -57,7 +57,7 @@ function DeveloperPortal() {
 
       <section className="dev-hero">
         <span className="dev-label">BallotWatch API and Open Data</span>
-        <h1>Build on source-backed congressional data</h1>
+        <h1>Build on source-linked congressional data</h1>
         <p className="dev-hero-subtitle">
           Start with public samples, inspect the OpenAPI contract, then use hosted
           access when you need fresh congressional data at production volume.
@@ -90,7 +90,7 @@ function DeveloperPortal() {
           </div>
           <div className="dev-endpoint-card">
             <code>GET /api/v1/bills</code>
-            <p>10,000+ bills with CRS summaries, AI explanations, policy areas, and full status tracking.</p>
+            <p>10,000+ bills with CRS summaries, source-linked explanations, policy areas, and full status tracking.</p>
           </div>
           <div className="dev-endpoint-card">
             <code>GET /api/v1/members/:id/votes</code>
@@ -98,7 +98,7 @@ function DeveloperPortal() {
           </div>
           <div className="dev-endpoint-card">
             <code>GET /api/v1/stats</code>
-            <p>Party loyalty rankings, attendance stats, bills by policy area. Pre-computed, fast.</p>
+            <p>Party-alignment statistics, attendance stats, bills by policy area. Pre-computed, fast.</p>
           </div>
           <div className="dev-endpoint-card">
             <code>GET /api/v1/votes/:rollCallId</code>

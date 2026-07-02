@@ -26,9 +26,9 @@ function templateNarration(vote, matched, partyDirection) {
   if (matched === null) {
     return `Voted ${pos} on ${title}.`
   }
-  const dir = matched ? 'aligned' : 'diverged'
+  const dir = matched ? 'matched' : 'differed from'
   const ref = partyDirection === 1 ? 'the party majority (Yea)' : 'the party majority (Nay)'
-  return `Voted ${pos} on ${title} — ${dir} with ${ref}.`
+  return `Voted ${pos} on ${title} — ${dir} ${ref}.`
 }
 
 /**

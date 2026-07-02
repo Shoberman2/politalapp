@@ -55,7 +55,7 @@ function AiCongressSession() {
       <Link to="/ai-congress" className="ai-session-back">&larr; All sessions</Link>
 
       <div className="ai-disclaimer">
-        This is an AI simulation exploring what an evidence-based Congress might pass.
+        This is an AI simulation of legislative debate, not a rating of real members.
         These are not real votes or legislation.{' '}
         <Link to="/all">See real Congressional votes &rarr;</Link>
       </div>
@@ -175,7 +175,7 @@ function BillCard({ bill }) {
         <div className="ai-bill-arguments">
           {argumentsFor.length > 0 && (
             <div className="ai-argument-section for">
-              <h4>Why it {passed ? 'passed' : 'had support'}</h4>
+              <h4>{passed ? 'Support cited in the simulation' : 'Support arguments in the simulation'}</h4>
               {argumentsFor.map((arg, i) => (
                 <p key={i}>{arg}</p>
               ))}
@@ -183,7 +183,7 @@ function BillCard({ bill }) {
           )}
           {argumentsAgainst.length > 0 && (
             <div className="ai-argument-section against">
-              <h4>The dissent</h4>
+              <h4>Opposition arguments in the simulation</h4>
               {argumentsAgainst.map((arg, i) => (
                 <p key={i}>{arg}</p>
               ))}
@@ -194,7 +194,7 @@ function BillCard({ bill }) {
 
       {bill.surprise_rationale && (
         <div className="ai-bill-surprise">
-          <h4>The surprise</h4>
+          <h4>Notable simulation note</h4>
           <p>{bill.surprise_rationale}</p>
         </div>
       )}

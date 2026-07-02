@@ -11,7 +11,7 @@ function Footer() {
       <div className="footer-inner">
         <div className="footer-masthead">
           <span className="footer-wordmark">BallotWatch</span>
-          <span className="footer-tag">Open-source congressional accountability, built from public sources and readable methodology.</span>
+          <span className="footer-tag">Open-source congressional records, built from public sources and readable methodology.</span>
         </div>
         <div className="footer-cols">
           <div className="footer-col">

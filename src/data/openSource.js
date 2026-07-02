@@ -46,7 +46,7 @@ export const FEATURE_READABILITY = [
 export const OPEN_TRACKS = [
   {
     title: 'Use the app',
-    text: 'Find representatives, browse bills, check votes, and read source-backed summaries without needing to understand congressional databases first.',
+    text: 'Find representatives, browse bills, check votes, and read source-linked summaries without needing to understand congressional databases first.',
     links: [
       { label: 'Find representatives', to: '/my-representative' },
       { label: 'Browse bills', to: '/bills' },
@@ -104,8 +104,8 @@ export const METHODOLOGY_PAGES = [
   },
   {
     slug: 'ai-explanations',
-    title: 'AI Explanations',
-    dek: 'How BallotWatch uses AI to explain source-backed congressional records.',
+    title: 'Source-Linked Explanations',
+    dek: 'How BallotWatch explains congressional records with structured public data and AI assistance.',
     source: 'Structured bill, vote, routing, and deterministic statistics passed to server-side AI functions',
     cadence: 'Cached by prompt version and regenerated when prompts change',
     caveat: 'AI text is explanatory. It does not replace official source records.',
@@ -125,7 +125,7 @@ export const METHODOLOGY_PAGES = [
       },
       {
         heading: 'Display standard',
-        body: 'AI explanations use section-level disclosure and editorial marginalia, not per-sentence badges.',
+        body: 'Generated explanations use section-level disclosure and editorial marginalia, not per-sentence badges.',
       },
     ],
   },
@@ -201,7 +201,7 @@ export const METHODOLOGY_PAGES = [
   {
     slug: 'corrections',
     title: 'Corrections',
-    dek: 'How source-backed data corrections should work.',
+    dek: 'How source-linked data corrections should work.',
     source: 'Public source URLs submitted by users and reviewed by maintainers',
     cadence: 'Reviewed as reports arrive',
     caveat: 'Corrections are for factual records and methodology, not political agreement.',

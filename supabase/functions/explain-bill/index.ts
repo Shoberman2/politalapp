@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
-const PROMPT_VERSION = 2
+const PROMPT_VERSION = 3
 
 function buildPrompt(title: string, summary: string): string {
   const summaryBlock = summary
@@ -19,19 +19,20 @@ function buildPrompt(title: string, summary: string): string {
 Bill: ${title}
 
 ${summaryBlock}
-Write a depth explanation of this bill. Aim for 4 to 6 substantive paragraphs, written in plain English. Cover each of these in order, in flowing prose (no headers, no bullet points, no numbered lists):
+Write a detailed explanation of this bill. Aim for 4 to 6 substantive paragraphs, written in plain English. Cover each of these in order, in flowing prose (no headers, no bullet points, no numbered lists):
 
 1. What the bill actually does. The specific changes to law, programs, agencies, eligibility, funding, or rules. If the title is vague, say what category of bill this is and what the most likely concrete effects would be based on the text or category.
 2. Why this bill exists right now. What problem its sponsors say it solves, what political or current event likely motivated it, what tradeoffs it makes.
 3. Who is directly affected. Name the groups: which taxpayers, which workers, which industries, which states, which agencies, which beneficiaries. Use concrete examples ("a single parent earning $40k", "small farms in the Midwest", "Medicare Part D enrollees").
 4. The likely real-world impact if it became law. Both the intended outcomes and the second-order effects opponents typically raise.
-5. Realistic chances of becoming law. Note whether it is bipartisan or single-party, whether it has cleared committee, whether similar bills have failed before. Do not predict, just describe the situation.
-6. Why a regular citizen should care, in one direct paragraph.
+5. Current legislative context. Note whether it is bipartisan or single-party, whether it has cleared committee, and whether similar bills have advanced before. Do not forecast passage.
+6. Why the bill may matter to a general reader, in one direct paragraph.
 
 Hard rules:
 - Plain language. No legalese, no jargon, no acronyms without expanding them once.
 - Be specific. "This affects taxpayers" is useless. "This affects single filers earning over $200,000" is useful.
 - Be balanced. Present both sides where there is genuine disagreement.
+- Avoid advocacy language. Do not praise, criticize, endorse, or oppose the bill.
 - No citations, URLs, footnotes, or bracketed source markers.
 - No headers, no bullets, no numbered lists. Flowing paragraphs only.
 - Do not invent specific dollar amounts, dates, or vote tallies you are not sure of. If you do not know, describe in general terms.`

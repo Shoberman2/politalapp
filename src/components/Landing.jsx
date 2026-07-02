@@ -156,8 +156,8 @@ function Landing() {
   return (
     <div className="bw landing">
       <SEO
-        title="Open-Source Congressional Accountability"
-        description="BallotWatch is an open-source congressional accountability platform for tracking representatives, bills, votes, methodology, and civic data."
+        title="Source-Linked Congressional Voting Records"
+        description="BallotWatch is an open-source civic reference for reviewing representatives, bills, votes, methodology, and public legislative data."
         path="/"
         schema={{
           '@graph': [
@@ -187,7 +187,7 @@ function Landing() {
         <div className="hero-shade"></div>
         <div className="hero-banner-inner">
           <h1 className="reveal d1">See how Congress <em>votes.</em></h1>
-          <p className="hero-deck reveal d2">Find your senators and representative. See every vote they cast.</p>
+          <p className="hero-deck reveal d2">Find your senators and representative. Review their public voting records with sources attached.</p>
 
           <form className="lookup-form reveal d3" onSubmit={handleLookup}>
             <label htmlFor="zipInput" className="visually-hidden">ZIP code</label>
@@ -207,7 +207,7 @@ function Landing() {
               <ArrowRight />
             </button>
           </form>
-          <p className="lookup-hint reveal d3">Free · No account · Every number linked to its source</p>
+          <p className="lookup-hint reveal d3">Free · No account · Source-linked records</p>
 
           {lookup && (
             <div className="lookup-result visible" role="status">
@@ -226,7 +226,7 @@ function Landing() {
 
       {/* ===== SOURCES: trust, scannable ===== */}
       <section className="sources" aria-label="Data sources">
-        <span className="sources-label">Built from public data</span>
+        <span className="sources-label">Built from public records</span>
         <div className="sources-list">
           {SOURCES.map((s) => (
             <span className="source" key={s.name}>
@@ -272,7 +272,7 @@ function Landing() {
             ))}
           </ul>
 
-          <Link className="floor-more" to="/bills">Browse every bill <ArrowRight /></Link>
+          <Link className="floor-more" to="/bills">Browse bills and sources <ArrowRight /></Link>
         </div>
       </section>
 

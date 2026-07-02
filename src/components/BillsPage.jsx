@@ -284,7 +284,7 @@ function BillsPage() {
         description={
           trendingBills.length > 0
             ? `Trending now: ${trendingBills.slice(0, 3).map((b) => b.headline).join(', ')}. Browse and search legislation from the U.S. Congress.`
-            : 'Browse and search legislation from the U.S. Congress. Track bills, read AI-powered explanations, and follow the legislative process.'
+            : 'Browse and search legislation from the U.S. Congress. Review source-linked explanations and follow the legislative process.'
         }
         path="/bills"
         schema={trendingBills.length > 0 ? {
