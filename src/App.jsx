@@ -3,8 +3,10 @@ import { Analytics } from '@vercel/analytics/react'
 import Navigation from './components/Navigation'
 import Landing from './components/Landing'
 import Auth from './components/Auth'
+import AuthCallback from './components/AuthCallback'
 import ProtectedRoute from './components/ProtectedRoute'
 import MyPolitician from './components/MyPolitician'
+import CivicBriefing from './components/CivicBriefing'
 import AllPoliticians from './components/AllPoliticians'
 import BillsPage from './components/BillsPage'
 import BillDetail from './components/BillDetail'
@@ -26,6 +28,7 @@ import ChamberPage from './components/ChamberPage'
 import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
+import Pricing from './components/Pricing'
 
 // Feature flag gates the /committee/:code route registration.
 // When false, requests fall through to the catch-all redirect to "/" — no
@@ -51,6 +54,8 @@ function App() {
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
@@ -64,6 +69,9 @@ function App() {
           {/* App routes */}
           <Route path="/my-representative" element={
             <ProtectedRoute><MyPolitician /></ProtectedRoute>
+          } />
+          <Route path="/briefings" element={
+            <ProtectedRoute><CivicBriefing /></ProtectedRoute>
           } />
           <Route path="/all" element={
             <ProtectedRoute><AllPoliticians /></ProtectedRoute>

@@ -208,7 +208,8 @@ button, input, select, textarea, optgroup {
 /* Redesigned broadsheet pages manage their own full-bleed layout. */
 .main-content:has(.landing),
 .main-content:has(.members-register),
-.main-content:has(.bills-desk) {
+.main-content:has(.bills-desk),
+.main-content:has(.civic-briefing) {
   max-width: 100%;
   padding: 0;
 }

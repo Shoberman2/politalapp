@@ -67,6 +67,24 @@ export function AuthProvider({ children }) {
     return { data, error }
   }
 
+  const signInWithGoogle = async (nextPath = '/my-representative') => {
+    const safeNext = typeof nextPath === 'string' && nextPath.startsWith('/') && !nextPath.startsWith('//')
+      ? nextPath
+      : '/my-representative'
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        queryParams: {
+          prompt: 'select_account',
+        },
+      },
+    })
+    return { data, error }
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (!error) {
@@ -93,6 +111,7 @@ export function AuthProvider({ children }) {
     isSubscribed,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     refreshProfile
   }

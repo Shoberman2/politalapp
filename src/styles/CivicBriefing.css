@@ -1,0 +1,436 @@
+.civic-briefing {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.briefing-wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.briefing-hero {
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+}
+
+.briefing-hero-grid {
+  min-height: 360px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 48px;
+  align-items: center;
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+
+.briefing-hero-copy h1 {
+  max-width: 760px;
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0;
+  margin: 14px 0 18px;
+  color: var(--ink);
+}
+
+.briefing-hero-copy p {
+  max-width: 660px;
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.briefing-hero-actions,
+.briefing-control-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.briefing-status-panel,
+.briefing-control-panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+
+.briefing-status-panel {
+  padding: 24px;
+}
+
+.briefing-status-panel strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.briefing-panel-label,
+.briefing-preview-kicker {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.briefing-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 18px;
+  margin-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.briefing-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  background: var(--bg);
+}
+
+.briefing-pill.ok {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 36%, var(--rule));
+  background: var(--success-subtle);
+}
+
+.briefing-pill.locked {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--rule));
+  background: var(--warning-subtle);
+}
+
+.briefing-status-note {
+  margin: 14px 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  word-break: break-word;
+}
+
+.briefing-workspace {
+  padding: 48px 0 72px;
+}
+
+.briefing-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.briefing-control-panel {
+  position: sticky;
+  top: 90px;
+  padding: 24px;
+}
+
+.briefing-panel-heading {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 20px;
+}
+
+.briefing-panel-heading h2,
+.briefing-preview-toolbar h2 {
+  margin: 6px 0 0;
+  font-size: 1.55rem;
+  color: var(--ink);
+}
+
+.briefing-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.briefing-field span {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.briefing-field input,
+.briefing-field select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 0 12px;
+  font-size: 0.98rem;
+  outline: none;
+}
+
+.briefing-field input:focus,
+.briefing-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.briefing-control-actions {
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.briefing-control-actions .btn {
+  justify-content: center;
+  flex: 1 1 150px;
+}
+
+.briefing-message {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.briefing-message.success {
+  color: var(--success);
+  background: var(--success-subtle);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, var(--rule));
+}
+
+.briefing-message.error {
+  color: var(--error);
+  background: var(--error-subtle);
+  border: 1px solid color-mix(in srgb, var(--error) 28%, var(--rule));
+}
+
+.briefing-meta-list {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.briefing-meta-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.briefing-meta-list dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.briefing-meta-list dd {
+  margin: 0;
+  max-width: 58%;
+  text-align: right;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.briefing-preview-column {
+  min-width: 0;
+}
+
+.briefing-preview-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 18px;
+  border-bottom: 2px solid var(--rule-strong);
+  margin-bottom: 18px;
+}
+
+.briefing-preview-sheet {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-broad-lg);
+  overflow: hidden;
+}
+
+.briefing-preview-head {
+  padding: 28px 30px 24px;
+  border-top: 4px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.briefing-preview-head h2 {
+  margin: 10px 0 8px;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 6vw, 3.8rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.briefing-preview-head p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.92rem;
+}
+
+.briefing-preview-section {
+  padding: 24px 30px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.briefing-preview-section h3 {
+  margin: 0 0 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.briefing-preview-section p {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.briefing-preview-section p:last-child {
+  margin-bottom: 0;
+}
+
+.briefing-record-list {
+  display: grid;
+}
+
+.briefing-record {
+  display: grid;
+  gap: 5px;
+  padding: 15px 0;
+  border-top: 1px solid var(--rule);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.briefing-record:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.briefing-record span {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.briefing-record strong {
+  font-family: var(--serif);
+  font-size: 1.22rem;
+  font-weight: 400;
+  line-height: 1.22;
+  color: var(--ink);
+}
+
+.briefing-record small {
+  font-size: 0.84rem;
+  color: var(--ink-2);
+}
+
+.briefing-record:hover strong {
+  color: var(--accent);
+}
+
+.briefing-empty {
+  color: var(--ink-2);
+}
+
+.briefing-preview-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 30px 24px;
+}
+
+.briefing-preview-footer a {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .briefing-hero-grid,
+  .briefing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .briefing-control-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .briefing-wrap {
+    padding: 0 18px;
+  }
+
+  .briefing-hero-grid {
+    min-height: auto;
+    padding-top: 40px;
+    padding-bottom: 36px;
+    gap: 28px;
+  }
+
+  .briefing-workspace {
+    padding: 28px 0 48px;
+  }
+
+  .briefing-preview-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .briefing-preview-toolbar .btn {
+    justify-content: center;
+  }
+
+  .briefing-preview-head,
+  .briefing-preview-section,
+  .briefing-preview-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .briefing-meta-list div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .briefing-meta-list dd {
+    max-width: 100%;
+    text-align: left;
+  }
+}

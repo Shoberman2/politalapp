@@ -1,7 +1,10 @@
 {
+  "crons": [
+    { "path": "/api/briefings/cron", "schedule": "0 14 * * *" }
+  ],
   "rewrites": [
     { "source": "/s/bill/:congress/:billType/:number", "destination": "/api/share?bill=:congress-:billType-:number" },
-    { "source": "/((?!api/|assets/|s/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|s/|@vite/|@react-refresh|src/|node_modules/|etl/|shared/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

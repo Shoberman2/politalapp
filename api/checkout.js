@@ -1,9 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
-})
+import { getHeader, readJsonBody, sendResponse } from './_lib/civicBriefing.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +16,7 @@ const PLAN_PRICES = {
   consumer: process.env.STRIPE_PRICE_ID, // Existing $2/mo consumer plan
 }
 
-export default async function handler(req) {
+async function route(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -33,7 +30,7 @@ export default async function handler(req) {
     const supabase = createClient(
       process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
       process.env.VITE_SUPABASE_ANON_KEY || '',
-      { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
+      { global: { headers: { Authorization: getHeader(req, 'authorization') } } }
     )
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -44,16 +41,27 @@ export default async function handler(req) {
       })
     }
 
-    const { returnUrl, plan, orgId } = await req.json()
+    const { returnUrl, plan, orgId } = await readJsonBody(req)
     const selectedPlan = plan || 'consumer'
     const priceId = PLAN_PRICES[selectedPlan]
 
     if (!priceId) {
-      return new Response(JSON.stringify({ error: `Invalid plan: ${selectedPlan}` }), {
-        status: 400,
+      return new Response(JSON.stringify({ error: `Stripe price is not configured for plan: ${selectedPlan}` }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return new Response(JSON.stringify({ error: 'Stripe secret key is not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    })
 
     // Admin client for profile/org lookups
     const supabaseAdmin = createClient(
@@ -126,6 +134,10 @@ export default async function handler(req) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
+}
+
+export default async function handler(req, res) {
+  return sendResponse(res, await route(req))
 }
 
 export const config = { runtime: 'nodejs' }
