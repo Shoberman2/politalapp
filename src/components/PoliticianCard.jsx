@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isFavorite, toggleFavorite } from '../services/userService'
+import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import '../styles/PoliticianCard.css'
 
 function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) {
@@ -22,10 +23,9 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
   const displayName = politician.name || `${politician.firstName || ''} ${politician.lastName || ''}`.trim()
   const bioguideId = politician.bioguideId || politician.bioguide_id
-  // Prefer the API-supplied depiction URL — congress.gov/img/member/{bioguide}.jpg
-  // 404s for newer members who get hashed filenames instead.
-  const imageUrl = politician.imageUrl
-    || (bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null)
+  // High-res unitedstates portrait, with the congress.gov thumbnail as an
+  // onError fallback (see handleMemberPhotoError).
+  const imageUrl = politician.imageUrl || resolveMemberImageUrl(bioguideId)
 
   const location = politician.state + (politician.district ? `-${politician.district}` : '')
   const partyAbbr = getPartyAbbr(politician.party || politician.partyName || '')
@@ -55,10 +55,10 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
             <img
               src={imageUrl}
               alt={displayName}
-              onError={(e) => {
-                e.target.style.display = 'none'
-                e.target.nextSibling.style.display = 'flex'
-              }}
+              onError={(e) => handleMemberPhotoError(e, bioguideId, (el) => {
+                el.style.display = 'none'
+                el.nextSibling.style.display = 'flex'
+              })}
             />
           ) : null}
           <div

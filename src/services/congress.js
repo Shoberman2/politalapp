@@ -429,7 +429,7 @@ const normalizeMemberBatch = (members) => {
       party: party,
       partyName: member.partyName || currentTerm?.party,
       chamber: chamber,
-      imageUrl: member.depiction?.imageUrl || null,
+      imageUrl: resolveMemberImageUrl(member.bioguideId, member.depiction?.imageUrl),
       url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
       updateDate: member.updateDate
     }
@@ -440,46 +440,82 @@ export const getAllCurrentMembers = async (onBatch) => {
   try {
     console.log('[Congress API] Fetching all current members (House + Senate)...')
 
-    const allMembers = []
-    let offset = 0
     const limit = 250 // Max allowed by Congress.gov API
 
-    // Paginate through all results
-    while (true) {
-      console.log(`[Congress API] Fetching members batch at offset ${offset}...`)
+    // The first page also reports the true total via pagination.count. We used
+    // to walk the pages one-at-a-time, which took ~15-20s and left the table
+    // looking half-empty (House only, "Senate vacant") for most of that time.
+    // Fetch page one, then request every remaining page in parallel.
+    const first = await congressApi.get('/member', {
+      params: { limit, offset: 0, currentMember: true },
+    })
+    const firstBatch = first.data.members || []
+    const total = first.data.pagination?.count ?? firstBatch.length
 
-      const response = await congressApi.get('/member', {
-        params: {
-          limit,
-          offset,
-          currentMember: true
-        }
+    let allMembers = normalizeMemberBatch(firstBatch)
+
+    const offsets = []
+    for (let offset = limit; offset < total; offset += limit) offsets.push(offset)
+
+    // Surface the first page right away, but flag whether the roster is complete
+    // so the caller can hold a loading state until every chamber is in (and never
+    // render a half-empty, "Senate vacant" table).
+    if (onBatch) onBatch([...allMembers], offsets.length === 0)
+
+    if (offsets.length) {
+      const pages = await Promise.all(
+        offsets.map((offset) =>
+          congressApi
+            .get('/member', { params: { limit, offset, currentMember: true } })
+            .then((r) => normalizeMemberBatch(r.data.members || []))
+            .catch((err) => {
+              console.error(`[Congress API] Member page @${offset} failed:`, err.response?.status || err.message)
+              return []
+            })
+        )
+      )
+      for (const page of pages) allMembers.push(...page)
+
+      // De-dupe defensively in case page windows overlap.
+      const seen = new Set()
+      allMembers = allMembers.filter((m) => {
+        if (!m.bioguideId) return true
+        if (seen.has(m.bioguideId)) return false
+        seen.add(m.bioguideId)
+        return true
       })
-
-      const members = response.data.members || []
-      console.log(`[Congress API] Received ${members.length} members in this batch`)
-
-      if (members.length === 0) break
-
-      const processed = normalizeMemberBatch(members)
-      allMembers.push(...processed)
-
-      // Notify caller with incremental results
-      if (onBatch) {
-        onBatch([...allMembers])
-      }
-
-      offset += members.length
-
-      // If we got fewer than the limit, we've reached the end
-      if (members.length < limit) break
     }
 
     console.log(`[Congress API] Total members processed: ${allMembers.length}`)
+    if (onBatch) onBatch([...allMembers], true)
     return allMembers
   } catch (error) {
     console.error('[Congress API] Error fetching all members:', error.response?.status, error.response?.data || error.message)
     throw error
+  }
+}
+
+// A small, real sample of current members for the landing illustration: real
+// names, parties, and headshots instead of blank placeholders. Prefers a House
+// + Senate mix so the "your senators and representative" framing reads true.
+// Best-effort: returns [] on failure so the caller can fall back to a skeleton.
+export const getFeaturedMembers = async (count = 3) => {
+  try {
+    const res = await congressApi.get('/member', {
+      params: { limit: 40, currentMember: true },
+    })
+    const norm = normalizeMemberBatch(res.data.members || []).filter((m) => m.name && m.bioguideId)
+    const reps = norm.filter((m) => m.chamber === 'house')
+    const senators = norm.filter((m) => m.chamber === 'senate')
+    const picked = [reps[0], senators[0], senators[1]].filter(Boolean)
+    for (const m of norm) {
+      if (picked.length >= count) break
+      if (!picked.some((p) => p.bioguideId === m.bioguideId)) picked.push(m)
+    }
+    return picked.slice(0, count)
+  } catch (err) {
+    console.warn('[Congress API] getFeaturedMembers failed:', err.message)
+    return []
   }
 }
 

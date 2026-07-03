@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
 import { getAllTermsForMember } from '../services/memberTerms'
-import { resolveMemberImageUrl } from '../utils/memberImage'
+import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import {
   BILL_CONGRESS_MIN,
   CONGRESS_MAX,
@@ -320,7 +320,7 @@ function PoliticianDetail() {
               src={imageUrl}
               alt={displayName}
               className="pol-photo"
-              onError={() => setImageError(true)}
+              onError={(e) => handleMemberPhotoError(e, bioguideId, () => setImageError(true))}
             />
           ) : (
             <div className="pol-photo-placeholder">

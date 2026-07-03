@@ -17,15 +17,39 @@ function stripDoublePrefix(url) {
   return second > 0 ? url.slice(second) : url
 }
 
-// Resolve the best photo URL for a member: hand-curated override first, then
-// the (normalized) URL from Congress.gov, else null. Callers should still
-// chain a fallback to the predictable congress.gov/img/member/{bioguide}.jpg
-// pattern and an onError-driven placeholder for true unknowns.
+// Comprehensive, consistent, high-resolution congressional headshots keyed by
+// bioguide id. Far better than the tiny (~5KB) congress.gov thumbnails, and
+// covers essentially every current and historical member.
+export function congressImageUrl(bioguideId) {
+  return bioguideId ? `https://unitedstates.github.io/images/congress/450x550/${bioguideId}.jpg` : null
+}
+
+// Predictable congress.gov thumbnail — used only as an onError fallback for the
+// rare member not yet in the unitedstates collection.
+export function congressGovImageUrl(bioguideId) {
+  return bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null
+}
+
+// Resolve the best photo URL for a member: hand-curated override first, then the
+// high-res unitedstates portrait, then the API depiction URL.
 export function resolveMemberImageUrl(bioguideId, apiUrl) {
   if (bioguideId && MEMBER_IMAGE_OVERRIDES[bioguideId]) {
     return MEMBER_IMAGE_OVERRIDES[bioguideId]
   }
-  return stripDoublePrefix(apiUrl)
+  return congressImageUrl(bioguideId) || stripDoublePrefix(apiUrl)
+}
+
+// Shared <img onError> handler: fall back to the congress.gov thumbnail once,
+// then hand off to the component's own placeholder via onFail(imgElement).
+export function handleMemberPhotoError(e, bioguideId, onFail) {
+  const el = e.currentTarget
+  const fallback = congressGovImageUrl(bioguideId)
+  if (fallback && el.dataset.imgFallback !== 'done') {
+    el.dataset.imgFallback = 'done'
+    el.src = fallback
+    return
+  }
+  if (typeof onFail === 'function') onFail(el)
 }
 
 // Back-compat alias for callers that only have the URL.

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Footer from './Footer'
 import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
+import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import { filterMembersByName } from '../utils/searchFilter'
 import { getLeadershipTitle, isLeadership } from '../data/leadership'
 import { toStateAbbr, toStateName } from '../utils/states'
@@ -80,16 +81,14 @@ function MemberCard({ member, onClick }) {
   const name = displayName(member)
   const letter = partyLetter(member.party || member.partyName)
   const bioguideId = member.bioguideId || member.bioguide_id
-  const imageUrl = !imgFailed
-    ? (member.imageUrl || (bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null))
-    : null
+  const imageUrl = !imgFailed ? (member.imageUrl || resolveMemberImageUrl(bioguideId)) : null
   const role = member.chamber === 'senate' ? 'Senator' : 'Representative'
   const leaderTitle = getLeadershipTitle(bioguideId)
 
   return (
     <button type="button" className={`member-card ${letter.toLowerCase()}`} onClick={onClick}>
       <div className="mc-photo">
-        {imageUrl && <img src={imageUrl} alt="" onError={() => setImgFailed(true)} />}
+        {imageUrl && <img src={imageUrl} alt="" onError={(e) => handleMemberPhotoError(e, bioguideId, () => setImgFailed(true))} />}
         <div className="mc-monogram">{initialsOf(name)}</div>
       </div>
       <div className="mc-body">
@@ -121,9 +120,9 @@ function AllPoliticians() {
     const fetchMembers = async () => {
       try {
         setLoading(true)
-        await getAllCurrentMembers((batchMembers) => {
+        await getAllCurrentMembers((batchMembers, done) => {
           setAllMembers(batchMembers)
-          setLoading(false)
+          if (done) setLoading(false)
         })
       } catch (err) {
         console.error('[AllPoliticians] Error loading politicians:', err)
@@ -196,7 +195,7 @@ function AllPoliticians() {
     return (
       <div className="all-politicians-loading">
         <div className="loading-spinner"></div>
-        <p>Loading members...</p>
+        <p>Loading all 535 members…</p>
       </div>
     )
   }

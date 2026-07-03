@@ -1,4 +1,57 @@
-/* The masthead is now the shared broadsheet chrome.
-   All of its styling lives in broadsheet.css, scoped under `.bw`.
-   This file is intentionally minimal; kept so the import in
-   Navigation.jsx resolves and to host any future nav-only tweaks. */
+/* The masthead is the shared broadsheet chrome; its base styling lives in
+   broadsheet.css, scoped under `.bw`. This file holds nav-only tweaks.
+
+   ---- Landing overlay ----
+   On the landing page (`.masthead-landing`) the bar overlays the cinematic
+   hero film instead of sitting above it. The announce strip is dropped, the
+   topbar is fixed so the film runs full-bleed behind it, and while a dark
+   shot is behind the bar (`.over-hero`) the chrome goes transparent with
+   light text. Scrolling into the editorial content removes `.over-hero` and
+   the bar falls back to the normal blurred, token-driven look — including in
+   dark mode — because those base rules still apply underneath. All selectors
+   are gated on `.masthead-landing`, so every other page is untouched. */
+
+.bw-masthead.masthead-landing { position: relative; }
+.bw-masthead.masthead-landing .announce { display: none; }
+.bw-masthead.masthead-landing .topbar-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  transition: background 0.35s ease, border-color 0.35s ease,
+              backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
+}
+
+/* transparent state — a dark hero shot is behind the bar */
+.bw-masthead.masthead-landing.over-hero .topbar-wrap {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
+}
+.bw-masthead.masthead-landing.over-hero .brand-name,
+.bw-masthead.masthead-landing.over-hero .topnav a {
+  color: #fff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
+}
+.bw-masthead.masthead-landing.over-hero .topnav a { color: rgba(255, 255, 255, 0.88); }
+.bw-masthead.masthead-landing.over-hero .topnav a:hover,
+.bw-masthead.masthead-landing.over-hero .topnav a.active { color: #fff; }
+.bw-masthead.masthead-landing.over-hero .topnav a.active::after { background: #fff; }
+.bw-masthead.masthead-landing.over-hero .topnav { border-left-color: rgba(255, 255, 255, 0.28); }
+.bw-masthead.masthead-landing.over-hero .brand-mark { background: rgba(255, 255, 255, 0.16); }
+.bw-masthead.masthead-landing.over-hero .brand-mark img { filter: invert(1); }
+.bw-masthead.masthead-landing.over-hero .theme-toggle,
+.bw-masthead.masthead-landing.over-hero .nav-burger {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.34);
+}
+.bw-masthead.masthead-landing.over-hero .theme-toggle:hover,
+.bw-masthead.masthead-landing.over-hero .nav-burger:hover { border-color: #fff; }
+
+/* the mobile dropdown is a solid panel even while the bar is over the hero */
+.bw-masthead.masthead-landing.over-hero .topnav.open-mobile { background: var(--bg); }
+.bw-masthead.masthead-landing.over-hero .topnav.open-mobile a {
+  color: var(--ink-2);
+  text-shadow: none;
+}

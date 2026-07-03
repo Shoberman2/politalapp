@@ -1,201 +1,167 @@
+/* Pricing — a single focused plan card, modernized to match the landing:
+   soft rounded surface, a hint of depth behind it, editorial serif price,
+   and a clean check list instead of a boxy bordered table. */
+
 .pricing-page {
-  min-height: 100vh;
-  background: #111110;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  min-height: calc(100vh - 120px);
+  background:
+    radial-gradient(130% 90% at 50% -10%, var(--accent-soft), transparent 55%),
+    var(--bg);
+  display: grid;
+  place-items: center;
+  padding: clamp(48px, 9vh, 100px) 24px;
 }
 
 .pricing-card {
-  width: 100%;
-  max-width: 440px;
-  background: #1a1a18;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 3rem 2.5rem;
-  text-align: center;
-  border-radius: var(--radius-lg);
+  width: min(100%, 500px);
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: var(--shadow-broad-lg);
+  padding: clamp(32px, 5vw, 48px);
 }
 
 .pricing-header {
-  margin-bottom: 2rem;
-}
-
-.pricing-header h1 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  color: #ffffff;
-  margin: 0 0 0.5rem 0;
-}
-
-.pricing-header p {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
-  margin: 0;
-  font-family: var(--font-body);
+  text-align: center;
+  padding-bottom: 28px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--rule);
 }
 
 .pricing-label {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-family: var(--mono);
+  font-size: 11px;
   font-weight: 600;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  margin-bottom: 1rem;
+  margin-bottom: 18px;
+}
+
+.pricing-header h1 {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.pricing-header p {
+  color: var(--ink-2);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  margin: 0;
 }
 
 .pricing-amount {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 0.15rem;
-  margin-bottom: 0.5rem;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .pricing-dollar {
-  font-family: var(--font-body);
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: 400;
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  color: var(--ink-2);
 }
 
 .pricing-number {
-  font-family: var(--font-display);
-  font-size: 5rem;
+  font-family: var(--serif);
+  font-size: 6rem;
   font-weight: 400;
-  color: #ffffff;
-  line-height: 1;
+  color: var(--ink);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
 }
 
 .pricing-period {
-  font-family: var(--font-body);
+  font-family: var(--sans);
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 400;
+  color: var(--ink-2);
 }
 
 .pricing-tagline {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0;
+  max-width: 380px;
+  margin: 0 auto;
+  color: var(--ink-2);
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
-/* Features List */
 .pricing-features {
   list-style: none;
   padding: 0;
-  margin: 0 0 2rem 0;
-  text-align: left;
+  margin: 0 0 30px;
+  display: grid;
+  gap: 4px;
 }
 
 .pricing-features li {
-  padding: 0.65rem 0;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-left: 1.5rem;
   position: relative;
+  padding: 10px 0 10px 32px;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .pricing-features li::before {
-  content: '';
+  content: '✓';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
+  top: 9px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.pricing-features li:last-child {
-  border-bottom: none;
-}
-
-/* Subscribe Button */
-.pricing-subscribe-btn {
+.pricing-subscribe-btn,
+.pricing-card > .btn {
   width: 100%;
-  padding: 1.1rem;
-  background: var(--accent);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-}
-
-.pricing-subscribe-btn:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.pricing-subscribe-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.pricing-btn {
-  width: 100%;
-  padding: 1rem;
-  background: var(--accent);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  transition: background 0.15s ease;
-}
-
-.pricing-btn:hover {
-  background: var(--accent-hover);
+  justify-content: center;
+  min-height: 54px;
+  border-radius: var(--r-md);
+  font-size: 15px;
 }
 
 .pricing-note {
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.3);
-  margin: 1rem 0 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  text-align: center;
+  margin: 16px 0 0;
 }
 
 .pricing-error {
-  padding: 0.75rem 1rem;
+  margin-top: 14px;
+  padding: 12px 14px;
   background: var(--error-subtle);
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: var(--radius-sm);
-  color: #fca5a5;
-  font-size: 0.85rem;
-  font-family: var(--font-body);
-  margin-bottom: 1rem;
+  border: 1px solid color-mix(in srgb, var(--error) 28%, var(--rule));
+  border-radius: var(--r-md);
+  color: var(--error);
+  font-size: 0.88rem;
 }
 
-/* Footer */
 .pricing-footer {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
 }
 
 .pricing-email {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
 }
 
 .pricing-signout,
@@ -203,10 +169,9 @@
   background: none;
   border: none;
   color: var(--accent);
-  font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
 .pricing-signout:hover,
@@ -214,12 +179,7 @@
   color: var(--accent-hover);
 }
 
-@media (max-width: 480px) {
-  .pricing-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .pricing-number {
-    font-size: 4rem;
-  }
+@media (max-width: 540px) {
+  .pricing-page { padding: 40px 18px; }
+  .pricing-number { font-size: 4.6rem; }
 }
