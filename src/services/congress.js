@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { resolveMemberImageUrl } from '../utils/memberImage'
+import { resolveMemberImageUrl, normalizeMemberImageUrl } from '../utils/memberImage'
 import { CONGRESS_MAX } from '../utils/congressUtil'
 
 const BASE_URL = 'https://api.congress.gov/v3'
@@ -430,6 +430,10 @@ const normalizeMemberBatch = (members) => {
       partyName: member.partyName || currentTerm?.party,
       chamber: chamber,
       imageUrl: resolveMemberImageUrl(member.bioguideId, member.depiction?.imageUrl),
+      // The API's own portrait URL — a reliable fallback for members not yet in
+      // the unitedstates collection (e.g. brand-new members), whose high-res
+      // `imageUrl` 404s. Congress.gov serves these at a hashed path.
+      photoFallbackUrl: normalizeMemberImageUrl(member.depiction?.imageUrl),
       url: member.url || `https://www.congress.gov/member/${member.bioguideId}`,
       updateDate: member.updateDate
     }
@@ -501,14 +505,30 @@ export const getAllCurrentMembers = async (onBatch) => {
 // Best-effort: returns [] on failure so the caller can fall back to a skeleton.
 export const getFeaturedMembers = async (count = 3) => {
   try {
-    const res = await congressApi.get('/member', {
+    // Only feature members with a published portrait, so the landing shows real
+    // congressional faces — never blank avatars (brand-new members often have no
+    // photo yet). The API returns all House members first, then senators, so we
+    // pull the first House page plus the tail for two senators to match the
+    // "your two senators and your House member" framing.
+    const hasPhoto = (m) => m.depiction?.imageUrl
+    const houseRes = await congressApi.get('/member', {
       params: { limit: 40, currentMember: true },
     })
-    const norm = normalizeMemberBatch(res.data.members || []).filter((m) => m.name && m.bioguideId)
-    const reps = norm.filter((m) => m.chamber === 'house')
-    const senators = norm.filter((m) => m.chamber === 'senate')
+    const total = houseRes.data.pagination?.count ?? 0
+    const senRes = total
+      ? await congressApi.get('/member', {
+          params: { limit: 60, offset: Math.max(0, total - 60), currentMember: true },
+        }).catch(() => null)
+      : null
+
+    const reps = normalizeMemberBatch((houseRes.data.members || []).filter(hasPhoto))
+      .filter((m) => m.name && m.bioguideId && m.chamber === 'house')
+    const senators = normalizeMemberBatch((senRes?.data?.members || []).filter(hasPhoto))
+      .filter((m) => m.name && m.bioguideId && m.chamber === 'senate')
+
     const picked = [reps[0], senators[0], senators[1]].filter(Boolean)
-    for (const m of norm) {
+    // Backfill from either chamber if a page came up short.
+    for (const m of [...reps, ...senators]) {
       if (picked.length >= count) break
       if (!picked.some((p) => p.bioguideId === m.bioguideId)) picked.push(m)
     }

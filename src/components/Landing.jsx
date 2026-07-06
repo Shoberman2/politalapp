@@ -68,7 +68,7 @@ const STEPS = [
 
 // The opening film is a silent, calm move through the REAL U.S. Capitol,
 // built entirely from real, freely-licensed footage/photography (no AI):
-//   1. a short (~3.5s) exterior shot of the actual Capitol dome with a gentle
+//   1. a brief (~2s) exterior shot of the actual Capitol dome with a gentle
 //      push-in (real video, Pexels, free license),
 //   2. down the actual Brumidi Corridors (real photo, Architect of the Capitol),
 //   3. up into the Rotunda dome — the Apotheosis of Washington fresco
@@ -225,6 +225,20 @@ function Landing() {
     })
   }, [current, reduced])
 
+  // Bulletproof autoplay: muted clips should start on load, but a few browsers
+  // still hold until a user gesture. The moment the user does anything (scroll,
+  // tap, key), kick the active clip once — so the film is never a frozen poster.
+  useEffect(() => {
+    if (reduced) return
+    const kick = () => {
+      const v = document.querySelector('.film-vid.is-current')
+      if (v) { v.muted = true; v.play().then(() => setPlayBlocked(false)).catch(() => {}) }
+    }
+    const events = ['pointerdown', 'touchstart', 'keydown', 'scroll']
+    events.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }))
+    return () => events.forEach((e) => window.removeEventListener(e, kick))
+  }, [reduced])
+
   // Under reduced motion, hold on the chamber still with the question shown.
   useEffect(() => {
     if (reduced) setCurrent(FILM_STATIC_INDEX)
@@ -324,7 +338,7 @@ function Landing() {
     <div className="mock mock-reps" aria-hidden="true">
       {repsRows.map((m, i) => {
         const bioguideId = m?.bioguideId
-        const photo = m && (m.imageUrl || (bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null))
+        const photo = m && (m.imageUrl || m.photoFallbackUrl)
         const partyKey = (m?.party || '').toLowerCase()
         const ptag = partyKey === 'r' ? 'r' : partyKey === 'i' ? 'i' : 'd'
         return (
@@ -336,9 +350,11 @@ function Landing() {
                 alt=""
                 loading="lazy"
                 onError={(e) => {
+                  // High-res unitedstates portrait failed (e.g. a brand-new
+                  // member) — fall back to the API's own portrait, then hide.
                   const el = e.currentTarget
-                  const fb = bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : ''
-                  if (fb && el.src !== fb) el.src = fb
+                  const fb = m.photoFallbackUrl
+                  if (fb && el.dataset.fb !== '1') { el.dataset.fb = '1'; el.src = fb }
                   else el.style.visibility = 'hidden'
                 }}
               />
@@ -435,14 +451,19 @@ function Landing() {
           {FILM_CLIPS.map((clip, i) => (
             <video
               key={clip.src}
-              ref={(el) => { videoRefs.current[i] = el }}
+              // Set muted on the element itself: React's `muted` prop is not
+              // always reflected to the DOM, and unmuted = blocked autoplay.
+              ref={(el) => {
+                videoRefs.current[i] = el
+                if (el) { el.muted = true; el.defaultMuted = true; el.playsInline = true }
+              }}
               className={`film-vid${i === current ? ' is-current' : ''}`}
               src={clip.src}
               poster={clip.poster}
               autoPlay={i === 0 && !reduced}
               muted
               playsInline
-              preload={i < 2 ? 'auto' : 'metadata'}
+              preload="auto"
               loop={i === FILM_CLIPS.length - 1}
               onEnded={i === FILM_CLIPS.length - 1 ? undefined : advanceClip}
             />
