@@ -40,26 +40,8 @@ const STEPS = [
     id: 'votes',
     title: 'See every vote, with the receipts.',
     body: 'Each yea and nay is tied to the official roll call. No spin, no summary of a summary. The record, linked to its source.',
-    visual: (
-      <div className="mock mock-votes" aria-hidden="true">
-        <div className="mk-vote">
-          <span className="mk-bill">H.R. 4821</span>
-          <span className="mk-desc">Energy Permitting Modernization</span>
-          <span className="mk-yn yea">Yea</span>
-        </div>
-        <div className="mk-vote">
-          <span className="mk-bill">S. 1402</span>
-          <span className="mk-desc">Rural Broadband Access</span>
-          <span className="mk-yn nay">Nay</span>
-        </div>
-        <div className="mk-vote">
-          <span className="mk-bill">H.R. 9</span>
-          <span className="mk-desc">Federal Permitting Reform</span>
-          <span className="mk-yn yea">Yea</span>
-        </div>
-        <div className="mk-src">Source · Congress.gov Roll Call 312 <ArrowRight /></div>
-      </div>
-    ),
+    // visual is rendered from live recorded votes in the component (votesVisual).
+    visual: null,
   },
   {
     id: 'explain',
@@ -84,23 +66,28 @@ const STEPS = [
   },
 ]
 
-// The opening film is a fast, silent run through the Capitol halls into the
-// chamber: two quick elevated corridor flights, then a top-down over the seats
-// where they sit. Clips play once and hand off; the last loops.
+// The opening film is a silent, calm move through the REAL U.S. Capitol,
+// built entirely from real, freely-licensed footage/photography (no AI):
+//   1. a short (~3.5s) exterior shot of the actual Capitol dome with a gentle
+//      push-in (real video, Pexels, free license),
+//   2. down the actual Brumidi Corridors (real photo, Architect of the Capitol),
+//   3. up into the Rotunda dome — the Apotheosis of Washington fresco
+//      (real photo, Carol Highsmith / Library of Congress, public domain).
+// Real interior walkthrough VIDEO of the Capitol isn't available under a free
+// license (interior filming is restricted; it exists only as paid iStock), so
+// the halls are conveyed via animated real stills. Clips play once and hand
+// off; the last loops. See public/hero-*.{mp4,jpg}.
 const FILM_CLIPS = [
   { src: '/hero-run.mp4', poster: '/hero-run.jpg', line: 'title' },
   { src: '/hero-run2.mp4', poster: '/hero-run2.jpg', line: null },
   { src: '/hero-topdown.mp4', poster: '/hero-topdown.jpg', line: 'question' },
 ]
-const FILM_STATIC_INDEX = 2 // top-down chamber frame shown under reduced motion
+const FILM_STATIC_INDEX = 2 // Rotunda dome frame shown under reduced motion
 
-// Shown until (or in case) the live floor-vote fetch resolves.
-const FALLBACK_FLOOR = [
-  { key: 'f1', chamber: 'House', rollLabel: 'Roll Call 312', bill: { display: 'H.R. 4821', href: '/bills' }, text: 'Energy Permitting Modernization Act', tally: '248–176', result: 'Passed', resultKind: 'pass' },
-  { key: 'f2', chamber: 'Senate', rollLabel: 'Roll Call 198', bill: { display: 'S. 1402', href: '/bills' }, text: 'Rural Broadband Access Act', tally: '61–38', result: 'Cloture invoked', resultKind: 'pass' },
-  { key: 'f3', chamber: 'Senate', rollLabel: 'Roll Call 197', bill: { display: 'S. 2210', href: '/bills' }, text: 'Veterans Telehealth Expansion Act', tally: '52–47', result: 'Passed', resultKind: 'pass' },
-  { key: 'f4', chamber: 'House', rollLabel: 'Roll Call 309', bill: { display: 'H.R. 9', href: '/bills' }, text: 'Federal Permitting Reform', tally: '203–229', result: 'Failed', resultKind: 'fail' },
-]
+// The "On the floor" feed and the step-two mock render only real recorded
+// votes. While the live fetch is in flight (or if it fails) we show neutral
+// skeleton rows — never invented bills. See `floorReady` below.
+const FLOOR_SKELETON = [0, 1, 2, 3]
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
@@ -153,7 +140,8 @@ function Landing() {
 
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
-  const [floor, setFloor] = useState(FALLBACK_FLOOR)
+  const [floor, setFloor] = useState([])
+  const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
   const [reduced, setReduced] = useState(false)
   const [current, setCurrent] = useState(0)
@@ -196,18 +184,24 @@ function Landing() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      const data = await getRecentFloorVotes(16).catch(() => null)
-      if (cancelled) return
-      const votes = (data?.votes || []).filter((v) => v.text || v.bill)
-      if (votes.length >= 3) {
-        setFloor(votes.slice(0, 5).map(fromFloorVote))
-        if (data.recordedThrough) setRecordedThrough(data.recordedThrough)
-        return
+      try {
+        const data = await getRecentFloorVotes(16).catch(() => null)
+        if (cancelled) return
+        const votes = (data?.votes || []).filter((v) => v.text || v.bill)
+        if (votes.length >= 3) {
+          setFloor(votes.slice(0, 5).map(fromFloorVote))
+          if (data.recordedThrough) setRecordedThrough(data.recordedThrough)
+          return
+        }
+        const bills = await getRecentBills(8).catch(() => [])
+        if (cancelled) return
+        const items = bills.filter((b) => b.latestAction?.text && b.number).map(fromBill)
+        if (items.length >= 3) setFloor(items.slice(0, 5))
+      } finally {
+        // Mark the fetch resolved either way so the feed swaps skeletons for
+        // real rows (and never falls back to invented bills).
+        if (!cancelled) setFloorReady(true)
       }
-      const bills = await getRecentBills(8).catch(() => [])
-      if (cancelled) return
-      const items = bills.filter((b) => b.latestAction?.text && b.number).map(fromBill)
-      if (items.length >= 3) setFloor(items.slice(0, 5))
     })()
     return () => { cancelled = true }
   }, [])
@@ -255,10 +249,10 @@ function Landing() {
     }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' })
     items.forEach((n) => io.observe(n))
     return () => io.disconnect()
-    // Re-run when `floor` swaps from the fallback to live votes: those rows are
+    // Re-run when the feed swaps skeletons for live votes: those rows are
     // brand-new DOM nodes the original observer never saw, so without this they
     // would stay stuck at opacity:0.
-  }, [reduced, floor])
+  }, [reduced, floor, floorReady])
 
   const handleLookup = async (e) => {
     e.preventDefault()
@@ -380,6 +374,33 @@ function Landing() {
     </div>
   )
 
+  // Step-two illustration, built from the same live floor votes (real bill
+  // numbers and real yea–nay tallies) so it updates with the feed instead of
+  // showing fixed set copy. Colored by outcome; sourced to the real roll call.
+  const votesRows = floor.filter((v) => v.bill && v.tally).slice(0, 3)
+  const votesVisual = (
+    <div className="mock mock-votes" aria-hidden="true">
+      {(votesRows.length ? votesRows : [null, null, null]).map((v, i) => (
+        v ? (
+          <div className="mk-vote" key={v.key}>
+            <span className="mk-bill">{v.bill.display}</span>
+            <span className="mk-desc">{truncate(v.text, 30)}</span>
+            <span className={`mk-yn ${v.resultKind === 'fail' ? 'nay' : 'yea'}`}>{v.tally}</span>
+          </div>
+        ) : (
+          <div className="mk-vote" key={`sk-${i}`}>
+            <span className="mk-skel" style={{ width: 46, maxWidth: 'none', height: 11 }} />
+            <span className="mk-skel" style={{ width: '74%', maxWidth: 'none', height: 11 }} />
+            <span className="mk-skel" style={{ width: 40, maxWidth: 'none', height: 16, borderRadius: 6 }} />
+          </div>
+        )
+      ))}
+      {votesRows[0]?.rollLabel && (
+        <div className="mk-src">Source · Congress.gov {votesRows[0].rollLabel} <ArrowRight /></div>
+      )}
+    </div>
+  )
+
   return (
     <div className="bw landing" ref={rootRef}>
       <SEO
@@ -408,7 +429,7 @@ function Landing() {
         }}
       />
 
-      {/* ===== CINEMATIC OPENER: walk to the Capitol → down over the seats ===== */}
+      {/* ===== CINEMATIC OPENER: approach the real Capitol → through the halls → up into the Rotunda ===== */}
       <section className={`film${reduced ? ' film--static' : ''}`}>
         <div className="film-stage">
           {FILM_CLIPS.map((clip, i) => (
@@ -438,24 +459,10 @@ function Landing() {
             <div className="film-lines">
               <h1 className={`film-line film-title-a${FILM_CLIPS[current].line === 'title' ? ' show' : ''}`}>See how Congress <em>votes.</em></h1>
               <div className={`film-line film-questions${FILM_CLIPS[current].line === 'question' ? ' show' : ''}`}>
-                <span className="film-q">Do you know who actually <em>sits here?</em></span>
+                <span className="film-q">Do you know what happens <em>under this dome?</em></span>
               </div>
             </div>
           </div>
-
-          {!reduced && (
-            <div className="film-dots" aria-hidden="true">
-              {FILM_CLIPS.map((clip, i) => (
-                <button
-                  key={clip.src}
-                  type="button"
-                  className={`film-dot${i === current ? ' on' : ''}`}
-                  aria-label={`Go to shot ${i + 1}`}
-                  onClick={() => setCurrent(i)}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
@@ -515,7 +522,7 @@ function Landing() {
                 <h3>{s.title}</h3>
                 <p>{s.body}</p>
               </div>
-              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'explain' ? billVisual : s.visual}</div>
+              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'votes' ? votesVisual : s.id === 'explain' ? billVisual : s.visual}</div>
             </article>
           ))}
         </div>
@@ -534,26 +541,37 @@ function Landing() {
           </header>
 
           <ul className="floor-feed">
-            {floor.map((v) => (
-              <li className="floor-row" key={v.key} data-reveal>
-                <div className="fr-meta">
-                  {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
-                  {v.rollLabel && <span className="fr-roll">{v.rollLabel}</span>}
-                </div>
-                <div className="fr-body">
-                  {v.bill && (
-                    v.bill.href
-                      ? <Link className="fr-bill" to={v.bill.href}>{v.bill.display}</Link>
-                      : <span className="fr-bill">{v.bill.display}</span>
-                  )}
-                  <span className="fr-text">{v.text}</span>
-                </div>
-                <div className="fr-outcome">
-                  {v.tally && <span className="fr-tally">{v.tally}</span>}
-                  {v.result && <span className={`fr-result ${v.resultKind}`}>{v.result}</span>}
-                </div>
-              </li>
-            ))}
+            {floorReady
+              ? floor.map((v) => (
+                <li className="floor-row" key={v.key} data-reveal>
+                  <div className="fr-meta">
+                    {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
+                    {v.rollLabel && <span className="fr-roll">{v.rollLabel}</span>}
+                  </div>
+                  <div className="fr-body">
+                    {v.bill && (
+                      v.bill.href
+                        ? <Link className="fr-bill" to={v.bill.href}>{v.bill.display}</Link>
+                        : <span className="fr-bill">{v.bill.display}</span>
+                    )}
+                    <span className="fr-text">{v.text}</span>
+                  </div>
+                  <div className="fr-outcome">
+                    {v.tally && <span className="fr-tally">{v.tally}</span>}
+                    {v.result && <span className={`fr-result ${v.resultKind}`}>{v.result}</span>}
+                  </div>
+                </li>
+              ))
+              : FLOOR_SKELETON.map((i) => (
+                <li className="floor-row" key={`sk-${i}`} aria-hidden="true">
+                  <div className="fr-meta"><span className="mk-skel" style={{ width: 58, maxWidth: 'none' }} /></div>
+                  <div className="fr-body">
+                    <span className="mk-skel" style={{ width: 78, maxWidth: 'none' }} />
+                    <span className="mk-skel" style={{ width: '68%', maxWidth: 'none', marginTop: 6 }} />
+                  </div>
+                  <div className="fr-outcome"><span className="mk-skel" style={{ width: 54, maxWidth: 'none', height: 14 }} /></div>
+                </li>
+              ))}
           </ul>
 
           <Link className="floor-more" to="/bills">Browse bills and sources <ArrowRight /></Link>

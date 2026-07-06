@@ -1,9 +1,9 @@
 /* ============ LANDING: cinematic front page ============
-   An auto-playing, silent opening film into the Capitol: two very
-   fast elevated runs through the halls (one banking into a sharp
-   turn), then a top-down over the chamber seats ("who sits
-   here?"). The clips advance
-   themselves; a Play button appears if the browser blocks
+   An auto-playing, silent opening film through the REAL U.S. Capitol,
+   built from real, freely-licensed footage/photography (no AI): an
+   approach to the actual dome, down the actual Brumidi Corridors, then
+   up into the Rotunda dome ("what happens under this dome?"). The clips
+   advance themselves; a Play button appears if the browser blocks
    autoplay. Then the editorial payoff: the ZIP lookup, a four-step
    walkthrough (step 1 and step 3 render from real member/bill
    data), the live "On the floor" feed, the sources band, a closing
@@ -137,29 +137,6 @@
   text-wrap: balance;
 }
 .landing .film-q em { font-style: italic; color: #AECBFF; }
-
-/* progress dots — which shot of the sequence is playing */
-.landing .film-dots {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: flex;
-  gap: 10px;
-}
-.landing .film-dot {
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.34);
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-.landing .film-dot.on { background: #fff; transform: scale(1.25); }
-.landing .film-dot:hover { background: rgba(255, 255, 255, 0.7); }
 
 /* play affordance — only shown when the browser blocks autoplay */
 .landing .film-play {
