@@ -29,6 +29,13 @@ congressApi.interceptors.request.use(
   }
 )
 
+function congressApiPathFromVoteUrl(voteUrl) {
+  if (!voteUrl) return null
+  if (voteUrl.startsWith('/')) return voteUrl
+  if (voteUrl.startsWith(BASE_URL)) return voteUrl.slice(BASE_URL.length) || '/'
+  return null
+}
+
 // Add response interceptor for logging
 congressApi.interceptors.response.use(
   (response) => {
@@ -645,13 +652,14 @@ export const getVoteTalliesFromActions = async (actions) => {
     for (const action of actionsWithVotes) {
       for (const recordedVote of action.recordedVotes) {
         try {
-          // recordedVote.url is typically a full URL to the vote detail
-          // e.g., https://api.congress.gov/v3/vote/118/house/123
+          // recordedVote.url is typically a full URL to the Congress.gov vote detail.
+          // Senate actions can point at senate.gov XML, which is not CORS-readable
+          // from the browser, so only fetch URLs our Congress.gov client can serve.
           const voteUrl = recordedVote.url
-          if (!voteUrl) continue
+          const relativePath = congressApiPathFromVoteUrl(voteUrl)
+          if (!relativePath) continue
 
-          // Fetch via our congressApi instance (adds api_key and format params)
-          const relativePath = voteUrl.replace('https://api.congress.gov/v3', '')
+          // Fetch via our congressApi instance (adds api_key and format params).
           const response = await congressApi.get(relativePath)
           const voteDetail = response.data?.vote
 
