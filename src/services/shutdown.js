@@ -229,7 +229,7 @@ export const SHUTDOWN_HISTORY = [
 export const FUNDING_DEADLINES = {
   fiscalYear: 2026,
   congress: 119,
-  lastUpdated: '2026-02-19',
+  lastUpdated: '2026-06-11',
   deadlines: [
     {
       date: '2025-03-14',
@@ -249,7 +249,7 @@ export const FUNDING_DEADLINES = {
     {
       date: '2026-03-14',
       description: 'FY2026 CR extension deadline',
-      status: 'active'
+      status: 'passed'
     },
     {
       date: '2026-09-30',
