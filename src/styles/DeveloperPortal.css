@@ -15,14 +15,14 @@
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #1D4ED8;
+  color: var(--accent);
 }
 
 .dev-hero h1 {
   font-family: 'Instrument Serif', serif;
   font-size: 42px;
   font-weight: 400;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 16px 0;
   line-height: 1.2;
 }
@@ -30,7 +30,7 @@
 .dev-hero-subtitle {
   font-family: 'General Sans', sans-serif;
   font-size: 18px;
-  color: #6B6861;
+  color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto 32px;
   line-height: 1.6;
@@ -44,14 +44,14 @@
 }
 
 .dev-open-button {
-  color: #1A1A18;
-  border-color: #E8E6E1;
+  color: var(--text-primary);
+  border-color: var(--border);
 }
 
 .dev-open-button:hover {
-  color: #1D4ED8;
-  border-color: #1D4ED8;
-  background: rgba(29, 78, 216, 0.08);
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 /* Endpoints */
@@ -62,7 +62,7 @@
 .dev-endpoints h2 {
   font-family: 'Instrument Serif', serif;
   font-size: 28px;
-  color: #1A1A18;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 32px;
 }
@@ -74,8 +74,8 @@
 }
 
 .dev-endpoint-card {
-  background: #fff;
-  border: 1px solid #E8E6E1;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 24px;
 }
@@ -83,8 +83,8 @@
 .dev-endpoint-card code {
   font-family: 'Geist Mono', monospace;
   font-size: 14px;
-  color: #1D4ED8;
-  background: rgba(29, 78, 216, 0.08);
+  color: var(--accent);
+  background: var(--accent-subtle);
   padding: 4px 8px;
   border-radius: 4px;
   display: inline-block;
@@ -94,7 +94,7 @@
 .dev-endpoint-card p {
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
-  color: #6B6861;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
 }
@@ -104,15 +104,15 @@
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 48px;
   padding: 56px 0;
-  border-top: 1px solid #E8E6E1;
-  border-bottom: 1px solid #E8E6E1;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .dev-open-data-copy h2 {
   font-family: 'Instrument Serif', serif;
   font-size: 34px;
   font-weight: 400;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 12px 0 16px;
 }
 
@@ -120,28 +120,28 @@
   font-family: 'General Sans', sans-serif;
   font-size: 16px;
   line-height: 1.7;
-  color: #6B6861;
+  color: var(--text-secondary);
   margin: 0;
   max-width: 620px;
 }
 
 .dev-open-data-links {
   display: grid;
-  border-top: 2px solid #1A1A18;
+  border-top: 2px solid var(--rule-strong);
   align-self: start;
 }
 
 .dev-open-data-links a {
   font-family: 'Geist Mono', monospace;
   font-size: 13px;
-  color: #1D4ED8;
+  color: var(--accent);
   text-decoration: none;
   padding: 12px 0;
-  border-bottom: 1px solid #F0EEEA;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .dev-open-data-links a:hover {
-  color: #1E40AF;
+  color: var(--accent-hover);
 }
 
 /* Pricing */
@@ -153,13 +153,13 @@
 .dev-pricing h2 {
   font-family: 'Instrument Serif', serif;
   font-size: 28px;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .dev-pricing-subtitle {
   font-family: 'General Sans', sans-serif;
-  color: #6B6861;
+  color: var(--text-secondary);
   margin-bottom: 40px;
 }
 
@@ -172,8 +172,8 @@
 }
 
 .dev-tier-card {
-  background: #fff;
-  border: 1px solid #E8E6E1;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 32px 24px;
   text-align: left;
@@ -181,8 +181,8 @@
 }
 
 .dev-tier-popular {
-  border-color: #1D4ED8;
-  box-shadow: 0 0 0 1px #1D4ED8;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .dev-tier-badge {
@@ -190,8 +190,8 @@
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #1D4ED8;
-  color: white;
+  background: var(--accent);
+  color: var(--surface);
   font-family: 'General Sans', sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -203,7 +203,7 @@
   font-family: 'General Sans', sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 0 0 16px;
 }
 
@@ -217,26 +217,26 @@
 .dev-tier-dollar {
   font-family: 'General Sans', sans-serif;
   font-size: 18px;
-  color: #6B6861;
+  color: var(--text-secondary);
 }
 
 .dev-tier-amount {
   font-family: 'Geist Mono', monospace;
   font-size: 36px;
   font-weight: 700;
-  color: #1A1A18;
+  color: var(--text-primary);
 }
 
 .dev-tier-period {
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
-  color: #6B6861;
+  color: var(--text-secondary);
 }
 
 .dev-tier-limit {
   font-family: 'Geist Mono', monospace;
   font-size: 13px;
-  color: #9C9789;
+  color: var(--text-muted);
   margin: 0 0 24px;
 }
 
@@ -249,9 +249,9 @@
 .dev-tier-features li {
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
-  color: #6B6861;
+  color: var(--text-secondary);
   padding: 6px 0;
-  border-bottom: 1px solid #F0EEEA;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .dev-tier-features li:last-child {
@@ -267,13 +267,13 @@
 .dev-cta h2 {
   font-family: 'Instrument Serif', serif;
   font-size: 28px;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .dev-cta p {
   font-family: 'General Sans', sans-serif;
-  color: #6B6861;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
