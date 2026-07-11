@@ -142,6 +142,17 @@ function ChamberPage() {
     return () => { cancelled = true }
   }, [congress, chamberView])
 
+  // Restore a desk drawer from a deep link once the chamber data is ready.
+  useEffect(() => {
+    const deskId = Number(params.deskId)
+    if (!Number.isInteger(deskId) || desks.length === 0) return
+    const linkedDesk = desks.find((desk) => desk.desk_id === deskId)
+    if (!linkedDesk) return
+    setSelectedDesk((current) =>
+      current?.desk_id === linkedDesk.desk_id ? current : linkedDesk
+    )
+  }, [params.deskId, desks])
+
   // ---- 7. Active moment shape for SenateChamberMap ----
   // For v1, votes-by-bioguide come from the historic moment's pre-loaded
   // votesByBioguide map. P5 backfill of historical votes will eventually
@@ -170,11 +181,13 @@ function ChamberPage() {
 
   const handleDeskClick = useCallback((desk) => {
     setSelectedDesk(desk)
-  }, [])
+    navigate(`/chamber/${congress}/desk/${desk.desk_id}`)
+  }, [congress, navigate])
 
   const handleDrawerClose = useCallback(() => {
     setSelectedDesk(null)
-  }, [])
+    if (params.deskId) navigate(`/chamber/${congress}`, { replace: true })
+  }, [congress, navigate, params.deskId])
 
   const handleMomentChange = useCallback((slug) => {
     setActiveMomentSlug(slug)
