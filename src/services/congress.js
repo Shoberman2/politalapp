@@ -4,7 +4,7 @@ import { CONGRESS_MAX } from '../utils/congressUtil'
 import { supabase } from '../lib/supabase'
 
 const BASE_URL = 'https://api.congress.gov/v3'
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
+const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
 
 console.log('[Congress API] Initializing with base URL:', BASE_URL)
 console.log('[Congress API] API Key present:', !!API_KEY)
