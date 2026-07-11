@@ -11,26 +11,26 @@
 .api-docs-header h1 {
   font-family: 'Instrument Serif', serif;
   font-size: 28px;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 0 0 8px;
 }
 
 .api-docs-header p {
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
-  color: #6B6861;
+  color: var(--text-secondary);
   margin: 4px 0;
 }
 
 .api-docs-header a {
-  color: #1D4ED8;
+  color: var(--accent);
   text-decoration: none;
 }
 
 .api-docs-header code {
   font-family: 'Geist Mono', monospace;
   font-size: 13px;
-  background: #FAFAF7;
+  background: var(--bg-tint);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -53,7 +53,7 @@
   font-family: 'General Sans', sans-serif;
   font-size: 12px;
   font-weight: 600;
-  color: #9C9789;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 12px;
@@ -72,25 +72,25 @@
   cursor: pointer;
   font-family: 'General Sans', sans-serif;
   font-size: 13px;
-  color: #6B6861;
+  color: var(--text-secondary);
   transition: background 0.15s;
 }
 
 .api-docs-nav-item:hover {
-  background: #FAFAF7;
+  background: var(--bg-tint);
 }
 
 .api-docs-nav-item.active {
   background: rgba(29, 78, 216, 0.08);
-  color: #1D4ED8;
+  color: var(--accent);
 }
 
 .api-docs-method {
   font-family: 'Geist Mono', monospace;
   font-size: 10px;
   font-weight: 700;
-  color: #16A34A;
-  background: rgba(22, 163, 74, 0.08);
+  color: var(--success);
+  background: var(--success-subtle);
   padding: 2px 4px;
   border-radius: 3px;
   flex-shrink: 0;
@@ -106,7 +106,7 @@
 
 .api-docs-nav-divider {
   height: 1px;
-  background: #E8E6E1;
+  background: var(--border);
   margin: 12px 0;
 }
 
@@ -118,8 +118,8 @@
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #1D4ED8;
-  background: rgba(29, 78, 216, 0.08);
+  color: var(--accent);
+  background: var(--accent-subtle);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -134,17 +134,17 @@
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #1A1A18;
+  color: var(--text-primary);
   background: transparent;
-  border: 1px solid #E8E6E1;
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
 }
 
 .api-docs-nav-secondary:hover {
-  border-color: #1D4ED8;
-  color: #1D4ED8;
-  background: rgba(29, 78, 216, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 /* Content */
@@ -167,8 +167,8 @@
   font-family: 'Geist Mono', monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #16A34A;
-  background: rgba(22, 163, 74, 0.08);
+  color: var(--success);
+  background: var(--success-subtle);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -176,13 +176,13 @@
 .api-docs-endpoint-path {
   font-family: 'Geist Mono', monospace;
   font-size: 16px;
-  color: #1A1A18;
+  color: var(--text-primary);
 }
 
 .api-docs-endpoint-desc {
   font-family: 'General Sans', sans-serif;
   font-size: 15px;
-  color: #6B6861;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 24px;
 }
@@ -195,7 +195,7 @@
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 0 0 12px;
 }
 
@@ -210,29 +210,29 @@
 .api-docs-params-table th {
   text-align: left;
   font-weight: 600;
-  color: #9C9789;
+  color: var(--text-secondary);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 8px 12px;
-  border-bottom: 1px solid #E8E6E1;
+  border-bottom: 1px solid var(--border);
 }
 
 .api-docs-params-table td {
   padding: 10px 12px;
-  color: #6B6861;
-  border-bottom: 1px solid #F0EEEA;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .api-docs-params-table code {
   font-family: 'Geist Mono', monospace;
   font-size: 12px;
-  color: #1A1A18;
+  color: var(--text-primary);
 }
 
 .api-docs-required {
   font-size: 10px;
-  color: #DC2626;
+  color: var(--error);
   font-weight: 600;
   margin-left: 4px;
 }
@@ -253,14 +253,14 @@
 /* Auth section */
 .api-docs-auth-section {
   padding-top: 32px;
-  border-top: 1px solid #E8E6E1;
+  border-top: 1px solid var(--border);
 }
 
 .api-docs-auth-section h3 {
   font-family: 'General Sans', sans-serif;
   font-size: 16px;
   font-weight: 600;
-  color: #1A1A18;
+  color: var(--text-primary);
   margin: 24px 0 12px;
 }
 
@@ -271,12 +271,12 @@
 .api-docs-auth-section p {
   font-family: 'General Sans', sans-serif;
   font-size: 14px;
-  color: #6B6861;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
 .api-docs-auth-section a {
-  color: #1D4ED8;
+  color: var(--accent);
   text-decoration: none;
 }
 
