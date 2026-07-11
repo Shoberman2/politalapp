@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions, explainBillWithAI } from '../services/congress'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
+import { copyTextToClipboard } from '../utils/clipboard'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
@@ -37,19 +38,18 @@ function BillDetail() {
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/s/bill/${congress}/${billType}/${number}`
     const shareTitle = `${billType.toUpperCase()}. ${number} — BallotWatch`
-    try {
-      if (navigator.share) {
+    if (navigator.share) {
+      try {
         await navigator.share({ title: shareTitle, url: shareUrl })
         return
+      } catch (err) {
+        if (err?.name === 'AbortError') return
       }
-      await navigator.clipboard.writeText(shareUrl)
-      setShareLabel('Link copied')
-      setTimeout(() => setShareLabel('Share ↗'), 2000)
-    } catch (err) {
-      if (err?.name === 'AbortError') return
-      setShareLabel('Copy failed')
-      setTimeout(() => setShareLabel('Share ↗'), 2000)
     }
+
+    const copied = await copyTextToClipboard(shareUrl)
+    setShareLabel(copied ? 'Link copied' : 'Copy failed')
+    setTimeout(() => setShareLabel('Share ↗'), 2000)
   }
 
   useEffect(() => {
