@@ -62,7 +62,7 @@ function Pricing() {
           <li>Civic Briefing Agent for districts or candidates</li>
           <li>Gmail delivery for modern source-linked updates</li>
           <li>Track your representatives' voting records</li>
-          <li>Browse all 535+ members of Congress</li>
+          <li>Browse current members and delegates of Congress</li>
           <li>Search and review congressional bills</li>
           <li>Source-linked bill explanations</li>
         </ul>
