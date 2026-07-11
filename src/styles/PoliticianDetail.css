@@ -444,6 +444,13 @@
   margin-top: 32px;
   padding-top: 16px;
   border-top: 1px solid var(--border-light);
+  overflow-wrap: anywhere;
+}
+
+.pol-photo-attribution a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* LOADING & ERROR */
