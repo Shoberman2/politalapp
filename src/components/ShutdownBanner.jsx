@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { calculateShutdownRisk, getCountdown, FUNDING_DEADLINES, fetchAppropriationsBills } from '../services/shutdown'
+import { calculateShutdownRisk, getCountdown } from '../services/shutdown'
 import '../styles/ShutdownBanner.css'
 
 function ShutdownBanner() {
@@ -16,9 +16,6 @@ function ShutdownBanner() {
     if (initialRisk.nextDeadline) {
       setCountdown(getCountdown(initialRisk.nextDeadline.date))
     }
-
-    // Try to enrich with API data
-    fetchAppropriationsBills().catch(() => {})
 
     // Update countdown every 60 seconds
     const interval = setInterval(() => {
