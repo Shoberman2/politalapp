@@ -201,7 +201,7 @@ The bills sponsor and routing features ship behind env-gated flags:
 | --- | --- | --- |
 | `VITE_BILLS_SHOW_SPONSOR_FILTER` | `false` | Sponsor and cosponsor filters, sponsor activity badge |
 | `VITE_BILLS_SHOW_ROUTING_PANEL` | `false` | Legislative routing panel, committee route, survival popover |
-| `VITE_SHOW_CHAMBER` | `false` | Historical chamber visualization routes |
+| `VITE_SHOW_CHAMBER` | `true` | Historical chamber visualization routes; set to `false` as an emergency kill switch |
 
 ## Contributing
 
