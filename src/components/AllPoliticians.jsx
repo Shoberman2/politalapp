@@ -7,6 +7,7 @@ import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberIm
 import { filterMembersByName } from '../utils/searchFilter'
 import { getLeadershipTitle, isLeadership } from '../data/leadership'
 import { toStateAbbr, toStateName } from '../utils/states'
+import { getRosterComposition, isNonVotingDelegate } from '../utils/congressRoster'
 import '../styles/AllPoliticians.css'
 
 const HOUSE_SEATS = 435
@@ -46,7 +47,7 @@ function locationOf(member) {
 
 // One composition bar (House or Senate). Segments are derived from the members
 // actually loaded; vacant seats are inferred from the chamber's fixed size.
-function CompositionBlock({ name, total, majority, counts }) {
+function CompositionBlock({ name, total, majority, counts, note }) {
   const segs = [
     { cls: 'r', label: 'Republican', n: counts.R },
     { cls: 'd', label: 'Democrat', n: counts.D },
@@ -58,7 +59,7 @@ function CompositionBlock({ name, total, majority, counts }) {
     <div className="comp-block">
       <div className="comp-head">
         <span className="ch-name">{name}</span>
-        <span className="ch-total">{total} seats / majority {majority}</span>
+        <span className="ch-total">{total} voting seats / majority {majority}</span>
       </div>
       <div className="comp-bar">
         {segs.map((s) => (
@@ -71,6 +72,7 @@ function CompositionBlock({ name, total, majority, counts }) {
         {segs.map((s) => (
           <span key={s.cls}><i className={`lg-${s.cls}`}></i>{s.label} {s.n}</span>
         ))}
+        {note && <span>{note}</span>}
       </div>
     </div>
   )
@@ -82,7 +84,13 @@ function MemberCard({ member, onClick }) {
   const letter = partyLetter(member.party || member.partyName)
   const bioguideId = member.bioguideId || member.bioguide_id
   const imageUrl = !imgFailed ? (member.imageUrl || resolveMemberImageUrl(bioguideId)) : null
-  const role = member.chamber === 'senate' ? 'Senator' : 'Representative'
+  const role = member.chamber === 'senate'
+    ? 'Senator'
+    : toStateAbbr(member.state) === 'PR'
+      ? 'Resident Commissioner'
+      : isNonVotingDelegate(member)
+        ? 'Delegate'
+        : 'Representative'
   const leaderTitle = getLeadershipTitle(bioguideId)
 
   return (
@@ -146,23 +154,12 @@ function AllPoliticians() {
     fetchMembers()
   }, [])
 
-  // Chamber party composition derived from the members actually loaded.
-  const composition = useMemo(() => {
-    const blank = () => ({ R: 0, D: 0, I: 0 })
-    const house = blank()
-    const senate = blank()
-    for (const m of allMembers) {
-      const bucket = m.chamber === 'senate' ? senate : house
-      const l = partyLetter(m.party || m.partyName)
-      if (l === 'R' || l === 'D' || l === 'I') bucket[l] += 1
-    }
-    const houseTotal = house.R + house.D + house.I
-    const senateTotal = senate.R + senate.D + senate.I
-    return {
-      house: { ...house, vacant: Math.max(0, HOUSE_SEATS - houseTotal) },
-      senate: { ...senate, vacant: Math.max(0, SENATE_SEATS - senateTotal) },
-    }
-  }, [allMembers])
+  // Voting-seat composition excludes non-voting delegates while the roster
+  // retains them as searchable public officials.
+  const composition = useMemo(
+    () => getRosterComposition(allMembers, { houseSeats: HOUSE_SEATS, senateSeats: SENATE_SEATS }),
+    [allMembers]
+  )
 
   const filteredMembers = useMemo(() => {
     let filtered = [...allMembers]
@@ -195,7 +192,7 @@ function AllPoliticians() {
     return (
       <div className="all-politicians-loading">
         <div className="loading-spinner"></div>
-        <p>Loading all 535 members…</p>
+        <p>Loading the current congressional roster…</p>
       </div>
     )
   }
@@ -219,8 +216,8 @@ function AllPoliticians() {
   return (
     <div className="bw members-register">
       <SEO
-        title="All Members of Congress"
-        description="Browse all 535 members of the U.S. Congress. Filter by chamber, party, and state. View voting records and profiles."
+        title="Current Members and Delegates of Congress"
+        description={`Browse the current congressional roster of ${composition.rosterTotal} members and delegates. Filter by chamber, party, and state.`}
         path="/all"
       />
 
@@ -228,9 +225,15 @@ function AllPoliticians() {
         <div className="pm-inner">
           <span className="pm-kicker kicker">Who Represents America / 119th Congress</span>
           <h1 className="pm-title">The Members <em>Register</em></h1>
-          <p className="pm-deck">All 535 voting members of the U.S. House and Senate. Search by name, filter by chamber, party or state, then open any profile to read the full voting record.</p>
+          <p className="pm-deck">The current congressional roster includes {composition.rosterTotal} members and delegates. Party bars show voting seats and vacancies; non-voting delegates remain searchable below.</p>
           <div className="composition">
-            <CompositionBlock name="House" total={HOUSE_SEATS} majority={218} counts={composition.house} />
+            <CompositionBlock
+              name="House"
+              total={HOUSE_SEATS}
+              majority={218}
+              counts={composition.house}
+              note={`${composition.delegates.total} non-voting delegate${composition.delegates.total === 1 ? '' : 's'} listed in roster`}
+            />
             <CompositionBlock name="Senate" total={SENATE_SEATS} majority={51} counts={composition.senate} />
           </div>
         </div>
@@ -269,7 +272,7 @@ function AllPoliticians() {
 
       <div className="members-toolbar">
         <div className="mt-bar">
-          <div className="mt-count">Showing <b>{visibleMembers.length}</b> of <b>{filteredMembers.length}</b> members / sorted by surname</div>
+          <div className="mt-count">Showing <b>{visibleMembers.length}</b> of <b>{filteredMembers.length}</b> members and delegates / sorted by surname</div>
           <div className="mt-chips">
             {CHIPS.map((c) => (
               <button key={c.key} className={`mt-chip ${chip === c.key ? 'active' : ''}`} onClick={() => setChip(c.key)}>{c.label}</button>
