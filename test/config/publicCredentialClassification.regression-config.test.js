@@ -42,4 +42,20 @@ describe('browser credential classification', () => {
     expect(output).toContain('Private credentials use a public VITE_ prefix: VITE_INTERNAL_API_KEY')
     expect(output).not.toContain('private-internal-config-test')
   })
+
+  it('reports browser and server configuration gaps in the same run', () => {
+    const result = runConfig({
+      VITE_SUPABASE_URL: '',
+      VITE_SUPABASE_ANON_KEY: '',
+      VITE_CONGRESS_API_KEY: '',
+      SUPABASE_URL: '',
+      SUPABASE_SERVICE_ROLE_KEY: '',
+      VITE_PUBLIC_ORIGIN: '',
+    })
+    const output = `${result.stdout}${result.stderr}`
+
+    expect(result.status).toBe(1)
+    expect(output).toContain('Core browser data: missing')
+    expect(output).toContain('Core server/API data: missing')
+  })
 })

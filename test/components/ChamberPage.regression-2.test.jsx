@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import ChamberPage from '../../src/components/ChamberPage'
+
+afterEach(cleanup)
 
 // Regression: ISSUE-002 — /chamber/:congress/desk/:deskId rendered the
 // chamber but did not restore the linked desk drawer.
@@ -40,6 +42,11 @@ function LocationProbe() {
   return <output aria-label="Current path">{useLocation().pathname}</output>
 }
 
+function NavigationControls() {
+  const navigate = useNavigate()
+  return <button type="button" onClick={() => navigate('/chamber/107')}>Return without closing</button>
+}
+
 describe('chamber desk deep-link regression', () => {
   it('opens the linked desk and returns to the congress when closed', async () => {
     render(
@@ -56,6 +63,27 @@ describe('chamber desk deep-link regression', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close desk history' }))
 
     await waitFor(() => {
+      expect(screen.getByLabelText('Current path')).toHaveTextContent('/chamber/107')
+    })
+  })
+
+  it('clears the desk drawer when navigation removes the desk parameter', async () => {
+    render(
+      <MemoryRouter initialEntries={['/chamber/107/desk/47']}>
+        <LocationProbe />
+        <NavigationControls />
+        <Routes>
+          <Route path="/chamber/:congress/desk/:deskId" element={<ChamberPage />} />
+          <Route path="/chamber/:congress" element={<ChamberPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByRole('dialog', { name: 'Desk 47' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Return without closing' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Desk 47' })).not.toBeInTheDocument()
       expect(screen.getByLabelText('Current path')).toHaveTextContent('/chamber/107')
     })
   })

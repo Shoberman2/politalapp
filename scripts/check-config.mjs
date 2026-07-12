@@ -54,15 +54,17 @@ function requireKeys(label, keys, target = errors) {
   return false
 }
 
-const coreReady = requireKeys('Core browser data', [
+const browserReady = requireKeys('Core browser data', [
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
   'VITE_CONGRESS_API_KEY',
-]) && requireKeys('Core server/API data', [
+])
+const serverReady = requireKeys('Core server/API data', [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'VITE_PUBLIC_ORIGIN',
 ])
+const coreReady = browserReady && serverReady
 
 if (configured(config.VITE_SUPABASE_URL) && configured(config.SUPABASE_URL)) {
   const browserUrl = config.VITE_SUPABASE_URL.replace(/\/$/, '')

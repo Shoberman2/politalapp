@@ -145,11 +145,17 @@ function ChamberPage() {
   // Restore a desk drawer from a deep link once the chamber data is ready.
   useEffect(() => {
     const deskId = Number(params.deskId)
-    if (!Number.isInteger(deskId) || desks.length === 0) return
+    if (!params.deskId || !Number.isInteger(deskId) || desks.length === 0) {
+      setSelectedDesk(null)
+      return
+    }
     const linkedDesk = desks.find((desk) => desk.desk_id === deskId)
-    if (!linkedDesk) return
+    if (!linkedDesk) {
+      setSelectedDesk(null)
+      return
+    }
     setSelectedDesk((current) =>
-      current?.desk_id === linkedDesk.desk_id ? current : linkedDesk
+      current === linkedDesk ? current : linkedDesk
     )
   }, [params.deskId, desks])
 
