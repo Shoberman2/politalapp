@@ -75,6 +75,7 @@ Read `DESIGN.md` before changing user-facing UI.
 
 - Node.js 20 or newer
 - npm
+- Vercel CLI (`npm install --global vercel`) for the full-stack local server
 - Optional: Congress.gov API key for live ETL
 - Optional: Supabase project for full data-backed behavior
 
@@ -83,14 +84,20 @@ Read `DESIGN.md` before changing user-facing UI.
 ```bash
 npm install
 cp .env.example .env
-npm run dev
+vercel link
+npm run config:check
+npm run dev:fullstack
 ```
 
 The local app starts at:
 
 ```text
-http://localhost:5173
+http://localhost:3000
 ```
+
+`npm run dev:fullstack` runs the Vite SPA and Vercel API routes on one origin.
+For frontend-only UI work, use `npm run dev` at `http://localhost:5173`;
+serverless routes such as `/api/briefings/*` are not available in that mode.
 
 Most UI and docs work can be done without production credentials. Features that
 read or write Supabase need configured environment variables.
@@ -121,12 +128,23 @@ Never commit `.env`.
 
 ```bash
 npm run dev
+npm run dev:fullstack
+npm run config:check
+npm run config:check:full
 npm run build
 npm run preview
 npm test
 npm run test:e2e
 npm run etl:dry-run
 ```
+
+Local end-to-end tests target the full-stack origin on port 3000. Start
+`npm run dev:fullstack` in another terminal before running `npm run test:e2e`.
+
+`npm run config:check` validates the core browser/server settings and checks the
+connected Supabase Auth provider without printing values. Use
+`npm run config:check:full` when Stripe subscriptions and Gmail delivery should
+also be configured; optional integration gaps are errors in that stricter mode.
 
 ETL commands:
 

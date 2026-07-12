@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:fullstack": "vercel dev --listen 3000",
+    "config:check": "node scripts/check-config.mjs",
+    "config:check:full": "node scripts/check-config.mjs --full",
     "build": "vite build",
     "preview": "vite preview",
     "etl": "npx tsx etl/run.ts",
