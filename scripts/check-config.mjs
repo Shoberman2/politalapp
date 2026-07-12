@@ -71,13 +71,30 @@ if (configured(config.VITE_SUPABASE_URL) && configured(config.SUPABASE_URL)) {
   else errors.push('Supabase project URLs: VITE_SUPABASE_URL and SUPABASE_URL point to different projects')
 }
 
+const publicClientCredentialKeys = new Set([
+  'VITE_CONGRESS_API_KEY',
+  'VITE_FEC_API_KEY',
+  'VITE_LEGISCAN_API_KEY',
+  'VITE_OPENSECRETS_API_KEY',
+  'VITE_STRIPE_PUBLISHABLE_KEY',
+  'VITE_SUPABASE_ANON_KEY',
+])
 const publicSecretKeys = Object.keys(config).filter((key) =>
-  key.startsWith('VITE_') && /(OPENAI|SECRET|SERVICE_ROLE|PRIVATE|TOKEN_ENCRYPTION)/.test(key)
+  key.startsWith('VITE_') &&
+  /(API_KEY|OPENAI|SECRET|SERVICE_ROLE|PRIVATE|TOKEN_ENCRYPTION|PASSWORD)/.test(key) &&
+  !publicClientCredentialKeys.has(key)
 )
 if (publicSecretKeys.length > 0) {
-  errors.push(`Server secrets use a public VITE_ prefix: ${publicSecretKeys.join(', ')}`)
+  errors.push(`Private credentials use a public VITE_ prefix: ${publicSecretKeys.join(', ')}`)
 } else {
-  checks.push('Public-prefix safety: no server secrets exposed')
+  checks.push('Public-prefix safety: no known private credentials exposed')
+}
+
+const configuredPublicClientKeys = [...publicClientCredentialKeys]
+  .filter((key) => configured(config[key]))
+  .sort()
+if (configuredPublicClientKeys.length > 0) {
+  checks.push(`Browser client credentials: bundled by Vite and treated as public (${configuredPublicClientKeys.join(', ')})`)
 }
 
 if (full) {

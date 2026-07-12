@@ -111,7 +111,13 @@ Required for full app data access:
 ```env
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
+VITE_CONGRESS_API_KEY=...
 ```
+
+Vite embeds every `VITE_` value in the browser bundle. The Congress.gov key is
+therefore a public, quota-limited client credential in the current SPA
+architecture; never reuse it as a private server credential. A server proxy is
+required if that key must become private.
 
 Required for ETL:
 
@@ -141,8 +147,9 @@ npm run etl:dry-run
 Local end-to-end tests target the full-stack origin on port 3000. Start
 `npm run dev:fullstack` in another terminal before running `npm run test:e2e`.
 
-`npm run config:check` validates the core browser/server settings and checks the
-connected Supabase Auth provider without printing values. Use
+`npm run config:check` validates the core browser/server settings, identifies
+browser-exposed credential names without printing values, and checks the
+connected Supabase Auth provider. Use
 `npm run config:check:full` when Stripe subscriptions and Gmail delivery should
 also be configured; optional integration gaps are errors in that stricter mode.
 

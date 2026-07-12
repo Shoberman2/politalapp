@@ -156,10 +156,10 @@
 **Repro:** Run `npm run config:check:full`.
 **What to do:** Configure `VITE_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; register the production webhook endpoint; then verify checkout, signature validation, renewal, cancellation, and entitlement updates in Stripe test mode.
 
-## Rotate the historically committed Congress.gov API key
+## Rotate the historically committed Congress.gov browser key
 **Priority:** High
 **Category:** Security / configuration
 **Blocked by:** Access to the Congress.gov API account that owns the key
-**Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential.
+**Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential. The current SPA calls Congress.gov directly, so `VITE_CONGRESS_API_KEY` is intentionally embedded in the browser and must be treated as public and quota-limited rather than as a server secret.
 **Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
-**What to do:** Revoke or rotate the key with Congress.gov, update the server/local environment values, confirm `npm run config:check`, build, and bill-loading smoke tests pass, and avoid placing the replacement in any `VITE_` variable or tracked file.
+**What to do:** Revoke or rotate the key with Congress.gov, update the server and browser environment values, and confirm `npm run config:check`, build, and bill-loading smoke tests pass. Monitor the 5,000-request/hour quota. If the replacement must remain private, first proxy Congress.gov calls through a server route and remove `VITE_CONGRESS_API_KEY` from the frontend architecture.
