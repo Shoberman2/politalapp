@@ -144,7 +144,7 @@
 **Priority:** High
 **Category:** Functional / configuration
 **Blocked by:** User-owned Google OAuth credentials and production secret values
-**Context:** `npm run config:check:full` reports Gmail delivery as incomplete. Core app configuration passes, but briefing authorization and scheduled delivery cannot work without the server-only Gmail credentials.
+**Context:** `npm run config:check:full` reports Gmail delivery as incomplete. The briefing schema migration is applied and core app configuration passes, but authorization and scheduled delivery cannot work without the server-only Gmail credentials.
 **Repro:** Run `npm run config:check:full`.
 **What to do:** Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`, `GMAIL_TOKEN_ENCRYPTION_KEY`, and `CRON_SECRET` in the appropriate local and Vercel environments. Register the exact callback URI, then verify connect, callback, encrypted token persistence, and a delivery run end to end.
 
@@ -152,7 +152,7 @@
 **Priority:** High
 **Category:** Functional / configuration
 **Blocked by:** User-owned Stripe account keys, a Price, and a webhook endpoint
-**Context:** `npm run config:check:full` reports subscriptions as incomplete. The webhook now handles the Vercel Node runtime correctly, but checkout and subscription lifecycle events cannot work without Stripe configuration.
+**Context:** `npm run config:check:full` reports subscriptions as incomplete. The webhook now verifies signatures from Vercel's raw Web Request body, but checkout and subscription lifecycle events cannot work without Stripe configuration.
 **Repro:** Run `npm run config:check:full`.
 **What to do:** Configure `VITE_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; register the production webhook endpoint; then verify checkout, signature validation, renewal, cancellation, and entitlement updates in Stripe test mode.
 
@@ -163,3 +163,11 @@
 **Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential. The current SPA calls Congress.gov directly, so `VITE_CONGRESS_API_KEY` is intentionally embedded in the browser and must be treated as public and quota-limited rather than as a server secret.
 **Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
 **What to do:** Revoke or rotate the key with Congress.gov, update the server and browser environment values, and confirm `npm run config:check`, build, and bill-loading smoke tests pass. Monitor the 5,000-request/hour quota. If the replacement must remain private, first proxy Congress.gov calls through a server route and remove `VITE_CONGRESS_API_KEY` from the frontend architecture.
+
+## Enable Supabase leaked-password protection
+**Priority:** Medium
+**Category:** Security / configuration
+**Blocked by:** Supabase Auth dashboard access and any plan requirement for the setting
+**Context:** The post-migration Supabase security advisor reports `auth_leaked_password_protection` as disabled. This does not block Google OAuth or core app startup, but password-based accounts do not receive the compromised-password check.
+**Repro:** Run the Supabase security advisor for project `dbtbmjjjcfwobhlicduk`.
+**What to do:** Enable leaked-password protection in Supabase Auth password-security settings, then rerun the security advisor and verify password sign-up/sign-in behavior.
