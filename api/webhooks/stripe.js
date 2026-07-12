@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { supabaseAdmin } from '../_lib/supabase.js'
-import { getHeader, readTextBody, sendResponse } from '../_lib/request.js'
+import { getHeader, readTextBody } from '../_lib/request.js'
 
 async function route(req) {
   if (req.method !== 'POST') {
@@ -201,8 +201,8 @@ async function route(req) {
   })
 }
 
-export default async function handler(req, res) {
-  return sendResponse(res, await route(req))
+export default {
+  fetch(request) {
+    return route(request)
+  },
 }
-
-export const config = { runtime: 'nodejs' }
