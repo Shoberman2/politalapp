@@ -131,3 +131,35 @@
 **Blocked by:** Historical Congress Chamber Phase 1 shipping
 **Context:** From 2026-05-21 CEO review operational debt (Section 8 observability). The `member_reconciliation_log` table accumulates rows whenever the multi-source ETL hits a conflict between Congress.gov + GovInfo + Senate Historical Office data. Without quarterly review, conflicts pile up and silent data-drift sets in. Pattern matches the existing "Quarterly committee glossary review" TODO.
 **What to do:** Once per quarter: (1) `SELECT * FROM member_reconciliation_log WHERE resolved = false ORDER BY occurrence_count DESC` — review top conflicts. (2) For each, decide: (a) update precedence rule, (b) hand-curate the canonical record, (c) escalate to feature-flag-off for that Congress's chart if structural. (3) Mark resolved with reason. Effort: human ~1 hour / CC ~10 min.
+
+## Enable Google sign-in in Supabase
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** A user-owned Google OAuth web client ID and client secret
+**Context:** QA ISSUE-010 reproduced `400 Unsupported provider` from `/auth?next=/briefings`. The linked Supabase project is healthy, but its auth settings report `external.google=false`; no Google OAuth credentials are present locally or in Vercel.
+**Repro:** Start the full stack with `npm run dev:fullstack`, open `/briefings`, choose `Send to Gmail`, and click `Continue with Google`.
+**What to do:** Create or select a Google OAuth web client, authorize `https://dbtbmjjjcfwobhlicduk.supabase.co/auth/v1/callback`, add the local and production web origins, configure the client ID and secret in Supabase Auth, then enable Google. Confirm `npm run config:check` no longer warns and complete the browser sign-in flow.
+
+## Configure Gmail briefing delivery
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** User-owned Google OAuth credentials and production secret values
+**Context:** `npm run config:check:full` reports Gmail delivery as incomplete. Core app configuration passes, but briefing authorization and scheduled delivery cannot work without the server-only Gmail credentials.
+**Repro:** Run `npm run config:check:full`.
+**What to do:** Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`, `GMAIL_TOKEN_ENCRYPTION_KEY`, and `CRON_SECRET` in the appropriate local and Vercel environments. Register the exact callback URI, then verify connect, callback, encrypted token persistence, and a delivery run end to end.
+
+## Configure Stripe subscriptions
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** User-owned Stripe account keys, a Price, and a webhook endpoint
+**Context:** `npm run config:check:full` reports subscriptions as incomplete. The webhook now handles the Vercel Node runtime correctly, but checkout and subscription lifecycle events cannot work without Stripe configuration.
+**Repro:** Run `npm run config:check:full`.
+**What to do:** Configure `VITE_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; register the production webhook endpoint; then verify checkout, signature validation, renewal, cancellation, and entitlement updates in Stripe test mode.
+
+## Rotate the historically committed Congress.gov API key
+**Priority:** High
+**Category:** Security / configuration
+**Blocked by:** Access to the Congress.gov API account that owns the key
+**Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential.
+**Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
+**What to do:** Revoke or rotate the key with Congress.gov, update the server/local environment values, confirm `npm run config:check`, build, and bill-loading smoke tests pass, and avoid placing the replacement in any `VITE_` variable or tracked file.
