@@ -1,6 +1,9 @@
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { supabaseAdmin } from './supabase.js'
+import { getHeader, getRequestUrl, readJsonBody, sendResponse } from './request.js'
+
+export { getHeader, getRequestUrl, readJsonBody, sendResponse } from './request.js'
 
 export const briefingCorsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +14,7 @@ export const briefingCorsHeaders = {
 const CONGRESS_API_BASE = 'https://api.congress.gov/v3'
 const CONGRESS_API_KEY = process.env.CONGRESS_API_KEY
   || process.env.VITE_CONGRESS_API_KEY
-  || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
+  || ''
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke'
@@ -67,42 +70,6 @@ export function handleBriefingCors(req) {
   return null
 }
 
-export function getHeader(req, name) {
-  if (req.headers?.get) return req.headers.get(name) || req.headers.get(name.toLowerCase()) || ''
-  const value = req.headers?.[name.toLowerCase()] || req.headers?.[name]
-  return Array.isArray(value) ? value[0] || '' : value || ''
-}
-
-export function getRequestUrl(req) {
-  if (req.url && /^https?:\/\//i.test(req.url)) return req.url
-  const proto = getHeader(req, 'x-forwarded-proto') || 'http'
-  const host = getHeader(req, 'x-forwarded-host') || getHeader(req, 'host') || 'localhost'
-  return `${proto}://${host}${req.url || '/'}`
-}
-
-export async function readJsonBody(req) {
-  if (typeof req.json === 'function') return req.json()
-  if (req.body && typeof req.body === 'object') return req.body
-  if (typeof req.body === 'string') return JSON.parse(req.body || '{}')
-
-  const chunks = []
-  for await (const chunk of req) chunks.push(Buffer.from(chunk))
-  const body = Buffer.concat(chunks).toString('utf8')
-  return body ? JSON.parse(body) : {}
-}
-
-export async function sendResponse(res, response) {
-  if (!res || typeof res.setHeader !== 'function') return response
-
-  res.statusCode = response.status || 200
-  response.headers?.forEach((value, key) => {
-    res.setHeader(key, value)
-  })
-  const body = await response.text()
-  res.end(body)
-  return undefined
-}
-
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -136,7 +103,7 @@ export function requestOrigin(req) {
     const url = new URL(getRequestUrl(req))
     return url.origin
   } catch {
-    return 'http://localhost:5173'
+    return 'http://localhost:3000'
   }
 }
 

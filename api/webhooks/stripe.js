@@ -1,23 +1,28 @@
 import Stripe from 'stripe'
 import { supabaseAdmin } from '../_lib/supabase.js'
+import { getHeader, readTextBody, sendResponse } from '../_lib/request.js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
-})
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
-
-export default async function handler(req) {
+async function route(req) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 })
   }
 
-  const signature = req.headers.get('stripe-signature')
+  const signature = getHeader(req, 'stripe-signature')
   if (!signature) {
     return new Response('Missing signature', { status: 400 })
   }
 
-  const body = await req.text()
+  const stripeSecret = process.env.STRIPE_SECRET_KEY
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!stripeSecret || !webhookSecret) {
+    return new Response('Stripe webhook is not configured', { status: 500 })
+  }
+
+  const stripe = new Stripe(stripeSecret, {
+    apiVersion: '2023-10-16',
+  })
+
+  const body = await readTextBody(req)
 
   let event
   try {
@@ -194,6 +199,10 @@ export default async function handler(req) {
   return new Response(JSON.stringify({ received: true }), {
     headers: { 'Content-Type': 'application/json' },
   })
+}
+
+export default async function handler(req, res) {
+  return sendResponse(res, await route(req))
 }
 
 export const config = { runtime: 'nodejs' }

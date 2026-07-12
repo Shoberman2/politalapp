@@ -1,9 +1,9 @@
 import { validateApiKey } from '../_lib/auth.js'
 import { supabaseAdmin } from '../_lib/supabase.js'
-import { handleCors, paginatedResponse, errorResponse, parsePagination } from '../_lib/response.js'
+import { handleCors, paginatedResponse, errorResponse, parsePagination, nodeHandler } from '../_lib/response.js'
 import { logUsage } from '../_lib/usage.js'
 
-export default async function handler(req) {
+async function route(req) {
   const cors = handleCors(req)
   if (cors) return cors
 
@@ -40,5 +40,7 @@ export default async function handler(req) {
 
   return paginatedResponse(data, offset, limit, count || 0)
 }
+
+export default nodeHandler(route)
 
 export const config = { runtime: 'nodejs' }
