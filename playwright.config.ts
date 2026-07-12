@@ -8,10 +8,8 @@
  *   npm run dev:fullstack (in one terminal)
  *   npm run test:e2e (in another terminal; defaults to http://localhost:3000)
  *
- * NOTE: requires `npm i -D @playwright/test` before running for the first
- * time, plus `npx playwright install chromium` for browser binaries. This
- * is intentionally NOT in the default devDependencies — adds ~200 MB and
- * isn't needed for the unit test loop.
+ * NOTE: `@playwright/test` is a dev dependency. Run
+ * `npx playwright install chromium` once to install the browser binary.
  */
 import { defineConfig, devices } from '@playwright/test'
 

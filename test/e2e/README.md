@@ -5,7 +5,7 @@ Per eng-review D9 — runs against Vercel preview URL on every PR.
 ## Setup (one-time)
 
 ```sh
-npm i -D @playwright/test
+npm install
 npx playwright install chromium
 ```
 
@@ -13,11 +13,14 @@ npx playwright install chromium
 
 ```sh
 # In one terminal:
-npm run dev
+npm run dev:fullstack
 
 # In another:
-PLAYWRIGHT_BASE_URL=http://localhost:5173 npm run test:e2e
+npm run test:e2e
 ```
+
+The local default is `http://localhost:3000`, where Vite and the Vercel API
+routes run together. Set `PLAYWRIGHT_BASE_URL` only to target another origin.
 
 ## Run against a Vercel preview
 
