@@ -28,12 +28,6 @@ export async function readJsonBody(req) {
 
 export async function readTextBody(req) {
   if (typeof req.text === 'function') return req.text()
-
-  // Vercel exposes req.body as a lazy parsed getter on Node functions. Stripe
-  // signatures cover the exact bytes on the IncomingMessage stream, so read
-  // that stream before touching req.body and triggering JSON parsing.
-  if (req && typeof req[Symbol.asyncIterator] === 'function') return readStream(req)
-
   if (Buffer.isBuffer(req.body)) return req.body.toString('utf8')
   if (typeof req.body === 'string') return req.body
   if (req.body != null) return JSON.stringify(req.body)
