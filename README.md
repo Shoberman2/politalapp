@@ -20,6 +20,7 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | --- | --- | --- | --- |
 | Representative lookup | Who represents this address or district? | Census and congressional member data | Open member profiles |
 | Bill tracker | What does this bill do and where is it now? | Congress.gov bill records | Search, filter, cite, share |
+| Bill Watch alerts | When does a followed bill reach committee, the floor, or a recorded vote? | Congress.gov actions and committee meetings; House weekly floor schedule | Sign in, watch a bill, manage alerts at `/alerts` |
 | Vote records | How did a member vote? | House and Senate roll call data | Filter by member, bill, date, issue |
 | Legislative path | Where does this bill go next? | Committee routing and BallotWatch methodology | Read route and caveats |
 | Campaign finance context | What money context is visible? | FEC data and local industry mapping | Inspect donors and caveats |
@@ -127,23 +128,28 @@ SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Bill-watch delivery runs from GitHub Actions and keeps all privileged values in
-repository secrets (never in `VITE_` variables):
+Bill-watch delivery runs from GitHub Actions and reads these repository secrets
+(never from `VITE_` variables):
 
 ```env
 RESEND_API_KEY=...
-RESEND_WEBHOOK_SECRET=...
 BILL_ALERTS_FROM_EMAIL=BallotWatch Alerts <alerts@example.org>
 ```
 
-Set `VITE_PUBLIC_ORIGIN` as a non-secret GitHub Actions repository variable to
-the canonical site origin, such as `https://ballotwatch.org`. Action dependencies
-are pinned to immutable commits and Dependabot proposes reviewed updates.
+The signed receipt endpoint runs on Vercel, so set `RESEND_WEBHOOK_SECRET` in
+Vercel and register `https://your-site.example/api/webhooks/resend` in Resend.
+Set `VITE_PUBLIC_ORIGIN` to the canonical site origin in Vercel and as a
+non-secret GitHub Actions repository variable. Action dependencies are pinned to
+immutable commits and Dependabot proposes reviewed updates.
 
 The database runtime mode defaults to `off`. Apply the migration, configure the
 signed Resend webhook at `/api/webhooks/resend`, validate an internal account,
 then advance through `shadow` → `internal` → `public`. The browser UI is gated
-separately by `VITE_BILL_ALERTS_ENABLED=true`.
+separately by `VITE_BILL_ALERTS_ENABLED=true` in the Vercel build environment.
+`off` disables ingestion and delivery, `shadow` ingests without sending,
+`internal` sends only to allow-listed users, and `public` delivers to all active
+follows. The workflow is scheduled every 10 minutes, although GitHub Actions may
+delay scheduled runs.
 
 Optional services include OpenAI, FEC, OpenSecrets, Stripe, and feature flags.
 Never commit `.env`.
@@ -169,8 +175,9 @@ Local end-to-end tests target the full-stack origin on port 3000. Start
 `npm run config:check` validates the core browser/server settings, identifies
 browser-exposed credential names without printing values, and checks the
 connected Supabase Auth provider. Use
-`npm run config:check:full` when Stripe subscriptions and Gmail delivery should
-also be configured; optional integration gaps are errors in that stricter mode.
+`npm run config:check:full` when OpenAI, Stripe, Gmail, and Bill Watch delivery
+should all be configured; optional integration gaps are errors in that stricter
+mode.
 
 ETL commands:
 
@@ -189,6 +196,7 @@ api/                  Vercel API routes and hosted API helpers
 docs/                 Public project docs, roadmap, methodology, OpenAPI
 etl/                  Congress.gov extraction, transforms, loaders, backfills
 public/data/          Sample datasets and datapackage metadata
+server/alerts/        Bill Watch source ingestion, event fan-out, and email delivery
 shared/               Shared utilities
 src/components/       React views and UI components
 src/data/             Static civic data and glossary maps
@@ -239,13 +247,14 @@ value, and a public source URL.
 
 ## Feature Flags
 
-The bills sponsor and routing features ship behind env-gated flags:
+User-facing features that require staged rollout ship behind env-gated flags:
 
 | Flag | Default | Enables |
 | --- | --- | --- |
 | `VITE_BILLS_SHOW_SPONSOR_FILTER` | `false` | Sponsor and cosponsor filters, sponsor activity badge |
 | `VITE_BILLS_SHOW_ROUTING_PANEL` | `false` | Legislative routing panel, committee route, survival popover |
 | `VITE_SHOW_CHAMBER` | `true` | Historical chamber visualization routes; set to `false` as an emergency kill switch |
+| `VITE_BILL_ALERTS_ENABLED` | `false` | `/alerts`, the navigation link, and bill-page watch controls; database delivery mode remains a separate server-side gate |
 
 ## Contributing
 
