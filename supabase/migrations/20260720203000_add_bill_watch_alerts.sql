@@ -3,6 +3,23 @@
 -- Private authenticated follows + immutable official events + retry-safe email.
 -- =============================================================================
 
+-- Some long-lived projects recorded migration 003 before its lease table was
+-- added to that historical file. Recreate the prerequisite idempotently so a
+-- fresh database and an older linked project converge on the same schema.
+CREATE TABLE IF NOT EXISTS public.etl_leases (
+  lease_key TEXT PRIMARY KEY,
+  holder TEXT NOT NULL,
+  acquired_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  metadata JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_etl_leases_expires
+  ON public.etl_leases (expires_at);
+
+ALTER TABLE public.etl_leases ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON TABLE public.etl_leases TO service_role;
+
 ALTER TABLE public.etl_leases
   ADD COLUMN IF NOT EXISTS fence_token BIGINT NOT NULL DEFAULT 1;
 

@@ -8,6 +8,11 @@ const sql = readFileSync(
 );
 
 describe('bill alert migration safety contract', () => {
+  it('repairs the lease-table prerequisite for older linked projects', () => {
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS public\.etl_leases/);
+    expect(sql).toMatch(/ALTER TABLE public\.etl_leases[\s\S]*?ADD COLUMN IF NOT EXISTS fence_token/);
+  });
+
   it('requires fenced leases for evidence, event, and fan-out mutations', () => {
     expect(sql).toContain('persist_bill_alert_observation');
     expect(sql).toContain('bill_alert_assert_source_lease');
