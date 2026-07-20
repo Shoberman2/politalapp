@@ -86,7 +86,7 @@ function DeveloperPortal() {
         <div className="dev-endpoint-grid">
           <div className="dev-endpoint-card">
             <code>GET /api/v1/members</code>
-            <p>All 535 members of Congress. Filter by state, chamber, party. Includes photos, contact info, and district.</p>
+            <p>The current congressional roster. Filter members and delegates by state, chamber, or party, with photos, contact info, and districts.</p>
           </div>
           <div className="dev-endpoint-card">
             <code>GET /api/v1/bills</code>

@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { resolveMemberImageUrl, normalizeMemberImageUrl } from '../utils/memberImage'
 import { CONGRESS_MAX } from '../utils/congressUtil'
+import { supabase } from '../lib/supabase'
 
 const BASE_URL = 'https://api.congress.gov/v3'
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
+const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
 
 console.log('[Congress API] Initializing with base URL:', BASE_URL)
 console.log('[Congress API] API Key present:', !!API_KEY)
@@ -28,6 +29,13 @@ congressApi.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+
+function congressApiPathFromVoteUrl(voteUrl) {
+  if (!voteUrl) return null
+  if (voteUrl.startsWith('/')) return voteUrl
+  if (voteUrl.startsWith(BASE_URL)) return voteUrl.slice(BASE_URL.length) || '/'
+  return null
+}
 
 // Add response interceptor for logging
 congressApi.interceptors.response.use(
@@ -539,7 +547,49 @@ export const getFeaturedMembers = async (count = 3) => {
   }
 }
 
-export const searchBills = async (options = {}) => {
+function canonicalBillId(bill) {
+  const type = bill.type?.toLowerCase()
+  if (!bill.congress || !type || bill.number == null) return null
+  return `${bill.congress}-${type}-${bill.number}`
+}
+
+async function enrichBillsWithSponsorsFromDb(bills) {
+  const ids = [...new Set(bills.map(canonicalBillId).filter(Boolean))]
+  if (ids.length === 0) return bills
+
+  try {
+    const { data, error } = await supabase
+      .from('bills')
+      .select('id, sponsor_bioguide_id, sponsor_name, sponsor_party, sponsor_state')
+      .in('id', ids)
+
+    if (error) throw error
+
+    const sponsorsByBill = new Map((data || []).map((row) => [row.id, row]))
+    return bills.map((bill) => {
+      const row = sponsorsByBill.get(canonicalBillId(bill))
+      const sponsor = row?.sponsor_bioguide_id
+        ? {
+            bioguideId: row.sponsor_bioguide_id,
+            fullName: row.sponsor_name || null,
+            party: row.sponsor_party || null,
+            state: row.sponsor_state || null,
+          }
+        : null
+      return {
+        ...bill,
+        sponsors: sponsor ? [sponsor] : (bill.sponsors || []),
+      }
+    })
+  } catch (error) {
+    console.warn('[Congress API] Sponsor batch lookup failed:', error.message)
+    return bills
+  }
+}
+
+const searchBillsInFlight = new Map()
+
+async function fetchBillsSearch(options = {}) {
   try {
     const { query, congress = CONGRESS_MAX, billType, limit = 20, offset = 0 } = options
     const normalizedBillType = billType?.toLowerCase()
@@ -576,18 +626,9 @@ export const searchBills = async (options = {}) => {
       )
     }
 
-    // The list endpoint doesn't include sponsor data — fetch detail for each bill
-    const enriched = await Promise.all(
-      bills.map(async (bill) => {
-        try {
-          const type = bill.type?.toLowerCase()
-          const detail = await congressApi.get(`/bill/${bill.congress}/${type}/${bill.number}`)
-          return { ...bill, sponsors: detail.data.bill?.sponsors || [] }
-        } catch {
-          return bill
-        }
-      })
-    )
+    // The list endpoint omits sponsors. Resolve all visible sponsor bylines in
+    // one database round-trip instead of one Congress.gov detail request per bill.
+    const enriched = await enrichBillsWithSponsorsFromDb(bills)
 
     return {
       bills: enriched,
@@ -597,6 +638,26 @@ export const searchBills = async (options = {}) => {
     console.error('Error searching bills:', error)
     throw error
   }
+}
+
+export const searchBills = (options = {}) => {
+  const key = JSON.stringify({
+    query: options.query || '',
+    congress: options.congress ?? CONGRESS_MAX,
+    billType: options.billType?.toLowerCase() || '',
+    limit: options.limit ?? 20,
+    offset: options.offset ?? 0,
+  })
+  const inFlight = searchBillsInFlight.get(key)
+  if (inFlight) return inFlight
+
+  const request = fetchBillsSearch(options)
+  searchBillsInFlight.set(key, request)
+  const clear = () => {
+    if (searchBillsInFlight.get(key) === request) searchBillsInFlight.delete(key)
+  }
+  request.then(clear, clear)
+  return request
 }
 
 export const getBillCosponsors = async (congress, billType, billNumber) => {
@@ -645,13 +706,14 @@ export const getVoteTalliesFromActions = async (actions) => {
     for (const action of actionsWithVotes) {
       for (const recordedVote of action.recordedVotes) {
         try {
-          // recordedVote.url is typically a full URL to the vote detail
-          // e.g., https://api.congress.gov/v3/vote/118/house/123
+          // recordedVote.url is typically a full URL to the Congress.gov vote detail.
+          // Senate actions can point at senate.gov XML, which is not CORS-readable
+          // from the browser, so only fetch URLs our Congress.gov client can serve.
           const voteUrl = recordedVote.url
-          if (!voteUrl) continue
+          const relativePath = congressApiPathFromVoteUrl(voteUrl)
+          if (!relativePath) continue
 
-          // Fetch via our congressApi instance (adds api_key and format params)
-          const relativePath = voteUrl.replace('https://api.congress.gov/v3', '')
+          // Fetch via our congressApi instance (adds api_key and format params).
           const response = await congressApi.get(relativePath)
           const voteDetail = response.data?.vote
 
@@ -764,39 +826,15 @@ async function fetchNotableBills() {
     .sort((a, b) => b._score - a._score)
     .slice(0, 7)
 
-  // Fetch sponsor details in parallel
-  const enriched = await Promise.allSettled(
-    scored.map(async (bill) => {
-      try {
-        const detail = await getBillDetails(bill.congress, bill.type?.toLowerCase(), bill.number)
-        return {
-          congress: bill.congress,
-          type: bill.type?.toLowerCase(),
-          number: bill.number,
-          title: detail.title || bill.title,
-          sponsors: detail.sponsors || [],
-          latestAction: detail.latestAction || bill.latestAction,
-          introducedDate: detail.introducedDate,
-          originChamber: detail.originChamber,
-          _score: bill._score
-        }
-      } catch {
-        return {
-          congress: bill.congress,
-          type: bill.type?.toLowerCase(),
-          number: bill.number,
-          title: bill.title,
-          sponsors: [],
-          latestAction: bill.latestAction,
-          _score: bill._score
-        }
-      }
-    })
+  // The list payload already contains the fields used by the landing and Bills
+  // views. Add sponsor bylines with one DB batch instead of seven bill-detail
+  // requests to Congress.gov.
+  return enrichBillsWithSponsorsFromDb(
+    scored.map((bill) => ({
+      ...bill,
+      type: bill.type?.toLowerCase(),
+    }))
   )
-
-  return enriched
-    .filter(r => r.status === 'fulfilled')
-    .map(r => r.value)
 }
 
 // Strip HTML tags and grab the first meaningful sentence from CRS summary text

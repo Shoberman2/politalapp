@@ -32,6 +32,22 @@ In scope:
 - Dependency vulnerabilities with a reachable exploit path.
 - Leaked credentials in repository history.
 
+## Open-source deployment safety
+
+The repository is intentionally public. Secrets remain in Vercel or GitHub
+Actions secret stores and are read only by server-side code. Values prefixed
+with `VITE_` are public by design and must never contain Resend credentials,
+Supabase service-role keys, webhook signing secrets, or other private tokens.
+
+Bill-alert mutations derive the user from Supabase Auth and row-level security;
+the browser never chooses a recipient address. Delivery resolves the current
+confirmed Auth email on the server, snapshots it for auditability, and accepts
+provider receipts only after raw-body signature verification.
+
+GitHub Actions use reviewed immutable commit SHAs, read-only repository
+permissions, and checkouts that do not persist the workflow token. Dependabot
+keeps those pins current without silently moving a trusted tag.
+
 Out of scope:
 
 - Denial-of-service testing against production.

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../_lib/supabase.js'
 import { jsonResponse, errorResponse } from '../_lib/response.js'
+import { getHeader, sendResponse } from '../_lib/request.js'
 
 // --- OpenAI helper ---
 
@@ -205,13 +206,13 @@ async function failSession(sessionId, stepNumber, description) {
 
 // --- Main handler ---
 
-export default async function handler(req) {
+async function route(req) {
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed', 405, 'METHOD_NOT_ALLOWED')
   }
 
   // Auth check
-  const authHeader = req.headers.get('authorization') || ''
+  const authHeader = getHeader(req, 'authorization')
   const token = authHeader.replace('Bearer ', '')
   const expectedKey = process.env.SIMULATION_API_KEY
 
@@ -439,6 +440,10 @@ export default async function handler(req) {
       error: 'Simulation failed unexpectedly',
     }, 500)
   }
+}
+
+export default async function handler(req, res) {
+  return sendResponse(res, await route(req))
 }
 
 export const config = { maxDuration: 300 }

@@ -42,17 +42,6 @@ interface CongressGovMemberListResponse {
 }
 
 /**
- * Maps Congress.gov chamber strings ('House of Representatives' | 'Senate')
- * to our enum ('house' | 'senate').
- */
-function normalizeChamber(raw: string): 'house' | 'senate' | null {
-  const lower = raw.toLowerCase();
-  if (lower.includes('senat')) return 'senate';
-  if (lower.includes('house') || lower.includes('representative')) return 'house';
-  return null;
-}
-
-/**
  * Congress.gov returns full state names like "California". Our schema
  * (politicians.state, member_congress_terms.state) requires 2-letter codes.
  * Mirrors etl/extractHouseVotes.ts STATE_TO_ABBR.
@@ -160,22 +149,12 @@ export async function fetchMembersForCongress(
         continue;
       }
 
-      // Determine chamber from the member's terms array. The terms list may
-      // include multiple chambers across a long career; pick the one matching
-      // this congress's chamber if discoverable, else fall back to the first term.
-      let chamber: 'house' | 'senate' | null = null;
-      const termsArr = m.terms?.item ?? [];
-      for (const t of termsArr) {
-        const c = normalizeChamber(t.chamber);
-        if (c) {
-          chamber = c;
-          break;
-        }
-      }
-      if (!chamber) {
-        errors.push(`skipped member ${m.bioguideId}: no chamber resolved`);
-        continue;
-      }
+      // This list item is scoped to one Congress. Its district is therefore
+      // more reliable than the full-career terms array for members who served
+      // in both chambers: senators have no district, while House members have
+      // a numeric district (including 0 for at-large seats).
+      const chamber: 'house' | 'senate' =
+        m.district == null ? 'senate' : 'house';
 
       terms.push({
         bioguide_id: m.bioguideId,

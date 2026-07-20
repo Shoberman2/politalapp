@@ -3,6 +3,30 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.2.0.0] - 2026-07-20
+
+### Added
+
+- Private Bill Watch follows with per-bill committee, floor, and recorded-vote preferences, authenticated management at `/alerts`, pause/resume/stop controls, and a 30-day activity history.
+- Official-source alert ingestion for Congress.gov bill actions and committee meetings plus the House weekly floor schedule.
+- Lease-fenced, crash-resumable event fan-out; frozen email outbox payloads; retry-safe Resend delivery; signed webhook receipts; correction eligibility; suppression handling; and staged `off`, `shadow`, `internal`, and `public` runtime modes.
+- Pinned Bill Watch GitHub Actions scheduling, Dependabot, CODEOWNERS, open-source security guidance, configuration validation, and alert-specific regression coverage.
+
+### Changed
+
+- Hardened existing GitHub Actions by pinning third-party actions to immutable commit SHAs.
+- Improved chamber deep links, historical labels, delegate counts, clipboard fallback, photo attribution, public-asset routing, dark-mode documentation contrast, and bill-list request efficiency.
+- Aligned local full-stack configuration and Vercel request adapters while making browser-exposed credentials explicit.
+
+### Fixed
+
+- Preserved raw Stripe webhook request bodies for signature verification and added signed-request regression coverage.
+- Removed hardcoded frontend API fallbacks and documented provider-owned configuration that must remain outside the open-source repository.
+
+### Migration
+
+- Added `supabase/migrations/20260720203000_add_bill_watch_alerts.sql` with private follows and preferences, immutable evidence and events, fenced source runs, resumable fan-out, delivery queues and receipts, RLS, service-only RPCs, and retention controls.
+
 ## [0.1.2.0] - 2026-06-10
 
 ### Changed

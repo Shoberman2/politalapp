@@ -2,16 +2,19 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions, explainBillWithAI } from '../services/congress'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
+import { copyTextToClipboard } from '../utils/clipboard'
 import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
+import BillWatchControl from './BillWatchControl'
 import '../styles/BillDetail.css'
 
 // Feature flag (per outside-voice D16). Off by default. Gates:
 //  - "Where this bill goes" section
 //  - Smart status pill survival popover (default pill stays a plain label)
 const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
+const SHOW_BILL_ALERTS = import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true'
 
 function BillDetail() {
   const { congress, billType, number } = useParams()
@@ -37,19 +40,18 @@ function BillDetail() {
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/s/bill/${congress}/${billType}/${number}`
     const shareTitle = `${billType.toUpperCase()}. ${number} — BallotWatch`
-    try {
-      if (navigator.share) {
+    if (navigator.share) {
+      try {
         await navigator.share({ title: shareTitle, url: shareUrl })
         return
+      } catch (err) {
+        if (err?.name === 'AbortError') return
       }
-      await navigator.clipboard.writeText(shareUrl)
-      setShareLabel('Link copied')
-      setTimeout(() => setShareLabel('Share ↗'), 2000)
-    } catch (err) {
-      if (err?.name === 'AbortError') return
-      setShareLabel('Copy failed')
-      setTimeout(() => setShareLabel('Share ↗'), 2000)
     }
+
+    const copied = await copyTextToClipboard(shareUrl)
+    setShareLabel(copied ? 'Link copied' : 'Copy failed')
+    setTimeout(() => setShareLabel('Share ↗'), 2000)
   }
 
   useEffect(() => {
@@ -375,6 +377,9 @@ function BillDetail() {
 
         {/* RIGHT RAIL */}
         <aside className="bill-rail">
+          {SHOW_BILL_ALERTS && (
+            <BillWatchControl billId={`${congress}-${billType.toLowerCase()}-${number}`} />
+          )}
           {sponsor && (
             <div className="bill-rail-card bill-sponsor-card">
               <h3 className="bill-rail-h3">Sponsor</h3>

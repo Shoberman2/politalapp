@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getMemberDetails } from '../services/congress'
 import { getAllTermsForMember } from '../services/memberTerms'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
+import { parsePhotoAttribution } from '../utils/photoAttribution'
 import {
   BILL_CONGRESS_MIN,
   CONGRESS_MAX,
@@ -214,6 +215,7 @@ function PoliticianDetail() {
   const chamber = currentTerm?.chamber
   const termCount = memberTermsArray.length
   const firstTermYear = memberTermsArray.length > 0 ? Math.min(...memberTermsArray.map(t => t.startYear || Infinity)) : null
+  const photoAttribution = parsePhotoAttribution(member.depiction?.attribution)
 
   // Title (Senator vs Representative)
   const title = chamber?.toLowerCase().includes('senate') ? 'U.S. Senator' : 'U.S. Representative'
@@ -528,9 +530,14 @@ function PoliticianDetail() {
         <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
       </section>
 
-      {member.depiction?.attribution && (
+      {photoAttribution && (
         <div className="pol-photo-attribution">
-          Photo: {member.depiction.attribution}
+          Photo:{' '}
+          {photoAttribution.href ? (
+            <a href={photoAttribution.href} target="_blank" rel="noopener noreferrer">
+              {photoAttribution.text}
+            </a>
+          ) : photoAttribution.text}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { supabaseAdmin } from './supabase.js'
 import { errorResponse } from './response.js'
+import { getHeader } from './request.js'
 
 function hashKey(rawKey) {
   return createHash('sha256').update(rawKey).digest('hex')
@@ -11,7 +12,7 @@ function hashKey(rawKey) {
  * Returns { org, key } on success, or a Response on failure.
  */
 export async function validateApiKey(req) {
-  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization')
+  const authHeader = getHeader(req, 'authorization')
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { error: errorResponse('Missing or invalid Authorization header. Use: Bearer bw_live_xxx', 401, 'UNAUTHORIZED') }

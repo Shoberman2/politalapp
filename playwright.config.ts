@@ -5,13 +5,11 @@
  *   PLAYWRIGHT_BASE_URL=https://politicalapp-pr-123.vercel.app npx playwright test
  *
  * Local dev:
- *   npm run dev      (in one terminal)
- *   npx playwright test --base-url=http://localhost:5173
+ *   npm run dev:fullstack (in one terminal)
+ *   npm run test:e2e (in another terminal; defaults to http://localhost:3000)
  *
- * NOTE: requires `npm i -D @playwright/test` before running for the first
- * time, plus `npx playwright install chromium` for browser binaries. This
- * is intentionally NOT in the default devDependencies — adds ~200 MB and
- * isn't needed for the unit test loop.
+ * NOTE: `@playwright/test` is a dev dependency. Run
+ * `npx playwright install chromium` once to install the browser binary.
  */
 import { defineConfig, devices } from '@playwright/test'
 
@@ -23,7 +21,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

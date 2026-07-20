@@ -131,3 +131,57 @@
 **Blocked by:** Historical Congress Chamber Phase 1 shipping
 **Context:** From 2026-05-21 CEO review operational debt (Section 8 observability). The `member_reconciliation_log` table accumulates rows whenever the multi-source ETL hits a conflict between Congress.gov + GovInfo + Senate Historical Office data. Without quarterly review, conflicts pile up and silent data-drift sets in. Pattern matches the existing "Quarterly committee glossary review" TODO.
 **What to do:** Once per quarter: (1) `SELECT * FROM member_reconciliation_log WHERE resolved = false ORDER BY occurrence_count DESC` — review top conflicts. (2) For each, decide: (a) update precedence rule, (b) hand-curate the canonical record, (c) escalate to feature-flag-off for that Congress's chart if structural. (3) Mark resolved with reason. Effort: human ~1 hour / CC ~10 min.
+
+## Enable Google sign-in in Supabase
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** A user-owned Google OAuth web client ID and client secret
+**Context:** QA ISSUE-010 reproduced `400 Unsupported provider` from `/auth?next=/briefings`. The linked Supabase project is healthy, but its auth settings report `external.google=false`; no Google OAuth credentials are present locally or in Vercel.
+**Repro:** Start the full stack with `npm run dev:fullstack`, open `/briefings`, choose `Send to Gmail`, and click `Continue with Google`.
+**What to do:** Create or select a Google OAuth web client, authorize `https://dbtbmjjjcfwobhlicduk.supabase.co/auth/v1/callback`, add the local and production web origins, configure the client ID and secret in Supabase Auth, then enable Google. Confirm `npm run config:check` no longer warns and complete the browser sign-in flow.
+
+## Configure Gmail briefing delivery
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** User-owned Google OAuth credentials and production secret values
+**Context:** `npm run config:check:full` reports Gmail delivery as incomplete. The briefing schema migration is applied and core app configuration passes, but authorization and scheduled delivery cannot work without the server-only Gmail credentials.
+**Repro:** Run `npm run config:check:full`.
+**What to do:** Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`, `GMAIL_TOKEN_ENCRYPTION_KEY`, and `CRON_SECRET` in the appropriate local and Vercel environments. Register the exact callback URI, then verify connect, callback, encrypted token persistence, and a delivery run end to end.
+
+## Configure Stripe subscriptions
+**Priority:** High
+**Category:** Functional / configuration
+**Blocked by:** User-owned Stripe account keys, a Price, and a webhook endpoint
+**Context:** `npm run config:check:full` reports subscriptions as incomplete. The webhook now verifies signatures from Vercel's raw Web Request body, but checkout and subscription lifecycle events cannot work without Stripe configuration.
+**Repro:** Run `npm run config:check:full`.
+**What to do:** Configure `VITE_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_ID`; register the production webhook endpoint; then verify checkout, signature validation, renewal, cancellation, and entitlement updates in Stripe test mode.
+
+## Rotate the historically committed Congress.gov browser key
+**Priority:** High
+**Category:** Security / configuration
+**Blocked by:** Access to the Congress.gov API account that owns the key
+**Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential. The current SPA calls Congress.gov directly, so `VITE_CONGRESS_API_KEY` is intentionally embedded in the browser and must be treated as public and quota-limited rather than as a server secret.
+**Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
+**What to do:** Revoke or rotate the key with Congress.gov, update the server and browser environment values, and confirm `npm run config:check`, build, and bill-loading smoke tests pass. Monitor the 5,000-request/hour quota. If the replacement must remain private, first proxy Congress.gov calls through a server route and remove `VITE_CONGRESS_API_KEY` from the frontend architecture.
+
+## Enable Supabase leaked-password protection
+**Priority:** Medium
+**Category:** Security / configuration
+**Blocked by:** Supabase Auth dashboard access and any plan requirement for the setting
+**Context:** The post-migration Supabase security advisor reports `auth_leaked_password_protection` as disabled. This does not block Google OAuth or core app startup, but password-based accounts do not receive the compromised-password check.
+**Repro:** Run the Supabase security advisor for project `dbtbmjjjcfwobhlicduk`.
+**What to do:** Enable leaked-password protection in Supabase Auth password-security settings, then rerun the security advisor and verify password sign-up/sign-in behavior.
+
+## Bill Watch Alerts
+
+### Add persisted Resend transport batching after measured queue pressure
+
+**What:** Group frozen individual alert deliveries into persisted provider transport batches when production queue latency demonstrates the need.
+
+**Why:** Resend accepts up to 100 distinct emails per batch request, but v1 deliberately keeps one provider idempotency identity per delivery for simpler reconciliation. A later transport-batch layer can increase throughput without weakening delivery identity.
+
+**Context:** The 2026-07-20 engineering review selected adaptive rate-limited individual sends. Revisit only when the 95th-percentile pending age approaches the two-hour SLO or provider request limits materially delay delivery. The implementation must persist the transport-group UUID and frozen ordered membership, use one batch idempotency key, retain each email's `delivery_id` tag, split validation failures safely, and map returned provider IDs to local deliveries.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics

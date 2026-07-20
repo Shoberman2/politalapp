@@ -9,7 +9,7 @@ function announceFor(pathname) {
     return 'Open-source congressional records / Built from public Congress.gov, Census & FEC data'
   }
   if (pathname.startsWith('/all')) {
-    return 'Open-source congressional records / All 535 members of the 119th Congress'
+    return 'Open-source congressional records / Current members and delegates of the 119th Congress'
   }
   if (pathname.startsWith('/bills') || pathname.startsWith('/bill/')) {
     return 'Open-source congressional records / Updated daily from Congress.gov'
@@ -24,6 +24,7 @@ const NAV_LINKS = [
   { to: '/my-representative', label: 'My Rep' },
   { to: '/briefings', label: 'Briefings' },
   { to: '/bills', label: 'Bills' },
+  ...(import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true' ? [{ to: '/alerts', label: 'Alerts' }] : []),
   { to: '/all', label: 'Members' },
   { to: '/methodology', label: 'Methodology' },
   { to: '/developers', label: 'API' },

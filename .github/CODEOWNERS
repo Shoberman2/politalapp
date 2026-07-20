@@ -1,0 +1,8 @@
+# Security-sensitive automation and bill-alert boundaries.
+/.github/ @Shoberman2
+/api/webhooks/ @Shoberman2
+/etl/ @Shoberman2
+/server/alerts/ @Shoberman2
+/supabase/migrations/ @Shoberman2
+/package.json @Shoberman2
+/package-lock.json @Shoberman2

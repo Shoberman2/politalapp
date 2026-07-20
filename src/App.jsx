@@ -29,15 +29,19 @@ import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
 import Pricing from './components/Pricing'
+import BillAlertsPage from './components/BillAlertsPage'
+import RequireAuth from './components/RequireAuth'
 
 // Feature flag gates the /committee/:code route registration.
 // When false, requests fall through to the catch-all redirect to "/" — no
 // broken link surface for users on the unflagged build.
 const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
 
-// Feature flag for the historical chamber feature. Off in production until
-// P3 ships per /plan-eng-review D1. Turn on with VITE_SHOW_CHAMBER=true.
-const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER === 'true'
+// The historical chamber ships on by default after QA. Keep an explicit
+// false value as an emergency kill switch without making missing config hide
+// the entire feature.
+const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER !== 'false'
+const SHOW_BILL_ALERTS = import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true'
 
 function App() {
   const location = useLocation()
@@ -59,6 +63,9 @@ function App() {
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
+          {SHOW_BILL_ALERTS && (
+            <Route path="/alerts" element={<RequireAuth><BillAlertsPage /></RequireAuth>} />
+          )}
 
           {/* Developer portal */}
           <Route path="/developers" element={<DeveloperPortal />} />
@@ -97,6 +104,8 @@ function App() {
               <Route path="/chamber" element={<ChamberPage />} />
               <Route path="/chamber/methodology" element={<ChamberMethodology />} />
               <Route path="/chamber/moment/:momentSlug" element={<ChamberPage />} />
+              <Route path="/chamber/house" element={<ChamberPage />} />
+              <Route path="/chamber/desk/:deskId" element={<ChamberPage />} />
               <Route path="/chamber/:congress" element={<ChamberPage />} />
               <Route path="/chamber/:congress/house" element={<ChamberPage />} />
               <Route path="/chamber/:congress/desk/:deskId" element={<ChamberPage />} />

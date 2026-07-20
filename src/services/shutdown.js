@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const BASE_URL = 'https://api.congress.gov/v3'
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
+const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
 
 const shutdownApi = axios.create({
   baseURL: BASE_URL,
@@ -229,7 +229,7 @@ export const SHUTDOWN_HISTORY = [
 export const FUNDING_DEADLINES = {
   fiscalYear: 2026,
   congress: 119,
-  lastUpdated: '2026-02-19',
+  lastUpdated: '2026-06-11',
   deadlines: [
     {
       date: '2025-03-14',
@@ -249,7 +249,7 @@ export const FUNDING_DEADLINES = {
     {
       date: '2026-03-14',
       description: 'FY2026 CR extension deadline',
-      status: 'active'
+      status: 'passed'
     },
     {
       date: '2026-09-30',

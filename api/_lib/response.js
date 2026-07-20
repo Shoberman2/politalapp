@@ -1,3 +1,5 @@
+import { sendResponse } from './request.js'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -36,8 +38,14 @@ export function handleCors(req) {
   return null
 }
 
+export function nodeHandler(route) {
+  return async function handler(req, res) {
+    return sendResponse(res, await route(req))
+  }
+}
+
 export function parsePagination(url) {
-  const params = new URL(url).searchParams
+  const params = new URL(url, 'http://localhost').searchParams
   const offset = Math.max(0, parseInt(params.get('offset') || '0', 10) || 0)
   const limit = Math.min(100, Math.max(1, parseInt(params.get('limit') || '20', 10) || 20))
   return { offset, limit }

@@ -24,13 +24,18 @@ export interface Lease {
   acquired_at: string;
   expires_at: string;
   metadata: Record<string, unknown>;
+  fence_token: number;
 }
 
 export interface AcquiredLease {
   /** Unique holder ID that was written to the lease row. */
   holder: string;
+  /** Monotonically increasing token that fences stale workers. */
+  fenceToken: number;
   /** ISO expiry timestamp. */
   expiresAt: string;
+  /** Extend this exact lease. Throws if ownership has changed or expired. */
+  renew: (ttlSeconds?: number) => Promise<string>;
   /**
    * Release the lease. Safe to call multiple times. Only deletes if the
    * holder matches (so we don't wipe someone else's lease after expiry
@@ -57,43 +62,47 @@ export async function acquireLease(
   metadata: Record<string, unknown> = {},
 ): Promise<AcquiredLease | null> {
   const holder = `${process.env.HOSTNAME ?? 'local'}-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + ttlSeconds * 1000).toISOString();
-
-  // First: sweep any expired lease for this key. Otherwise, a crashed process
-  // would block us forever even though its lease is stale.
-  await supabase
-    .from('etl_leases')
-    .delete()
-    .eq('lease_key', leaseKey)
-    .lt('expires_at', now.toISOString());
-
-  // Now try to insert the lease. UNIQUE(lease_key) PRIMARY KEY means this
-  // fails cleanly if another process holds an unexpired lease.
-  const { error } = await supabase.from('etl_leases').insert({
-    lease_key: leaseKey,
-    holder,
-    acquired_at: now.toISOString(),
-    expires_at: expiresAt,
-    metadata,
+  const { data, error } = await supabase.rpc('acquire_etl_lease', {
+    p_lease_key: leaseKey,
+    p_holder: holder,
+    p_ttl_seconds: ttlSeconds,
+    p_metadata: metadata,
   });
 
   if (error) {
-    // 23505 = unique_violation → someone else holds the lease. Not our problem.
-    if (error.code === '23505') return null;
-    // Any other error is unexpected, propagate it.
     throw new Error(`Failed to acquire lease ${leaseKey}: ${error.message}`);
   }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
 
-  return {
+  const fenceToken = Number(row.fence_token);
+  let expiresAt = String(row.expires_at);
+
+  const acquired: AcquiredLease = {
     holder,
+    fenceToken,
     expiresAt,
+    renew: async (renewTtlSeconds = ttlSeconds) => {
+      const { data: renewedAt, error: renewError } = await supabase.rpc('renew_etl_lease', {
+        p_lease_key: leaseKey,
+        p_holder: holder,
+        p_fence_token: fenceToken,
+        p_ttl_seconds: renewTtlSeconds,
+      });
+      if (renewError) {
+        throw new Error(`Failed to renew lease ${leaseKey}: ${renewError.message}`);
+      }
+      if (!renewedAt) throw new LeaseLostError(leaseKey);
+      expiresAt = String(renewedAt);
+      acquired.expiresAt = expiresAt;
+      return expiresAt;
+    },
     release: async () => {
-      const { error: releaseError } = await supabase
-        .from('etl_leases')
-        .delete()
-        .eq('lease_key', leaseKey)
-        .eq('holder', holder);
+      const { error: releaseError } = await supabase.rpc('release_etl_lease', {
+        p_lease_key: leaseKey,
+        p_holder: holder,
+        p_fence_token: fenceToken,
+      });
 
       if (releaseError) {
         // Log but don't throw — the lease will expire naturally.
@@ -103,6 +112,7 @@ export async function acquireLease(
       }
     },
   };
+  return acquired;
 }
 
 /**
@@ -134,6 +144,13 @@ export class LeaseUnavailableError extends Error {
       `Lease '${leaseKey}' is held by another process. Wait for it to finish or expire.`,
     );
     this.name = 'LeaseUnavailableError';
+  }
+}
+
+export class LeaseLostError extends Error {
+  constructor(leaseKey: string) {
+    super(`Lease '${leaseKey}' expired or was reassigned to another process.`);
+    this.name = 'LeaseLostError';
   }
 }
 

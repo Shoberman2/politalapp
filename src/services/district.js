@@ -2,7 +2,7 @@ import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
 
 // Congress.gov API
-const CONGRESS_API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || 'TylrF1qkaHLXnqNUgeBSbclgONTIxEpDCAqMrvOs'
+const CONGRESS_API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
 const CONGRESS_BASE_URL = 'https://api.congress.gov/v3'
 
 // Census Geocoder API (for address -> congressional district lookup)
