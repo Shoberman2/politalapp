@@ -114,10 +114,16 @@ if (full) {
     'GMAIL_TOKEN_ENCRYPTION_KEY',
     'CRON_SECRET',
   ])
+  requireKeys('Bill watch email delivery', [
+    'RESEND_API_KEY',
+    'RESEND_WEBHOOK_SECRET',
+    'BILL_ALERTS_FROM_EMAIL',
+  ])
 } else {
   const optionalGroups = [
     ['Stripe subscriptions', ['VITE_STRIPE_PUBLISHABLE_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_PRICE_ID']],
     ['Gmail briefing delivery', ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GMAIL_REDIRECT_URI', 'GMAIL_TOKEN_ENCRYPTION_KEY', 'CRON_SECRET']],
+    ['Bill watch email delivery', ['RESEND_API_KEY', 'RESEND_WEBHOOK_SECRET', 'BILL_ALERTS_FROM_EMAIL']],
   ]
   for (const [label, keys] of optionalGroups) {
     const present = keys.filter((key) => configured(config[key]))

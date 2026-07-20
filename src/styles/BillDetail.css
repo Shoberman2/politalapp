@@ -437,6 +437,30 @@
   padding: 24px;
   margin-bottom: 16px;
 }
+.bill-watch-card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin: 4px 0 8px; }
+.bill-watch-card > p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 16px; }
+.bill-watch-kicker, .bill-watch-status {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
+}
+.bill-watch-status { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: var(--success); }
+.bill-watch-status span { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+.bill-watch-primary, .bill-watch-secondary {
+  border-radius: var(--radius-sm); padding: 8px 12px; font-size: 13px; cursor: pointer; transition: background 150ms ease, border-color 150ms ease;
+}
+.bill-watch-primary { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+.bill-watch-primary:hover { background: var(--accent-hover); }
+.bill-watch-primary:disabled, .bill-watch-secondary:disabled { opacity: .5; cursor: not-allowed; }
+.bill-watch-secondary { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); }
+.bill-watch-options { display: grid; gap: 8px; margin: 14px 0 18px; }
+.bill-watch-options label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); }
+.bill-watch-actions { display: flex; gap: 8px; }
+.bill-watch-footer { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border-light); margin-top: 16px; padding-top: 12px; font-size: 12px; }
+.bill-watch-footer a { color: var(--accent); text-decoration: none; }
+.bill-watch-footer button { background: none; border: 0; color: var(--text-muted); cursor: pointer; padding: 0; }
+.bill-watch-footer button:hover { color: var(--error); }
+.bill-watch-error, .bill-watch-saved { font-size: 12px !important; margin: 10px 0 !important; }
+.bill-watch-error { color: var(--error) !important; }
+.bill-watch-saved { color: var(--success) !important; }
 .bill-rail-h3 {
   font-family: var(--font-mono);
   font-size: 11px;

@@ -8,53 +8,64 @@ import {
 } from '../etl/advisoryLock.js';
 
 /**
- * Minimal in-memory Supabase stand-in that implements only the fluent calls
- * used by advisoryLock.ts: from(table).insert(), .delete().eq().eq(),
- * .delete().eq().lt(), .select().order().
+ * Minimal in-memory stand-in for the fenced lease RPCs plus listLeases().
  *
  * This is explicitly a contract test against a mock, not against Supabase.
  * Integration tests run against a real DB after the migration lands.
  */
 function makeMockSupabase() {
   const leases: Record<string, any> = {};
+  const fenceCounters: Record<string, number> = {};
 
   const supabase: any = {
+    rpc(name: string, args: any) {
+      const key = args.p_lease_key;
+      const existing = leases[key];
+      if (name === 'acquire_etl_lease') {
+        if (existing && new Date(existing.expires_at).getTime() > Date.now()) {
+          return Promise.resolve({ data: [], error: null });
+        }
+        const fence = (fenceCounters[key] ?? 0) + 1;
+        fenceCounters[key] = fence;
+        const row = {
+          lease_key: key,
+          holder: args.p_holder,
+          fence_token: fence,
+          acquired_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + args.p_ttl_seconds * 1000).toISOString(),
+          metadata: args.p_metadata,
+        };
+        leases[key] = row;
+        return Promise.resolve({
+          data: [{ holder: row.holder, fence_token: fence, expires_at: row.expires_at }],
+          error: null,
+        });
+      }
+      if (name === 'renew_etl_lease') {
+        const matches = existing
+          && existing.holder === args.p_holder
+          && existing.fence_token === args.p_fence_token
+          && new Date(existing.expires_at).getTime() > Date.now();
+        if (!matches) return Promise.resolve({ data: null, error: null });
+        existing.expires_at = new Date(Date.now() + args.p_ttl_seconds * 1000).toISOString();
+        return Promise.resolve({ data: existing.expires_at, error: null });
+      }
+      if (name === 'release_etl_lease') {
+        if (existing
+          && existing.holder === args.p_holder
+          && existing.fence_token === args.p_fence_token) {
+          delete leases[key];
+          return Promise.resolve({ data: true, error: null });
+        }
+        return Promise.resolve({ data: false, error: null });
+      }
+      throw new Error(`unexpected rpc: ${name}`);
+    },
     from(table: string) {
       if (table !== 'etl_leases') {
         throw new Error(`unexpected table: ${table}`);
       }
       return {
-        insert(row: any) {
-          if (leases[row.lease_key]) {
-            return Promise.resolve({
-              error: { code: '23505', message: 'unique_violation' },
-            });
-          }
-          leases[row.lease_key] = row;
-          return Promise.resolve({ error: null });
-        },
-        delete() {
-          const filters: Array<{ op: string; col: string; val: any }> = [];
-          const builder: any = {
-            eq(col: string, val: any) {
-              filters.push({ op: 'eq', col, val });
-              return builder;
-            },
-            lt(col: string, val: any) {
-              filters.push({ op: 'lt', col, val });
-              return builder;
-            },
-            then(resolve: any, reject: any) {
-              try {
-                const res = runDelete(leases, filters);
-                resolve({ ...res, error: null });
-              } catch (err) {
-                reject(err);
-              }
-            },
-          };
-          return builder;
-        },
         select() {
           return {
             order() {
@@ -70,26 +81,6 @@ function makeMockSupabase() {
   };
 
   return { supabase: supabase as SupabaseClient, leases };
-}
-
-function runDelete(
-  leases: Record<string, any>,
-  filters: Array<{ op: string; col: string; val: any }>,
-) {
-  let count = 0;
-  for (const key of Object.keys(leases)) {
-    const row = leases[key];
-    const matches = filters.every(({ op, col, val }) => {
-      if (op === 'eq') return row[col] === val;
-      if (op === 'lt') return new Date(row[col]).getTime() < new Date(val).getTime();
-      return false;
-    });
-    if (matches) {
-      delete leases[key];
-      count++;
-    }
-  }
-  return { count };
 }
 
 describe('acquireLease', () => {
@@ -147,6 +138,15 @@ describe('acquireLease', () => {
       congress: 117,
       runId: 'abc',
     });
+  });
+
+  it('renews only the current fenced lease', async () => {
+    const { supabase } = makeMockSupabase();
+    const lease = await acquireLease(supabase, 'renew-key', 60);
+    const before = lease!.expiresAt;
+    const renewed = await lease!.renew(120);
+    expect(new Date(renewed).getTime()).toBeGreaterThan(new Date(before).getTime());
+    expect(lease!.expiresAt).toBe(renewed);
   });
 
   it('release only removes the lease for matching holder', async () => {

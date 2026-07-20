@@ -7,12 +7,14 @@ import { InfoTip } from './Tooltip'
 import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
+import BillWatchControl from './BillWatchControl'
 import '../styles/BillDetail.css'
 
 // Feature flag (per outside-voice D16). Off by default. Gates:
 //  - "Where this bill goes" section
 //  - Smart status pill survival popover (default pill stays a plain label)
 const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
+const SHOW_BILL_ALERTS = import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true'
 
 function BillDetail() {
   const { congress, billType, number } = useParams()
@@ -375,6 +377,9 @@ function BillDetail() {
 
         {/* RIGHT RAIL */}
         <aside className="bill-rail">
+          {SHOW_BILL_ALERTS && (
+            <BillWatchControl billId={`${congress}-${billType.toLowerCase()}-${number}`} />
+          )}
           {sponsor && (
             <div className="bill-rail-card bill-sponsor-card">
               <h3 className="bill-rail-h3">Sponsor</h3>

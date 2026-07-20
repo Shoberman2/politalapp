@@ -24,6 +24,7 @@ const NAV_LINKS = [
   { to: '/my-representative', label: 'My Rep' },
   { to: '/briefings', label: 'Briefings' },
   { to: '/bills', label: 'Bills' },
+  ...(import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true' ? [{ to: '/alerts', label: 'Alerts' }] : []),
   { to: '/all', label: 'Members' },
   { to: '/methodology', label: 'Methodology' },
   { to: '/developers', label: 'API' },

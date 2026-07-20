@@ -127,6 +127,24 @@ SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
+Bill-watch delivery runs from GitHub Actions and keeps all privileged values in
+repository secrets (never in `VITE_` variables):
+
+```env
+RESEND_API_KEY=...
+RESEND_WEBHOOK_SECRET=...
+BILL_ALERTS_FROM_EMAIL=BallotWatch Alerts <alerts@example.org>
+```
+
+Set `VITE_PUBLIC_ORIGIN` as a non-secret GitHub Actions repository variable to
+the canonical site origin, such as `https://ballotwatch.org`. Action dependencies
+are pinned to immutable commits and Dependabot proposes reviewed updates.
+
+The database runtime mode defaults to `off`. Apply the migration, configure the
+signed Resend webhook at `/api/webhooks/resend`, validate an internal account,
+then advance through `shadow` → `internal` → `public`. The browser UI is gated
+separately by `VITE_BILL_ALERTS_ENABLED=true`.
+
 Optional services include OpenAI, FEC, OpenSecrets, Stripe, and feature flags.
 Never commit `.env`.
 
@@ -142,6 +160,7 @@ npm run preview
 npm test
 npm run test:e2e
 npm run etl:dry-run
+npm run alerts:run
 ```
 
 Local end-to-end tests target the full-stack origin on port 3000. Start

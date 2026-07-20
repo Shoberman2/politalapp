@@ -171,3 +171,17 @@
 **Context:** The post-migration Supabase security advisor reports `auth_leaked_password_protection` as disabled. This does not block Google OAuth or core app startup, but password-based accounts do not receive the compromised-password check.
 **Repro:** Run the Supabase security advisor for project `dbtbmjjjcfwobhlicduk`.
 **What to do:** Enable leaked-password protection in Supabase Auth password-security settings, then rerun the security advisor and verify password sign-up/sign-in behavior.
+
+## Bill Watch Alerts
+
+### Add persisted Resend transport batching after measured queue pressure
+
+**What:** Group frozen individual alert deliveries into persisted provider transport batches when production queue latency demonstrates the need.
+
+**Why:** Resend accepts up to 100 distinct emails per batch request, but v1 deliberately keeps one provider idempotency identity per delivery for simpler reconciliation. A later transport-batch layer can increase throughput without weakening delivery identity.
+
+**Context:** The 2026-07-20 engineering review selected adaptive rate-limited individual sends. Revisit only when the 95th-percentile pending age approaches the two-hour SLO or provider request limits materially delay delivery. The implementation must persist the transport-group UUID and frozen ordered membership, use one batch idempotency key, retain each email's `delivery_id` tag, split validation failures safely, and map returned provider IDs to local deliveries.
+
+**Effort:** M
+**Priority:** P3
+**Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics

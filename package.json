@@ -1,7 +1,7 @@
 {
   "name": "political-voting-tracker",
   "private": true,
-  "version": "0.1.2.0",
+  "version": "0.2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,7 @@
     "etl:dry-run": "npx tsx etl/run.ts --dry-run",
     "etl:enrich": "npx tsx etl/run.ts --enrich-only",
     "etl:verbose": "npx tsx etl/run.ts --verbose",
+    "alerts:run": "tsx etl/runBillAlerts.ts",
     "etl:backfill-sponsors": "npx tsx etl/backfillSponsorAndRoutings.ts --phase a",
     "etl:backfill-historical-routings": "npx tsx etl/backfillSponsorAndRoutings.ts --phase b",
     "etl:compute-survival": "npx tsx etl/computeCommitteeSurvival.ts",
