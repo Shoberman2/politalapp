@@ -185,3 +185,15 @@
 **Effort:** M
 **Priority:** P3
 **Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics
+
+## ETL extract failures are invisible to the run summary
+**Priority:** Medium
+**Blocked by:** Nothing
+**Context:** `extractChamberVotes` in `etl/extractHouseVotes.ts` wraps its whole body in a try/catch that logs and returns `[]`. A total extraction failure therefore looks identical to "no votes in range" — the run still reports success. This is the shape that let the senator-lookup bug (Senate positions silently dropped, "Built lookup for 1 senators") sit unnoticed for months; v0.2.1.0 added a loud `logger.error` when the senator map comes back short, but a log line still does not fail the GitHub Actions run.
+**What to do:** Thread an errors array (or return `{votes, errors}`) from `extractChamberVotes` up through `extractRecentVotes` into the ETL result, so extraction failures land in `result.errors` and the daily workflow reports failure. Keep partial success working — a failed Senate fetch should not discard House votes.
+
+## Retire the caller-less state-bill AI backend
+**Priority:** Low
+**Blocked by:** Nothing
+**Context:** v0.2.1.0 removed the unreachable state-bills frontend (`StateBillsPage`, `StateBillCard`, `StateDistrictSelector`, `services/stateBills.js`). Its backend is still deployed: the `explain-state-bill` Edge Function and the `state_bill_explanations` table from `supabase/migrations/007_ai_caches.sql`. Nothing calls either one now. The source was left in place deliberately so the repo does not diverge from what is actually deployed.
+**What to do:** Decide whether the state-bills feature is coming back. If not: `supabase functions delete explain-state-bill`, remove `supabase/functions/explain-state-bill/`, and add a migration dropping `state_bill_explanations`. Never delete the original migration file — write a new one.

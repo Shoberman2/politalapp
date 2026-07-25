@@ -3,6 +3,28 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.2.1.0] - 2026-07-25
+
+### Fixed
+
+- Senate votes are recorded again. The senator lookup read only the first page of Congress.gov's member list, and that page happens to be entirely House members, so every Senate member position was discarded before it reached the database. Senate roll calls had been landing with no votes attached.
+- Vote tallies stay current. The nightly job ran its statistics step last, behind an open-ended step that consumed the remaining time, so on any slow day the job was cut off before tallies were computed and the site kept showing older numbers.
+- "See every vote, with the receipts." on the front page shows real bills and real yea-nay counts instead of grey placeholder bars. Tallies now fall back to counting the recorded votes directly when the summary table is behind.
+- The "On the floor" feed no longer drops judicial and executive nominations, which were being filtered out before they could be displayed.
+- The opening film starts playing on arrival rather than resting on a still frame, and no longer keeps playing in the background after it hands off to the next shot.
+- Aggregation steps that read the database in pages now read in a guaranteed order, so rows can no longer be skipped or counted twice.
+
+### Changed
+
+- The opening film is roughly half as long (about four seconds) and a quarter of the download size, so the page is usable sooner.
+- The closing section now looks up your representatives where you are, instead of a button that scrolled back to the top. Results appear beside whichever search box you used.
+- Buttons across the site have a softer, rounder shape that reads as pressable, while labels and panels stay square.
+- The closing bill clip starts when it scrolls into view rather than playing unseen from page load.
+
+### Removed
+
+- The unfinished state-legislature bill browser, which was unreachable from the site.
+
 ## [0.2.0.0] - 2026-07-20
 
 ### Added
