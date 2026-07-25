@@ -420,22 +420,44 @@ async function extractSenateVotesFromXML(
       }
       const listXml = await listResponse.text();
 
-      // Parse vote entries from the list XML
-      const entryRegex = /<vote>\s*<vote_number>(\d+)<\/vote_number>\s*<vote_date>([^<]*)<\/vote_date>\s*<issue>([^<]*)<\/issue>\s*<question>([^<]*)<\/question>\s*<result>([^<]*)<\/result>[^]*?<title>([^<]*)<\/title>\s*<\/vote>/g;
+      // Parse vote entries from the list XML.
+      //
+      // Take each <vote> block first, then read its fields independently. The
+      // previous single regex demanded one exact element sequence ending in
+      // <title>, so any entry that ordered its children differently or omitted
+      // <title> never matched — and because a non-match produces nothing at
+      // all, those votes were dropped with no error and no log line. Measured
+      // against the live feed on 2026-07-25 that silently lost 122 of 659
+      // session-1 votes and 50 of 209 in session 2.
+      const field = (block: string, tag: string) =>
+        (new RegExp(`<${tag}>([^<]*)</${tag}>`).exec(block)?.[1] || '').trim();
+
       const entries: Array<{ number: string; date: string; issue: string; question: string; result: string; title: string }> = [];
-      let match;
-      while ((match = entryRegex.exec(listXml)) !== null) {
+      const blockRegex = /<vote>([\s\S]*?)<\/vote>/g;
+      let block;
+      let unparsable = 0;
+      while ((block = blockRegex.exec(listXml)) !== null) {
+        const body = block[1];
+        const number = field(body, 'vote_number');
+        const date = field(body, 'vote_date');
+        // A vote we cannot number or date is genuinely unusable; everything
+        // else is optional context.
+        if (!number || !date) { unparsable++; continue; }
         entries.push({
-          number: match[1],
-          date: match[2].trim(),
-          issue: match[3].trim(),
-          question: match[4].trim(),
-          result: match[5].trim(),
-          title: match[6].trim(),
+          number,
+          date,
+          issue: field(body, 'issue'),
+          question: field(body, 'question'),
+          result: field(body, 'result'),
+          title: field(body, 'title'),
         });
       }
 
-      logger.info(`Found ${entries.length} Senate votes in session ${session}`);
+      const blockCount = (listXml.match(/<vote>/g) || []).length;
+      logger.info(`Found ${entries.length} Senate votes in session ${session} (of ${blockCount} entries in the feed)`);
+      if (unparsable > 0) {
+        logger.warn(`Session ${session}: ${unparsable} vote entries lacked a number or date and were skipped`);
+      }
 
       // Filter by date range - senate dates are like "26-Mar" so we need the year from the session
       const sessionYear = congress === 119 ? (session === 1 ? 2025 : 2026) : 0;
