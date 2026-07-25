@@ -37,9 +37,9 @@ on:
   workflow_dispatch:
     inputs:
       days_back:
-        description: 'Number of days to look back (default 365 = current Congress)'
+        description: 'Days to look back (default 600 covers the full 119th Congress, which opened 2025-01-03)'
         required: false
-        default: '365'
+        default: '600'
         type: string
       max_votes:
         description: 'Hard cap on total votes processed (rate-limit guard)'
@@ -57,9 +57,12 @@ jobs:
   procedural-backfill:
     name: Backfill roll_calls.question on historical votes
     runs-on: ubuntu-latest
-    # 119th Congress backfill is ~30-60 min at Cong.gov rate limits;
-    # 90 min cap leaves headroom without runaway billing.
-    timeout-minutes: 90
+    # Measured: a 365-day window ran 1h27m against the old 90m cap — three
+    # minutes of headroom, and the 2026-07-05 run was cancelled outright at
+    # 1h30m. A 600-day window (full 119th Congress) extracts proportionally
+    # more, so the cap has to clear it with room rather than sit on it.
+    # Dropping pre-warm below returns ~20 min of that budget.
+    timeout-minutes: 180
 
     steps:
       - name: Checkout repository
@@ -111,20 +114,32 @@ jobs:
           echo "BEFORE: $POPULATED of $TOTAL roll_calls have question populated"
           echo "POP_BEFORE=$POPULATED" >> $GITHUB_ENV
           echo "TOTAL_BEFORE=$TOTAL" >> $GITHUB_ENV
+          # Tally coverage is the number this backfill actually moves: a roll
+          # call only gets a roll_call_stats row once its member votes land.
+          STATS=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_call_stats?select=roll_call_id" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          echo "BEFORE: $STATS of $TOTAL roll_calls have a tally (roll_call_stats row)"
+          echo "STATS_BEFORE=$STATS" >> $GITHUB_ENV
 
       - name: Run Procedural Backfill ETL
         env:
           CONGRESS_API_KEY: ${{ secrets.CONGRESS_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          ETL_DAYS_BACK: ${{ github.event.inputs.days_back || '365' }}
+          ETL_DAYS_BACK: ${{ github.event.inputs.days_back || '600' }}
           ETL_MAX_VOTES: ${{ github.event.inputs.max_votes || '15000' }}
         run: |
-          DAYS="${{ github.event.inputs.days_back || '365' }}"
-          echo "Running procedural backfill: --days $DAYS --skip-enrich"
+          DAYS="${{ github.event.inputs.days_back || '600' }}"
+          echo "Running procedural backfill: --days $DAYS --skip-enrich --skip-prewarm"
           # --skip-enrich avoids the OpenAI bill-summary step (irrelevant for
           # this workflow's purpose, and may 401 if the OpenAI key is stale).
-          npm run etl -- --days "$DAYS" --skip-enrich
+          # --skip-prewarm likewise: warming long-form bill explanations has
+          # nothing to do with backfilling votes, and it was spending 20 minutes
+          # of a 90-minute budget on every run. The daily ETL warms the cache.
+          npm run etl -- --days "$DAYS" --skip-enrich --skip-prewarm
 
       - name: Snapshot roll_calls coverage AFTER
         env:
@@ -141,9 +156,16 @@ jobs:
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
             | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
+          STATS=$(curl -s -I "${SUPABASE_URL}/rest/v1/roll_call_stats?select=roll_call_id" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Prefer: count=exact" -H "Range: 0-0" 2>/dev/null \
+            | grep -i '^content-range:' | awk -F'/' '{print $2}' | tr -d '\r\n')
           DELTA=$((POPULATED - POP_BEFORE))
+          STATS_DELTA=$((STATS - STATS_BEFORE))
           echo "AFTER: $POPULATED of $TOTAL roll_calls have question populated"
-          echo "Delta this run: +$DELTA newly populated rows"
+          echo "AFTER: $STATS of $TOTAL roll_calls have a tally"
+          echo "Delta this run: +$DELTA question rows, +$STATS_DELTA tallies"
           # Alert in the workflow summary
           {
             echo "## Procedural Backfill Result"
@@ -151,10 +173,15 @@ jobs:
             echo "| Metric | Before | After | Delta |"
             echo "|---|---|---|---|"
             echo "| roll_calls with question populated | $POP_BEFORE | $POPULATED | +$DELTA |"
+            echo "| roll_calls with a tally (roll_call_stats) | $STATS_BEFORE | $STATS | +$STATS_DELTA |"
             echo "| Total roll_calls | $TOTAL_BEFORE | $TOTAL | +$((TOTAL - TOTAL_BEFORE)) |"
             echo ""
             if [ "$POPULATED" -gt 0 ] && [ "$TOTAL" -gt 0 ]; then
               PCT=$((POPULATED * 100 / TOTAL))
               echo "Coverage: **${PCT}%** of roll_calls now have question text."
+            fi
+            if [ "$STATS" -gt 0 ] && [ "$TOTAL" -gt 0 ]; then
+              SPCT=$((STATS * 100 / TOTAL))
+              echo "Tally coverage: **${SPCT}%** of roll_calls now have a yea-nay tally."
             fi
           } >> $GITHUB_STEP_SUMMARY
