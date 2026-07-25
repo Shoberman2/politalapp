@@ -597,24 +597,11 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
   }
 }
 
-export const saveLocation = (state, district) => {
-  localStorage.setItem('userState', state)
-  if (district) {
-    localStorage.setItem('userDistrict', district)
-  }
-}
-
-export const getSavedLocation = () => {
-  return {
-    state: localStorage.getItem('userState'),
-    district: localStorage.getItem('userDistrict')
-  }
-}
-
-export const clearSavedLocation = () => {
-  localStorage.removeItem('userState')
-  localStorage.removeItem('userDistrict')
-}
+// Removed with the shelved state-bills feature (2026-07-25): the
+// saveLocation/getSavedLocation/clearSavedLocation trio wrote and read the
+// `userState`/`userDistrict` localStorage keys, and StateBillsPage was their
+// only caller. Nothing else in the app touches those keys — user address is
+// persisted through services/userService instead.
 
 // Search for US addresses using Nominatim (OpenStreetMap) API
 // Free, no API key required, CORS-enabled
