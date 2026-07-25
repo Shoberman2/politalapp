@@ -159,7 +159,7 @@
   font-weight: 600;
   letter-spacing: 0;
   padding: 12px 20px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-btn);
   transition: all .18s ease;
   white-space: nowrap;
   cursor: pointer;

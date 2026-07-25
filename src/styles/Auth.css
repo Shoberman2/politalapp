@@ -207,7 +207,7 @@
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: var(--r-md);
+  border-radius: var(--r-btn);
   font-family: var(--sans);
   font-size: 0.98rem;
   font-weight: 600;

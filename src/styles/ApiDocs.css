@@ -121,7 +121,7 @@
   color: var(--accent);
   background: var(--accent-subtle);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--r-btn);
   cursor: pointer;
 }
 

@@ -72,7 +72,7 @@
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--r-btn);
   cursor: pointer;
   font-size: 0.9rem;
   font-family: var(--font-body);
