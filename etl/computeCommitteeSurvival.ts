@@ -114,6 +114,12 @@ async function main(): Promise<void> {
     const { data, error } = await supabase
       .from('bill_committee_routings')
       .select('bill_id, committee_code, subcommittee_code, referred_at, activity_type, bills!inner(legislative_stage)')
+      // Total order over the table's unique key. Offset paging without an
+      // ORDER BY can repeat and skip rows, quietly dropping routings from the
+      // survival aggregate.
+      .order('bill_id', { ascending: true })
+      .order('committee_code', { ascending: true })
+      .order('subcommittee_code', { ascending: true, nullsFirst: true })
       .range(offset, offset + PAGE - 1);
 
     if (error) {

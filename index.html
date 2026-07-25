@@ -13,6 +13,24 @@
         } catch (e) {}
       })();
     </script>
+    <!-- Landing hero only: fetch the opening frame before the JS bundle parses,
+         so the film's first frame is on screen immediately instead of black
+         while the clip buffers. Gated on the path so the other routes in this
+         SPA don't pay for it. (The clip itself can't be preloaded here —
+         `as="video"` isn't a supported preload destination — but it's small
+         enough that the element's own preload="auto" starts it right away.) -->
+    <script>
+      (function () {
+        try {
+          if (location.pathname !== '/') return;
+          var l = document.createElement('link');
+          l.rel = 'preload';
+          l.href = '/hero-run.jpg';
+          l.as = 'image';
+          document.head.appendChild(l);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

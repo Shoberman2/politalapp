@@ -120,6 +120,10 @@ async function fetchCachedBillKeys(supabase: SupabaseClient): Promise<Set<string
       .select('bill_key')
       .eq('model', MODEL)
       .eq('prompt_version', PROMPT_VERSION)
+      // bill_key is unique within a (model, prompt_version) pair, so this is a
+      // total order — without one, offset paging can skip already-cached keys
+      // and we re-generate explanations we already have.
+      .order('bill_key', { ascending: true })
       .range(from, from + PAGE - 1);
 
     if (error) throw new Error(`Failed to read bill_explanations: ${error.message}`);

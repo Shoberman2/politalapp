@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
@@ -68,26 +68,29 @@ const STEPS = [
 
 // The opening film is a silent, calm move through the REAL U.S. Capitol,
 // built entirely from real, freely-licensed footage/photography (no AI):
-//   1. a brief (~2s) exterior shot of the actual Capitol dome with a gentle
-//      push-in (real video, Pexels, free license),
-//   2. down the actual Brumidi Corridors (real photo, Architect of the Capitol),
-//   3. up into the Rotunda dome — the Apotheosis of Washington fresco
+//   1. the actual Capitol dome from the west lawn, gentle push-in
+//      (real video, Pexels, free license),
+//   2. up into the Rotunda dome — the Apotheosis of Washington fresco
 //      (real photo, Carol Highsmith / Library of Congress, public domain).
-// Real interior walkthrough VIDEO of the Capitol isn't available under a free
-// license (interior filming is restricted; it exists only as paid iStock), so
-// the halls are conveyed via animated real stills. Clips play once and hand
-// off; the last loops. See public/hero-*.{mp4,jpg}.
+// Deliberately short: two ~2s shots (~4s total). A landing film that outstays
+// its welcome is a bounce, and every extra megabyte delays first frame — the
+// clips are 1440px/CRF28 so the first one starts playing on load, not after a
+// buffer. (A third shot, the Brumidi Corridors, was cut for length.)
+// Clips play once and hand off; the last loops. See public/hero-*.{mp4,jpg}.
 const FILM_CLIPS = [
   { src: '/hero-run.mp4', poster: '/hero-run.jpg', line: 'title' },
-  { src: '/hero-run2.mp4', poster: '/hero-run2.jpg', line: null },
   { src: '/hero-topdown.mp4', poster: '/hero-topdown.jpg', line: 'question' },
 ]
-const FILM_STATIC_INDEX = 2 // Rotunda dome frame shown under reduced motion
+const FILM_STATIC_INDEX = FILM_CLIPS.length - 1 // Rotunda frame shown under reduced motion
 
 // The "On the floor" feed and the step-two mock render only real recorded
 // votes. While the live fetch is in flight (or if it fails) we show neutral
 // skeleton rows — never invented bills. See `floorReady` below.
 const FLOOR_SKELETON = [0, 1, 2, 3]
+// `floor` holds everything the fetch returned; the feed shows the most recent
+// slice of it while the step-two mock picks the best-illustrated rows from the
+// whole set. Truncating on fetch used to throw away the votes carrying tallies.
+const FLOOR_FEED_ROWS = 5
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
@@ -135,11 +138,19 @@ function fromBill(b) {
 function Landing() {
   const navigate = useNavigate()
   const rootRef = useRef(null)
-  const zipInputRef = useRef(null)
   const videoRefs = useRef([])
+  const votingVidRef = useRef(null)
+  // The <video> ref callback below is an inline arrow, so React re-invokes it
+  // on every render, not just on mount. Without this latch the opening shot
+  // would be re-played each time state changed — invisibly, since by then the
+  // film has crossfaded to the next clip — burning CPU behind the scenes.
+  const openingKicked = useRef(false)
 
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
+  // Which of the two lookup forms was submitted, so the result renders next to
+  // the field the reader actually used instead of somewhere off-screen.
+  const [lookupPlace, setLookupPlace] = useState('turn')
   const [floor, setFloor] = useState([])
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
@@ -187,16 +198,21 @@ function Landing() {
       try {
         const data = await getRecentFloorVotes(16).catch(() => null)
         if (cancelled) return
-        const votes = (data?.votes || []).filter((v) => v.text || v.bill)
+        // Keep anything with real substance to show. `v.text` was the original
+        // predicate here, but that field is produced by fromFloorVote below and
+        // never exists on a raw service vote — so this quietly kept only
+        // bill-bearing rows and dropped every nomination, even though the
+        // service deliberately carries their descriptions.
+        const votes = (data?.votes || []).filter((v) => v.description || v.question || v.bill)
         if (votes.length >= 3) {
-          setFloor(votes.slice(0, 5).map(fromFloorVote))
+          setFloor(votes.map(fromFloorVote))
           if (data.recordedThrough) setRecordedThrough(data.recordedThrough)
           return
         }
         const bills = await getRecentBills(8).catch(() => [])
         if (cancelled) return
         const items = bills.filter((b) => b.latestAction?.text && b.number).map(fromBill)
-        if (items.length >= 3) setFloor(items.slice(0, 5))
+        if (items.length >= 3) setFloor(items)
       } finally {
         // Mark the fetch resolved either way so the feed swaps skeletons for
         // real rows (and never falls back to invented bills).
@@ -206,24 +222,29 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
+  // Start a clip muted, and surface a Play button only if the browser refuses.
+  // `rewind` is for hand-offs (a clip we're returning to should start over);
+  // the opening shot is never rewound, so kicking it twice can't stutter it.
+  const playClip = useCallback((v, { rewind = false } = {}) => {
+    if (!v) return
+    v.muted = true
+    if (rewind && v.currentTime > 0.05) {
+      try { v.currentTime = 0 } catch { /* not seekable yet */ }
+    }
+    const p = v.play()
+    if (p && p.then) p.then(() => setPlayBlocked(false)).catch(() => setPlayBlocked(true))
+  }, [])
+
   // Drive the clip sequence: play the current (muted) shot and pause the rest.
   // The videos advance themselves via `onEnded`.
   useEffect(() => {
     if (reduced) return
     videoRefs.current.forEach((v, i) => {
       if (!v) return
-      if (i === current) {
-        try { v.currentTime = 0 } catch { /* not seekable yet */ }
-        v.muted = true
-        const p = v.play()
-        // If the browser blocks autoplay, surface a Play button instead of
-        // silently leaving a frozen poster.
-        if (p && p.then) p.then(() => setPlayBlocked(false)).catch(() => setPlayBlocked(true))
-      } else {
-        v.pause()
-      }
+      if (i === current) playClip(v, { rewind: true })
+      else v.pause()
     })
-  }, [current, reduced])
+  }, [current, reduced, playClip])
 
   // Bulletproof autoplay: muted clips should start on load, but a few browsers
   // still hold until a user gesture. The moment the user does anything (scroll,
@@ -242,6 +263,25 @@ function Landing() {
   // Under reduced motion, hold on the chamber still with the question shown.
   useEffect(() => {
     if (reduced) setCurrent(FILM_STATIC_INDEX)
+  }, [reduced])
+
+  // The closing bill shot sits far below the fold. Autoplaying it at mount
+  // steals bandwidth from the hero and leaves it mid-loop by the time anyone
+  // scrolls to it — start it when it actually comes into view instead.
+  useEffect(() => {
+    const v = votingVidRef.current
+    if (!v || reduced) return
+    if (!('IntersectionObserver' in window)) {
+      v.muted = true
+      v.play().catch(() => {})
+      return
+    }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { v.muted = true; v.play().catch(() => {}) }
+      else v.pause()
+    }, { threshold: 0.2 })
+    io.observe(v)
+    return () => io.disconnect()
   }, [reduced])
 
   // Staggered entrance reveals for anything tagged [data-reveal].
@@ -268,8 +308,9 @@ function Landing() {
     // would stay stuck at opacity:0.
   }, [reduced, floor, floorReady])
 
-  const handleLookup = async (e) => {
+  const handleLookup = async (e, place) => {
     e.preventDefault()
+    setLookupPlace(place)
     const value = zip.trim()
     if (!/^\d{5}$/.test(value)) {
       setLookup({
@@ -315,22 +356,49 @@ function Landing() {
     navigate('/my-representative')
   }
 
-  const focusLookup = () => {
-    zipInputRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' })
-    // Wait for the scroll to settle before pulling focus so the page doesn't jump.
-    window.setTimeout(() => zipInputRef.current?.focus(), reduced ? 0 : 420)
-  }
-
   const advanceClip = () => setCurrent((c) => (c < FILM_CLIPS.length - 1 ? c + 1 : c))
 
+  // The one primary action, rendered at both the top of the page and the
+  // bottom. The closing section runs the real lookup rather than bouncing the
+  // reader back up to the top — a CTA that only scrolls is a dead end.
+  const renderLookup = (place) => (
+    <>
+      <form className="lookup-form" data-reveal onSubmit={(e) => handleLookup(e, place)}>
+        <label htmlFor={`zipInput-${place}`} className="visually-hidden">ZIP code</label>
+        <input
+          id={`zipInput-${place}`}
+          type="text"
+          inputMode="numeric"
+          maxLength={5}
+          placeholder="Enter your ZIP code"
+          autoComplete="postal-code"
+          value={zip}
+          onChange={(e) => setZip(e.target.value)}
+        />
+        <button type="submit">
+          <span className="btn-word">Find my reps</span>
+          <ArrowRight />
+        </button>
+      </form>
+      <p className="lookup-hint" data-reveal>Free · No account · Source-linked records</p>
+
+      {lookup && lookupPlace === place && (
+        <div className="lookup-result" role="status">
+          <span className="lr-district">{lookup.code}</span>
+          <span className="lr-body">
+            {lookup.body}
+            {lookup.sub && <small>{lookup.sub}</small>}
+          </span>
+          {lookup.address && (
+            <button type="button" className="lr-go" onClick={handleViewProfiles}>View profiles →</button>
+          )}
+        </div>
+      )}
+    </>
+  )
+
   // Kick off playback from a real user gesture when the browser blocked autoplay.
-  const startPlayback = () => {
-    const v = videoRefs.current[current]
-    if (!v) return
-    v.muted = true
-    const p = v.play()
-    if (p && p.then) p.then(() => setPlayBlocked(false)).catch(() => {})
-  }
+  const startPlayback = () => playClip(videoRefs.current[current])
 
   // Step-one illustration built from real members, with a skeleton fallback.
   const repsRows = featuredMembers.length ? featuredMembers : [null, null, null]
@@ -393,15 +461,23 @@ function Landing() {
   // Step-two illustration, built from the same live floor votes (real bill
   // numbers and real yea–nay tallies) so it updates with the feed instead of
   // showing fixed set copy. Colored by outcome; sourced to the real roll call.
-  const votesRows = floor.filter((v) => v.bill && v.tally).slice(0, 3)
+  // Best rows first — a bill number with a real tally — then top up with any
+  // other real recorded vote. Requiring a tally outright used to leave this
+  // stuck on skeletons whenever the tally data was thin; skeletons should only
+  // ever mean "still loading", never "we had nothing to say".
+  const votesRows = [
+    ...floor.filter((v) => v.bill && v.tally),
+    ...floor.filter((v) => v.bill && !v.tally),
+    ...floor.filter((v) => !v.bill && v.text),
+  ].slice(0, 3)
   const votesVisual = (
     <div className="mock mock-votes" aria-hidden="true">
       {(votesRows.length ? votesRows : [null, null, null]).map((v, i) => (
         v ? (
           <div className="mk-vote" key={v.key}>
-            <span className="mk-bill">{v.bill.display}</span>
+            <span className="mk-bill">{v.bill ? v.bill.display : v.rollLabel}</span>
             <span className="mk-desc">{truncate(v.text, 30)}</span>
-            <span className={`mk-yn ${v.resultKind === 'fail' ? 'nay' : 'yea'}`}>{v.tally}</span>
+            {v.tally && <span className={`mk-yn ${v.resultKind === 'fail' ? 'nay' : 'yea'}`}>{v.tally}</span>}
           </div>
         ) : (
           <div className="mk-vote" key={`sk-${i}`}>
@@ -455,7 +531,16 @@ function Landing() {
               // always reflected to the DOM, and unmuted = blocked autoplay.
               ref={(el) => {
                 videoRefs.current[i] = el
-                if (el) { el.muted = true; el.defaultMuted = true; el.playsInline = true }
+                if (!el) return
+                el.muted = true; el.defaultMuted = true; el.playsInline = true
+                // Don't wait for an effect (which runs after paint): kick the
+                // opening shot the instant the element exists, so arriving on
+                // the page shows motion, not a frozen poster. Once only —
+                // see `openingKicked`.
+                if (i === 0 && !reduced && !openingKicked.current) {
+                  openingKicked.current = true
+                  playClip(el)
+                }
               }}
               className={`film-vid${i === current ? ' is-current' : ''}`}
               src={clip.src}
@@ -465,6 +550,9 @@ function Landing() {
               playsInline
               preload="auto"
               loop={i === FILM_CLIPS.length - 1}
+              // The element may exist before it has enough data to start; try
+              // again the moment it does.
+              onCanPlay={() => { if (i === current && !reduced) playClip(videoRefs.current[i]) }}
               onEnded={i === FILM_CLIPS.length - 1 ? undefined : advanceClip}
             />
           ))}
@@ -495,38 +583,7 @@ function Landing() {
             BallotWatch shows you every one, <em>with the receipts.</em>
           </h2>
 
-          <form className="lookup-form" data-reveal onSubmit={handleLookup}>
-            <label htmlFor="zipInput" className="visually-hidden">ZIP code</label>
-            <input
-              id="zipInput"
-              ref={zipInputRef}
-              type="text"
-              inputMode="numeric"
-              maxLength={5}
-              placeholder="Enter your ZIP code"
-              autoComplete="postal-code"
-              value={zip}
-              onChange={(e) => setZip(e.target.value)}
-            />
-            <button type="submit">
-              <span className="btn-word">Find my reps</span>
-              <ArrowRight />
-            </button>
-          </form>
-          <p className="lookup-hint" data-reveal>Free · No account · Source-linked records</p>
-
-          {lookup && (
-            <div className="lookup-result" role="status">
-              <span className="lr-district">{lookup.code}</span>
-              <span className="lr-body">
-                {lookup.body}
-                {lookup.sub && <small>{lookup.sub}</small>}
-              </span>
-              {lookup.address && (
-                <button type="button" className="lr-go" onClick={handleViewProfiles}>View profiles →</button>
-              )}
-            </div>
-          )}
+          {renderLookup('turn')}
         </div>
       </section>
 
@@ -563,7 +620,7 @@ function Landing() {
 
           <ul className="floor-feed">
             {floorReady
-              ? floor.map((v) => (
+              ? floor.slice(0, FLOOR_FEED_ROWS).map((v) => (
                 <li className="floor-row" key={v.key} data-reveal>
                   <div className="fr-meta">
                     {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
@@ -615,10 +672,10 @@ function Landing() {
       {/* ===== VOTING: the second question, over a bill ===== */}
       <section className="voting">
         <video
+          ref={votingVidRef}
           className="voting-vid"
           src="/hero-bill.mp4"
           poster="/hero-bill.jpg"
-          autoPlay={!reduced}
           muted
           loop
           playsInline
@@ -645,11 +702,9 @@ function Landing() {
       {/* ===== FINALE: closing CTA ===== */}
       <section className="finale">
         <div className="finale-inner">
+          <span className="finale-kicker" data-reveal>Start with your ZIP</span>
           <h2 data-reveal>Find out who’s speaking for you.</h2>
-          <button type="button" className="finale-cta" data-reveal onClick={focusLookup}>
-            Look up my representatives
-            <ArrowRight />
-          </button>
+          {renderLookup('finale')}
         </div>
       </section>
 

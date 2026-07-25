@@ -56,7 +56,7 @@
   color: var(--bg);
   background: var(--text-primary);
   border: 1px solid var(--text-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-btn);
   padding: 12px 20px;
   min-height: 48px;
   cursor: pointer;

@@ -32,7 +32,7 @@
 .alerts-follow-options label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; }
 .alerts-follow-options input { accent-color: var(--accent); }
 .alerts-follow-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.alerts-follow button { align-self: center; border: 1px solid var(--rule); background: var(--surface); color: var(--text-secondary); border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer; }
+.alerts-follow button { align-self: center; border: 1px solid var(--rule); background: var(--surface); color: var(--text-secondary); border-radius: var(--r-btn); padding: 7px 12px; cursor: pointer; }
 .alerts-follow button:hover { border-color: var(--accent); color: var(--accent); }
 .alerts-follow button:disabled { cursor: wait; opacity: .55; }
 .alerts-follow .alerts-stop:hover { border-color: var(--error); color: var(--error); }

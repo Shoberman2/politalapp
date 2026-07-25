@@ -55,7 +55,11 @@ jobs:
   etl:
     name: Run ETL Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Budget: extract/transform/load/enrich/stats run ~25m, then pre-warm takes
+    # its own 20m budget (ETL_PREWARM_BUDGET_MS) — ~45m of real work. At the old
+    # 45m ceiling there was zero slack, so roughly every other run was killed
+    # mid-pre-warm and reported "cancelled". 60m leaves genuine headroom.
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository

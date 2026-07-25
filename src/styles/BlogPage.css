@@ -182,7 +182,7 @@
   background: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-btn);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;

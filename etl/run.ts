@@ -311,26 +311,14 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     }
 
     // ===========================================
-    // PRE-WARM PHASE (Long-form bill_explanations)
-    // ===========================================
-    if (!options.skipPrewarm) {
-      logger.info('=== PRE-WARM PHASE ===');
-      try {
-        const prewarmResult = await preWarmBillExplanations(config);
-        logger.info('Pre-warm complete', prewarmResult);
-        if (prewarmResult.errors.length > 0) {
-          result.errors.push(...prewarmResult.errors.slice(0, 5));
-        }
-      } catch (prewarmError) {
-        logger.warn('Pre-warm phase failed, continuing', prewarmError);
-      }
-    } else {
-      logger.info('Skipping explanation pre-warm (--skip-prewarm flag)');
-    }
-
-    // ===========================================
     // COMPUTE STATS PHASE
     // ===========================================
+    // Runs BEFORE pre-warm. Stats close out the data we just loaded — without
+    // them every fresh roll call reads as tally-less on the site — whereas
+    // pre-warm is optional AI cache-filling. Pre-warm used to run first and
+    // consume whatever time was left, so on any day the job hit its
+    // timeout-minutes ceiling it was killed mid-pre-warm and stats never ran at
+    // all, leaving roll_call_stats stuck at the last lucky run.
     logger.info('=== COMPUTE STATS PHASE ===');
     let statsResult: ComputeStatsResult | null = null;
     try {
@@ -344,6 +332,26 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
       statsResult = { membersProcessed: 0, errors: [message] };
       result.errors.push(`Stats computation: ${message}`);
       logger.warn('Stats computation failed', statsError);
+    }
+
+    // ===========================================
+    // PRE-WARM PHASE (Long-form bill_explanations)
+    // ===========================================
+    // Last on purpose: it is the only open-ended phase, so it should absorb
+    // leftover time rather than spend the budget everything else depends on.
+    if (!options.skipPrewarm) {
+      logger.info('=== PRE-WARM PHASE ===');
+      try {
+        const prewarmResult = await preWarmBillExplanations(config);
+        logger.info('Pre-warm complete', prewarmResult);
+        if (prewarmResult.errors.length > 0) {
+          result.errors.push(...prewarmResult.errors.slice(0, 5));
+        }
+      } catch (prewarmError) {
+        logger.warn('Pre-warm phase failed, continuing', prewarmError);
+      }
+    } else {
+      logger.info('Skipping explanation pre-warm (--skip-prewarm flag)');
     }
 
     // ===========================================

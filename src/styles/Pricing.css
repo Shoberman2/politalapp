@@ -128,7 +128,7 @@
   width: 100%;
   justify-content: center;
   min-height: 54px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-btn);
   font-size: 15px;
 }
 

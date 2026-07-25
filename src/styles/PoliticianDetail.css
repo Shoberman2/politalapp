@@ -146,7 +146,7 @@
   gap: 6px;
   padding: 8px 14px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-btn);
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--text-primary);
@@ -474,7 +474,7 @@
   background: var(--accent);
   color: white;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-btn);
   cursor: pointer;
 }
 .loading-spinner {
