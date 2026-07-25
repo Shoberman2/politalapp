@@ -53,15 +53,49 @@ function deriveResult(question, yea, nay, chamber) {
   return yea > nay ? 'Passed' : 'Failed'
 }
 
+// Reject impossible totals (double-counted ETL rows) and empty rows.
+function sane(yea, nay, chamber) {
+  const total = yea + nay
+  return total > 0 && total <= (CHAMBER_SIZE[chamber] || 435)
+}
+
 function tallyFor(stats, chamber) {
   if (!stats) return { yea: null, nay: null, valid: false }
   const yea = (stats.dem_yea || 0) + (stats.rep_yea || 0) + (stats.ind_yea || 0)
   const nay = (stats.dem_nay || 0) + (stats.rep_nay || 0) + (stats.ind_nay || 0)
-  const total = yea + nay
-  const max = CHAMBER_SIZE[chamber] || 435
-  // Reject impossible totals (double-counted ETL rows) and empty rows.
-  const valid = total > 0 && total <= max
-  return valid ? { yea, nay, valid: true } : { yea: null, nay: null, valid: false }
+  return sane(yea, nay, chamber) ? { yea, nay, valid: true } : { yea: null, nay: null, valid: false }
+}
+
+// `roll_call_stats` is written by a batch ETL that lags the newest roll calls —
+// right now it holds nothing for anything recent — which left the front page
+// with no tallies at all (and the "See every vote" step stuck on skeletons).
+// The per-member `votes` table IS populated for those same roll calls, so count
+// Yea/Nay straight from it as a fallback. `head: true` asks Postgres for a count
+// and zero rows, so this costs two tiny requests per roll call rather than 435
+// rows of payload. Still the real record, still sanity-checked the same way.
+// Enough to fill the front page's five feed rows and three-row vote mock even
+// when several candidates come back empty. Each one is two header-only
+// requests, issued in parallel.
+const TALLY_FALLBACK_LIMIT = 8
+
+async function countPosition(rollCallId, position) {
+  const { count, error } = await supabase
+    .from('votes')
+    .select('id', { count: 'exact', head: true })
+    .eq('roll_call_id', rollCallId)
+    .eq('position', position)
+  return error ? null : (count ?? null)
+}
+
+async function tallyFromVotes(rollCallId, chamber) {
+  const [yea, nay] = await Promise.all([
+    countPosition(rollCallId, 'Yea'),
+    countPosition(rollCallId, 'Nay'),
+  ])
+  // Nothing ingested for this roll call (Senate isn't covered member-level yet)
+  // — return null rather than assert a 0–0 tally.
+  if (yea == null || nay == null || !sane(yea, nay, chamber)) return null
+  return { yea, nay }
 }
 
 /**
@@ -116,6 +150,24 @@ export async function getRecentFloorVotes(fetchCount = 16) {
         result: deriveResult(c.question, yea, nay, chamber),
       }
     })
+
+    // Fill in tallies the stats table is missing, for just the handful of votes
+    // the page will actually show. Bill votes go first: they're what the front
+    // page leads with, and they're the ones the `votes` table actually covers
+    // (nominations and other bill-less roll calls are mostly Senate, which
+    // isn't ingested member-level yet, so budget spent on them comes back empty).
+    const missing = votes.filter((v) => v.yea == null)
+    const needsTally = [
+      ...missing.filter((v) => v.bill),
+      ...missing.filter((v) => !v.bill && v.description),
+    ]
+    await Promise.all(needsTally.slice(0, TALLY_FALLBACK_LIMIT).map(async (v) => {
+      const t = await tallyFromVotes(v.id, v.chamber)
+      if (!t) return
+      v.yea = t.yea
+      v.nay = t.nay
+      v.result = deriveResult(v.question, t.yea, t.nay, v.chamber)
+    }))
 
     return { votes, recordedThrough }
   } catch (err) {
