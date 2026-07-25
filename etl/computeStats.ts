@@ -123,6 +123,11 @@ export async function computeMemberStats(
       const { data: voteBatch, error: voteError } = await supabase
         .from('votes')
         .select('politician_id, roll_call_id, position')
+        // Order is REQUIRED for correctness, not tidiness: Postgres gives no
+        // stable row order without it, so paging 200k+ rows by offset can
+        // silently repeat some rows and skip others — and a skipped roll call
+        // just never gets a stats row.
+        .order('id', { ascending: true })
         .range(offset, offset + pageSize - 1);
 
       if (voteError) {

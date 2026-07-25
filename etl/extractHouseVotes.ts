@@ -348,16 +348,35 @@ async function extractSenateVotesFromXML(
     'northern mariana islands':'MP','puerto rico':'PR','u.s. virgin islands':'VI',
   };
 
+  // Congress.gov caps /member at 250 per page; ~537 members means 3 pages.
+  // MEMBER_FETCH_MAX is a runaway guard, not an expected bound.
+  const MEMBER_PAGE_SIZE = 250;
+  const MEMBER_FETCH_MAX = 2000;
+  const MIN_EXPECTED_SENATORS = 90;
+
   const senatorBioguideMap = new Map<string, string>();
   try {
     logger.info('Building senator bioguideId lookup from Congress.gov...');
-    const memberResponse = await retry(() =>
-      fetchCongressApi<any>('/member', config.congressApiKey, {
-        limit: 250,
-        currentMember: 'true',
-      })
-    );
-    const members = memberResponse.members || [];
+    // /member returns ~537 current members across several pages, and it is NOT
+    // ordered by chamber — as of July 2026 the first 250 records are all House,
+    // so the old single-page fetch built an EMPTY senator map and every Senate
+    // member position was silently dropped for want of a bioguideId. Page
+    // through the whole list.
+    const members: any[] = [];
+    for (let offset = 0; offset < MEMBER_FETCH_MAX; offset += MEMBER_PAGE_SIZE) {
+      const page = await retry(() =>
+        fetchCongressApi<any>('/member', config.congressApiKey, {
+          limit: MEMBER_PAGE_SIZE,
+          offset,
+          currentMember: 'true',
+        })
+      );
+      const batch = page.members || [];
+      members.push(...batch);
+      if (batch.length < MEMBER_PAGE_SIZE) break;
+    }
+    logger.info(`Fetched ${members.length} current members across all pages`);
+
     for (const m of members) {
       const terms = m.terms?.item || [];
       const currentTerm = terms[terms.length - 1];
@@ -375,6 +394,15 @@ async function extractSenateVotesFromXML(
     if (!senatorBioguideMap.has('mullin-ok')) senatorBioguideMap.set('mullin-ok', 'M001190');
 
     logger.info(`Built lookup for ${senatorBioguideMap.size} senators`);
+    // A short map means /member changed shape or ordering again. Say so loudly:
+    // this failure is otherwise silent (Senate roll calls still land, they just
+    // arrive with zero member positions), which is how it went unnoticed.
+    if (senatorBioguideMap.size < MIN_EXPECTED_SENATORS) {
+      logger.error(
+        `Senator lookup resolved only ${senatorBioguideMap.size} senators (expected ~100). ` +
+        'Senate member positions will be dropped — check the /member response shape.'
+      );
+    }
   } catch (error) {
     logger.error('Failed to build senator lookup, Senate votes will have missing bioguideIds', error);
   }
