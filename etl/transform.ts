@@ -312,6 +312,9 @@ function transformRollCall(
     bill_id: billId,
     question: truncate(voteDetail.question),
     description: truncate(voteDetail.description),
+    // Already derived above for the id's session; persist it so consumers can
+    // order by when the vote happened rather than when we ingested it.
+    voted_at: votedAt,
   };
 }
 

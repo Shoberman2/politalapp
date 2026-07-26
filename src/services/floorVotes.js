@@ -102,13 +102,35 @@ async function tallyFromVotes(rollCallId, chamber) {
  * Returns { votes: [...], recordedThrough: 'YYYY-MM-DD' | null } or null.
  * `votes` carries only presentable, trustworthy fields.
  */
+// `voted_at` ships with its own migration. Until that lands in a given
+// environment the column is simply absent, and PostgREST answers with an
+// undefined-column error rather than ignoring the ordering.
+const isMissingVotedAt = (error) =>
+  !!error && (error.code === '42703' || error.code === 'PGRST204' ||
+    /voted_at/.test(error.message || ''))
+
 export async function getRecentFloorVotes(fetchCount = 16) {
   try {
-    const { data: calls, error } = await supabase
+    // Order by when the vote happened, NOT by created_at, which is when we
+    // ingested the row. Those agree only while ingestion runs forward in time:
+    // a history backfill writes months-old roll calls with fresh timestamps,
+    // which is exactly how old procedural motions climbed to the top of this
+    // feed. Roll calls we hold no votes for have no date and sort last, so
+    // they drop out of the feed instead of crowding it.
+    let { data: calls, error } = await supabase
       .from('roll_calls')
-      .select('id, bill_id, question, description, created_at')
+      .select('id, bill_id, question, description, created_at, voted_at')
+      .order('voted_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(fetchCount)
+
+    if (isMissingVotedAt(error)) {
+      ;({ data: calls, error } = await supabase
+        .from('roll_calls')
+        .select('id, bill_id, question, description, created_at')
+        .order('created_at', { ascending: false })
+        .limit(fetchCount))
+    }
 
     if (error || !calls?.length) return null
 
