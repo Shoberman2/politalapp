@@ -82,6 +82,11 @@ export interface RollCall {
   bill_id: string | null;  // null for purely procedural roll calls
   question: string | null; // e.g., "On Motion to Recommit"
   description: string | null;
+  // The day the vote was actually taken (YYYY-MM-DD). Distinct from
+  // created_at, which is when WE ingested the row. Backfilling history writes
+  // old votes with fresh created_at values, so ingest time cannot be used to
+  // order a "latest activity" feed.
+  voted_at: string | null;
 }
 
 export interface MemberStats {

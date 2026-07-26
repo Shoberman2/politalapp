@@ -342,6 +342,7 @@ async function upsertRollCalls(
         if (r.bill_id != null) row.bill_id = r.bill_id;
         if (r.question != null) row.question = r.question;
         if (r.description != null) row.description = r.description;
+        if (r.voted_at != null) row.voted_at = r.voted_at;
         return row;
       });
 
