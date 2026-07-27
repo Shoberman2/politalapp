@@ -23,18 +23,18 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^8.7.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "@vercel/analytics": "^1.6.1",
+    "@stripe/stripe-js": "^9.12.1",
+    "@supabase/supabase-js": "^2.110.9",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/og": "^0.11.1",
     "axios": "^1.6.7",
     "d3-geo": "^3.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-helmet-async": "^2.0.5",
-    "react-router-dom": "^6.22.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-helmet-async": "^3.0.0",
+    "react-router-dom": "^7.18.1",
     "react-simple-maps": "^3.0.0",
-    "stripe": "^22.0.1"
+    "stripe": "^22.3.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
