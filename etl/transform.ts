@@ -108,8 +108,15 @@ export function transformVoteData(
           continue;
         }
 
-        // Deduplicate votes using a composite key
-        const voteKey = `${vote.politician_id}-${vote.bill_id}-${vote.voted_at}`;
+        // Deduplicate on the same key the database uses:
+        // UNIQUE(roll_call_id, politician_id). The key used to be
+        // politician + bill + date, which omits the roll call entirely — so
+        // every bill-less roll call a member voted on in one day (nominations,
+        // procedural motions, en bloc confirmations) collapsed to a single
+        // key and all but the first was discarded here. On 2025-12-18 that
+        // silently threw away four of five Senate roll calls' member votes,
+        // and because this logs at debug level nothing surfaced.
+        const voteKey = voteDedupeKey(vote);
         if (seenVotes.has(voteKey)) {
           logger.debug(`Skipping duplicate vote: ${voteKey}`);
           continue;
@@ -213,6 +220,17 @@ function transformBill(
     policy_area: null, // Will be populated by fetchCRS
     source_url: sourceUrl,
   };
+}
+
+/**
+ * Identity of a single member's vote, matching the database's own
+ * UNIQUE(roll_call_id, politician_id) constraint. roll_call_id is always set
+ * by transformVote; the bill/date fallback only guards hand-built records.
+ */
+function voteDedupeKey(vote: Vote): string {
+  return vote.roll_call_id
+    ? `${vote.roll_call_id}-${vote.politician_id}`
+    : `${vote.politician_id}-${vote.bill_id}-${vote.voted_at}`;
 }
 
 /**
@@ -401,9 +419,9 @@ export function mergeTransformedData(
       }
     }
 
-    // Merge votes with deduplication
+    // Merge votes with deduplication (same key as the per-batch pass above).
     for (const vote of batch.votes) {
-      const voteKey = `${vote.politician_id}-${vote.bill_id}-${vote.voted_at}`;
+      const voteKey = voteDedupeKey(vote);
       if (!seenVotes.has(voteKey)) {
         seenVotes.add(voteKey);
         votes.push(vote);
