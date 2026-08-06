@@ -1,0 +1,72 @@
+name: BallotWatch
+options:
+  bundleIdPrefix: com.ballotwatch
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: false
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+targets:
+  BallotWatch:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BallotWatch
+        excludes:
+          - "**/.DS_Store"
+          # Info.plist is wired through INFOPLIST_FILE, and the secrets
+          # template is documentation — neither belongs in the bundle.
+          - "Info.plist"
+          - "Secrets.example.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app
+        PRODUCT_NAME: BallotWatch
+        INFOPLIST_FILE: BallotWatch/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        SWIFT_EMIT_LOC_STRINGS: YES
+        GENERATE_INFOPLIST_FILE: NO
+
+  BallotWatchTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BallotWatchTests
+    dependencies:
+      - target: BallotWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+
+  BallotWatchUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BallotWatchUITests
+    dependencies:
+      - target: BallotWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: BallotWatch
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
