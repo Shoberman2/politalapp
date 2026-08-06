@@ -3,6 +3,21 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.3.0.0] - 2026-08-06
+
+### Added
+
+- **BallotWatch for iOS** (`ios/`) — a native SwiftUI app reading the same Supabase data as the web app, so both show the same numbers. Find your representative by ZIP or street address, browse every roll call, search 180,000+ bills, and read any member's record. Ships the web design system natively: Instrument Serif, General Sans and Geist Mono are embedded rather than loaded from a CDN, with the full warm-paper and dark palettes. Watching bills and following members work without an account; signing in only syncs them. 43 tests, including smoke tests that drive the real app against the live backend, because the likeliest breakage is a query shape drifting from the schema.
+
+### Fixed
+
+- Senate votes are attributed to the senator who actually cast them. The voter lookup keyed on surname and state, built only from Congress.gov's *current* members, so when a senator was succeeded by someone sharing their surname the predecessor's whole record collapsed onto the successor. Lindsey Graham's votes were being recorded as Darline Graham's: 823 rows on the wrong senator, and 327 roll calls showing two South Carolina senators at once. Those roll calls then failed the 100-seat sanity check, so their tallies were suppressed and the site showed no vote count at all for 37 Senate votes. The lookup now holds every senator who served a seat during the Congress and picks between them by first name and term dates. This also retires a hardcoded patch that existed for the identical bug on the Mullin/Armstrong succession.
+- Vote counts are back on the 37 Senate roll calls that had been showing none, including several cloture votes where the outcome now reads correctly.
+
+### Changed
+
+- The methodology page no longer claims Senate roll calls are missing member-level data. Both chambers are at 100% coverage (881/881 Senate, 645/645 House); the claim was a stale note carried over from an earlier ingest gap. Replaced with an explanation of how seat successions are attributed.
+
 ## [0.2.1.0] - 2026-07-25
 
 ### Fixed

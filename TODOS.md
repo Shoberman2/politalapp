@@ -163,6 +163,7 @@
 **Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential. The current SPA calls Congress.gov directly, so `VITE_CONGRESS_API_KEY` is intentionally embedded in the browser and must be treated as public and quota-limited rather than as a server secret.
 **Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
 **What to do:** Revoke or rotate the key with Congress.gov, update the server and browser environment values, and confirm `npm run config:check`, build, and bill-loading smoke tests pass. Monitor the 5,000-request/hour quota. If the replacement must remain private, first proxy Congress.gov calls through a server route and remove `VITE_CONGRESS_API_KEY` from the frontend architecture.
+**Note (2026-08-06):** The iOS app deliberately does not commit this key. It reads `ios/BallotWatch/Secrets.plist`, which is gitignored and generated from `.env` by `ios/scripts/make-secrets.sh`; the app degrades to state-level display when the key is absent. Any rotation needs to reach that generator too, but nothing in `ios/` has to be scrubbed from history.
 
 ## Enable Supabase leaked-password protection
 **Priority:** Medium
@@ -185,6 +186,14 @@
 **Effort:** M
 **Priority:** P3
 **Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics
+
+## Montana is still treated as an at-large state in district.js
+**Priority:** High
+**Category:** Data correctness
+**Blocked by:** Nothing
+**Context:** `src/services/district.js` (~line 110) lists `MT` in `atLargeStates`: `['AK','DE','MT','ND','SD','VT','WY']`. Montana gained a second seat in the 2022 reapportionment and has had MT-1 and MT-2 since January 2023, so every Montana ZIP resolves to district `"0"`, which matches no sitting member. Found 2026-08-06 while building the iOS app, where a lookup for 59801 (Missoula) rendered "Montana at-large" and listed both House members under a singular "Your representative" heading. Already fixed in the iOS port (`ios/BallotWatch/Services/DistrictLookup.swift`, covered by `testMontanaIsNotAtLarge`); the web app is unfixed.
+**Repro:** Enter ZIP 59801 on the landing page. The result should resolve to MT-1.
+**What to do:** Remove `'MT'` from `atLargeStates`. Correct list for the 119th Congress is `AK, DE, ND, SD, VT, WY`. The list is reapportionment-sensitive, so add a comment saying it needs review after every decennial census rather than leaving it to look static. Effort: human ~5 min / CC ~2 min.
 
 ## ETL extract failures are invisible to the run summary
 **Priority:** Medium
