@@ -318,6 +318,63 @@ async function extractChamberVotes(
   return extractedVotes;
 }
 
+/** One senator who held a given surname+state seat, with their Senate term. */
+export type SenatorCandidate = {
+  bioguideId: string;
+  firstName: string;
+  startYear: number | null;
+  endYear: number | null;
+};
+
+/** Lowercase + strip accents, so "Luján" and "LUJAN" compare equal. */
+function normalizeVoterName(s: string): string {
+  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/**
+ * Pick the senator who held a seat on `voteDate`.
+ *
+ * A surname+state key is not unique over a Congress: when a senator is
+ * succeeded by someone sharing their surname, both hold "graham-sc" at
+ * different times. Resolving such a key to the *current* member reassigns the
+ * predecessor's whole voting record to their successor — measured on
+ * 2026-08-06 as 823 of Darline Graham's 879 rows actually belonging to Lindsey
+ * Graham, which also pushed 327 roll calls to 101 voters in a 100-seat chamber
+ * and made their tallies fail the sanity check and disappear from the UI.
+ *
+ * Returns '' when the seat is unknown or genuinely ambiguous. An empty
+ * bioguideId drops the position downstream, which is the right outcome: a vote
+ * attributed to the wrong senator is worse than one we admit we can't place.
+ */
+export function resolveSenator(
+  candidates: SenatorCandidate[] | undefined,
+  firstName: string,
+  voteDate: string
+): string {
+  if (!candidates || candidates.length === 0) return '';
+  if (candidates.length === 1) return candidates[0].bioguideId;
+
+  // First name settles nearly every real succession (Lindsey vs Darline).
+  const byFirstName = candidates.filter((c) => c.firstName && c.firstName === firstName);
+  if (byFirstName.length === 1) return byFirstName[0].bioguideId;
+
+  // Otherwise fall back to whoever's term covers the vote. Term years are
+  // inclusive of the start and exclusive of the end: a senator whose term ends
+  // in 2026 stops voting partway through that year, so a same-year tie is left
+  // to the first-name check above rather than guessed here.
+  const year = Number((voteDate || '').slice(0, 4));
+  if (Number.isFinite(year) && year > 0) {
+    const serving = (byFirstName.length > 1 ? byFirstName : candidates).filter(
+      (c) =>
+        (c.startYear === null || c.startYear <= year) &&
+        (c.endYear === null || year <= c.endYear)
+    );
+    if (serving.length === 1) return serving[0].bioguideId;
+  }
+
+  return '';
+}
+
 /**
  * Extract Senate votes from senate.gov XML feeds.
  * Congress.gov API doesn't have a /senate-vote endpoint,
@@ -354,7 +411,10 @@ async function extractSenateVotesFromXML(
   const MEMBER_FETCH_MAX = 2000;
   const MIN_EXPECTED_SENATORS = 90;
 
-  const senatorBioguideMap = new Map<string, string>();
+  // Each key holds EVERY senator who served that surname+state seat during the
+  // Congress, not just the current one; `resolveSenator` picks between them by
+  // first name and term window. See that function for why.
+  const senatorBioguideMap = new Map<string, SenatorCandidate[]>();
   try {
     logger.info('Building senator bioguideId lookup from Congress.gov...');
     // /member returns ~537 current members across several pages, and it is NOT
@@ -365,35 +425,65 @@ async function extractSenateVotesFromXML(
     const members: any[] = [];
     for (let offset = 0; offset < MEMBER_FETCH_MAX; offset += MEMBER_PAGE_SIZE) {
       const page = await retry(() =>
-        fetchCongressApi<any>('/member', config.congressApiKey, {
+        // NOT currentMember=true. A senator who left mid-Congress still cast
+        // every vote up to their last day; excluding them is what forced their
+        // record onto whoever holds the seat now.
+        fetchCongressApi<any>(`/member/congress/${congress}`, config.congressApiKey, {
           limit: MEMBER_PAGE_SIZE,
           offset,
-          currentMember: 'true',
         })
       );
       const batch = page.members || [];
       members.push(...batch);
       if (batch.length < MEMBER_PAGE_SIZE) break;
     }
-    logger.info(`Fetched ${members.length} current members across all pages`);
+    logger.info(`Fetched ${members.length} members of the ${congress}th Congress across all pages`);
+
+    const normalizeName = (s: string) =>
+      s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Luján -> lujan
 
     for (const m of members) {
       const terms = m.terms?.item || [];
-      const currentTerm = terms[terms.length - 1];
-      if (currentTerm?.chamber?.toLowerCase().includes('senate')) {
-        const lastName = (m.name || '').split(',')[0].trim().toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents (Luján → lujan)
-        const stateAbbr = STATE_TO_ABBR[(m.state || '').toLowerCase()] || (m.state || '').toUpperCase();
-        if (lastName && stateAbbr) {
-          senatorBioguideMap.set(`${lastName}-${stateAbbr.toLowerCase()}`, m.bioguideId);
-        }
-      }
-    }
-    // Add former senators who voted during this congress but are no longer current members
-    // (e.g., resigned to take cabinet positions). Congress.gov currentMember=true excludes them.
-    if (!senatorBioguideMap.has('mullin-ok')) senatorBioguideMap.set('mullin-ok', 'M001190');
+      // Take the senate term specifically, not merely the last one: members who
+      // moved from the House to the Senate carry both.
+      const senateTerm = [...terms].reverse()
+        .find((t: any) => t?.chamber?.toLowerCase().includes('senate'));
+      if (!senateTerm) continue;
 
-    logger.info(`Built lookup for ${senatorBioguideMap.size} senators`);
+      // Congress.gov renders list names as "Graham, Lindsey".
+      const [rawLast, rawFirst = ''] = String(m.name || '').split(',');
+      const lastName = normalizeName(rawLast);
+      const firstName = normalizeName(rawFirst).split(/\s+/)[0] || '';
+      const stateAbbr = STATE_TO_ABBR[(m.state || '').toLowerCase()] || (m.state || '').toUpperCase();
+      if (!lastName || !stateAbbr) continue;
+
+      const key = `${lastName}-${stateAbbr.toLowerCase()}`;
+      const seat = senatorBioguideMap.get(key) || [];
+      if (!seat.some((c) => c.bioguideId === m.bioguideId)) {
+        seat.push({
+          bioguideId: m.bioguideId,
+          firstName,
+          startYear: senateTerm.startYear ?? null,
+          endYear: senateTerm.endYear ?? null,
+        });
+      }
+      senatorBioguideMap.set(key, seat);
+    }
+
+    // A shared surname within one seat is legitimate, not an error -- but a
+    // misresolution there is exactly the silent failure this replaced, so name
+    // the ambiguous seats in the log where they can be checked.
+    const sharedSurnameSeats = [...senatorBioguideMap.entries()].filter(([, v]) => v.length > 1);
+    if (sharedSurnameSeats.length > 0) {
+      logger.info(
+        'Seats with more than one senator sharing a surname (resolved by term window): ' +
+        sharedSurnameSeats
+          .map(([k, v]) => `${k} [${v.map((c) => `${c.firstName}:${c.bioguideId}`).join(', ')}]`)
+          .join('; ')
+      );
+    }
+
+    logger.info(`Built lookup for ${senatorBioguideMap.size} senate seats`);
     // A short map means /member changed shape or ordering again. Say so loudly:
     // this failure is otherwise silent (Senate roll calls still land, they just
     // arrive with zero member positions), which is how it went unnoticed.
@@ -512,9 +602,16 @@ async function extractSenateVotesFromXML(
             const firstName = memberMatch[2].trim();
             const state = memberMatch[4].trim();
 
-            // Look up bioguideId from the senator name/state map
-            const lookupKey = `${lastName.toLowerCase()}-${state.toLowerCase()}`;
-            const bioguideId = senatorBioguideMap.get(lookupKey) || '';
+            // Resolve the senator who actually held this seat on the vote date.
+            // Surname alone is ambiguous across a succession (see the map
+            // construction above), so a shared-surname seat is settled by first
+            // name, then by term window.
+            const lookupKey = `${normalizeVoterName(lastName)}-${state.toLowerCase()}`;
+            const bioguideId = resolveSenator(
+              senatorBioguideMap.get(lookupKey),
+              normalizeVoterName(firstName),
+              voteDate
+            );
 
             memberVotes.push({
               member: {
