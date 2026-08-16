@@ -53,28 +53,34 @@ struct MyRepScreen: View {
     // MARK: Lookup hero
 
     private var lookupHero: some View {
-        VStack(alignment: .leading, spacing: Space.md) {
-            VStack(alignment: .leading, spacing: Space.sm) {
-                Text("See how Congress votes.")
-                    .font(Typo.displayXL)
+        VStack(alignment: .leading, spacing: Space.lg) {
+            VStack(alignment: .center, spacing: Space.xs) {
+                Text("Find Your Representatives")
+                    .font(Typo.h1)
                     .foregroundStyle(theme.text)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text("Find the three people who vote on your behalf — and the record they've built.")
+                Text("Enter your address to find your House Representative and Senators.")
                     .font(Typo.body)
                     .foregroundStyle(theme.textSecondary)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.top, Space.xs)
+            .frame(maxWidth: .infinity)
+            .padding(.top, Space.md)
 
-            RuleLine(weight: .heavy)
+            Card {
+                VStack(alignment: .leading, spacing: Space.sm) {
+                    Kicker("Address or ZIP code", color: theme.text)
+                    LookupField(model: model)
 
-            LookupField(model: model)
-
-            if !model.isLoading, model.error == nil {
-                Text("A ZIP code finds your state; a full street address pins the exact district.")
-                    .font(Typo.caption)
-                    .foregroundStyle(theme.textMuted)
+                    if !model.isLoading, model.error == nil {
+                        Text("A ZIP code finds your state; a full street address pins the exact district.")
+                            .font(Typo.caption)
+                            .foregroundStyle(theme.textMuted)
+                    }
+                }
             }
         }
     }
@@ -230,6 +236,7 @@ struct LookupField: View {
                     Text("Use my location")
                         .font(Typo.captionMedium)
                 }
+                .frame(minHeight: 44, alignment: .leading)
                 .foregroundStyle(theme.accent)
             }
             .buttonStyle(.plain)
