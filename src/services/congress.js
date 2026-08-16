@@ -21,7 +21,6 @@ const congressApi = axios.create({
 congressApi.interceptors.request.use(
   (config) => {
     console.log(`[Congress API] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
-    console.log('[Congress API] Params:', config.params)
     return config
   },
   (error) => {
