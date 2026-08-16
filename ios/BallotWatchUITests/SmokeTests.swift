@@ -107,30 +107,53 @@ final class SmokeTests: XCTestCase {
     func test04_membersAndDetail() throws {
         tapTab("Members")
 
-        let senateFilter = app.buttons["Senate"]
-        XCTAssertTrue(senateFilter.waitForExistence(timeout: 25), "Members screen never loaded")
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 25), "Members screen never loaded")
         capture("09-members-list")
 
-        senateFilter.tap()
-        // Every senator row renders the title "Senator".
+        search.tap()
+        search.typeText("Ocasio-Cortez")
+        let member = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Ocasio-Cortez'")
+        ).firstMatch
         XCTAssertTrue(
-            app.staticTexts["Senator"].firstMatch.waitForExistence(timeout: 15),
-            "Senate filter produced no senators"
+            member.waitForExistence(timeout: 15),
+            "Member search did not return Alexandria Ocasio-Cortez"
         )
-        capture("10-members-senate")
+        capture("10-members-search")
 
-        app.staticTexts["Senator"].firstMatch.tap()
+        member.tap()
 
-        // The detail page's first section is the vote record.
+        // Voting history and the evidence-bounded ideology estimate belong at
+        // the top of the profile, before the long vote list.
         XCTAssertTrue(
-            app.staticTexts["THE RECORD"].waitForExistence(timeout: 25),
-            "Politician detail never rendered the record"
+            app.staticTexts["VOTING HISTORY · AT A GLANCE"].waitForExistence(timeout: 25),
+            "Politician detail never rendered the top voting summary"
+        )
+        XCTAssertTrue(
+            app.staticTexts["Liberal-aligned voting record"].waitForExistence(timeout: 25),
+            "Voteview analysis did not load"
         )
         capture("11-politician-detail")
 
-        app.swipeUp()
-        app.swipeUp()
-        capture("12-politician-analysis")
+        // Campaign finance is loaded directly from the current OpenFEC cycle.
+        XCTAssertTrue(
+            app.staticTexts["CAMPAIGN FINANCE"].waitForExistence(timeout: 30),
+            "Campaign finance section never rendered"
+        )
+        XCTAssertTrue(
+            app.staticTexts["2026 cycle"].waitForExistence(timeout: 30),
+            "Current FEC cycle did not load"
+        )
+        let nonZeroCurrency = app.staticTexts.matching(
+            NSPredicate(format: "label BEGINSWITH '$' AND label != '$0'")
+        ).firstMatch
+        XCTAssertTrue(nonZeroCurrency.waitForExistence(timeout: 30), "FEC totals stayed empty")
+
+        for _ in 0..<6 where !app.staticTexts["CAMPAIGN FINANCE"].isHittable {
+            app.swipeUp()
+        }
+        capture("12-politician-finance")
     }
 
     func test05_moreAndMethodology() throws {

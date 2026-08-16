@@ -16,6 +16,11 @@ final class FECServiceTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("H8NY15148"))
         XCTAssertTrue(url.absoluteString.contains("cycle=2026"))
     }
+
+    func testCoverageDateDoesNotShiftToPriorDay() {
+        let date = DateParsing.date(from: "2026-06-30")
+        XCTAssertEqual(DateParsing.medium(date), "Jun 30, 2026")
+    }
 }
 
 final class VoteviewIdeologyTests: XCTestCase {

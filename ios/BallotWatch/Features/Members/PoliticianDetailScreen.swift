@@ -134,7 +134,10 @@ struct PoliticianDetailScreen: View {
 
             if let stats = model.stats {
                 LazyVGrid(
-                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                    columns: [
+                        GridItem(.flexible(), spacing: Space.md),
+                        GridItem(.flexible()),
+                    ],
                     spacing: 0
                 ) {
                     RecordMetric(value: "\(stats.totalVotes ?? 0)", label: "Roll calls")
@@ -249,7 +252,10 @@ struct PoliticianDetailScreen: View {
                         .foregroundStyle(theme.textMuted)
 
                     LazyVGrid(
-                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        columns: [
+                            GridItem(.flexible(), spacing: Space.md),
+                            GridItem(.flexible()),
+                        ],
                         spacing: 0
                     ) {
                         RecordMetric(value: formatCurrency(finance.individualTotal), label: "From individuals")

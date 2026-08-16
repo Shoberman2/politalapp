@@ -424,6 +424,10 @@ enum DateParsing {
         let f = DateFormatter()
         f.dateStyle = .medium
         f.timeStyle = .none
+        // Congressional and FEC coverage dates are day-level UTC values. If
+        // the formatter uses Eastern time, midnight UTC renders as the prior
+        // day (for example June 30 becomes June 29).
+        f.timeZone = TimeZone(identifier: "UTC")
         return f
     }()
 
