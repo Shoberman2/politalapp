@@ -17,6 +17,7 @@ import { getMemberDashboardData } from '../services/supabaseVotes'
 import { InfoTip } from './Tooltip'
 import VoteDashboard from './VoteDashboard'
 import VotingPatternAnalysis from './VotingPatternAnalysis'
+import VotingRecordSummary from './VotingRecordSummary'
 import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
@@ -395,6 +396,17 @@ function PoliticianDetail() {
         </div>
       </header>
 
+      <VotingRecordSummary
+        bioguideId={bioguideId}
+        party={party}
+        displayName={displayName}
+      />
+
+      {/* VOTING PATTERN ANALYSIS — near the top, before the long vote history. */}
+      <section className="pol-editorial pol-analysis-top">
+        <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
+      </section>
+
       {/* TENURE TIMELINE */}
       {tenureItems.length > 0 && (
         <section className="pol-editorial">
@@ -523,11 +535,6 @@ function PoliticianDetail() {
             )}
           </div>
         )}
-      </section>
-
-      {/* VOTING PATTERN ANALYSIS */}
-      <section className="pol-editorial">
-        <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
       </section>
 
       {photoAttribution && (

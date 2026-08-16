@@ -10,6 +10,7 @@
     "config:check:full": "node scripts/check-config.mjs --full",
     "build": "vite build",
     "preview": "vite preview",
+    "data:voteview-ideology": "node scripts/update-voteview-ideology.mjs",
     "etl": "npx tsx etl/run.ts",
     "etl:dry-run": "npx tsx etl/run.ts --dry-run",
     "etl:enrich": "npx tsx etl/run.ts --enrich-only",
