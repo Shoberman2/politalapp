@@ -18,6 +18,7 @@ struct BallotWatchApp: App {
 
 struct RootView: View {
     @Environment(\.theme) private var theme
+    @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var userData: UserData
     @State private var selection: Tab = .myRep
 
@@ -47,6 +48,13 @@ struct RootView: View {
         }
         .tint(theme.accent)
         .onAppear(perform: styleUIKitChrome)
+        .task(id: auth.user?.id) {
+            guard let user = await auth.prepareDataAccess() else {
+                userData.disconnectAccount()
+                return
+            }
+            await userData.syncAccount(userID: user.id)
+        }
     }
 
     /// SwiftUI's TabView and NavigationStack still render through UIKit

@@ -451,6 +451,32 @@ final class PostgRESTTests: XCTestCase {
     }
 }
 
+// MARK: - Account sync
+
+final class AccountSyncTests: XCTestCase {
+
+    func testFirstSyncPreservesBothDevices() {
+        let plan = UserData.syncPlan(local: ["local"], remote: ["remote"], baseline: nil)
+        XCTAssertEqual(plan.merged, ["local", "remote"])
+        XCTAssertEqual(plan.additions, ["local"])
+        XCTAssertEqual(plan.removals, [])
+    }
+
+    func testRemoteRemovalIsNotResurrectedWhenLocalIsUnchanged() {
+        let plan = UserData.syncPlan(local: ["a", "b"], remote: ["a"], baseline: ["a", "b"])
+        XCTAssertEqual(plan.merged, ["a"])
+        XCTAssertEqual(plan.additions, [])
+        XCTAssertEqual(plan.removals, [])
+    }
+
+    func testLocalRemovalPropagatesToRemote() {
+        let plan = UserData.syncPlan(local: ["a"], remote: ["a", "b"], baseline: ["a", "b"])
+        XCTAssertEqual(plan.merged, ["a"])
+        XCTAssertEqual(plan.additions, [])
+        XCTAssertEqual(plan.removals, ["b"])
+    }
+}
+
 // MARK: - HTML
 
 final class HTMLStrippingTests: XCTestCase {
