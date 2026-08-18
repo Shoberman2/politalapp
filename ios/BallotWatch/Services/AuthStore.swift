@@ -31,8 +31,10 @@ final class AuthStore: ObservableObject {
         didSet {
             user = session?.user
             Task { await PostgREST.shared.setAccessToken(session?.accessToken) }
+            scheduleRefresh()
         }
     }
+    private var refreshTask: Task<Void, Never>?
 
     var isSignedIn: Bool { user != nil }
 
@@ -42,6 +44,7 @@ final class AuthStore: ObservableObject {
         if let session {
             Task { await PostgREST.shared.setAccessToken(session.accessToken) }
             if session.isExpired { Task { await refresh() } }
+            else { scheduleRefresh() }
         }
     }
 
@@ -65,6 +68,17 @@ final class AuthStore: ObservableObject {
         }
         session = nil
         Keychain.clearSession()
+    }
+
+    /// Ensure PostgREST has a current user token before an RLS-protected sync.
+    func prepareDataAccess() async -> AuthUser? {
+        if session?.isExpired == true { await refresh() }
+        guard let session else {
+            await PostgREST.shared.setAccessToken(nil)
+            return nil
+        }
+        await PostgREST.shared.setAccessToken(session.accessToken)
+        return session.user
     }
 
     private func authenticate(path: String, email: String, password: String) async throws {
@@ -126,6 +140,19 @@ final class AuthStore: ObservableObject {
         }
         session = parsed
         Keychain.saveSession(parsed)
+    }
+
+    private func scheduleRefresh() {
+        refreshTask?.cancel()
+        guard let session else { return }
+        let delay = max(0, session.expiresAt.timeIntervalSinceNow - 60)
+        refreshTask = Task { [weak self] in
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+            guard !Task.isCancelled else { return }
+            await self?.refresh()
+        }
     }
 
     private static func parseSession(_ data: Data) -> Session? {

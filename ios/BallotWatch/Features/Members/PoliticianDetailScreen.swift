@@ -9,6 +9,7 @@ struct PoliticianDetailScreen: View {
     let politician: Politician
 
     @StateObject private var model: PoliticianDetailModel
+    @State private var showingIdeologyMethod = false
     @EnvironmentObject private var userData: UserData
     @Environment(\.theme) private var theme
 
@@ -27,6 +28,7 @@ struct PoliticianDetailScreen: View {
                 } else {
                     recordSection
                     if model.crossover.substantiveCount > 0 { crossoverSection }
+                    campaignFinanceSection
                     if !model.policyBreakdown.isEmpty { policySection }
                     if !model.notable.isEmpty { notableSection }
                     if !model.sponsored.isEmpty { sponsoredSection }
@@ -57,6 +59,7 @@ struct PoliticianDetailScreen: View {
             }
         }
         .task { await model.loadIfNeeded() }
+        .sheet(isPresented: $showingIdeologyMethod) { ideologyMethodSheet }
     }
 
     // MARK: Masthead
@@ -98,32 +101,212 @@ struct PoliticianDetailScreen: View {
 
     private var recordSection: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
-            SectionHead(title: "The record", trailing: model.stats?.congress.map { "\($0)th Congress" })
+            SectionHead(
+                title: "Voting history · at a glance",
+                trailing: model.ideology.map { "\($0.congress)th Congress" }
+                    ?? model.stats?.congress.map { "\($0)th Congress" }
+            )
+
+            Text("The record, up front")
+                .font(Typo.h2)
+                .foregroundStyle(theme.text)
+
+            VStack(alignment: .leading, spacing: Space.xs) {
+                Kicker("Voting record most closely aligns with")
+                Text(model.ideology?.label ?? ideologyFallbackLabel)
+                    .font(Typo.h1)
+                    .foregroundStyle(theme.text)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                IdeologyScale(placement: model.ideology?.placement)
+
+                HStack(spacing: Space.sm) {
+                    Text("Official party: \(politician.party.label)")
+                    if let estimate = model.ideology, estimate.available {
+                        Text("·")
+                        Text("\(estimate.confidence) model confidence")
+                    }
+                }
+                .font(Typo.monoSM)
+                .foregroundStyle(theme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
+            }
 
             if let stats = model.stats {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Space.sm) {
-                    // total_votes counts every roll call the member was
-                    // eligible for, including the ones they missed — so this
-                    // is "roll calls", not "votes cast".
-                    StatTile(value: "\(stats.totalVotes ?? 0)", label: "Roll calls")
-                    if let participation = stats.participationPct {
-                        StatTile(value: "\(Int(participation.rounded()))%", label: "Participation")
-                    }
-                    StatTile(value: "\(stats.yeaCount ?? 0)", label: "Yea", color: theme.success)
-                    StatTile(value: "\(stats.nayCount ?? 0)", label: "Nay", color: theme.error)
-                    if let missed = stats.notVotingCount, missed > 0 {
-                        StatTile(value: "\(missed)", label: "Missed", color: theme.warning)
-                    }
-                    if let loyalty = stats.partyLoyaltyPct {
-                        StatTile(value: "\(Int(loyalty.rounded()))%", label: "Party loyalty")
-                    }
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: Space.md),
+                        GridItem(.flexible()),
+                    ],
+                    spacing: 0
+                ) {
+                    RecordMetric(value: "\(stats.totalVotes ?? 0)", label: "Roll calls")
+                    RecordMetric(
+                        value: stats.participationPct.map { "\(Int($0.rounded()))%" } ?? "—",
+                        label: "Participation"
+                    )
+                    RecordMetric(
+                        value: stats.partyLoyaltyPct.map { "\(Int($0.rounded()))%" } ?? "—",
+                        label: "Party-majority match"
+                    )
+                    RecordMetric(
+                        value: model.crossover.substantiveCount > 0 ? "\(model.crossover.rate)%" : "—",
+                        label: "Different from party"
+                    )
                 }
             } else if model.state == .loaded {
                 Text("No vote statistics recorded for this member yet.")
                     .font(Typo.bodySM)
                     .foregroundStyle(theme.textMuted)
             }
+
+            Button("How this estimate works") { showingIdeologyMethod = true }
+                .font(Typo.bodySMMedium)
+                .foregroundStyle(theme.accent)
+                .frame(minHeight: 44)
+                .accessibilityHint("Opens Voteview methodology and classification limits")
         }
+    }
+
+    private var ideologyFallbackLabel: String {
+        switch model.ideologyState {
+        case .idle, .loading: return "Reading the roll-call record…"
+        case .loaded: return "Insufficient voting evidence"
+        case .failed: return "Ideology estimate unavailable"
+        }
+    }
+
+    private var ideologyMethodSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Space.md) {
+                    Text("How this estimate works")
+                        .font(Typo.h1)
+                        .foregroundStyle(theme.text)
+                    Text("Voteview estimates a member’s position from recorded congressional roll calls. BallotWatch translates its modern first dimension into a plain-language liberal-to-conservative range.")
+                        .font(Typo.body)
+                        .foregroundStyle(theme.textSecondary)
+                    if let votes = model.ideology?.votes, votes > 0 {
+                        Text("This estimate uses \(votes.formatted()) Voteview-coded votes.")
+                            .font(Typo.body)
+                            .foregroundStyle(theme.textSecondary)
+                    }
+                    Text("This is BallotWatch analysis, not an official affiliation or self-identification. Narrower labels such as “populist” or “neoconservative” are not inferred from party alone because this model does not measure those ideas reliably.")
+                        .font(Typo.body)
+                        .foregroundStyle(theme.textSecondary)
+                    Link("Read the Voteview methodology", destination: VoteviewIdeology.methodologyURL)
+                        .font(Typo.bodyMedium)
+                    Link("Request a source-linked correction", destination: VoteviewIdeology.correctionURL)
+                        .font(Typo.bodyMedium)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Space.md)
+            }
+            .paperBackground()
+            .navigationTitle("Methodology")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showingIdeologyMethod = false }
+                }
+            }
+        }
+    }
+
+    // MARK: Campaign finance
+
+    @ViewBuilder
+    private var campaignFinanceSection: some View {
+        VStack(alignment: .leading, spacing: Space.sm) {
+            SectionHead(
+                title: "Campaign finance",
+                trailing: model.campaignFinance.map { "\($0.cycle) cycle" }
+            )
+
+            switch model.campaignFinanceState {
+            case .idle, .loading:
+                HStack(spacing: Space.xs) {
+                    ProgressView()
+                    Text("Loading current FEC filings…")
+                        .font(Typo.bodySM)
+                        .foregroundStyle(theme.textMuted)
+                }
+                .frame(minHeight: 44)
+            case .failed(let message):
+                Text(message)
+                    .font(Typo.bodySM)
+                    .foregroundStyle(theme.textMuted)
+                Link("Search this member on FEC.gov", destination: FECService.searchURL(name: politician.name))
+                    .font(Typo.bodySMMedium)
+                    .frame(minHeight: 44)
+            case .loaded:
+                if let finance = model.campaignFinance {
+                    Text(formatCurrency(finance.totalRaised))
+                        .font(Typo.h1)
+                        .foregroundStyle(theme.text)
+                        .tabularFigures()
+                    Text(finance.coverageEndDate.flatMap { DateParsing.date(from: $0) }.map {
+                        "Total raised through \(DateParsing.medium($0))"
+                    } ?? "Total raised in the \(finance.cycle) cycle")
+                        .font(Typo.monoSM)
+                        .foregroundStyle(theme.textMuted)
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: Space.md),
+                            GridItem(.flexible()),
+                        ],
+                        spacing: 0
+                    ) {
+                        RecordMetric(value: formatCurrency(finance.individualTotal), label: "From individuals")
+                        RecordMetric(value: formatCurrency(finance.pacTotal), label: "From PACs")
+                        RecordMetric(value: formatCurrency(finance.totalSpent), label: "Spent this cycle")
+                        RecordMetric(value: formatCurrency(finance.cashOnHand), label: "Cash on hand")
+                    }
+
+                    if !finance.largestReceipts.isEmpty {
+                        Kicker("Largest itemized receipts shown")
+                            .padding(.top, Space.xs)
+                        ForEach(finance.largestReceipts.prefix(6)) { receipt in
+                            HStack(alignment: .firstTextBaseline, spacing: Space.sm) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(receipt.name)
+                                        .font(Typo.bodySM)
+                                        .foregroundStyle(theme.text)
+                                        .lineLimit(2)
+                                    Text([receipt.employer, receipt.state]
+                                        .compactMap { $0 }
+                                        .joined(separator: " · "))
+                                        .font(Typo.micro)
+                                        .foregroundStyle(theme.textMuted)
+                                }
+                                Spacer(minLength: Space.xs)
+                                Text(formatCurrency(receipt.amount))
+                                    .font(Typo.monoMedium)
+                                    .foregroundStyle(theme.text)
+                                    .tabularFigures()
+                            }
+                            .padding(.vertical, Space.xs)
+                            RuleLine()
+                        }
+                    }
+
+                    Text("Candidate totals include all authorized committees. The receipt list shows the principal committee’s largest current-cycle itemized receipts; employers are contributor-reported and are not corporate contributions.")
+                        .font(Typo.micro)
+                        .foregroundStyle(theme.textMuted)
+
+                    Link("View the filing on FEC.gov", destination: FECService.candidateURL(
+                        candidateID: finance.candidateID, cycle: finance.cycle
+                    ))
+                    .font(Typo.bodySMMedium)
+                    .frame(minHeight: 44)
+                }
+            }
+        }
+    }
+
+    private func formatCurrency(_ value: Double) -> String {
+        value.formatted(.currency(code: "USD").precision(.fractionLength(0)))
     }
 
     // MARK: Crossover
@@ -272,6 +455,78 @@ struct PoliticianDetailScreen: View {
     }
 }
 
+// MARK: - Record summary
+
+private struct IdeologyScale: View {
+    let placement: Double?
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        VStack(spacing: Space.xxs) {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(theme.border)
+                        .frame(height: 2)
+                        .position(x: geometry.size.width / 2, y: 6)
+                    if let placement {
+                        Circle()
+                            .fill(theme.accent)
+                            .overlay(Circle().stroke(theme.bg, lineWidth: 3))
+                            .frame(width: 12, height: 12)
+                            .position(
+                                x: min(max(6, geometry.size.width * placement / 100), geometry.size.width - 6),
+                                y: 6
+                            )
+                    }
+                }
+            }
+            .frame(height: 12)
+
+            HStack {
+                Text("Liberal")
+                Spacer()
+                Text("Conservative")
+            }
+            .font(Typo.monoMicro)
+            .foregroundStyle(theme.textMuted)
+            .textCase(.uppercase)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            placement.map { "Position on liberal to conservative scale: \(Int($0.rounded())) percent" }
+                ?? "Position on liberal to conservative scale unavailable"
+        )
+    }
+}
+
+private struct RecordMetric: View {
+    let value: String
+    let label: String
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.xxs) {
+            Text(label.uppercased())
+                .font(Typo.monoMicro)
+                .foregroundStyle(theme.textMuted)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(value)
+                .font(Typo.monoLarge)
+                .foregroundStyle(theme.text)
+                .tabularFigures()
+                .minimumScaleFactor(0.75)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .leading)
+        .padding(.vertical, Space.xs)
+        .padding(.trailing, Space.xs)
+        .overlay(alignment: .top) {
+            Rectangle().fill(theme.border).frame(height: 0.5)
+        }
+    }
+}
+
 // MARK: - Stat tile
 
 struct StatTile: View {
@@ -383,6 +638,7 @@ struct VoteRow: View {
 @MainActor
 final class PoliticianDetailModel: ObservableObject {
     enum State: Equatable { case idle, loading, loaded, failed(String) }
+    enum SupplementState: Equatable { case idle, loading, loaded, failed(String) }
 
     @Published private(set) var state: State = .idle
     @Published private(set) var votes: [BallotWatchAPI.VoteWithBill] = []
@@ -393,6 +649,10 @@ final class PoliticianDetailModel: ObservableObject {
     @Published private(set) var policyBreakdown: [VotingPatterns.PolicyTally] = []
     @Published private(set) var district: String?
     @Published private(set) var servingSince: Int?
+    @Published private(set) var ideology: VoteviewIdeology.Estimate?
+    @Published private(set) var ideologyState: SupplementState = .idle
+    @Published private(set) var campaignFinance: FECService.CampaignFinance?
+    @Published private(set) var campaignFinanceState: SupplementState = .idle
     @Published private(set) var visibleCount = 15
     /// Roll calls keyed by id, so a vote with no bill can still show what the
     /// chamber was actually voting on.
@@ -420,6 +680,8 @@ final class PoliticianDetailModel: ObservableObject {
 
     func load() async {
         state = .loading
+        ideologyState = .loading
+        campaignFinanceState = .loading
 
         async let votesTask = try? BallotWatchAPI.memberVotes(politicianID: politician.id, limit: 300)
         async let statsTask = try? BallotWatchAPI.memberStats(politicianID: politician.id)
@@ -427,6 +689,12 @@ final class PoliticianDetailModel: ObservableObject {
         // The roster holds no district for House members, so fill it in from
         // Congress.gov. Purely additive — a failure just leaves the state tag.
         async let detailTask = try? CongressAPI.member(bioguideID: politician.id)
+        async let ideologyTask = VoteviewIdeology.estimate(for: politician.id)
+        async let financeTask = FECService.campaignFinance(
+            name: politician.name,
+            state: politician.state,
+            chamber: politician.chamber
+        )
 
         let loadedVotes = await votesTask ?? []
         stats = await statsTask
@@ -461,5 +729,21 @@ final class PoliticianDetailModel: ObservableObject {
         policyBreakdown = VotingPatterns.policyBreakdown(votes: loadedVotes)
 
         state = .loaded
+
+        do {
+            ideology = try await ideologyTask
+            ideologyState = .loaded
+        } catch {
+            ideology = nil
+            ideologyState = .failed(error.localizedDescription)
+        }
+
+        do {
+            campaignFinance = try await financeTask
+            campaignFinanceState = .loaded
+        } catch {
+            campaignFinance = nil
+            campaignFinanceState = .failed(error.localizedDescription)
+        }
     }
 }

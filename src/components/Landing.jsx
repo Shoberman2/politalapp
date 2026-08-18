@@ -375,7 +375,7 @@ function Landing() {
           value={zip}
           onChange={(e) => setZip(e.target.value)}
         />
-        <button type="submit">
+        <button type="submit" aria-label="Find my representatives">
           <span className="btn-word">Find my reps</span>
           <ArrowRight />
         </button>

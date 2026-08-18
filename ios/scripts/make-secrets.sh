@@ -20,7 +20,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Read without sourcing: .env can contain values that a shell would try to
-# expand, and this script only needs three literal strings.
+# expand, and this script only needs four literal strings.
 read_env() {
   local key="$1"
   sed -n "s/^${key}=//p" "$ENV_FILE" | head -1 | sed 's/^["'"'"']//; s/["'"'"']$//'
@@ -29,6 +29,7 @@ read_env() {
 SUPABASE_URL="$(read_env VITE_SUPABASE_URL)"
 SUPABASE_ANON_KEY="$(read_env VITE_SUPABASE_ANON_KEY)"
 CONGRESS_API_KEY="$(read_env VITE_CONGRESS_API_KEY)"
+FEC_API_KEY="$(read_env VITE_FEC_API_KEY)"
 
 if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
   echo "error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in .env" >&2
@@ -39,6 +40,11 @@ if [ -z "$CONGRESS_API_KEY" ]; then
   echo "warning: VITE_CONGRESS_API_KEY not set — House members will show their" >&2
   echo "         state instead of a district number. Free key at" >&2
   echo "         https://api.congress.gov/sign-up/" >&2
+fi
+
+if [ -z "$FEC_API_KEY" ]; then
+  echo "warning: VITE_FEC_API_KEY not set — campaign finance will use the" >&2
+  echo "         lower-rate public FEC DEMO_KEY." >&2
 fi
 
 cat > "$OUT" <<PLIST
@@ -53,6 +59,8 @@ cat > "$OUT" <<PLIST
 	<string>${SUPABASE_ANON_KEY}</string>
 	<key>CONGRESS_API_KEY</key>
 	<string>${CONGRESS_API_KEY}</string>
+	<key>FEC_API_KEY</key>
+	<string>${FEC_API_KEY}</string>
 </dict>
 </plist>
 PLIST

@@ -29,6 +29,10 @@ open BallotWatch.xcodeproj
 ```
 
 Then build and run against any iOS 17+ simulator or device.
+For a physical device, select the **BallotWatch** target in Xcode and choose
+your Apple Development team under **Signing & Capabilities**. XcodeGen leaves
+the team unset so each developer can use their own account; automatic signing
+remains enabled.
 
 From the command line:
 
@@ -38,6 +42,11 @@ xcodebuild -project BallotWatch.xcodeproj -scheme BallotWatch \
 
 xcodebuild test -project BallotWatch.xcodeproj -scheme BallotWatch \
   -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+
+# Physical device (replace the placeholders with your values)
+xcodebuild -project BallotWatch.xcodeproj -scheme BallotWatch \
+  -destination 'platform=iOS,id=<device-udid>' \
+  DEVELOPMENT_TEAM=<team-id> -allowProvisioningUpdates build
 ```
 
 ## What's in it
@@ -122,7 +131,7 @@ by unit tests in `BallotWatchTests/DomainTests.swift`:
 
 ## Tests
 
-36 unit tests over the domain logic, and 6 UI smoke tests that run against the
+40 unit tests over the domain logic, and 6 UI smoke tests that run against the
 live backend — the most likely failure in this app is a query shape drifting
 from the schema, and a mocked test would never catch that. UI tests assert on
 structure, not on specific names or counts, so they don't fail whenever

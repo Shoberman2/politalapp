@@ -6,52 +6,84 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MODEL = 'gpt-4o-mini'
-const PROMPT_VERSION = 3
+// This endpoint intentionally caches official CRS summaries instead of asking
+// a model to infer or rewrite legislative provisions. Keep these values in sync
+// with etl/preWarmBillExplanations.ts.
+const MODEL = 'official-crs'
+const PROMPT_VERSION = 1
 
-function buildPrompt(title: string, summary: string): string {
-  const summaryBlock = summary
-    ? `Here is the official summary from Congress.gov to ground your explanation:\n${summary}\n`
-    : `No official summary is available yet. Reason from the title and your general knowledge of how this kind of legislation typically works. Be explicit when you are inferring vs. citing the bill itself.\n`
-
-  return `You are a nonpartisan expert at explaining U.S. legislation to ordinary citizens. You write like a great civics teacher: clear, specific, never condescending.
-
-Bill: ${title}
-
-${summaryBlock}
-Write a detailed explanation of this bill. Aim for 4 to 6 substantive paragraphs, written in plain English. Cover each of these in order, in flowing prose (no headers, no bullet points, no numbered lists):
-
-1. What the bill actually does. The specific changes to law, programs, agencies, eligibility, funding, or rules. If the title is vague, say what category of bill this is and what the most likely concrete effects would be based on the text or category.
-2. Why this bill exists right now. What problem its sponsors say it solves, what political or current event likely motivated it, what tradeoffs it makes.
-3. Who is directly affected. Name the groups: which taxpayers, which workers, which industries, which states, which agencies, which beneficiaries. Use concrete examples ("a single parent earning $40k", "small farms in the Midwest", "Medicare Part D enrollees").
-4. The likely real-world impact if it became law. Both the intended outcomes and the second-order effects opponents typically raise.
-5. Current legislative context. Note whether it is bipartisan or single-party, whether it has cleared committee, and whether similar bills have advanced before. Do not forecast passage.
-6. Why the bill may matter to a general reader, in one direct paragraph.
-
-Hard rules:
-- Plain language. No legalese, no jargon, no acronyms without expanding them once.
-- Be specific. "This affects taxpayers" is useless. "This affects single filers earning over $200,000" is useful.
-- Be balanced. Present both sides where there is genuine disagreement.
-- Avoid advocacy language. Do not praise, criticize, endorse, or oppose the bill.
-- No citations, URLs, footnotes, or bracketed source markers.
-- No headers, no bullets, no numbered lists. Flowing paragraphs only.
-- Do not invent specific dollar amounts, dates, or vote tallies you are not sure of. If you do not know, describe in general terms.`
+function decodeEntities(text: string): string {
+  const named: Record<string, string> = {
+    nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
+  }
+  return text
+    .replace(/&([a-z]+);/gi, (entity, name) => named[String(name).toLowerCase()] ?? entity)
+    .replace(/&#(\d+);/g, (entity, code) => {
+      const value = Number(code)
+      return Number.isSafeInteger(value) && value >= 0 && value <= 0x10ffff
+        ? String.fromCodePoint(value)
+        : entity
+    })
 }
 
-function cleanResponse(text: string): { explanation: string; paragraphs: string[] } {
-  const cleaned = text
-    .replace(/https?:\/\/\S+/g, '')
-    .replace(/\[\d+\]/g, '')
-    .replace(/\(source:.*?\)/gi, '')
-    .trim()
+function officialParagraphs(summary: string, title: string): string[] {
+  const text = decodeEntities(String(summary || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' '))
 
-  const paragraphs = cleaned
+  const paragraphs = text
     .split(/\n\s*\n/)
-    .map(p => p.replace(/\n/g, ' ').trim())
-    .filter(p => p.length > 0)
+    .map((paragraph) => paragraph.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
 
-  const explanation = paragraphs[0] || ''
-  return { explanation, paragraphs }
+  if (paragraphs.length > 1) {
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (normalize(paragraphs[0]) === normalize(title || '')) paragraphs.shift()
+  }
+  return paragraphs
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+async function fetchOfficialBill(
+  congress: number,
+  billType: string,
+  number: number,
+): Promise<{ title: string; summary: string }> {
+  const apiKey = Deno.env.get('CONGRESS_API_KEY')
+  if (!apiKey) throw new Error('CONGRESS_API_KEY not configured')
+
+  const root = `https://api.congress.gov/v3/bill/${congress}/${billType}/${number}`
+  const load = async (url: string) => {
+    const target = new URL(url)
+    target.searchParams.set('format', 'json')
+    target.searchParams.set('api_key', apiKey)
+    const response = await fetch(target)
+    if (!response.ok) throw new Error(`Congress.gov request failed (${response.status})`)
+    return response.json()
+  }
+
+  const [detail, summaryData] = await Promise.all([
+    load(root),
+    load(`${root}/summaries`),
+  ])
+  const summaries = Array.isArray(summaryData?.summaries) ? summaryData.summaries : []
+  const latest = [...summaries].sort((left, right) => {
+    const leftDate = Date.parse(left?.updateDate || '') || 0
+    const rightDate = Date.parse(right?.updateDate || '') || 0
+    return leftDate - rightDate
+  }).at(-1)
+
+  return {
+    title: String(detail?.bill?.title || `${billType.toUpperCase()} ${number}`),
+    summary: String(latest?.text || ''),
+  }
 }
 
 serve(async (req) => {
@@ -60,103 +92,69 @@ serve(async (req) => {
   }
 
   try {
-    const { congress, billType, number, title, summary } = await req.json()
+    const body = await req.json()
+    const congress = Number(body?.congress)
+    const number = Number(body?.number)
+    const billType = String(body?.billType || '').toLowerCase()
 
-    if (!congress || !billType || !number || !title) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: congress, billType, number, title' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    if (!Number.isInteger(congress) || congress < 1
+      || !Number.isInteger(number) || number < 1
+      || !/^[a-z]+$/.test(billType)) {
+      return json({ error: 'Invalid required fields: congress, billType, number' }, 400)
+    }
+
+    let officialBill: { title: string; summary: string }
+    try {
+      officialBill = await fetchOfficialBill(congress, billType, number)
+    } catch (error) {
+      console.error('Official bill source unavailable:', error)
+      return json({ error: 'Official Congress.gov summary could not be loaded' }, 502)
+    }
+
+    const paragraphs = officialParagraphs(officialBill.summary, officialBill.title)
+    if (paragraphs.length === 0) {
+      const unavailable = [
+        'Congress.gov has not published an official summary for this bill yet.',
+        'BallotWatch won’t infer provisions from the title alone. Use the official bill text for details.',
+      ]
+      return json({
+        explanation: unavailable[0],
+        paragraphs: unavailable,
+        cached: false,
+        isGenerated: false,
+        sourceUnavailable: true,
+      })
     }
 
     const billKey = `${congress}-${String(billType).toLowerCase()}-${number}`
-
-    // Service role client — bypasses RLS for the upsert.
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // 1) Cache lookup
-    const { data: cached } = await supabase
-      .from('bill_explanations')
-      .select('explanation, paragraphs')
-      .eq('bill_key', billKey)
-      .eq('model', MODEL)
-      .eq('prompt_version', PROMPT_VERSION)
-      .maybeSingle()
-
-    if (cached) {
-      return new Response(
-        JSON.stringify({ explanation: cached.explanation, paragraphs: cached.paragraphs, cached: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // 2) Cache miss → call OpenAI
-    const openaiKey = Deno.env.get('OPENAI_API_KEY')
-    if (!openaiKey) {
-      return new Response(
-        JSON.stringify({ error: 'OPENAI_API_KEY not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openaiKey}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'user', content: buildPrompt(title, summary || '') }],
-        max_tokens: 2500,
-        temperature: 0.5,
-      }),
-    })
-
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text()
-      console.error('OpenAI error:', openaiRes.status, errText)
-      return new Response(
-        JSON.stringify({ error: 'OpenAI request failed' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const data = await openaiRes.json()
-    const raw = data.choices?.[0]?.message?.content || ''
-    const { explanation, paragraphs } = cleanResponse(raw)
-
-    if (!explanation || paragraphs.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Empty response from model' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // 3) Persist
-    await supabase
+    const explanation = paragraphs[0]
+    const { error: cacheError } = await supabase
       .from('bill_explanations')
       .upsert({
         bill_key: billKey,
         model: MODEL,
         prompt_version: PROMPT_VERSION,
-        bill_title: title,
+        bill_title: officialBill.title,
         explanation,
         paragraphs,
       })
 
-    return new Response(
-      JSON.stringify({ explanation, paragraphs, cached: false }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    if (cacheError) console.error('Official summary cache write failed:', cacheError.message)
+
+    return json({
+      explanation,
+      paragraphs,
+      cached: false,
+      isGenerated: false,
+      sourceUnavailable: false,
+    })
   } catch (err) {
     console.error('explain-bill error:', err)
-    return new Response(
-      JSON.stringify({ error: err.message || 'Internal error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500)
   }
 })

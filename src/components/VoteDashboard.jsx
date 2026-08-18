@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMemberDashboardData } from '../services/supabaseVotes'
-import { getMemberVotes, explainBillWithAI } from '../services/congress'
+import { getMemberVotes, explainBillFromOfficialSummary } from '../services/congress'
 import { GLOSSARY_FLAT } from '../data/proceduralGlossary'
 import '../styles/VoteDashboard.css'
 
@@ -186,19 +186,18 @@ function VoteDashboard({ bioguideId }) {
     setLoading(false)
   }
 
-  const handleExpandBill = async (parsed, billTitle, billSummary, index) => {
+  const handleExpandBill = async (parsed, billTitle, index) => {
     if (expandedBill === index) {
       setExpandedBill(null)
       return
     }
     setExpandedBill(index)
     if (!billExplanations[index]) {
-      const explanation = await explainBillWithAI({
+      const explanation = await explainBillFromOfficialSummary({
         congress: parsed?.congress,
         billType: parsed?.type,
         number: parsed?.number,
         title: billTitle,
-        summary: billSummary,
       })
       setBillExplanations(prev => ({ ...prev, [index]: explanation }))
     }
@@ -245,7 +244,6 @@ function VoteDashboard({ bioguideId }) {
 
   const getBillDescription = (vote) => {
     if (vote.bill?.crs_summary) return vote.bill.crs_summary
-    if (vote.bill?.summary) return vote.bill.summary
     return null
   }
 
@@ -379,14 +377,13 @@ function VoteDashboard({ bioguideId }) {
                   ) : null}
                 </div>
 
-                {/* AI explanation expand (bill votes only — procedural
-                    AI narration ships in PR 2 from a precomputed table). */}
+                {/* Official-summary explanation expand for bill votes. */}
                 {vote.bill && (
                   <button
                     className="dash-explain-btn"
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleExpandBill(parsed, billTitle, description || '', index)
+                      handleExpandBill(parsed, billTitle, index)
                     }}
                   >
                     {isExpanded ? 'Hide explanation' : 'Explain this bill'}
@@ -404,7 +401,7 @@ function VoteDashboard({ bioguideId }) {
                     ) : (
                       <div className="dash-explanation-loading">
                         <div className="loading-spinner-small"></div>
-                        <span>Generating explanation...</span>
+                        <span>Loading official summary...</span>
                       </div>
                     )}
                   </div>

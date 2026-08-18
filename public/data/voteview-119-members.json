@@ -1,0 +1,4433 @@
+{
+  "congress": 119,
+  "source": "Voteview Congressional Roll-Call Votes Database",
+  "sourceUrl": "https://voteview.com/static/data/out/members/HS119_members.csv",
+  "methodologyUrl": "https://voteview.com/articles/data_help_members",
+  "fetchedAt": "2026-08-16T02:03:23.834Z",
+  "members": {
+    "R000575": {
+      "chamber": "House",
+      "dimension1": 0.379,
+      "dimension2": 0.377,
+      "geometricMeanProbability": 0.97496,
+      "votes": 536,
+      "errors": 5
+    },
+    "S001185": {
+      "chamber": "House",
+      "dimension1": -0.402,
+      "dimension2": 0.397,
+      "geometricMeanProbability": 0.92446,
+      "votes": 538,
+      "errors": 19
+    },
+    "P000609": {
+      "chamber": "House",
+      "dimension1": 0.671,
+      "dimension2": 0.112,
+      "geometricMeanProbability": 0.93302,
+      "votes": 543,
+      "errors": 20
+    },
+    "M001212": {
+      "chamber": "House",
+      "dimension1": 0.647,
+      "dimension2": -0.241,
+      "geometricMeanProbability": 0.91152,
+      "votes": 537,
+      "errors": 20
+    },
+    "S001220": {
+      "chamber": "House",
+      "dimension1": 0.604,
+      "dimension2": 0.384,
+      "geometricMeanProbability": 0.96629,
+      "votes": 536,
+      "errors": 10
+    },
+    "F000481": {
+      "chamber": "House",
+      "dimension1": -0.414,
+      "dimension2": 0.498,
+      "geometricMeanProbability": 0.92113,
+      "votes": 539,
+      "errors": 18
+    },
+    "A000055": {
+      "chamber": "House",
+      "dimension1": 0.405,
+      "dimension2": 0.466,
+      "geometricMeanProbability": 0.97442,
+      "votes": 537,
+      "errors": 6
+    },
+    "B001323": {
+      "chamber": "House",
+      "dimension1": 0.584,
+      "dimension2": -0.18,
+      "geometricMeanProbability": 0.91637,
+      "votes": 545,
+      "errors": 20
+    },
+    "R000600": {
+      "chamber": "House",
+      "dimension1": 0.327,
+      "dimension2": 0.195,
+      "geometricMeanProbability": 0.95057,
+      "votes": 13,
+      "errors": 0
+    },
+    "G000551": {
+      "chamber": "House",
+      "dimension1": -0.598,
+      "dimension2": -0.264,
+      "geometricMeanProbability": 1,
+      "votes": 1,
+      "errors": 0
+    },
+    "G000565": {
+      "chamber": "House",
+      "dimension1": 0.703,
+      "dimension2": -0.518,
+      "geometricMeanProbability": 0.92418,
+      "votes": 511,
+      "errors": 17
+    },
+    "S001183": {
+      "chamber": "House",
+      "dimension1": 0.553,
+      "dimension2": -0.219,
+      "geometricMeanProbability": 0.90214,
+      "votes": 542,
+      "errors": 26
+    },
+    "B001302": {
+      "chamber": "House",
+      "dimension1": 0.818,
+      "dimension2": -0.575,
+      "geometricMeanProbability": 0.92715,
+      "votes": 503,
+      "errors": 16
+    },
+    "S001211": {
+      "chamber": "House",
+      "dimension1": -0.28,
+      "dimension2": 0.249,
+      "geometricMeanProbability": 0.934,
+      "votes": 536,
+      "errors": 16
+    },
+    "C001133": {
+      "chamber": "House",
+      "dimension1": 0.299,
+      "dimension2": 0.53,
+      "geometricMeanProbability": 0.91659,
+      "votes": 529,
+      "errors": 13
+    },
+    "C001132": {
+      "chamber": "House",
+      "dimension1": 0.747,
+      "dimension2": -0.664,
+      "geometricMeanProbability": 0.92058,
+      "votes": 540,
+      "errors": 23
+    },
+    "A000381": {
+      "chamber": "House",
+      "dimension1": -0.432,
+      "dimension2": -0.391,
+      "geometricMeanProbability": 0.95463,
+      "votes": 542,
+      "errors": 9
+    },
+    "H001098": {
+      "chamber": "House",
+      "dimension1": 0.663,
+      "dimension2": -0.055,
+      "geometricMeanProbability": 0.91954,
+      "votes": 544,
+      "errors": 24
+    },
+    "G000606": {
+      "chamber": "House",
+      "dimension1": -0.481,
+      "dimension2": -0.676,
+      "geometricMeanProbability": 0.97457,
+      "votes": 317,
+      "errors": 1
+    },
+    "C001087": {
+      "chamber": "House",
+      "dimension1": 0.462,
+      "dimension2": 0.304,
+      "geometricMeanProbability": 0.95127,
+      "votes": 539,
+      "errors": 12
+    },
+    "W000809": {
+      "chamber": "House",
+      "dimension1": 0.347,
+      "dimension2": 0.636,
+      "geometricMeanProbability": 0.97243,
+      "votes": 496,
+      "errors": 4
+    },
+    "H001072": {
+      "chamber": "House",
+      "dimension1": 0.435,
+      "dimension2": 0.282,
+      "geometricMeanProbability": 0.97059,
+      "votes": 544,
+      "errors": 5
+    },
+    "W000821": {
+      "chamber": "House",
+      "dimension1": 0.543,
+      "dimension2": 0.256,
+      "geometricMeanProbability": 0.95269,
+      "votes": 546,
+      "errors": 14
+    },
+    "P000197": {
+      "chamber": "House",
+      "dimension1": -0.489,
+      "dimension2": -0.174,
+      "geometricMeanProbability": 0.95839,
+      "votes": 512,
+      "errors": 13
+    },
+    "I000056": {
+      "chamber": "House",
+      "dimension1": 0.476,
+      "dimension2": 0.036,
+      "geometricMeanProbability": 0.9495,
+      "votes": 543,
+      "errors": 14
+    },
+    "S001156": {
+      "chamber": "House",
+      "dimension1": -0.507,
+      "dimension2": -0.129,
+      "geometricMeanProbability": 0.96325,
+      "votes": 538,
+      "errors": 9
+    },
+    "C001059": {
+      "chamber": "House",
+      "dimension1": -0.199,
+      "dimension2": 0.447,
+      "geometricMeanProbability": 0.82667,
+      "votes": 529,
+      "errors": 53
+    },
+    "M001163": {
+      "chamber": "House",
+      "dimension1": -0.433,
+      "dimension2": -0.15,
+      "geometricMeanProbability": 0.95786,
+      "votes": 548,
+      "errors": 10
+    },
+    "M001177": {
+      "chamber": "House",
+      "dimension1": 0.671,
+      "dimension2": -0.358,
+      "geometricMeanProbability": 0.8517,
+      "votes": 533,
+      "errors": 40
+    },
+    "C001080": {
+      "chamber": "House",
+      "dimension1": -0.479,
+      "dimension2": -0.369,
+      "geometricMeanProbability": 0.95675,
+      "votes": 548,
+      "errors": 9
+    },
+    "G000559": {
+      "chamber": "House",
+      "dimension1": -0.312,
+      "dimension2": -0.101,
+      "geometricMeanProbability": 0.92641,
+      "votes": 500,
+      "errors": 13
+    },
+    "L000578": {
+      "chamber": "House",
+      "dimension1": 0.542,
+      "dimension2": 0.007,
+      "geometricMeanProbability": 0.95663,
+      "votes": 291,
+      "errors": 4
+    },
+    "H001068": {
+      "chamber": "House",
+      "dimension1": -0.432,
+      "dimension2": -0.505,
+      "geometricMeanProbability": 0.96148,
+      "votes": 540,
+      "errors": 9
+    },
+    "B001287": {
+      "chamber": "House",
+      "dimension1": -0.247,
+      "dimension2": 0.008,
+      "geometricMeanProbability": 0.91814,
+      "votes": 537,
+      "errors": 19
+    },
+    "S001193": {
+      "chamber": "House",
+      "dimension1": -0.355,
+      "dimension2": -0.05,
+      "geometricMeanProbability": 0.94553,
+      "votes": 259,
+      "errors": 8
+    },
+    "V000129": {
+      "chamber": "House",
+      "dimension1": 0.256,
+      "dimension2": 0.438,
+      "geometricMeanProbability": 0.9507,
+      "votes": 537,
+      "errors": 15
+    },
+    "B001285": {
+      "chamber": "House",
+      "dimension1": -0.306,
+      "dimension2": 0.048,
+      "geometricMeanProbability": 0.95143,
+      "votes": 532,
+      "errors": 9
+    },
+    "R000599": {
+      "chamber": "House",
+      "dimension1": -0.262,
+      "dimension2": 0.04,
+      "geometricMeanProbability": 0.92463,
+      "votes": 543,
+      "errors": 17
+    },
+    "T000472": {
+      "chamber": "House",
+      "dimension1": -0.457,
+      "dimension2": -0.339,
+      "geometricMeanProbability": 0.97072,
+      "votes": 546,
+      "errors": 7
+    },
+    "V000130": {
+      "chamber": "House",
+      "dimension1": -0.398,
+      "dimension2": 0.015,
+      "geometricMeanProbability": 0.91767,
+      "votes": 539,
+      "errors": 13
+    },
+    "P000608": {
+      "chamber": "House",
+      "dimension1": -0.194,
+      "dimension2": -0.034,
+      "geometricMeanProbability": 0.90639,
+      "votes": 543,
+      "errors": 20
+    },
+    "D000623": {
+      "chamber": "House",
+      "dimension1": -0.507,
+      "dimension2": -0.365,
+      "geometricMeanProbability": 0.96751,
+      "votes": 538,
+      "errors": 7
+    },
+    "A000371": {
+      "chamber": "House",
+      "dimension1": -0.328,
+      "dimension2": 0.145,
+      "geometricMeanProbability": 0.95394,
+      "votes": 545,
+      "errors": 8
+    },
+    "L000582": {
+      "chamber": "House",
+      "dimension1": -0.37,
+      "dimension2": -0.196,
+      "geometricMeanProbability": 0.94195,
+      "votes": 535,
+      "errors": 14
+    },
+    "T000474": {
+      "chamber": "House",
+      "dimension1": -0.365,
+      "dimension2": 0.074,
+      "geometricMeanProbability": 0.93498,
+      "votes": 541,
+      "errors": 14
+    },
+    "B001300": {
+      "chamber": "House",
+      "dimension1": -0.497,
+      "dimension2": -0.122,
+      "geometricMeanProbability": 0.97363,
+      "votes": 536,
+      "errors": 4
+    },
+    "C001112": {
+      "chamber": "House",
+      "dimension1": -0.324,
+      "dimension2": 0.099,
+      "geometricMeanProbability": 0.94975,
+      "votes": 545,
+      "errors": 12
+    },
+    "C001110": {
+      "chamber": "House",
+      "dimension1": -0.284,
+      "dimension2": 0.188,
+      "geometricMeanProbability": 0.85047,
+      "votes": 522,
+      "errors": 31
+    },
+    "K000389": {
+      "chamber": "House",
+      "dimension1": -0.458,
+      "dimension2": -0.296,
+      "geometricMeanProbability": 0.95383,
+      "votes": 541,
+      "errors": 10
+    },
+    "P000613": {
+      "chamber": "House",
+      "dimension1": -0.28,
+      "dimension2": 0.189,
+      "geometricMeanProbability": 0.90515,
+      "votes": 549,
+      "errors": 24
+    },
+    "G000585": {
+      "chamber": "House",
+      "dimension1": -0.532,
+      "dimension2": -0.258,
+      "geometricMeanProbability": 0.93893,
+      "votes": 524,
+      "errors": 13
+    },
+    "C001123": {
+      "chamber": "House",
+      "dimension1": -0.46,
+      "dimension2": 0.563,
+      "geometricMeanProbability": 0.93741,
+      "votes": 547,
+      "errors": 17
+    },
+    "H001090": {
+      "chamber": "House",
+      "dimension1": -0.295,
+      "dimension2": 0.411,
+      "geometricMeanProbability": 0.9002,
+      "votes": 546,
+      "errors": 25
+    },
+    "L000593": {
+      "chamber": "House",
+      "dimension1": -0.322,
+      "dimension2": 0.154,
+      "geometricMeanProbability": 0.95051,
+      "votes": 546,
+      "errors": 13
+    },
+    "J000305": {
+      "chamber": "House",
+      "dimension1": -0.417,
+      "dimension2": -0.425,
+      "geometricMeanProbability": 0.97208,
+      "votes": 548,
+      "errors": 5
+    },
+    "K000397": {
+      "chamber": "House",
+      "dimension1": 0.264,
+      "dimension2": 0.394,
+      "geometricMeanProbability": 0.96245,
+      "votes": 546,
+      "errors": 6
+    },
+    "O000019": {
+      "chamber": "House",
+      "dimension1": 0.318,
+      "dimension2": 0.3,
+      "geometricMeanProbability": 0.93357,
+      "votes": 545,
+      "errors": 13
+    },
+    "G000598": {
+      "chamber": "House",
+      "dimension1": -0.374,
+      "dimension2": -0.588,
+      "geometricMeanProbability": 0.97299,
+      "votes": 529,
+      "errors": 4
+    },
+    "K000400": {
+      "chamber": "House",
+      "dimension1": -0.516,
+      "dimension2": -0.449,
+      "geometricMeanProbability": 0.9671,
+      "votes": 532,
+      "errors": 6
+    },
+    "K000401": {
+      "chamber": "House",
+      "dimension1": 0.158,
+      "dimension2": 0.376,
+      "geometricMeanProbability": 0.80672,
+      "votes": 158,
+      "errors": 12
+    },
+    "M001225": {
+      "chamber": "House",
+      "dimension1": -0.478,
+      "dimension2": -0.007,
+      "geometricMeanProbability": 0.96133,
+      "votes": 522,
+      "errors": 9
+    },
+    "F000480": {
+      "chamber": "House",
+      "dimension1": 0.449,
+      "dimension2": 0.81,
+      "geometricMeanProbability": 0.97267,
+      "votes": 535,
+      "errors": 4
+    },
+    "F000483": {
+      "chamber": "House",
+      "dimension1": -0.35,
+      "dimension2": -0.372,
+      "geometricMeanProbability": 0.96187,
+      "votes": 545,
+      "errors": 9
+    },
+    "G000605": {
+      "chamber": "House",
+      "dimension1": -0.233,
+      "dimension2": 0.76,
+      "geometricMeanProbability": 0.8497,
+      "votes": 518,
+      "errors": 32
+    },
+    "L000607": {
+      "chamber": "House",
+      "dimension1": -0.342,
+      "dimension2": -0.061,
+      "geometricMeanProbability": 0.95109,
+      "votes": 545,
+      "errors": 12
+    },
+    "M001241": {
+      "chamber": "House",
+      "dimension1": -0.214,
+      "dimension2": -0.158,
+      "geometricMeanProbability": 0.88663,
+      "votes": 548,
+      "errors": 33
+    },
+    "R000620": {
+      "chamber": "House",
+      "dimension1": -0.516,
+      "dimension2": -0.209,
+      "geometricMeanProbability": 0.96745,
+      "votes": 542,
+      "errors": 8
+    },
+    "S001231": {
+      "chamber": "House",
+      "dimension1": -0.608,
+      "dimension2": -0.297,
+      "geometricMeanProbability": 0.95818,
+      "votes": 540,
+      "errors": 12
+    },
+    "T000491": {
+      "chamber": "House",
+      "dimension1": -0.23,
+      "dimension2": 0.14,
+      "geometricMeanProbability": 0.91006,
+      "votes": 546,
+      "errors": 23
+    },
+    "W000830": {
+      "chamber": "House",
+      "dimension1": -0.202,
+      "dimension2": 0.099,
+      "geometricMeanProbability": 0.91521,
+      "votes": 538,
+      "errors": 19
+    },
+    "G000607": {
+      "chamber": "House",
+      "dimension1": 0.34,
+      "dimension2": -0.135,
+      "geometricMeanProbability": 0.85201,
+      "votes": 56,
+      "errors": 3
+    },
+    "W000187": {
+      "chamber": "House",
+      "dimension1": -0.656,
+      "dimension2": -0.094,
+      "geometricMeanProbability": 0.95584,
+      "votes": 527,
+      "errors": 8
+    },
+    "C000059": {
+      "chamber": "House",
+      "dimension1": 0.34,
+      "dimension2": 0.279,
+      "geometricMeanProbability": 0.97243,
+      "votes": 547,
+      "errors": 5
+    },
+    "L000397": {
+      "chamber": "House",
+      "dimension1": -0.396,
+      "dimension2": -0.397,
+      "geometricMeanProbability": 0.94224,
+      "votes": 537,
+      "errors": 11
+    },
+    "S000344": {
+      "chamber": "House",
+      "dimension1": -0.345,
+      "dimension2": -0.136,
+      "geometricMeanProbability": 0.93856,
+      "votes": 536,
+      "errors": 14
+    },
+    "T000460": {
+      "chamber": "House",
+      "dimension1": -0.392,
+      "dimension2": 0.072,
+      "geometricMeanProbability": 0.92823,
+      "votes": 545,
+      "errors": 15
+    },
+    "C001121": {
+      "chamber": "House",
+      "dimension1": -0.36,
+      "dimension2": 0.179,
+      "geometricMeanProbability": 0.93142,
+      "votes": 547,
+      "errors": 17
+    },
+    "N000191": {
+      "chamber": "House",
+      "dimension1": -0.43,
+      "dimension2": -0.109,
+      "geometricMeanProbability": 0.95326,
+      "votes": 548,
+      "errors": 12
+    },
+    "B000825": {
+      "chamber": "House",
+      "dimension1": 0.711,
+      "dimension2": -0.529,
+      "geometricMeanProbability": 0.88363,
+      "votes": 531,
+      "errors": 27
+    },
+    "P000620": {
+      "chamber": "House",
+      "dimension1": -0.374,
+      "dimension2": 0.276,
+      "geometricMeanProbability": 0.91311,
+      "votes": 479,
+      "errors": 15
+    },
+    "C001137": {
+      "chamber": "House",
+      "dimension1": 0.666,
+      "dimension2": -0.097,
+      "geometricMeanProbability": 0.90819,
+      "votes": 548,
+      "errors": 23
+    },
+    "E000300": {
+      "chamber": "House",
+      "dimension1": 0.343,
+      "dimension2": 0.066,
+      "geometricMeanProbability": 0.92041,
+      "votes": 549,
+      "errors": 21
+    },
+    "H001100": {
+      "chamber": "House",
+      "dimension1": 0.317,
+      "dimension2": 0.307,
+      "geometricMeanProbability": 0.94156,
+      "votes": 546,
+      "errors": 12
+    },
+    "D000197": {
+      "chamber": "House",
+      "dimension1": -0.431,
+      "dimension2": -0.309,
+      "geometricMeanProbability": 0.97006,
+      "votes": 538,
+      "errors": 6
+    },
+    "C001069": {
+      "chamber": "House",
+      "dimension1": -0.337,
+      "dimension2": 0.041,
+      "geometricMeanProbability": 0.93404,
+      "votes": 519,
+      "errors": 16
+    },
+    "H001047": {
+      "chamber": "House",
+      "dimension1": -0.24,
+      "dimension2": -0.203,
+      "geometricMeanProbability": 0.91407,
+      "votes": 545,
+      "errors": 22
+    },
+    "H001081": {
+      "chamber": "House",
+      "dimension1": -0.34,
+      "dimension2": -0.055,
+      "geometricMeanProbability": 0.94951,
+      "votes": 539,
+      "errors": 18
+    },
+    "D000216": {
+      "chamber": "House",
+      "dimension1": -0.414,
+      "dimension2": -0.107,
+      "geometricMeanProbability": 0.94672,
+      "votes": 544,
+      "errors": 12
+    },
+    "L000557": {
+      "chamber": "House",
+      "dimension1": -0.396,
+      "dimension2": -0.04,
+      "geometricMeanProbability": 0.95829,
+      "votes": 535,
+      "errors": 9
+    },
+    "M001238": {
+      "chamber": "House",
+      "dimension1": -0.263,
+      "dimension2": -0.374,
+      "geometricMeanProbability": 0.93838,
+      "votes": 545,
+      "errors": 17
+    },
+    "N000147": {
+      "chamber": "House",
+      "dimension1": -0.493,
+      "dimension2": -0.093,
+      "geometricMeanProbability": 0.95293,
+      "votes": 72,
+      "errors": 2
+    },
+    "D000600": {
+      "chamber": "House",
+      "dimension1": 0.282,
+      "dimension2": 0.165,
+      "geometricMeanProbability": 0.95441,
+      "votes": 525,
+      "errors": 6
+    },
+    "W000797": {
+      "chamber": "House",
+      "dimension1": -0.413,
+      "dimension2": 0.105,
+      "geometricMeanProbability": 0.93666,
+      "votes": 538,
+      "errors": 18
+    },
+    "C001066": {
+      "chamber": "House",
+      "dimension1": -0.435,
+      "dimension2": 0.09,
+      "geometricMeanProbability": 0.90141,
+      "votes": 538,
+      "errors": 15
+    },
+    "B001260": {
+      "chamber": "House",
+      "dimension1": 0.361,
+      "dimension2": -0.076,
+      "geometricMeanProbability": 0.93906,
+      "votes": 511,
+      "errors": 7
+    },
+    "B001257": {
+      "chamber": "House",
+      "dimension1": 0.423,
+      "dimension2": -0.03,
+      "geometricMeanProbability": 0.94434,
+      "votes": 536,
+      "errors": 12
+    },
+    "W000806": {
+      "chamber": "House",
+      "dimension1": 0.524,
+      "dimension2": -0.073,
+      "geometricMeanProbability": 0.9342,
+      "votes": 543,
+      "errors": 16
+    },
+    "W000808": {
+      "chamber": "House",
+      "dimension1": -0.476,
+      "dimension2": -0.001,
+      "geometricMeanProbability": 0.96462,
+      "votes": 397,
+      "errors": 6
+    },
+    "F000462": {
+      "chamber": "House",
+      "dimension1": -0.395,
+      "dimension2": -0.017,
+      "geometricMeanProbability": 0.95691,
+      "votes": 524,
+      "errors": 11
+    },
+    "D000628": {
+      "chamber": "House",
+      "dimension1": 0.508,
+      "dimension2": 0.343,
+      "geometricMeanProbability": 0.96879,
+      "votes": 481,
+      "errors": 9
+    },
+    "M001199": {
+      "chamber": "House",
+      "dimension1": 0.461,
+      "dimension2": -0.32,
+      "geometricMeanProbability": 0.90898,
+      "votes": 535,
+      "errors": 25
+    },
+    "R000609": {
+      "chamber": "House",
+      "dimension1": 0.433,
+      "dimension2": 0.071,
+      "geometricMeanProbability": 0.94408,
+      "votes": 492,
+      "errors": 13
+    },
+    "S001200": {
+      "chamber": "House",
+      "dimension1": -0.339,
+      "dimension2": 0.229,
+      "geometricMeanProbability": 0.90394,
+      "votes": 548,
+      "errors": 30
+    },
+    "S001214": {
+      "chamber": "House",
+      "dimension1": 0.689,
+      "dimension2": -0.358,
+      "geometricMeanProbability": 0.89993,
+      "votes": 533,
+      "errors": 26
+    },
+    "W000823": {
+      "chamber": "House",
+      "dimension1": 0.452,
+      "dimension2": -0.113,
+      "geometricMeanProbability": 0.99934,
+      "votes": 6,
+      "errors": 0
+    },
+    "C001039": {
+      "chamber": "House",
+      "dimension1": 0.591,
+      "dimension2": -0.257,
+      "geometricMeanProbability": 0.90984,
+      "votes": 542,
+      "errors": 24
+    },
+    "D000032": {
+      "chamber": "House",
+      "dimension1": 0.636,
+      "dimension2": -0.308,
+      "geometricMeanProbability": 0.90387,
+      "votes": 510,
+      "errors": 22
+    },
+    "F000472": {
+      "chamber": "House",
+      "dimension1": 0.626,
+      "dimension2": 0.211,
+      "geometricMeanProbability": 0.95819,
+      "votes": 546,
+      "errors": 8
+    },
+    "G000593": {
+      "chamber": "House",
+      "dimension1": 0.328,
+      "dimension2": 0.157,
+      "geometricMeanProbability": 0.95159,
+      "votes": 512,
+      "errors": 9
+    },
+    "S000168": {
+      "chamber": "House",
+      "dimension1": 0.274,
+      "dimension2": 0.162,
+      "geometricMeanProbability": 0.92832,
+      "votes": 485,
+      "errors": 16
+    },
+    "C001127": {
+      "chamber": "House",
+      "dimension1": -0.429,
+      "dimension2": -0.005,
+      "geometricMeanProbability": 0.9543,
+      "votes": 408,
+      "errors": 8
+    },
+    "B001314": {
+      "chamber": "House",
+      "dimension1": 0.697,
+      "dimension2": -0.162,
+      "geometricMeanProbability": 0.92336,
+      "votes": 549,
+      "errors": 20
+    },
+    "F000476": {
+      "chamber": "House",
+      "dimension1": -0.442,
+      "dimension2": -0.704,
+      "geometricMeanProbability": 0.97876,
+      "votes": 547,
+      "errors": 4
+    },
+    "L000597": {
+      "chamber": "House",
+      "dimension1": 0.422,
+      "dimension2": 0.166,
+      "geometricMeanProbability": 0.93743,
+      "votes": 521,
+      "errors": 16
+    },
+    "L000596": {
+      "chamber": "House",
+      "dimension1": 0.558,
+      "dimension2": -0.51,
+      "geometricMeanProbability": 0.85342,
+      "votes": 498,
+      "errors": 32
+    },
+    "M001216": {
+      "chamber": "House",
+      "dimension1": 0.604,
+      "dimension2": -0.318,
+      "geometricMeanProbability": 0.92377,
+      "votes": 537,
+      "errors": 16
+    },
+    "M001217": {
+      "chamber": "House",
+      "dimension1": -0.226,
+      "dimension2": 0.294,
+      "geometricMeanProbability": 0.89891,
+      "votes": 532,
+      "errors": 16
+    },
+    "H001099": {
+      "chamber": "House",
+      "dimension1": 0.453,
+      "dimension2": 0.01,
+      "geometricMeanProbability": 0.9345,
+      "votes": 542,
+      "errors": 18
+    },
+    "F000484": {
+      "chamber": "House",
+      "dimension1": 0.577,
+      "dimension2": -0.366,
+      "geometricMeanProbability": 0.84945,
+      "votes": 462,
+      "errors": 36
+    },
+    "P000622": {
+      "chamber": "House",
+      "dimension1": 0.528,
+      "dimension2": -0.146,
+      "geometricMeanProbability": 0.89083,
+      "votes": 488,
+      "errors": 21
+    },
+    "S001157": {
+      "chamber": "House",
+      "dimension1": -0.305,
+      "dimension2": 0.165,
+      "geometricMeanProbability": 0.93661,
+      "votes": 414,
+      "errors": 13
+    },
+    "J000288": {
+      "chamber": "House",
+      "dimension1": -0.479,
+      "dimension2": -0.054,
+      "geometricMeanProbability": 0.92175,
+      "votes": 540,
+      "errors": 14
+    },
+    "S001189": {
+      "chamber": "House",
+      "dimension1": 0.538,
+      "dimension2": 0.35,
+      "geometricMeanProbability": 0.93202,
+      "votes": 547,
+      "errors": 14
+    },
+    "C001103": {
+      "chamber": "House",
+      "dimension1": 0.556,
+      "dimension2": 0.33,
+      "geometricMeanProbability": 0.95021,
+      "votes": 522,
+      "errors": 7
+    },
+    "L000583": {
+      "chamber": "House",
+      "dimension1": 0.676,
+      "dimension2": 0.04,
+      "geometricMeanProbability": 0.93547,
+      "votes": 520,
+      "errors": 20
+    },
+    "A000372": {
+      "chamber": "House",
+      "dimension1": 0.689,
+      "dimension2": 0.278,
+      "geometricMeanProbability": 0.95282,
+      "votes": 545,
+      "errors": 7
+    },
+    "M001208": {
+      "chamber": "House",
+      "dimension1": -0.37,
+      "dimension2": 0.294,
+      "geometricMeanProbability": 0.94745,
+      "votes": 522,
+      "errors": 9
+    },
+    "C001116": {
+      "chamber": "House",
+      "dimension1": 0.822,
+      "dimension2": -0.16,
+      "geometricMeanProbability": 0.91371,
+      "votes": 523,
+      "errors": 21
+    },
+    "G000596": {
+      "chamber": "House",
+      "dimension1": 0.8,
+      "dimension2": -0.6,
+      "geometricMeanProbability": 0.86783,
+      "votes": 275,
+      "errors": 18
+    },
+    "W000788": {
+      "chamber": "House",
+      "dimension1": -0.44,
+      "dimension2": -0.387,
+      "geometricMeanProbability": 0.96622,
+      "votes": 526,
+      "errors": 6
+    },
+    "C001129": {
+      "chamber": "House",
+      "dimension1": 0.68,
+      "dimension2": -0.244,
+      "geometricMeanProbability": 0.92788,
+      "votes": 541,
+      "errors": 16
+    },
+    "M001218": {
+      "chamber": "House",
+      "dimension1": 0.891,
+      "dimension2": 0.454,
+      "geometricMeanProbability": 0.91042,
+      "votes": 547,
+      "errors": 19
+    },
+    "J000311": {
+      "chamber": "House",
+      "dimension1": 0.559,
+      "dimension2": 0.046,
+      "geometricMeanProbability": 0.93822,
+      "votes": 549,
+      "errors": 18
+    },
+    "F000485": {
+      "chamber": "House",
+      "dimension1": 0.746,
+      "dimension2": -0.141,
+      "geometricMeanProbability": 0.93532,
+      "votes": 147,
+      "errors": 3
+    },
+    "B000490": {
+      "chamber": "House",
+      "dimension1": -0.289,
+      "dimension2": 0.446,
+      "geometricMeanProbability": 0.86152,
+      "votes": 539,
+      "errors": 39
+    },
+    "M001219": {
+      "chamber": "House",
+      "dimension1": 0.33,
+      "dimension2": 0.064,
+      "geometricMeanProbability": 0.52515,
+      "votes": 68,
+      "errors": 19
+    },
+    "C001055": {
+      "chamber": "House",
+      "dimension1": -0.207,
+      "dimension2": -0.076,
+      "geometricMeanProbability": 0.89744,
+      "votes": 545,
+      "errors": 26
+    },
+    "T000487": {
+      "chamber": "House",
+      "dimension1": -0.462,
+      "dimension2": -0.344,
+      "geometricMeanProbability": 0.97802,
+      "votes": 547,
+      "errors": 5
+    },
+    "F000469": {
+      "chamber": "House",
+      "dimension1": 0.643,
+      "dimension2": -0.119,
+      "geometricMeanProbability": 0.90758,
+      "votes": 542,
+      "errors": 24
+    },
+    "S001148": {
+      "chamber": "House",
+      "dimension1": 0.296,
+      "dimension2": 0.316,
+      "geometricMeanProbability": 0.96775,
+      "votes": 540,
+      "errors": 7
+    },
+    "F000454": {
+      "chamber": "House",
+      "dimension1": -0.238,
+      "dimension2": -0.217,
+      "geometricMeanProbability": 0.94487,
+      "votes": 547,
+      "errors": 12
+    },
+    "Q000023": {
+      "chamber": "House",
+      "dimension1": -0.324,
+      "dimension2": -0.224,
+      "geometricMeanProbability": 0.95001,
+      "votes": 526,
+      "errors": 13
+    },
+    "S001190": {
+      "chamber": "House",
+      "dimension1": -0.199,
+      "dimension2": -0.112,
+      "geometricMeanProbability": 0.92502,
+      "votes": 537,
+      "errors": 15
+    },
+    "K000385": {
+      "chamber": "House",
+      "dimension1": -0.474,
+      "dimension2": -0.026,
+      "geometricMeanProbability": 0.97207,
+      "votes": 537,
+      "errors": 6
+    },
+    "B001295": {
+      "chamber": "House",
+      "dimension1": 0.402,
+      "dimension2": -0.039,
+      "geometricMeanProbability": 0.92659,
+      "votes": 544,
+      "errors": 20
+    },
+    "L000585": {
+      "chamber": "House",
+      "dimension1": 0.46,
+      "dimension2": 0.226,
+      "geometricMeanProbability": 0.93518,
+      "votes": 515,
+      "errors": 14
+    },
+    "K000391": {
+      "chamber": "House",
+      "dimension1": -0.35,
+      "dimension2": -0.016,
+      "geometricMeanProbability": 0.94769,
+      "votes": 535,
+      "errors": 14
+    },
+    "C001117": {
+      "chamber": "House",
+      "dimension1": -0.623,
+      "dimension2": 0.401,
+      "geometricMeanProbability": 0.95167,
+      "votes": 545,
+      "errors": 10
+    },
+    "G000586": {
+      "chamber": "House",
+      "dimension1": -0.439,
+      "dimension2": -0.875,
+      "geometricMeanProbability": 0.9574,
+      "votes": 537,
+      "errors": 8
+    },
+    "U000040": {
+      "chamber": "House",
+      "dimension1": -0.593,
+      "dimension2": 0.296,
+      "geometricMeanProbability": 0.96832,
+      "votes": 546,
+      "errors": 8
+    },
+    "M001211": {
+      "chamber": "House",
+      "dimension1": 0.785,
+      "dimension2": -0.173,
+      "geometricMeanProbability": 0.92812,
+      "votes": 540,
+      "errors": 15
+    },
+    "B001315": {
+      "chamber": "House",
+      "dimension1": -0.316,
+      "dimension2": 0.402,
+      "geometricMeanProbability": 0.92324,
+      "votes": 549,
+      "errors": 14
+    },
+    "J000309": {
+      "chamber": "House",
+      "dimension1": -0.351,
+      "dimension2": -0.454,
+      "geometricMeanProbability": 0.9327,
+      "votes": 510,
+      "errors": 15
+    },
+    "R000617": {
+      "chamber": "House",
+      "dimension1": -0.496,
+      "dimension2": -0.868,
+      "geometricMeanProbability": 0.96116,
+      "votes": 527,
+      "errors": 9
+    },
+    "S001225": {
+      "chamber": "House",
+      "dimension1": -0.239,
+      "dimension2": 0.227,
+      "geometricMeanProbability": 0.92772,
+      "votes": 547,
+      "errors": 14
+    },
+    "D000096": {
+      "chamber": "House",
+      "dimension1": -0.487,
+      "dimension2": -0.267,
+      "geometricMeanProbability": 0.97989,
+      "votes": 531,
+      "errors": 3
+    },
+    "S001145": {
+      "chamber": "House",
+      "dimension1": -0.602,
+      "dimension2": -0.288,
+      "geometricMeanProbability": 0.97533,
+      "votes": 523,
+      "errors": 6
+    },
+    "C001072": {
+      "chamber": "House",
+      "dimension1": -0.434,
+      "dimension2": 0.021,
+      "geometricMeanProbability": 0.94059,
+      "votes": 543,
+      "errors": 9
+    },
+    "S001188": {
+      "chamber": "House",
+      "dimension1": 0.716,
+      "dimension2": -0.063,
+      "geometricMeanProbability": 0.92452,
+      "votes": 536,
+      "errors": 21
+    },
+    "B001307": {
+      "chamber": "House",
+      "dimension1": 0.446,
+      "dimension2": 0.417,
+      "geometricMeanProbability": 0.9531,
+      "votes": 518,
+      "errors": 8
+    },
+    "M001214": {
+      "chamber": "House",
+      "dimension1": -0.3,
+      "dimension2": 0.356,
+      "geometricMeanProbability": 0.91406,
+      "votes": 535,
+      "errors": 24
+    },
+    "S000929": {
+      "chamber": "House",
+      "dimension1": 0.494,
+      "dimension2": -0.279,
+      "geometricMeanProbability": 0.86359,
+      "votes": 520,
+      "errors": 33
+    },
+    "Y000067": {
+      "chamber": "House",
+      "dimension1": 0.522,
+      "dimension2": 0.167,
+      "geometricMeanProbability": 0.96594,
+      "votes": 549,
+      "errors": 5
+    },
+    "H001093": {
+      "chamber": "House",
+      "dimension1": 0.624,
+      "dimension2": 0.188,
+      "geometricMeanProbability": 0.94614,
+      "votes": 540,
+      "errors": 13
+    },
+    "M001233": {
+      "chamber": "House",
+      "dimension1": 0.55,
+      "dimension2": 0.29,
+      "geometricMeanProbability": 0.96587,
+      "votes": 542,
+      "errors": 5
+    },
+    "S001229": {
+      "chamber": "House",
+      "dimension1": 0.515,
+      "dimension2": 0.137,
+      "geometricMeanProbability": 0.95775,
+      "votes": 542,
+      "errors": 5
+    },
+    "F000446": {
+      "chamber": "House",
+      "dimension1": 0.467,
+      "dimension2": 0.183,
+      "geometricMeanProbability": 0.96106,
+      "votes": 542,
+      "errors": 7
+    },
+    "H001091": {
+      "chamber": "House",
+      "dimension1": 0.356,
+      "dimension2": 0.35,
+      "geometricMeanProbability": 0.95692,
+      "votes": 540,
+      "errors": 9
+    },
+    "M001215": {
+      "chamber": "House",
+      "dimension1": 0.338,
+      "dimension2": 0.18,
+      "geometricMeanProbability": 0.93123,
+      "votes": 532,
+      "errors": 15
+    },
+    "N000193": {
+      "chamber": "House",
+      "dimension1": 0.293,
+      "dimension2": 0.203,
+      "geometricMeanProbability": 0.9438,
+      "votes": 525,
+      "errors": 10
+    },
+    "E000298": {
+      "chamber": "House",
+      "dimension1": 0.647,
+      "dimension2": 0.133,
+      "geometricMeanProbability": 0.92818,
+      "votes": 545,
+      "errors": 16
+    },
+    "D000629": {
+      "chamber": "House",
+      "dimension1": -0.264,
+      "dimension2": 0.232,
+      "geometricMeanProbability": 0.89983,
+      "votes": 544,
+      "errors": 27
+    },
+    "M000871": {
+      "chamber": "House",
+      "dimension1": 0.608,
+      "dimension2": 0.064,
+      "geometricMeanProbability": 0.95108,
+      "votes": 549,
+      "errors": 12
+    },
+    "S001228": {
+      "chamber": "House",
+      "dimension1": 0.678,
+      "dimension2": 0.014,
+      "geometricMeanProbability": 0.91472,
+      "votes": 544,
+      "errors": 22
+    },
+    "R000395": {
+      "chamber": "House",
+      "dimension1": 0.334,
+      "dimension2": 0.157,
+      "geometricMeanProbability": 0.97003,
+      "votes": 539,
+      "errors": 3
+    },
+    "G000558": {
+      "chamber": "House",
+      "dimension1": 0.426,
+      "dimension2": 0.273,
+      "geometricMeanProbability": 0.96009,
+      "votes": 546,
+      "errors": 4
+    },
+    "B001282": {
+      "chamber": "House",
+      "dimension1": 0.489,
+      "dimension2": 0.296,
+      "geometricMeanProbability": 0.95805,
+      "votes": 516,
+      "errors": 14
+    },
+    "C001108": {
+      "chamber": "House",
+      "dimension1": 0.593,
+      "dimension2": -0.071,
+      "geometricMeanProbability": 0.93126,
+      "votes": 539,
+      "errors": 18
+    },
+    "M001220": {
+      "chamber": "House",
+      "dimension1": -0.487,
+      "dimension2": -0.073,
+      "geometricMeanProbability": 0.95835,
+      "votes": 548,
+      "errors": 12
+    },
+    "M001184": {
+      "chamber": "House",
+      "dimension1": 0.654,
+      "dimension2": -0.756,
+      "geometricMeanProbability": 0.68812,
+      "votes": 519,
+      "errors": 76
+    },
+    "S001176": {
+      "chamber": "House",
+      "dimension1": 0.559,
+      "dimension2": 0.163,
+      "geometricMeanProbability": 0.94819,
+      "votes": 540,
+      "errors": 9
+    },
+    "H001077": {
+      "chamber": "House",
+      "dimension1": 0.63,
+      "dimension2": -0.321,
+      "geometricMeanProbability": 0.90288,
+      "votes": 538,
+      "errors": 25
+    },
+    "J000299": {
+      "chamber": "House",
+      "dimension1": 0.566,
+      "dimension2": 0.029,
+      "geometricMeanProbability": 0.98796,
+      "votes": 438,
+      "errors": 1
+    },
+    "L000595": {
+      "chamber": "House",
+      "dimension1": 0.434,
+      "dimension2": 0.338,
+      "geometricMeanProbability": 0.9431,
+      "votes": 522,
+      "errors": 13
+    },
+    "C001125": {
+      "chamber": "House",
+      "dimension1": -0.519,
+      "dimension2": 0.278,
+      "geometricMeanProbability": 0.95239,
+      "votes": 543,
+      "errors": 9
+    },
+    "F000110": {
+      "chamber": "House",
+      "dimension1": -0.457,
+      "dimension2": 0.12,
+      "geometricMeanProbability": 0.94529,
+      "votes": 528,
+      "errors": 12
+    },
+    "P000597": {
+      "chamber": "House",
+      "dimension1": -0.423,
+      "dimension2": -0.365,
+      "geometricMeanProbability": 0.95419,
+      "votes": 528,
+      "errors": 9
+    },
+    "G000592": {
+      "chamber": "House",
+      "dimension1": -0.106,
+      "dimension2": 0.387,
+      "geometricMeanProbability": 0.79263,
+      "votes": 534,
+      "errors": 45
+    },
+    "H000874": {
+      "chamber": "House",
+      "dimension1": -0.381,
+      "dimension2": 0.125,
+      "geometricMeanProbability": 0.9308,
+      "votes": 536,
+      "errors": 14
+    },
+    "M000687": {
+      "chamber": "House",
+      "dimension1": -0.441,
+      "dimension2": -0.318,
+      "geometricMeanProbability": 0.95889,
+      "votes": 522,
+      "errors": 12
+    },
+    "H001052": {
+      "chamber": "House",
+      "dimension1": 0.675,
+      "dimension2": -0.381,
+      "geometricMeanProbability": 0.84994,
+      "votes": 536,
+      "errors": 40
+    },
+    "R000606": {
+      "chamber": "House",
+      "dimension1": -0.498,
+      "dimension2": -0.228,
+      "geometricMeanProbability": 0.96501,
+      "votes": 545,
+      "errors": 11
+    },
+    "I000058": {
+      "chamber": "House",
+      "dimension1": -0.464,
+      "dimension2": -0.032,
+      "geometricMeanProbability": 0.96527,
+      "votes": 541,
+      "errors": 7
+    },
+    "E000301": {
+      "chamber": "House",
+      "dimension1": -0.381,
+      "dimension2": -0.061,
+      "geometricMeanProbability": 0.95509,
+      "votes": 548,
+      "errors": 12
+    },
+    "M001232": {
+      "chamber": "House",
+      "dimension1": -0.288,
+      "dimension2": 0.066,
+      "geometricMeanProbability": 0.9378,
+      "votes": 532,
+      "errors": 12
+    },
+    "O000176": {
+      "chamber": "House",
+      "dimension1": -0.374,
+      "dimension2": -0.022,
+      "geometricMeanProbability": 0.96829,
+      "votes": 545,
+      "errors": 5
+    },
+    "N000015": {
+      "chamber": "House",
+      "dimension1": -0.417,
+      "dimension2": -0.104,
+      "geometricMeanProbability": 0.96305,
+      "votes": 524,
+      "errors": 7
+    },
+    "L000562": {
+      "chamber": "House",
+      "dimension1": -0.342,
+      "dimension2": 0.046,
+      "geometricMeanProbability": 0.91618,
+      "votes": 532,
+      "errors": 21
+    },
+    "K000375": {
+      "chamber": "House",
+      "dimension1": -0.33,
+      "dimension2": -0.097,
+      "geometricMeanProbability": 0.94086,
+      "votes": 525,
+      "errors": 12
+    },
+    "C001101": {
+      "chamber": "House",
+      "dimension1": -0.478,
+      "dimension2": -0.244,
+      "geometricMeanProbability": 0.95651,
+      "votes": 548,
+      "errors": 14
+    },
+    "M001196": {
+      "chamber": "House",
+      "dimension1": -0.286,
+      "dimension2": -0.049,
+      "geometricMeanProbability": 0.94108,
+      "votes": 486,
+      "errors": 11
+    },
+    "P000617": {
+      "chamber": "House",
+      "dimension1": -0.375,
+      "dimension2": -0.927,
+      "geometricMeanProbability": 0.96629,
+      "votes": 537,
+      "errors": 6
+    },
+    "T000482": {
+      "chamber": "House",
+      "dimension1": -0.415,
+      "dimension2": -0.113,
+      "geometricMeanProbability": 0.95231,
+      "votes": 529,
+      "errors": 12
+    },
+    "A000148": {
+      "chamber": "House",
+      "dimension1": -0.275,
+      "dimension2": -0.272,
+      "geometricMeanProbability": 0.89788,
+      "votes": 526,
+      "errors": 21
+    },
+    "M000312": {
+      "chamber": "House",
+      "dimension1": -0.538,
+      "dimension2": -0.353,
+      "geometricMeanProbability": 0.95122,
+      "votes": 537,
+      "errors": 13
+    },
+    "W000798": {
+      "chamber": "House",
+      "dimension1": 0.498,
+      "dimension2": 0.168,
+      "geometricMeanProbability": 0.95549,
+      "votes": 544,
+      "errors": 10
+    },
+    "H001058": {
+      "chamber": "House",
+      "dimension1": 0.53,
+      "dimension2": 0.06,
+      "geometricMeanProbability": 0.95407,
+      "votes": 542,
+      "errors": 11
+    },
+    "M001194": {
+      "chamber": "House",
+      "dimension1": 0.447,
+      "dimension2": 0.182,
+      "geometricMeanProbability": 0.97399,
+      "votes": 547,
+      "errors": 1
+    },
+    "D000624": {
+      "chamber": "House",
+      "dimension1": -0.398,
+      "dimension2": -0.186,
+      "geometricMeanProbability": 0.96683,
+      "votes": 535,
+      "errors": 6
+    },
+    "B001301": {
+      "chamber": "House",
+      "dimension1": 0.434,
+      "dimension2": 0.092,
+      "geometricMeanProbability": 0.96025,
+      "votes": 538,
+      "errors": 9
+    },
+    "S001215": {
+      "chamber": "House",
+      "dimension1": -0.365,
+      "dimension2": 0.229,
+      "geometricMeanProbability": 0.93117,
+      "votes": 546,
+      "errors": 17
+    },
+    "T000481": {
+      "chamber": "House",
+      "dimension1": -0.29,
+      "dimension2": -0.957,
+      "geometricMeanProbability": 0.94447,
+      "votes": 537,
+      "errors": 10
+    },
+    "M001136": {
+      "chamber": "House",
+      "dimension1": 0.549,
+      "dimension2": 0.174,
+      "geometricMeanProbability": 0.95187,
+      "votes": 541,
+      "errors": 12
+    },
+    "J000307": {
+      "chamber": "House",
+      "dimension1": 0.322,
+      "dimension2": 0.383,
+      "geometricMeanProbability": 0.93837,
+      "votes": 508,
+      "errors": 11
+    },
+    "S001221": {
+      "chamber": "House",
+      "dimension1": -0.259,
+      "dimension2": 0.225,
+      "geometricMeanProbability": 0.90609,
+      "votes": 532,
+      "errors": 24
+    },
+    "T000488": {
+      "chamber": "House",
+      "dimension1": -0.353,
+      "dimension2": -0.036,
+      "geometricMeanProbability": 0.93532,
+      "votes": 544,
+      "errors": 18
+    },
+    "B001321": {
+      "chamber": "House",
+      "dimension1": 0.498,
+      "dimension2": -0.169,
+      "geometricMeanProbability": 0.89121,
+      "votes": 546,
+      "errors": 23
+    },
+    "M001237": {
+      "chamber": "House",
+      "dimension1": -0.241,
+      "dimension2": 0.332,
+      "geometricMeanProbability": 0.90057,
+      "votes": 535,
+      "errors": 23
+    },
+    "M001143": {
+      "chamber": "House",
+      "dimension1": -0.419,
+      "dimension2": -0.183,
+      "geometricMeanProbability": 0.96897,
+      "votes": 542,
+      "errors": 7
+    },
+    "E000294": {
+      "chamber": "House",
+      "dimension1": 0.469,
+      "dimension2": -0.062,
+      "geometricMeanProbability": 0.95097,
+      "votes": 541,
+      "errors": 9
+    },
+    "C001119": {
+      "chamber": "House",
+      "dimension1": -0.271,
+      "dimension2": 0.491,
+      "geometricMeanProbability": 0.85987,
+      "votes": 540,
+      "errors": 38
+    },
+    "O000173": {
+      "chamber": "House",
+      "dimension1": -0.296,
+      "dimension2": -0.955,
+      "geometricMeanProbability": 0.9403,
+      "votes": 539,
+      "errors": 12
+    },
+    "S001212": {
+      "chamber": "House",
+      "dimension1": 0.385,
+      "dimension2": -0.089,
+      "geometricMeanProbability": 0.9247,
+      "votes": 544,
+      "errors": 18
+    },
+    "F000470": {
+      "chamber": "House",
+      "dimension1": 0.541,
+      "dimension2": -0.011,
+      "geometricMeanProbability": 0.95486,
+      "votes": 547,
+      "errors": 8
+    },
+    "F000475": {
+      "chamber": "House",
+      "dimension1": 0.558,
+      "dimension2": 0.002,
+      "geometricMeanProbability": 0.95519,
+      "votes": 543,
+      "errors": 7
+    },
+    "M001234": {
+      "chamber": "House",
+      "dimension1": -0.343,
+      "dimension2": -0.094,
+      "geometricMeanProbability": 0.96584,
+      "votes": 547,
+      "errors": 8
+    },
+    "K000388": {
+      "chamber": "House",
+      "dimension1": 0.636,
+      "dimension2": 0.294,
+      "geometricMeanProbability": 0.9661,
+      "votes": 545,
+      "errors": 6
+    },
+    "G000591": {
+      "chamber": "House",
+      "dimension1": 0.531,
+      "dimension2": 0.129,
+      "geometricMeanProbability": 0.94732,
+      "votes": 538,
+      "errors": 14
+    },
+    "E000235": {
+      "chamber": "House",
+      "dimension1": 0.555,
+      "dimension2": 0.144,
+      "geometricMeanProbability": 0.92958,
+      "votes": 541,
+      "errors": 21
+    },
+    "T000193": {
+      "chamber": "House",
+      "dimension1": -0.519,
+      "dimension2": 0.39,
+      "geometricMeanProbability": 0.95991,
+      "votes": 532,
+      "errors": 8
+    },
+    "G000546": {
+      "chamber": "House",
+      "dimension1": 0.449,
+      "dimension2": 0.162,
+      "geometricMeanProbability": 0.95619,
+      "votes": 519,
+      "errors": 11
+    },
+    "C001061": {
+      "chamber": "House",
+      "dimension1": -0.454,
+      "dimension2": 0.003,
+      "geometricMeanProbability": 0.97298,
+      "votes": 525,
+      "errors": 3
+    },
+    "W000812": {
+      "chamber": "House",
+      "dimension1": 0.392,
+      "dimension2": 0.303,
+      "geometricMeanProbability": 0.96953,
+      "votes": 544,
+      "errors": 4
+    },
+    "S001195": {
+      "chamber": "House",
+      "dimension1": 0.578,
+      "dimension2": 0.204,
+      "geometricMeanProbability": 0.9494,
+      "votes": 540,
+      "errors": 14
+    },
+    "A000379": {
+      "chamber": "House",
+      "dimension1": 0.565,
+      "dimension2": 0.075,
+      "geometricMeanProbability": 0.92745,
+      "votes": 541,
+      "errors": 19
+    },
+    "B001316": {
+      "chamber": "House",
+      "dimension1": 0.734,
+      "dimension2": -0.558,
+      "geometricMeanProbability": 0.90742,
+      "votes": 526,
+      "errors": 22
+    },
+    "B001324": {
+      "chamber": "House",
+      "dimension1": -0.472,
+      "dimension2": 0.325,
+      "geometricMeanProbability": 0.9482,
+      "votes": 539,
+      "errors": 10
+    },
+    "O000177": {
+      "chamber": "House",
+      "dimension1": 0.693,
+      "dimension2": -0.174,
+      "geometricMeanProbability": 0.9156,
+      "votes": 536,
+      "errors": 28
+    },
+    "Z000018": {
+      "chamber": "House",
+      "dimension1": 0.442,
+      "dimension2": -0.113,
+      "geometricMeanProbability": 0.92282,
+      "votes": 535,
+      "errors": 17
+    },
+    "D000634": {
+      "chamber": "House",
+      "dimension1": 0.658,
+      "dimension2": -0.045,
+      "geometricMeanProbability": 0.91297,
+      "votes": 548,
+      "errors": 24
+    },
+    "S001172": {
+      "chamber": "House",
+      "dimension1": 0.509,
+      "dimension2": 0.258,
+      "geometricMeanProbability": 0.96313,
+      "votes": 540,
+      "errors": 6
+    },
+    "B001298": {
+      "chamber": "House",
+      "dimension1": 0.277,
+      "dimension2": 0.186,
+      "geometricMeanProbability": 0.87314,
+      "votes": 547,
+      "errors": 31
+    },
+    "F000474": {
+      "chamber": "House",
+      "dimension1": 0.442,
+      "dimension2": 0.672,
+      "geometricMeanProbability": 0.95533,
+      "votes": 546,
+      "errors": 8
+    },
+    "T000468": {
+      "chamber": "House",
+      "dimension1": -0.297,
+      "dimension2": -0.161,
+      "geometricMeanProbability": 0.93601,
+      "votes": 500,
+      "errors": 18
+    },
+    "A000369": {
+      "chamber": "House",
+      "dimension1": 0.384,
+      "dimension2": 0.217,
+      "geometricMeanProbability": 0.95575,
+      "votes": 533,
+      "errors": 5
+    },
+    "H001066": {
+      "chamber": "House",
+      "dimension1": -0.311,
+      "dimension2": 0.16,
+      "geometricMeanProbability": 0.88642,
+      "votes": 539,
+      "errors": 28
+    },
+    "L000590": {
+      "chamber": "House",
+      "dimension1": -0.225,
+      "dimension2": 0.293,
+      "geometricMeanProbability": 0.89924,
+      "votes": 541,
+      "errors": 25
+    },
+    "P000614": {
+      "chamber": "House",
+      "dimension1": -0.232,
+      "dimension2": 0.308,
+      "geometricMeanProbability": 0.9231,
+      "votes": 546,
+      "errors": 14
+    },
+    "G000604": {
+      "chamber": "House",
+      "dimension1": -0.208,
+      "dimension2": 0.083,
+      "geometricMeanProbability": 0.9232,
+      "votes": 545,
+      "errors": 22
+    },
+    "S000522": {
+      "chamber": "House",
+      "dimension1": 0.184,
+      "dimension2": -0.17,
+      "geometricMeanProbability": 0.80192,
+      "votes": 547,
+      "errors": 44
+    },
+    "P000034": {
+      "chamber": "House",
+      "dimension1": -0.402,
+      "dimension2": -0.162,
+      "geometricMeanProbability": 0.95353,
+      "votes": 546,
+      "errors": 11
+    },
+    "N000188": {
+      "chamber": "House",
+      "dimension1": -0.422,
+      "dimension2": 0.341,
+      "geometricMeanProbability": 0.93081,
+      "votes": 472,
+      "errors": 16
+    },
+    "W000822": {
+      "chamber": "House",
+      "dimension1": -0.592,
+      "dimension2": -0.23,
+      "geometricMeanProbability": 0.9806,
+      "votes": 544,
+      "errors": 2
+    },
+    "G000583": {
+      "chamber": "House",
+      "dimension1": -0.165,
+      "dimension2": 0.217,
+      "geometricMeanProbability": 0.88634,
+      "votes": 491,
+      "errors": 22
+    },
+    "S001207": {
+      "chamber": "House",
+      "dimension1": -0.234,
+      "dimension2": 0.243,
+      "geometricMeanProbability": 0.9454,
+      "votes": 116,
+      "errors": 2
+    },
+    "K000398": {
+      "chamber": "House",
+      "dimension1": 0.202,
+      "dimension2": 0.359,
+      "geometricMeanProbability": 0.93739,
+      "votes": 426,
+      "errors": 10
+    },
+    "M001226": {
+      "chamber": "House",
+      "dimension1": -0.519,
+      "dimension2": 0.194,
+      "geometricMeanProbability": 0.95525,
+      "votes": 549,
+      "errors": 14
+    },
+    "M001229": {
+      "chamber": "House",
+      "dimension1": -0.534,
+      "dimension2": -0.291,
+      "geometricMeanProbability": 0.98027,
+      "votes": 546,
+      "errors": 3
+    },
+    "C001136": {
+      "chamber": "House",
+      "dimension1": -0.296,
+      "dimension2": 0.035,
+      "geometricMeanProbability": 0.94551,
+      "votes": 537,
+      "errors": 11
+    },
+    "P000621": {
+      "chamber": "House",
+      "dimension1": -0.304,
+      "dimension2": 0.013,
+      "geometricMeanProbability": 0.94792,
+      "votes": 548,
+      "errors": 11
+    },
+    "M001246": {
+      "chamber": "House",
+      "dimension1": -0.415,
+      "dimension2": -0.473,
+      "geometricMeanProbability": 0.95193,
+      "votes": 133,
+      "errors": 2
+    },
+    "V000133": {
+      "chamber": "House",
+      "dimension1": 0.384,
+      "dimension2": -0.409,
+      "geometricMeanProbability": 0.87373,
+      "votes": 544,
+      "errors": 35
+    },
+    "L000273": {
+      "chamber": "House",
+      "dimension1": -0.365,
+      "dimension2": -0.191,
+      "geometricMeanProbability": 0.96055,
+      "votes": 503,
+      "errors": 9
+    },
+    "S001218": {
+      "chamber": "House",
+      "dimension1": -0.439,
+      "dimension2": -0.217,
+      "geometricMeanProbability": 0.97378,
+      "votes": 537,
+      "errors": 6
+    },
+    "V000136": {
+      "chamber": "House",
+      "dimension1": -0.321,
+      "dimension2": 0.548,
+      "geometricMeanProbability": 0.89435,
+      "votes": 544,
+      "errors": 27
+    },
+    "C001067": {
+      "chamber": "House",
+      "dimension1": -0.608,
+      "dimension2": -0.255,
+      "geometricMeanProbability": 0.96129,
+      "votes": 533,
+      "errors": 9
+    },
+    "T000469": {
+      "chamber": "House",
+      "dimension1": -0.416,
+      "dimension2": -0.261,
+      "geometricMeanProbability": 0.97348,
+      "votes": 542,
+      "errors": 5
+    },
+    "M001188": {
+      "chamber": "House",
+      "dimension1": -0.371,
+      "dimension2": -0.21,
+      "geometricMeanProbability": 0.9541,
+      "votes": 524,
+      "errors": 11
+    },
+    "J000294": {
+      "chamber": "House",
+      "dimension1": -0.483,
+      "dimension2": -0.055,
+      "geometricMeanProbability": 0.96342,
+      "votes": 546,
+      "errors": 11
+    },
+    "S001196": {
+      "chamber": "House",
+      "dimension1": 0.309,
+      "dimension2": -0.108,
+      "geometricMeanProbability": 0.9201,
+      "votes": 466,
+      "errors": 14
+    },
+    "E000297": {
+      "chamber": "House",
+      "dimension1": -0.527,
+      "dimension2": -0.212,
+      "geometricMeanProbability": 0.9662,
+      "votes": 542,
+      "errors": 8
+    },
+    "S001201": {
+      "chamber": "House",
+      "dimension1": -0.213,
+      "dimension2": 0.172,
+      "geometricMeanProbability": 0.86896,
+      "votes": 536,
+      "errors": 32
+    },
+    "T000478": {
+      "chamber": "House",
+      "dimension1": 0.466,
+      "dimension2": 0.031,
+      "geometricMeanProbability": 0.95995,
+      "votes": 546,
+      "errors": 7
+    },
+    "M001206": {
+      "chamber": "House",
+      "dimension1": -0.33,
+      "dimension2": 0.147,
+      "geometricMeanProbability": 0.94044,
+      "votes": 537,
+      "errors": 16
+    },
+    "O000172": {
+      "chamber": "House",
+      "dimension1": -0.333,
+      "dimension2": -0.943,
+      "geometricMeanProbability": 0.9657,
+      "votes": 535,
+      "errors": 7
+    },
+    "G000597": {
+      "chamber": "House",
+      "dimension1": 0.244,
+      "dimension2": 0.233,
+      "geometricMeanProbability": 0.92192,
+      "votes": 532,
+      "errors": 17
+    },
+    "M000317": {
+      "chamber": "House",
+      "dimension1": 0.334,
+      "dimension2": -0.067,
+      "geometricMeanProbability": 0.90481,
+      "votes": 542,
+      "errors": 20
+    },
+    "T000486": {
+      "chamber": "House",
+      "dimension1": -0.312,
+      "dimension2": -0.115,
+      "geometricMeanProbability": 0.93001,
+      "votes": 532,
+      "errors": 20
+    },
+    "R000579": {
+      "chamber": "House",
+      "dimension1": -0.224,
+      "dimension2": 0.152,
+      "geometricMeanProbability": 0.90185,
+      "votes": 545,
+      "errors": 26
+    },
+    "G000599": {
+      "chamber": "House",
+      "dimension1": -0.455,
+      "dimension2": 0.153,
+      "geometricMeanProbability": 0.93782,
+      "votes": 495,
+      "errors": 14
+    },
+    "L000598": {
+      "chamber": "House",
+      "dimension1": 0.253,
+      "dimension2": 0.107,
+      "geometricMeanProbability": 0.93403,
+      "votes": 539,
+      "errors": 16
+    },
+    "L000600": {
+      "chamber": "House",
+      "dimension1": 0.424,
+      "dimension2": -0.039,
+      "geometricMeanProbability": 0.93621,
+      "votes": 543,
+      "errors": 15
+    },
+    "L000599": {
+      "chamber": "House",
+      "dimension1": 0.189,
+      "dimension2": 0.228,
+      "geometricMeanProbability": 0.91293,
+      "votes": 539,
+      "errors": 18
+    },
+    "K000402": {
+      "chamber": "House",
+      "dimension1": -0.384,
+      "dimension2": 0.26,
+      "geometricMeanProbability": 0.95486,
+      "votes": 548,
+      "errors": 9
+    },
+    "G000602": {
+      "chamber": "House",
+      "dimension1": -0.164,
+      "dimension2": 0.261,
+      "geometricMeanProbability": 0.89544,
+      "votes": 536,
+      "errors": 20
+    },
+    "L000606": {
+      "chamber": "House",
+      "dimension1": -0.403,
+      "dimension2": 0.276,
+      "geometricMeanProbability": 0.94123,
+      "votes": 536,
+      "errors": 14
+    },
+    "M001231": {
+      "chamber": "House",
+      "dimension1": -0.241,
+      "dimension2": 0.1,
+      "geometricMeanProbability": 0.91418,
+      "votes": 548,
+      "errors": 18
+    },
+    "R000622": {
+      "chamber": "House",
+      "dimension1": -0.201,
+      "dimension2": 0.187,
+      "geometricMeanProbability": 0.90397,
+      "votes": 541,
+      "errors": 13
+    },
+    "N000002": {
+      "chamber": "House",
+      "dimension1": -0.507,
+      "dimension2": -0.471,
+      "geometricMeanProbability": 0.95858,
+      "votes": 490,
+      "errors": 10
+    },
+    "V000081": {
+      "chamber": "House",
+      "dimension1": -0.546,
+      "dimension2": -0.371,
+      "geometricMeanProbability": 0.96875,
+      "votes": 532,
+      "errors": 6
+    },
+    "M001137": {
+      "chamber": "House",
+      "dimension1": -0.415,
+      "dimension2": -0.059,
+      "geometricMeanProbability": 0.95239,
+      "votes": 530,
+      "errors": 11
+    },
+    "F000450": {
+      "chamber": "House",
+      "dimension1": 0.623,
+      "dimension2": 0.18,
+      "geometricMeanProbability": 0.96032,
+      "votes": 546,
+      "errors": 8
+    },
+    "H001067": {
+      "chamber": "House",
+      "dimension1": 0.524,
+      "dimension2": 0.207,
+      "geometricMeanProbability": 0.94775,
+      "votes": 544,
+      "errors": 13
+    },
+    "R000603": {
+      "chamber": "House",
+      "dimension1": 0.567,
+      "dimension2": 0.292,
+      "geometricMeanProbability": 0.96505,
+      "votes": 542,
+      "errors": 4
+    },
+    "A000370": {
+      "chamber": "House",
+      "dimension1": -0.463,
+      "dimension2": -0.005,
+      "geometricMeanProbability": 0.97194,
+      "votes": 548,
+      "errors": 5
+    },
+    "M001210": {
+      "chamber": "House",
+      "dimension1": 0.483,
+      "dimension2": 0.139,
+      "geometricMeanProbability": 0.94792,
+      "votes": 471,
+      "errors": 10
+    },
+    "R000305": {
+      "chamber": "House",
+      "dimension1": -0.387,
+      "dimension2": -0.001,
+      "geometricMeanProbability": 0.96381,
+      "votes": 547,
+      "errors": 8
+    },
+    "D000230": {
+      "chamber": "House",
+      "dimension1": -0.24,
+      "dimension2": 0.877,
+      "geometricMeanProbability": 0.86422,
+      "votes": 538,
+      "errors": 30
+    },
+    "E000246": {
+      "chamber": "House",
+      "dimension1": 0.371,
+      "dimension2": 0.382,
+      "geometricMeanProbability": 0.88866,
+      "votes": 544,
+      "errors": 15
+    },
+    "F000477": {
+      "chamber": "House",
+      "dimension1": -0.498,
+      "dimension2": -0.301,
+      "geometricMeanProbability": 0.97692,
+      "votes": 537,
+      "errors": 3
+    },
+    "H001101": {
+      "chamber": "House",
+      "dimension1": 0.972,
+      "dimension2": 0.234,
+      "geometricMeanProbability": 0.90588,
+      "votes": 538,
+      "errors": 23
+    },
+    "H001102": {
+      "chamber": "House",
+      "dimension1": 0.831,
+      "dimension2": -0.106,
+      "geometricMeanProbability": 0.91777,
+      "votes": 549,
+      "errors": 15
+    },
+    "K000405": {
+      "chamber": "House",
+      "dimension1": 0.89,
+      "dimension2": 0.268,
+      "geometricMeanProbability": 0.913,
+      "votes": 541,
+      "errors": 24
+    },
+    "M001240": {
+      "chamber": "House",
+      "dimension1": 0.555,
+      "dimension2": 0.035,
+      "geometricMeanProbability": 0.93687,
+      "votes": 547,
+      "errors": 17
+    },
+    "M001236": {
+      "chamber": "House",
+      "dimension1": 0.585,
+      "dimension2": 0.103,
+      "geometricMeanProbability": 0.943,
+      "votes": 547,
+      "errors": 9
+    },
+    "F000482": {
+      "chamber": "House",
+      "dimension1": 0.611,
+      "dimension2": 0.07,
+      "geometricMeanProbability": 0.94274,
+      "votes": 537,
+      "errors": 15
+    },
+    "K000404": {
+      "chamber": "House",
+      "dimension1": 0.163,
+      "dimension2": -0.043,
+      "geometricMeanProbability": 0.69169,
+      "votes": 61,
+      "errors": 11
+    },
+    "K000009": {
+      "chamber": "House",
+      "dimension1": -0.341,
+      "dimension2": 0.14,
+      "geometricMeanProbability": 0.79026,
+      "votes": 534,
+      "errors": 45
+    },
+    "T000463": {
+      "chamber": "House",
+      "dimension1": 0.265,
+      "dimension2": 0.258,
+      "geometricMeanProbability": 0.90769,
+      "votes": 535,
+      "errors": 18
+    },
+    "J000289": {
+      "chamber": "House",
+      "dimension1": 0.711,
+      "dimension2": -0.171,
+      "geometricMeanProbability": 0.92804,
+      "votes": 529,
+      "errors": 18
+    },
+    "L000566": {
+      "chamber": "House",
+      "dimension1": 0.508,
+      "dimension2": 0.291,
+      "geometricMeanProbability": 0.96869,
+      "votes": 549,
+      "errors": 5
+    },
+    "B001281": {
+      "chamber": "House",
+      "dimension1": -0.44,
+      "dimension2": 0.027,
+      "geometricMeanProbability": 0.95731,
+      "votes": 516,
+      "errors": 8
+    },
+    "J000295": {
+      "chamber": "House",
+      "dimension1": 0.25,
+      "dimension2": 0.313,
+      "geometricMeanProbability": 0.92638,
+      "votes": 532,
+      "errors": 17
+    },
+    "D000626": {
+      "chamber": "House",
+      "dimension1": 0.647,
+      "dimension2": -0.385,
+      "geometricMeanProbability": 0.83589,
+      "votes": 537,
+      "errors": 38
+    },
+    "B001306": {
+      "chamber": "House",
+      "dimension1": 0.464,
+      "dimension2": 0.192,
+      "geometricMeanProbability": 0.95034,
+      "votes": 541,
+      "errors": 10
+    },
+    "B001313": {
+      "chamber": "House",
+      "dimension1": -0.475,
+      "dimension2": -0.08,
+      "geometricMeanProbability": 0.97282,
+      "votes": 548,
+      "errors": 7
+    },
+    "C001126": {
+      "chamber": "House",
+      "dimension1": 0.405,
+      "dimension2": 0.028,
+      "geometricMeanProbability": 0.94485,
+      "votes": 542,
+      "errors": 9
+    },
+    "L000601": {
+      "chamber": "House",
+      "dimension1": -0.227,
+      "dimension2": 0.238,
+      "geometricMeanProbability": 0.90886,
+      "votes": 545,
+      "errors": 22
+    },
+    "M001222": {
+      "chamber": "House",
+      "dimension1": 0.368,
+      "dimension2": -0.035,
+      "geometricMeanProbability": 0.88768,
+      "votes": 524,
+      "errors": 28
+    },
+    "S001223": {
+      "chamber": "House",
+      "dimension1": -0.332,
+      "dimension2": 0.171,
+      "geometricMeanProbability": 0.93291,
+      "votes": 532,
+      "errors": 18
+    },
+    "R000619": {
+      "chamber": "House",
+      "dimension1": 0.43,
+      "dimension2": -0.093,
+      "geometricMeanProbability": 0.91196,
+      "votes": 520,
+      "errors": 21
+    },
+    "T000490": {
+      "chamber": "House",
+      "dimension1": 0.591,
+      "dimension2": 0.239,
+      "geometricMeanProbability": 0.94593,
+      "votes": 549,
+      "errors": 16
+    },
+    "C001053": {
+      "chamber": "House",
+      "dimension1": 0.323,
+      "dimension2": 0.414,
+      "geometricMeanProbability": 0.97179,
+      "votes": 542,
+      "errors": 6
+    },
+    "H001082": {
+      "chamber": "House",
+      "dimension1": 0.679,
+      "dimension2": -0.047,
+      "geometricMeanProbability": 0.93703,
+      "votes": 538,
+      "errors": 15
+    },
+    "B000740": {
+      "chamber": "House",
+      "dimension1": 0.411,
+      "dimension2": 0.308,
+      "geometricMeanProbability": 0.9509,
+      "votes": 543,
+      "errors": 10
+    },
+    "B001317": {
+      "chamber": "House",
+      "dimension1": 0.837,
+      "dimension2": -0.509,
+      "geometricMeanProbability": 0.92628,
+      "votes": 520,
+      "errors": 19
+    },
+    "L000491": {
+      "chamber": "House",
+      "dimension1": 0.361,
+      "dimension2": 0.455,
+      "geometricMeanProbability": 0.98282,
+      "votes": 539,
+      "errors": 4
+    },
+    "B001278": {
+      "chamber": "House",
+      "dimension1": -0.4,
+      "dimension2": -0.421,
+      "geometricMeanProbability": 0.97818,
+      "votes": 541,
+      "errors": 3
+    },
+    "B000668": {
+      "chamber": "House",
+      "dimension1": 0.476,
+      "dimension2": 0.281,
+      "geometricMeanProbability": 0.97265,
+      "votes": 548,
+      "errors": 3
+    },
+    "H001094": {
+      "chamber": "House",
+      "dimension1": -0.232,
+      "dimension2": -0.415,
+      "geometricMeanProbability": 0.92308,
+      "votes": 538,
+      "errors": 17
+    },
+    "S001226": {
+      "chamber": "House",
+      "dimension1": -0.226,
+      "dimension2": -0.225,
+      "geometricMeanProbability": 0.94331,
+      "votes": 548,
+      "errors": 14
+    },
+    "B001326": {
+      "chamber": "House",
+      "dimension1": -0.285,
+      "dimension2": 0.099,
+      "geometricMeanProbability": 0.94328,
+      "votes": 543,
+      "errors": 9
+    },
+    "D000635": {
+      "chamber": "House",
+      "dimension1": -0.462,
+      "dimension2": -0.716,
+      "geometricMeanProbability": 0.98201,
+      "votes": 542,
+      "errors": 1
+    },
+    "T000467": {
+      "chamber": "House",
+      "dimension1": 0.335,
+      "dimension2": 0.342,
+      "geometricMeanProbability": 0.97588,
+      "votes": 541,
+      "errors": 5
+    },
+    "K000376": {
+      "chamber": "House",
+      "dimension1": 0.379,
+      "dimension2": 0.398,
+      "geometricMeanProbability": 0.9688,
+      "votes": 540,
+      "errors": 7
+    },
+    "P000605": {
+      "chamber": "House",
+      "dimension1": 0.686,
+      "dimension2": -0.495,
+      "geometricMeanProbability": 0.89468,
+      "votes": 537,
+      "errors": 30
+    },
+    "B001296": {
+      "chamber": "House",
+      "dimension1": -0.38,
+      "dimension2": 0.149,
+      "geometricMeanProbability": 0.93769,
+      "votes": 529,
+      "errors": 13
+    },
+    "E000296": {
+      "chamber": "House",
+      "dimension1": -0.472,
+      "dimension2": -0.166,
+      "geometricMeanProbability": 0.97047,
+      "votes": 507,
+      "errors": 5
+    },
+    "F000466": {
+      "chamber": "House",
+      "dimension1": 0.141,
+      "dimension2": -0.114,
+      "geometricMeanProbability": 0.80076,
+      "votes": 543,
+      "errors": 47
+    },
+    "S001199": {
+      "chamber": "House",
+      "dimension1": 0.455,
+      "dimension2": 0.129,
+      "geometricMeanProbability": 0.95274,
+      "votes": 533,
+      "errors": 11
+    },
+    "S001205": {
+      "chamber": "House",
+      "dimension1": -0.46,
+      "dimension2": -0.213,
+      "geometricMeanProbability": 0.97063,
+      "votes": 541,
+      "errors": 7
+    },
+    "D000631": {
+      "chamber": "House",
+      "dimension1": -0.441,
+      "dimension2": -0.062,
+      "geometricMeanProbability": 0.96928,
+      "votes": 542,
+      "errors": 5
+    },
+    "H001085": {
+      "chamber": "House",
+      "dimension1": -0.258,
+      "dimension2": 0.215,
+      "geometricMeanProbability": 0.90736,
+      "votes": 535,
+      "errors": 20
+    },
+    "J000302": {
+      "chamber": "House",
+      "dimension1": 0.582,
+      "dimension2": -0.047,
+      "geometricMeanProbability": 0.91601,
+      "votes": 548,
+      "errors": 23
+    },
+    "M001204": {
+      "chamber": "House",
+      "dimension1": 0.491,
+      "dimension2": 0.201,
+      "geometricMeanProbability": 0.93401,
+      "votes": 522,
+      "errors": 15
+    },
+    "R000610": {
+      "chamber": "House",
+      "dimension1": 0.447,
+      "dimension2": 0.06,
+      "geometricMeanProbability": 0.96192,
+      "votes": 533,
+      "errors": 10
+    },
+    "D000530": {
+      "chamber": "House",
+      "dimension1": -0.262,
+      "dimension2": -0.157,
+      "geometricMeanProbability": 0.93315,
+      "votes": 549,
+      "errors": 15
+    },
+    "L000602": {
+      "chamber": "House",
+      "dimension1": -0.45,
+      "dimension2": -0.893,
+      "geometricMeanProbability": 0.97212,
+      "votes": 549,
+      "errors": 4
+    },
+    "B001327": {
+      "chamber": "House",
+      "dimension1": 0.257,
+      "dimension2": 0.061,
+      "geometricMeanProbability": 0.91611,
+      "votes": 546,
+      "errors": 23
+    },
+    "M001230": {
+      "chamber": "House",
+      "dimension1": 0.322,
+      "dimension2": -0.121,
+      "geometricMeanProbability": 0.88326,
+      "votes": 540,
+      "errors": 28
+    },
+    "H001103": {
+      "chamber": "House",
+      "dimension1": -0.507,
+      "dimension2": -0.455,
+      "geometricMeanProbability": 0.99156,
+      "votes": 72,
+      "errors": 0
+    },
+    "M001223": {
+      "chamber": "House",
+      "dimension1": -0.308,
+      "dimension2": 0.117,
+      "geometricMeanProbability": 0.92758,
+      "votes": 536,
+      "errors": 21
+    },
+    "A000380": {
+      "chamber": "House",
+      "dimension1": -0.425,
+      "dimension2": -0.062,
+      "geometricMeanProbability": 0.9597,
+      "votes": 549,
+      "errors": 11
+    },
+    "W000795": {
+      "chamber": "House",
+      "dimension1": 0.529,
+      "dimension2": 0.163,
+      "geometricMeanProbability": 0.9264,
+      "votes": 521,
+      "errors": 12
+    },
+    "N000190": {
+      "chamber": "House",
+      "dimension1": 0.854,
+      "dimension2": -0.379,
+      "geometricMeanProbability": 0.94657,
+      "votes": 488,
+      "errors": 12
+    },
+    "T000480": {
+      "chamber": "House",
+      "dimension1": 0.6,
+      "dimension2": 0.052,
+      "geometricMeanProbability": 0.93841,
+      "votes": 542,
+      "errors": 16
+    },
+    "M000194": {
+      "chamber": "House",
+      "dimension1": 0.352,
+      "dimension2": -0.299,
+      "geometricMeanProbability": 0.85856,
+      "votes": 460,
+      "errors": 33
+    },
+    "F000478": {
+      "chamber": "House",
+      "dimension1": 0.551,
+      "dimension2": -0.272,
+      "geometricMeanProbability": 0.9137,
+      "votes": 546,
+      "errors": 22
+    },
+    "B001325": {
+      "chamber": "House",
+      "dimension1": 0.828,
+      "dimension2": -0.271,
+      "geometricMeanProbability": 0.93795,
+      "votes": 549,
+      "errors": 13
+    },
+    "C000537": {
+      "chamber": "House",
+      "dimension1": -0.466,
+      "dimension2": 0.247,
+      "geometricMeanProbability": 0.94978,
+      "votes": 542,
+      "errors": 9
+    },
+    "J000301": {
+      "chamber": "House",
+      "dimension1": 0.468,
+      "dimension2": 0.147,
+      "geometricMeanProbability": 0.95507,
+      "votes": 527,
+      "errors": 11
+    },
+    "C001068": {
+      "chamber": "House",
+      "dimension1": -0.389,
+      "dimension2": -0.288,
+      "geometricMeanProbability": 0.94502,
+      "votes": 522,
+      "errors": 13
+    },
+    "F000459": {
+      "chamber": "House",
+      "dimension1": 0.431,
+      "dimension2": 0.394,
+      "geometricMeanProbability": 0.97268,
+      "votes": 548,
+      "errors": 7
+    },
+    "D000616": {
+      "chamber": "House",
+      "dimension1": 0.578,
+      "dimension2": -0.038,
+      "geometricMeanProbability": 0.94621,
+      "votes": 530,
+      "errors": 12
+    },
+    "K000392": {
+      "chamber": "House",
+      "dimension1": 0.541,
+      "dimension2": 0.335,
+      "geometricMeanProbability": 0.95927,
+      "votes": 546,
+      "errors": 8
+    },
+    "B001309": {
+      "chamber": "House",
+      "dimension1": 0.663,
+      "dimension2": -0.457,
+      "geometricMeanProbability": 0.87383,
+      "votes": 535,
+      "errors": 30
+    },
+    "G000590": {
+      "chamber": "House",
+      "dimension1": 0.671,
+      "dimension2": 0.018,
+      "geometricMeanProbability": 0.9465,
+      "votes": 135,
+      "errors": 4
+    },
+    "R000612": {
+      "chamber": "House",
+      "dimension1": 0.655,
+      "dimension2": 0.091,
+      "geometricMeanProbability": 0.90585,
+      "votes": 523,
+      "errors": 14
+    },
+    "H001086": {
+      "chamber": "House",
+      "dimension1": 0.677,
+      "dimension2": -0.13,
+      "geometricMeanProbability": 0.90744,
+      "votes": 544,
+      "errors": 18
+    },
+    "O000175": {
+      "chamber": "House",
+      "dimension1": 0.751,
+      "dimension2": -0.393,
+      "geometricMeanProbability": 0.93224,
+      "votes": 511,
+      "errors": 15
+    },
+    "V000139": {
+      "chamber": "House",
+      "dimension1": 0.629,
+      "dimension2": 0.772,
+      "geometricMeanProbability": 0.9825,
+      "votes": 293,
+      "errors": 2
+    },
+    "C001051": {
+      "chamber": "House",
+      "dimension1": 0.487,
+      "dimension2": 0.548,
+      "geometricMeanProbability": 0.94969,
+      "votes": 540,
+      "errors": 15
+    },
+    "G000553": {
+      "chamber": "House",
+      "dimension1": -0.448,
+      "dimension2": 0.256,
+      "geometricMeanProbability": 0.93668,
+      "votes": 542,
+      "errors": 11
+    },
+    "M001157": {
+      "chamber": "House",
+      "dimension1": 0.409,
+      "dimension2": 0.18,
+      "geometricMeanProbability": 0.94612,
+      "votes": 489,
+      "errors": 10
+    },
+    "C001063": {
+      "chamber": "House",
+      "dimension1": -0.225,
+      "dimension2": 0.658,
+      "geometricMeanProbability": 0.79774,
+      "votes": 542,
+      "errors": 63
+    },
+    "W000814": {
+      "chamber": "House",
+      "dimension1": 0.721,
+      "dimension2": 0.039,
+      "geometricMeanProbability": 0.93882,
+      "votes": 537,
+      "errors": 18
+    },
+    "C001091": {
+      "chamber": "House",
+      "dimension1": -0.402,
+      "dimension2": -0.143,
+      "geometricMeanProbability": 0.95642,
+      "votes": 532,
+      "errors": 10
+    },
+    "W000816": {
+      "chamber": "House",
+      "dimension1": 0.593,
+      "dimension2": 0.068,
+      "geometricMeanProbability": 0.94215,
+      "votes": 530,
+      "errors": 14
+    },
+    "V000131": {
+      "chamber": "House",
+      "dimension1": -0.409,
+      "dimension2": 0.375,
+      "geometricMeanProbability": 0.89174,
+      "votes": 538,
+      "errors": 26
+    },
+    "B001291": {
+      "chamber": "House",
+      "dimension1": 0.709,
+      "dimension2": 0.134,
+      "geometricMeanProbability": 0.94005,
+      "votes": 541,
+      "errors": 16
+    },
+    "A000375": {
+      "chamber": "House",
+      "dimension1": 0.646,
+      "dimension2": -0.001,
+      "geometricMeanProbability": 0.91396,
+      "votes": 530,
+      "errors": 19
+    },
+    "G000581": {
+      "chamber": "House",
+      "dimension1": -0.386,
+      "dimension2": 0.923,
+      "geometricMeanProbability": 0.79162,
+      "votes": 524,
+      "errors": 71
+    },
+    "C001115": {
+      "chamber": "House",
+      "dimension1": 0.689,
+      "dimension2": -0.382,
+      "geometricMeanProbability": 0.89419,
+      "votes": 543,
+      "errors": 26
+    },
+    "C001120": {
+      "chamber": "House",
+      "dimension1": 0.436,
+      "dimension2": 0.254,
+      "geometricMeanProbability": 0.94406,
+      "votes": 501,
+      "errors": 11
+    },
+    "E000299": {
+      "chamber": "House",
+      "dimension1": -0.464,
+      "dimension2": -0.288,
+      "geometricMeanProbability": 0.95725,
+      "votes": 543,
+      "errors": 10
+    },
+    "F000468": {
+      "chamber": "House",
+      "dimension1": -0.544,
+      "dimension2": 0.839,
+      "geometricMeanProbability": 0.83369,
+      "votes": 544,
+      "errors": 32
+    },
+    "G000587": {
+      "chamber": "House",
+      "dimension1": -0.764,
+      "dimension2": 0.311,
+      "geometricMeanProbability": 0.96109,
+      "votes": 520,
+      "errors": 8
+    },
+    "G000589": {
+      "chamber": "House",
+      "dimension1": 0.718,
+      "dimension2": -0.037,
+      "geometricMeanProbability": 0.89926,
+      "votes": 546,
+      "errors": 24
+    },
+    "R000614": {
+      "chamber": "House",
+      "dimension1": 0.8,
+      "dimension2": -0.6,
+      "geometricMeanProbability": 0.91595,
+      "votes": 520,
+      "errors": 21
+    },
+    "F000246": {
+      "chamber": "House",
+      "dimension1": 0.714,
+      "dimension2": 0.126,
+      "geometricMeanProbability": 0.93754,
+      "votes": 542,
+      "errors": 13
+    },
+    "G000594": {
+      "chamber": "House",
+      "dimension1": 0.35,
+      "dimension2": 0.23,
+      "geometricMeanProbability": 0.95004,
+      "votes": 367,
+      "errors": 9
+    },
+    "J000304": {
+      "chamber": "House",
+      "dimension1": 0.787,
+      "dimension2": 0.168,
+      "geometricMeanProbability": 0.92147,
+      "votes": 534,
+      "errors": 19
+    },
+    "N000026": {
+      "chamber": "House",
+      "dimension1": 0.61,
+      "dimension2": -0.231,
+      "geometricMeanProbability": 0.94195,
+      "votes": 514,
+      "errors": 10
+    },
+    "P000048": {
+      "chamber": "House",
+      "dimension1": 0.634,
+      "dimension2": 0.384,
+      "geometricMeanProbability": 0.96163,
+      "votes": 546,
+      "errors": 7
+    },
+    "V000134": {
+      "chamber": "House",
+      "dimension1": 0.605,
+      "dimension2": -0.003,
+      "geometricMeanProbability": 0.93519,
+      "votes": 544,
+      "errors": 18
+    },
+    "E000071": {
+      "chamber": "House",
+      "dimension1": 0.511,
+      "dimension2": 0.699,
+      "geometricMeanProbability": 0.97142,
+      "votes": 544,
+      "errors": 6
+    },
+    "C001131": {
+      "chamber": "House",
+      "dimension1": -0.429,
+      "dimension2": -0.862,
+      "geometricMeanProbability": 0.97975,
+      "votes": 474,
+      "errors": 2
+    },
+    "C001130": {
+      "chamber": "House",
+      "dimension1": -0.495,
+      "dimension2": -0.218,
+      "geometricMeanProbability": 0.97759,
+      "votes": 517,
+      "errors": 3
+    },
+    "D000594": {
+      "chamber": "House",
+      "dimension1": 0.472,
+      "dimension2": 0.127,
+      "geometricMeanProbability": 0.94245,
+      "votes": 519,
+      "errors": 16
+    },
+    "H001095": {
+      "chamber": "House",
+      "dimension1": 0.605,
+      "dimension2": -0.259,
+      "geometricMeanProbability": 0.94582,
+      "votes": 427,
+      "errors": 5
+    },
+    "L000603": {
+      "chamber": "House",
+      "dimension1": 0.587,
+      "dimension2": -0.072,
+      "geometricMeanProbability": 0.91933,
+      "votes": 541,
+      "errors": 20
+    },
+    "M001224": {
+      "chamber": "House",
+      "dimension1": 0.586,
+      "dimension2": 0.566,
+      "geometricMeanProbability": 0.96534,
+      "votes": 539,
+      "errors": 11
+    },
+    "S001224": {
+      "chamber": "House",
+      "dimension1": 0.81,
+      "dimension2": -0.343,
+      "geometricMeanProbability": 0.85116,
+      "votes": 540,
+      "errors": 38
+    },
+    "G000603": {
+      "chamber": "House",
+      "dimension1": 0.784,
+      "dimension2": -0.248,
+      "geometricMeanProbability": 0.91766,
+      "votes": 539,
+      "errors": 22
+    },
+    "G000601": {
+      "chamber": "House",
+      "dimension1": 0.803,
+      "dimension2": 0.55,
+      "geometricMeanProbability": 0.95438,
+      "votes": 546,
+      "errors": 10
+    },
+    "J000310": {
+      "chamber": "House",
+      "dimension1": -0.35,
+      "dimension2": 0.234,
+      "geometricMeanProbability": 0.9218,
+      "votes": 534,
+      "errors": 16
+    },
+    "T000489": {
+      "chamber": "House",
+      "dimension1": -0.746,
+      "dimension2": 0.666,
+      "geometricMeanProbability": 0.93062,
+      "votes": 39,
+      "errors": 1
+    },
+    "M001245": {
+      "chamber": "House",
+      "dimension1": -0.552,
+      "dimension2": -0.315,
+      "geometricMeanProbability": 0.96978,
+      "votes": 194,
+      "errors": 3
+    },
+    "D000399": {
+      "chamber": "House",
+      "dimension1": -0.403,
+      "dimension2": -0.334,
+      "geometricMeanProbability": 0.96902,
+      "votes": 534,
+      "errors": 7
+    },
+    "S000250": {
+      "chamber": "House",
+      "dimension1": 0.583,
+      "dimension2": 0.176,
+      "geometricMeanProbability": 0.94791,
+      "votes": 548,
+      "errors": 9
+    },
+    "M001213": {
+      "chamber": "House",
+      "dimension1": 0.37,
+      "dimension2": 0.324,
+      "geometricMeanProbability": 0.95111,
+      "votes": 547,
+      "errors": 12
+    },
+    "O000086": {
+      "chamber": "House",
+      "dimension1": 0.452,
+      "dimension2": 0.166,
+      "geometricMeanProbability": 0.95334,
+      "votes": 542,
+      "errors": 11
+    },
+    "M001228": {
+      "chamber": "House",
+      "dimension1": 0.417,
+      "dimension2": 0.09,
+      "geometricMeanProbability": 0.9294,
+      "votes": 546,
+      "errors": 14
+    },
+    "K000403": {
+      "chamber": "House",
+      "dimension1": 0.654,
+      "dimension2": -0.268,
+      "geometricMeanProbability": 0.90682,
+      "votes": 540,
+      "errors": 22
+    },
+    "B001318": {
+      "chamber": "House",
+      "dimension1": -0.442,
+      "dimension2": -0.487,
+      "geometricMeanProbability": 0.97857,
+      "votes": 546,
+      "errors": 4
+    },
+    "P000610": {
+      "chamber": "House",
+      "dimension1": -0.473,
+      "dimension2": 0.565,
+      "geometricMeanProbability": 0.90701,
+      "votes": 38,
+      "errors": 1
+    },
+    "W000804": {
+      "chamber": "House",
+      "dimension1": 0.446,
+      "dimension2": 0.032,
+      "geometricMeanProbability": 0.93989,
+      "votes": 536,
+      "errors": 14
+    },
+    "C001078": {
+      "chamber": "House",
+      "dimension1": -0.309,
+      "dimension2": -0.047,
+      "geometricMeanProbability": 0.93875,
+      "votes": 72,
+      "errors": 1
+    },
+    "G000568": {
+      "chamber": "House",
+      "dimension1": 0.51,
+      "dimension2": -0.33,
+      "geometricMeanProbability": 0.89538,
+      "votes": 546,
+      "errors": 29
+    },
+    "B001292": {
+      "chamber": "House",
+      "dimension1": -0.392,
+      "dimension2": -0.118,
+      "geometricMeanProbability": 0.95322,
+      "votes": 535,
+      "errors": 11
+    },
+    "C001118": {
+      "chamber": "House",
+      "dimension1": 0.713,
+      "dimension2": -0.204,
+      "geometricMeanProbability": 0.94219,
+      "votes": 546,
+      "errors": 11
+    },
+    "K000399": {
+      "chamber": "House",
+      "dimension1": 0.264,
+      "dimension2": 0.474,
+      "geometricMeanProbability": 0.95664,
+      "votes": 544,
+      "errors": 11
+    },
+    "M001227": {
+      "chamber": "House",
+      "dimension1": -0.555,
+      "dimension2": 0.077,
+      "geometricMeanProbability": 0.9763,
+      "votes": 546,
+      "errors": 6
+    },
+    "M001239": {
+      "chamber": "House",
+      "dimension1": 0.727,
+      "dimension2": -0.126,
+      "geometricMeanProbability": 0.9052,
+      "votes": 544,
+      "errors": 20
+    },
+    "S001230": {
+      "chamber": "House",
+      "dimension1": -0.235,
+      "dimension2": -0.273,
+      "geometricMeanProbability": 0.93742,
+      "votes": 544,
+      "errors": 17
+    },
+    "V000138": {
+      "chamber": "House",
+      "dimension1": -0.175,
+      "dimension2": 0.123,
+      "geometricMeanProbability": 0.89903,
+      "votes": 544,
+      "errors": 21
+    },
+    "W000831": {
+      "chamber": "House",
+      "dimension1": -0.421,
+      "dimension2": 0.249,
+      "geometricMeanProbability": 0.95813,
+      "votes": 349,
+      "errors": 9
+    },
+    "S000185": {
+      "chamber": "House",
+      "dimension1": -0.45,
+      "dimension2": -0.005,
+      "geometricMeanProbability": 0.96548,
+      "votes": 548,
+      "errors": 7
+    },
+    "L000560": {
+      "chamber": "House",
+      "dimension1": -0.365,
+      "dimension2": 0.166,
+      "geometricMeanProbability": 0.9361,
+      "votes": 531,
+      "errors": 13
+    },
+    "N000189": {
+      "chamber": "House",
+      "dimension1": 0.317,
+      "dimension2": 0.339,
+      "geometricMeanProbability": 0.95883,
+      "votes": 540,
+      "errors": 9
+    },
+    "J000298": {
+      "chamber": "House",
+      "dimension1": -0.608,
+      "dimension2": -0.581,
+      "geometricMeanProbability": 0.96082,
+      "votes": 510,
+      "errors": 9
+    },
+    "S001216": {
+      "chamber": "House",
+      "dimension1": -0.275,
+      "dimension2": 0.363,
+      "geometricMeanProbability": 0.90763,
+      "votes": 543,
+      "errors": 21
+    },
+    "S001159": {
+      "chamber": "House",
+      "dimension1": -0.443,
+      "dimension2": 0.352,
+      "geometricMeanProbability": 0.94884,
+      "votes": 538,
+      "errors": 12
+    },
+    "G000600": {
+      "chamber": "House",
+      "dimension1": -0.1,
+      "dimension2": 0.38,
+      "geometricMeanProbability": 0.78957,
+      "votes": 543,
+      "errors": 39
+    },
+    "B001322": {
+      "chamber": "House",
+      "dimension1": 0.583,
+      "dimension2": 0.399,
+      "geometricMeanProbability": 0.96238,
+      "votes": 536,
+      "errors": 7
+    },
+    "R000621": {
+      "chamber": "House",
+      "dimension1": -0.566,
+      "dimension2": -0.318,
+      "geometricMeanProbability": 0.97341,
+      "votes": 533,
+      "errors": 6
+    },
+    "S000510": {
+      "chamber": "House",
+      "dimension1": -0.291,
+      "dimension2": -0.166,
+      "geometricMeanProbability": 0.951,
+      "votes": 536,
+      "errors": 10
+    },
+    "D000617": {
+      "chamber": "House",
+      "dimension1": -0.296,
+      "dimension2": -0.192,
+      "geometricMeanProbability": 0.95943,
+      "votes": 541,
+      "errors": 10
+    },
+    "M001205": {
+      "chamber": "House",
+      "dimension1": 0.53,
+      "dimension2": 0.109,
+      "geometricMeanProbability": 0.94082,
+      "votes": 527,
+      "errors": 11
+    },
+    "M001235": {
+      "chamber": "House",
+      "dimension1": 0.538,
+      "dimension2": -0.265,
+      "geometricMeanProbability": 0.8618,
+      "votes": 539,
+      "errors": 36
+    },
+    "M001160": {
+      "chamber": "House",
+      "dimension1": -0.52,
+      "dimension2": -0.273,
+      "geometricMeanProbability": 0.96077,
+      "votes": 536,
+      "errors": 10
+    },
+    "P000607": {
+      "chamber": "House",
+      "dimension1": -0.521,
+      "dimension2": -0.553,
+      "geometricMeanProbability": 0.9719,
+      "votes": 543,
+      "errors": 7
+    },
+    "G000576": {
+      "chamber": "House",
+      "dimension1": 0.601,
+      "dimension2": -0.198,
+      "geometricMeanProbability": 0.8985,
+      "votes": 537,
+      "errors": 27
+    },
+    "S001213": {
+      "chamber": "House",
+      "dimension1": 0.421,
+      "dimension2": 0.073,
+      "geometricMeanProbability": 0.95551,
+      "votes": 545,
+      "errors": 10
+    },
+    "T000165": {
+      "chamber": "House",
+      "dimension1": 0.641,
+      "dimension2": -0.255,
+      "geometricMeanProbability": 0.9199,
+      "votes": 523,
+      "errors": 17
+    },
+    "F000471": {
+      "chamber": "House",
+      "dimension1": 0.598,
+      "dimension2": 0.082,
+      "geometricMeanProbability": 0.94368,
+      "votes": 545,
+      "errors": 15
+    },
+    "V000135": {
+      "chamber": "House",
+      "dimension1": 0.379,
+      "dimension2": -0.035,
+      "geometricMeanProbability": 0.89472,
+      "votes": 502,
+      "errors": 23
+    },
+    "W000829": {
+      "chamber": "House",
+      "dimension1": 0.54,
+      "dimension2": -0.234,
+      "geometricMeanProbability": 0.93292,
+      "votes": 544,
+      "errors": 12
+    },
+    "H001096": {
+      "chamber": "House",
+      "dimension1": 0.64,
+      "dimension2": -0.357,
+      "geometricMeanProbability": 0.89838,
+      "votes": 548,
+      "errors": 23
+    },
+    "T000278": {
+      "chamber": "Senate",
+      "dimension1": 0.936,
+      "dimension2": -0.352,
+      "geometricMeanProbability": 0.96267,
+      "votes": 829,
+      "errors": 9
+    },
+    "B001319": {
+      "chamber": "Senate",
+      "dimension1": 0.588,
+      "dimension2": 0.579,
+      "geometricMeanProbability": 0.98858,
+      "votes": 864,
+      "errors": 5
+    },
+    "M001153": {
+      "chamber": "Senate",
+      "dimension1": 0.204,
+      "dimension2": -0.306,
+      "geometricMeanProbability": 0.86783,
+      "votes": 848,
+      "errors": 50
+    },
+    "S001198": {
+      "chamber": "Senate",
+      "dimension1": 0.463,
+      "dimension2": 0.188,
+      "geometricMeanProbability": 0.88337,
+      "votes": 865,
+      "errors": 32
+    },
+    "G000574": {
+      "chamber": "Senate",
+      "dimension1": -0.357,
+      "dimension2": 0.137,
+      "geometricMeanProbability": 0.88031,
+      "votes": 771,
+      "errors": 48
+    },
+    "K000377": {
+      "chamber": "Senate",
+      "dimension1": -0.27,
+      "dimension2": 0.293,
+      "geometricMeanProbability": 0.9006,
+      "votes": 835,
+      "errors": 46
+    },
+    "B001236": {
+      "chamber": "Senate",
+      "dimension1": 0.427,
+      "dimension2": 0.339,
+      "geometricMeanProbability": 0.98875,
+      "votes": 871,
+      "errors": 4
+    },
+    "C001095": {
+      "chamber": "Senate",
+      "dimension1": 0.577,
+      "dimension2": 0.201,
+      "geometricMeanProbability": 0.98787,
+      "votes": 871,
+      "errors": 3
+    },
+    "S001150": {
+      "chamber": "Senate",
+      "dimension1": -0.352,
+      "dimension2": -0.118,
+      "geometricMeanProbability": 0.89481,
+      "votes": 863,
+      "errors": 56
+    },
+    "P000145": {
+      "chamber": "Senate",
+      "dimension1": -0.453,
+      "dimension2": -0.23,
+      "geometricMeanProbability": 0.93272,
+      "votes": 853,
+      "errors": 36
+    },
+    "B001267": {
+      "chamber": "Senate",
+      "dimension1": -0.246,
+      "dimension2": -0.187,
+      "geometricMeanProbability": 0.8921,
+      "votes": 803,
+      "errors": 41
+    },
+    "H000273": {
+      "chamber": "Senate",
+      "dimension1": -0.301,
+      "dimension2": 0.003,
+      "geometricMeanProbability": 0.90257,
+      "votes": 875,
+      "errors": 35
+    },
+    "M001169": {
+      "chamber": "Senate",
+      "dimension1": -0.289,
+      "dimension2": -0.259,
+      "geometricMeanProbability": 0.87489,
+      "votes": 862,
+      "errors": 49
+    },
+    "B001277": {
+      "chamber": "Senate",
+      "dimension1": -0.432,
+      "dimension2": -0.156,
+      "geometricMeanProbability": 0.9452,
+      "votes": 875,
+      "errors": 22
+    },
+    "B001303": {
+      "chamber": "Senate",
+      "dimension1": -0.393,
+      "dimension2": -0.111,
+      "geometricMeanProbability": 0.94406,
+      "votes": 879,
+      "errors": 17
+    },
+    "C001088": {
+      "chamber": "Senate",
+      "dimension1": -0.24,
+      "dimension2": -0.206,
+      "geometricMeanProbability": 0.90063,
+      "votes": 839,
+      "errors": 27
+    },
+    "R000595": {
+      "chamber": "Senate",
+      "dimension1": 0.616,
+      "dimension2": -0.184,
+      "geometricMeanProbability": 0.99991,
+      "votes": 7,
+      "errors": 0
+    },
+    "S001217": {
+      "chamber": "Senate",
+      "dimension1": 0.734,
+      "dimension2": -0.086,
+      "geometricMeanProbability": 0.95867,
+      "votes": 883,
+      "errors": 19
+    },
+    "M001244": {
+      "chamber": "Senate",
+      "dimension1": 0.606,
+      "dimension2": 0.072,
+      "geometricMeanProbability": 0.97069,
+      "votes": 867,
+      "errors": 9
+    },
+    "O000174": {
+      "chamber": "Senate",
+      "dimension1": -0.474,
+      "dimension2": 0.486,
+      "geometricMeanProbability": 0.93822,
+      "votes": 835,
+      "errors": 25
+    },
+    "W000790": {
+      "chamber": "Senate",
+      "dimension1": -0.434,
+      "dimension2": 0.419,
+      "geometricMeanProbability": 0.92341,
+      "votes": 859,
+      "errors": 31
+    },
+    "H001042": {
+      "chamber": "Senate",
+      "dimension1": -0.512,
+      "dimension2": -0.083,
+      "geometricMeanProbability": 0.93852,
+      "votes": 881,
+      "errors": 19
+    },
+    "S001194": {
+      "chamber": "Senate",
+      "dimension1": -0.443,
+      "dimension2": -0.136,
+      "geometricMeanProbability": 0.92716,
+      "votes": 875,
+      "errors": 27
+    },
+    "C000880": {
+      "chamber": "Senate",
+      "dimension1": 0.505,
+      "dimension2": 0.291,
+      "geometricMeanProbability": 0.98788,
+      "votes": 874,
+      "errors": 2
+    },
+    "R000584": {
+      "chamber": "Senate",
+      "dimension1": 0.551,
+      "dimension2": 0.383,
+      "geometricMeanProbability": 0.98755,
+      "votes": 860,
+      "errors": 5
+    },
+    "D000563": {
+      "chamber": "Senate",
+      "dimension1": -0.338,
+      "dimension2": -0.314,
+      "geometricMeanProbability": 0.85801,
+      "votes": 861,
+      "errors": 61
+    },
+    "D000622": {
+      "chamber": "Senate",
+      "dimension1": -0.346,
+      "dimension2": 0.057,
+      "geometricMeanProbability": 0.91246,
+      "votes": 825,
+      "errors": 43
+    },
+    "Y000064": {
+      "chamber": "Senate",
+      "dimension1": 0.444,
+      "dimension2": -0.042,
+      "geometricMeanProbability": 0.96105,
+      "votes": 877,
+      "errors": 12
+    },
+    "B001299": {
+      "chamber": "Senate",
+      "dimension1": 0.649,
+      "dimension2": 0.02,
+      "geometricMeanProbability": 0.98582,
+      "votes": 874,
+      "errors": 5
+    },
+    "G000386": {
+      "chamber": "Senate",
+      "dimension1": 0.363,
+      "dimension2": -0.034,
+      "geometricMeanProbability": 0.97082,
+      "votes": 862,
+      "errors": 10
+    },
+    "E000295": {
+      "chamber": "Senate",
+      "dimension1": 0.536,
+      "dimension2": -0.027,
+      "geometricMeanProbability": 0.97955,
+      "votes": 866,
+      "errors": 7
+    },
+    "M001198": {
+      "chamber": "Senate",
+      "dimension1": 0.606,
+      "dimension2": 0.143,
+      "geometricMeanProbability": 0.98541,
+      "votes": 879,
+      "errors": 7
+    },
+    "M000934": {
+      "chamber": "Senate",
+      "dimension1": 0.413,
+      "dimension2": 0.222,
+      "geometricMeanProbability": 0.96637,
+      "votes": 836,
+      "errors": 13
+    },
+    "M000355": {
+      "chamber": "Senate",
+      "dimension1": 0.402,
+      "dimension2": 0.017,
+      "geometricMeanProbability": 0.92355,
+      "votes": 752,
+      "errors": 20
+    },
+    "P000603": {
+      "chamber": "Senate",
+      "dimension1": 0.878,
+      "dimension2": -0.479,
+      "geometricMeanProbability": 0.72189,
+      "votes": 841,
+      "errors": 117
+    },
+    "C001075": {
+      "chamber": "Senate",
+      "dimension1": 0.463,
+      "dimension2": -0.058,
+      "geometricMeanProbability": 0.93058,
+      "votes": 838,
+      "errors": 23
+    },
+    "K000393": {
+      "chamber": "Senate",
+      "dimension1": 0.558,
+      "dimension2": -0.141,
+      "geometricMeanProbability": 0.96788,
+      "votes": 869,
+      "errors": 11
+    },
+    "K000383": {
+      "chamber": "Senate",
+      "dimension1": -0.17,
+      "dimension2": -0.18,
+      "geometricMeanProbability": 0.86201,
+      "votes": 871,
+      "errors": 50
+    },
+    "C001035": {
+      "chamber": "Senate",
+      "dimension1": 0.124,
+      "dimension2": -0.508,
+      "geometricMeanProbability": 0.86485,
+      "votes": 885,
+      "errors": 66
+    },
+    "V000128": {
+      "chamber": "Senate",
+      "dimension1": -0.399,
+      "dimension2": -0.228,
+      "geometricMeanProbability": 0.94581,
+      "votes": 872,
+      "errors": 17
+    },
+    "A000382": {
+      "chamber": "Senate",
+      "dimension1": -0.443,
+      "dimension2": 0.048,
+      "geometricMeanProbability": 0.93473,
+      "votes": 871,
+      "errors": 25
+    },
+    "M000133": {
+      "chamber": "Senate",
+      "dimension1": -0.518,
+      "dimension2": -0.47,
+      "geometricMeanProbability": 0.97564,
+      "votes": 878,
+      "errors": 4
+    },
+    "W000817": {
+      "chamber": "Senate",
+      "dimension1": -0.744,
+      "dimension2": -0.366,
+      "geometricMeanProbability": 0.98309,
+      "votes": 871,
+      "errors": 5
+    },
+    "P000595": {
+      "chamber": "Senate",
+      "dimension1": -0.252,
+      "dimension2": -0.176,
+      "geometricMeanProbability": 0.89206,
+      "votes": 866,
+      "errors": 48
+    },
+    "S001208": {
+      "chamber": "Senate",
+      "dimension1": -0.37,
+      "dimension2": 0.766,
+      "geometricMeanProbability": 0.90905,
+      "votes": 860,
+      "errors": 33
+    },
+    "K000367": {
+      "chamber": "Senate",
+      "dimension1": -0.278,
+      "dimension2": -0.327,
+      "geometricMeanProbability": 0.9034,
+      "votes": 872,
+      "errors": 50
+    },
+    "S001203": {
+      "chamber": "Senate",
+      "dimension1": -0.41,
+      "dimension2": -0.118,
+      "geometricMeanProbability": 0.94647,
+      "votes": 844,
+      "errors": 16
+    },
+    "W000437": {
+      "chamber": "Senate",
+      "dimension1": 0.378,
+      "dimension2": 0.338,
+      "geometricMeanProbability": 0.97935,
+      "votes": 853,
+      "errors": 3
+    },
+    "H001079": {
+      "chamber": "Senate",
+      "dimension1": 0.451,
+      "dimension2": 0.331,
+      "geometricMeanProbability": 0.98747,
+      "votes": 868,
+      "errors": 4
+    },
+    "H001089": {
+      "chamber": "Senate",
+      "dimension1": 0.819,
+      "dimension2": -0.342,
+      "geometricMeanProbability": 0.8725,
+      "votes": 848,
+      "errors": 44
+    },
+    "S001227": {
+      "chamber": "Senate",
+      "dimension1": 0.884,
+      "dimension2": 0.136,
+      "geometricMeanProbability": 0.98144,
+      "votes": 875,
+      "errors": 4
+    },
+    "D000618": {
+      "chamber": "Senate",
+      "dimension1": 0.588,
+      "dimension2": -0.017,
+      "geometricMeanProbability": 0.98164,
+      "votes": 860,
+      "errors": 4
+    },
+    "S001232": {
+      "chamber": "Senate",
+      "dimension1": 0.643,
+      "dimension2": 0.758,
+      "geometricMeanProbability": 0.98993,
+      "votes": 862,
+      "errors": 2
+    },
+    "F000463": {
+      "chamber": "Senate",
+      "dimension1": 0.461,
+      "dimension2": 0.332,
+      "geometricMeanProbability": 0.98509,
+      "votes": 876,
+      "errors": 4
+    },
+    "R000618": {
+      "chamber": "Senate",
+      "dimension1": 0.445,
+      "dimension2": 0.488,
+      "geometricMeanProbability": 0.98851,
+      "votes": 877,
+      "errors": 3
+    },
+    "R000608": {
+      "chamber": "Senate",
+      "dimension1": -0.284,
+      "dimension2": 0.309,
+      "geometricMeanProbability": 0.9026,
+      "votes": 872,
+      "errors": 46
+    },
+    "C001113": {
+      "chamber": "Senate",
+      "dimension1": -0.346,
+      "dimension2": 0.342,
+      "geometricMeanProbability": 0.87349,
+      "votes": 867,
+      "errors": 56
+    },
+    "S001181": {
+      "chamber": "Senate",
+      "dimension1": -0.216,
+      "dimension2": -0.154,
+      "geometricMeanProbability": 0.8483,
+      "votes": 849,
+      "errors": 65
+    },
+    "H001076": {
+      "chamber": "Senate",
+      "dimension1": -0.225,
+      "dimension2": 0.009,
+      "geometricMeanProbability": 0.88009,
+      "votes": 871,
+      "errors": 48
+    },
+    "K000394": {
+      "chamber": "Senate",
+      "dimension1": -0.421,
+      "dimension2": 0.256,
+      "geometricMeanProbability": 0.90755,
+      "votes": 877,
+      "errors": 50
+    },
+    "B001288": {
+      "chamber": "Senate",
+      "dimension1": -0.554,
+      "dimension2": -0.252,
+      "geometricMeanProbability": 0.90698,
+      "votes": 839,
+      "errors": 34
+    },
+    "H001046": {
+      "chamber": "Senate",
+      "dimension1": -0.332,
+      "dimension2": 0,
+      "geometricMeanProbability": 0.89246,
+      "votes": 851,
+      "errors": 48
+    },
+    "L000570": {
+      "chamber": "Senate",
+      "dimension1": -0.381,
+      "dimension2": 0.033,
+      "geometricMeanProbability": 0.93359,
+      "votes": 873,
+      "errors": 21
+    },
+    "S000148": {
+      "chamber": "Senate",
+      "dimension1": -0.355,
+      "dimension2": -0.411,
+      "geometricMeanProbability": 0.94129,
+      "votes": 881,
+      "errors": 20
+    },
+    "G000555": {
+      "chamber": "Senate",
+      "dimension1": -0.445,
+      "dimension2": -0.308,
+      "geometricMeanProbability": 0.87563,
+      "votes": 868,
+      "errors": 58
+    },
+    "B001305": {
+      "chamber": "Senate",
+      "dimension1": 0.634,
+      "dimension2": -0.079,
+      "geometricMeanProbability": 0.97152,
+      "votes": 860,
+      "errors": 10
+    },
+    "T000476": {
+      "chamber": "Senate",
+      "dimension1": 0.387,
+      "dimension2": -0.116,
+      "geometricMeanProbability": 0.92523,
+      "votes": 778,
+      "errors": 26
+    },
+    "C001096": {
+      "chamber": "Senate",
+      "dimension1": 0.401,
+      "dimension2": 0.365,
+      "geometricMeanProbability": 0.98345,
+      "votes": 854,
+      "errors": 5
+    },
+    "H001061": {
+      "chamber": "Senate",
+      "dimension1": 0.403,
+      "dimension2": 0.447,
+      "geometricMeanProbability": 0.98375,
+      "votes": 876,
+      "errors": 4
+    },
+    "V000137": {
+      "chamber": "Senate",
+      "dimension1": 0.85,
+      "dimension2": -0.527,
+      "geometricMeanProbability": 1,
+      "votes": 1,
+      "errors": 0
+    },
+    "M001242": {
+      "chamber": "Senate",
+      "dimension1": 0.727,
+      "dimension2": 0.338,
+      "geometricMeanProbability": 0.99082,
+      "votes": 880,
+      "errors": 2
+    },
+    "H001104": {
+      "chamber": "Senate",
+      "dimension1": 0.589,
+      "dimension2": 0.808,
+      "geometricMeanProbability": 0.97396,
+      "votes": 878,
+      "errors": 10
+    },
+    "L000575": {
+      "chamber": "Senate",
+      "dimension1": 0.59,
+      "dimension2": 0.15,
+      "geometricMeanProbability": 0.98642,
+      "votes": 879,
+      "errors": 7
+    },
+    "M001190": {
+      "chamber": "Senate",
+      "dimension1": 0.531,
+      "dimension2": 0.252,
+      "geometricMeanProbability": 0.9859,
+      "votes": 680,
+      "errors": 4
+    },
+    "A000383": {
+      "chamber": "Senate",
+      "dimension1": 0.652,
+      "dimension2": -0.262,
+      "geometricMeanProbability": 0.97024,
+      "votes": 164,
+      "errors": 2
+    },
+    "W000779": {
+      "chamber": "Senate",
+      "dimension1": -0.335,
+      "dimension2": -0.485,
+      "geometricMeanProbability": 0.94411,
+      "votes": 868,
+      "errors": 16
+    },
+    "M001176": {
+      "chamber": "Senate",
+      "dimension1": -0.452,
+      "dimension2": -0.712,
+      "geometricMeanProbability": 0.96343,
+      "votes": 878,
+      "errors": 12
+    },
+    "F000479": {
+      "chamber": "Senate",
+      "dimension1": -0.176,
+      "dimension2": 0.25,
+      "geometricMeanProbability": 0.82203,
+      "votes": 826,
+      "errors": 79
+    },
+    "M001243": {
+      "chamber": "Senate",
+      "dimension1": 0.608,
+      "dimension2": 0.59,
+      "geometricMeanProbability": 0.99167,
+      "votes": 859,
+      "errors": 1
+    },
+    "R000122": {
+      "chamber": "Senate",
+      "dimension1": -0.36,
+      "dimension2": -0.154,
+      "geometricMeanProbability": 0.88056,
+      "votes": 877,
+      "errors": 51
+    },
+    "W000802": {
+      "chamber": "Senate",
+      "dimension1": -0.34,
+      "dimension2": -0.129,
+      "geometricMeanProbability": 0.88878,
+      "votes": 852,
+      "errors": 42
+    },
+    "S001184": {
+      "chamber": "Senate",
+      "dimension1": 0.628,
+      "dimension2": 0.028,
+      "geometricMeanProbability": 0.98353,
+      "votes": 858,
+      "errors": 6
+    },
+    "G000359": {
+      "chamber": "Senate",
+      "dimension1": 0.367,
+      "dimension2": -0.265,
+      "geometricMeanProbability": 0.95526,
+      "votes": 789,
+      "errors": 7
+    },
+    "G000608": {
+      "chamber": "Senate",
+      "dimension1": 0.472,
+      "dimension2": 0.471,
+      "geometricMeanProbability": 0.98173,
+      "votes": 30,
+      "errors": 0
+    },
+    "T000250": {
+      "chamber": "Senate",
+      "dimension1": 0.431,
+      "dimension2": 0.234,
+      "geometricMeanProbability": 0.92776,
+      "votes": 884,
+      "errors": 16
+    },
+    "R000605": {
+      "chamber": "Senate",
+      "dimension1": 0.354,
+      "dimension2": 0.082,
+      "geometricMeanProbability": 0.97698,
+      "votes": 877,
+      "errors": 5
+    },
+    "B001243": {
+      "chamber": "Senate",
+      "dimension1": 0.632,
+      "dimension2": 0.142,
+      "geometricMeanProbability": 0.98967,
+      "votes": 833,
+      "errors": 3
+    },
+    "H000601": {
+      "chamber": "Senate",
+      "dimension1": 0.672,
+      "dimension2": -0.059,
+      "geometricMeanProbability": 0.98701,
+      "votes": 854,
+      "errors": 0
+    },
+    "C001056": {
+      "chamber": "Senate",
+      "dimension1": 0.471,
+      "dimension2": -0.06,
+      "geometricMeanProbability": 0.9813,
+      "votes": 875,
+      "errors": 5
+    },
+    "C001098": {
+      "chamber": "Senate",
+      "dimension1": 0.782,
+      "dimension2": -0.182,
+      "geometricMeanProbability": 0.97268,
+      "votes": 838,
+      "errors": 6
+    },
+    "C001114": {
+      "chamber": "Senate",
+      "dimension1": 0.454,
+      "dimension2": 0.124,
+      "geometricMeanProbability": 0.96039,
+      "votes": 866,
+      "errors": 13
+    },
+    "L000577": {
+      "chamber": "Senate",
+      "dimension1": 0.891,
+      "dimension2": -0.454,
+      "geometricMeanProbability": 0.94563,
+      "votes": 859,
+      "errors": 22
+    },
+    "W000800": {
+      "chamber": "Senate",
+      "dimension1": -0.4,
+      "dimension2": -0.405,
+      "geometricMeanProbability": 0.90471,
+      "votes": 832,
+      "errors": 36
+    },
+    "S000033": {
+      "chamber": "Senate",
+      "dimension1": -0.546,
+      "dimension2": -0.429,
+      "geometricMeanProbability": 0.96755,
+      "votes": 822,
+      "errors": 9
+    },
+    "W000805": {
+      "chamber": "Senate",
+      "dimension1": -0.216,
+      "dimension2": -0.03,
+      "geometricMeanProbability": 0.89214,
+      "votes": 848,
+      "errors": 35
+    },
+    "K000384": {
+      "chamber": "Senate",
+      "dimension1": -0.232,
+      "dimension2": -0.145,
+      "geometricMeanProbability": 0.85296,
+      "votes": 874,
+      "errors": 71
+    },
+    "C000127": {
+      "chamber": "Senate",
+      "dimension1": -0.309,
+      "dimension2": -0.4,
+      "geometricMeanProbability": 0.92936,
+      "votes": 883,
+      "errors": 18
+    },
+    "M001111": {
+      "chamber": "Senate",
+      "dimension1": -0.357,
+      "dimension2": -0.312,
+      "geometricMeanProbability": 0.95465,
+      "votes": 834,
+      "errors": 8
+    },
+    "C001047": {
+      "chamber": "Senate",
+      "dimension1": 0.285,
+      "dimension2": 0.144,
+      "geometricMeanProbability": 0.96922,
+      "votes": 868,
+      "errors": 5
+    },
+    "J000312": {
+      "chamber": "Senate",
+      "dimension1": 0.564,
+      "dimension2": 0.296,
+      "geometricMeanProbability": 0.98859,
+      "votes": 845,
+      "errors": 4
+    },
+    "B001230": {
+      "chamber": "Senate",
+      "dimension1": -0.485,
+      "dimension2": -0.123,
+      "geometricMeanProbability": 0.92041,
+      "votes": 882,
+      "errors": 39
+    },
+    "J000293": {
+      "chamber": "Senate",
+      "dimension1": 0.648,
+      "dimension2": -0.163,
+      "geometricMeanProbability": 0.96126,
+      "votes": 873,
+      "errors": 16
+    },
+    "L000571": {
+      "chamber": "Senate",
+      "dimension1": 0.683,
+      "dimension2": -0.312,
+      "geometricMeanProbability": 0.96308,
+      "votes": 855,
+      "errors": 12
+    },
+    "B001261": {
+      "chamber": "Senate",
+      "dimension1": 0.54,
+      "dimension2": 0.195,
+      "geometricMeanProbability": 0.98537,
+      "votes": 881,
+      "errors": 5
+    }
+  }
+}

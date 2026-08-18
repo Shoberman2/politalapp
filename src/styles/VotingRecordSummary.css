@@ -1,0 +1,219 @@
+.pol-record-summary {
+  padding: var(--space-7) 0 var(--space-6);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.pol-record-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pol-record-congress,
+.pol-record-eyebrow,
+.pol-record-source-line,
+.pol-ideology-endpoints,
+.pol-record-stats dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pol-record-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 1fr);
+  gap: var(--space-7);
+  align-items: end;
+  margin-top: var(--space-5);
+}
+
+.pol-ideology-summary {
+  min-width: 0;
+}
+
+.pol-ideology-label {
+  display: block;
+  margin: var(--space-2) 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.pol-ideology-scale {
+  max-width: 560px;
+}
+
+.pol-ideology-line {
+  position: relative;
+  display: block;
+  height: 2px;
+  background: var(--border);
+}
+
+.pol-ideology-marker {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+.pol-ideology-endpoints,
+.pol-record-source-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.pol-record-source-line {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.pol-record-source-line span + span::before {
+  content: '·';
+  margin-right: var(--space-3);
+}
+
+.pol-record-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+
+.pol-record-stats > div {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pol-record-stats > div:nth-child(odd) {
+  padding-right: var(--space-4);
+  border-right: 1px solid var(--border);
+}
+
+.pol-record-stats > div:nth-child(even) {
+  padding-left: var(--space-4);
+}
+
+.pol-record-stats dt {
+  margin-bottom: var(--space-1);
+}
+
+.pol-record-stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pol-record-method {
+  margin-top: var(--space-4);
+  max-width: 760px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pol-record-method summary {
+  width: fit-content;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.pol-record-method summary:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.pol-record-method summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pol-record-method-body {
+  padding: var(--space-2) 0 var(--space-1);
+  line-height: 1.65;
+}
+
+.pol-record-method-body p {
+  margin: 0 0 var(--space-3);
+}
+
+.pol-record-method-body a {
+  color: var(--accent);
+}
+
+.pol-record-skeleton {
+  width: 100%;
+  height: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+}
+
+.pol-analysis-top .vpa-section {
+  margin-top: 0;
+  padding-right: 0;
+  padding-left: 0;
+  border-top: 0;
+}
+
+@media (max-width: 780px) {
+  .pol-record-summary {
+    padding: var(--space-6) 0 var(--space-5);
+  }
+
+  .pol-record-heading-row,
+  .pol-record-grid {
+    display: block;
+  }
+
+  .pol-record-congress {
+    display: block;
+    margin-top: var(--space-2);
+  }
+
+  .pol-record-stats {
+    margin-top: var(--space-6);
+  }
+}
+
+@media (max-width: 460px) {
+  .pol-record-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .pol-record-stats > div:nth-child(n) {
+    padding: var(--space-3) 0;
+    border-right: 0;
+  }
+
+  .pol-record-source-line {
+    display: block;
+  }
+
+  .pol-record-source-line span {
+    display: block;
+    margin-top: var(--space-1);
+  }
+
+  .pol-record-source-line span + span::before {
+    content: none;
+  }
+}

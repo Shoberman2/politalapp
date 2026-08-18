@@ -41,9 +41,7 @@ struct MoreScreen: View {
                         Text(user.email ?? "Signed in")
                             .font(Typo.bodyMedium)
                             .foregroundStyle(theme.text)
-                        Text("Your watched bills and followed members sync to this account.")
-                            .font(Typo.caption)
-                            .foregroundStyle(theme.textSecondary)
+                        accountSyncStatus(userID: user.id)
                         Button("Sign out") { Task { await auth.signOut() } }
                             .font(Typo.bodySMMedium)
                             .foregroundStyle(theme.error)
@@ -65,6 +63,41 @@ struct MoreScreen: View {
                             .padding(.top, Space.xxs)
                     }
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func accountSyncStatus(userID: String) -> some View {
+        switch userData.syncStatus {
+        case .localOnly:
+            Text("Saved items are stored on this device while account sync starts.")
+                .font(Typo.caption)
+                .foregroundStyle(theme.textSecondary)
+        case .syncing:
+            HStack(spacing: Space.xs) {
+                ProgressView().controlSize(.small)
+                Text("Syncing saved bills and members…")
+            }
+            .font(Typo.caption)
+            .foregroundStyle(theme.textSecondary)
+        case .synced:
+            Text("Your watched bills and followed members sync to this account.")
+                .font(Typo.caption)
+                .foregroundStyle(theme.textSecondary)
+        case .failed(let message):
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text("Saved on this device. Account sync failed: \(message)")
+                    .font(Typo.caption)
+                    .foregroundStyle(theme.error)
+                Button("Retry sync") {
+                    Task {
+                        guard await auth.prepareDataAccess() != nil else { return }
+                        await userData.syncAccount(userID: userID)
+                    }
+                }
+                .font(Typo.bodySMMedium)
+                .foregroundStyle(theme.accent)
             }
         }
     }

@@ -17,6 +17,7 @@ import { getMemberDashboardData } from '../services/supabaseVotes'
 import { InfoTip } from './Tooltip'
 import VoteDashboard from './VoteDashboard'
 import VotingPatternAnalysis from './VotingPatternAnalysis'
+import VotingRecordSummary from './VotingRecordSummary'
 import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
 import '../styles/PoliticianDetail.css'
@@ -180,6 +181,13 @@ function PoliticianDetail() {
       : term.endYear || (congress ? getCongressEndYear(congress) : 'present')
     if (!startYear) return 'Dates unavailable'
     return `${startYear}-${endYear || 'present'}`
+  }
+
+  const formatCoverageDate = (value) => {
+    if (!value) return null
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return null
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
   if (loading) {
@@ -395,6 +403,17 @@ function PoliticianDetail() {
         </div>
       </header>
 
+      <VotingRecordSummary
+        bioguideId={bioguideId}
+        party={party}
+        displayName={displayName}
+      />
+
+      {/* VOTING PATTERN ANALYSIS — near the top, before the long vote history. */}
+      <section className="pol-editorial pol-analysis-top">
+        <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
+      </section>
+
       {/* TENURE TIMELINE */}
       {tenureItems.length > 0 && (
         <section className="pol-editorial">
@@ -423,7 +442,9 @@ function PoliticianDetail() {
 
       {/* CAMPAIGN FINANCE */}
       <section className="pol-editorial">
-        <div className="pol-section-label">Campaign finance · most recent cycle</div>
+        <div className="pol-section-label">
+          Campaign finance · {donations?.cycle ? `${donations.cycle} cycle` : 'most recent cycle'}
+        </div>
         <h2 className="pol-section-title">
           <InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Where the <em>money</em> comes from</InfoTip>
         </h2>
@@ -435,8 +456,12 @@ function PoliticianDetail() {
         ) : donations ? (
           <div className="pol-money-grid">
             <div className="pol-money-summary">
-              <div className="pol-money-big-number">{formatCurrency(donations.totalRaised)}</div>
-              <div className="pol-money-big-label">Total raised</div>
+              <div className="pol-money-big-number">
+                {donations.totalRaised == null ? 'Unavailable' : formatCurrency(donations.totalRaised)}
+              </div>
+              <div className="pol-money-big-label">
+                Total raised{formatCoverageDate(donations.coverageEndDate) ? ` · through ${formatCoverageDate(donations.coverageEndDate)}` : ''}
+              </div>
               <div className="pol-money-splits">
                 {donations.individualTotal > 0 && (
                   <div className="pol-money-split">
@@ -448,6 +473,18 @@ function PoliticianDetail() {
                   <div className="pol-money-split">
                     <div className="pol-money-split-v">{formatCurrency(donations.pacTotal)}</div>
                     <div className="pol-money-split-l">From PACs</div>
+                  </div>
+                )}
+                {donations.totalSpent > 0 && (
+                  <div className="pol-money-split">
+                    <div className="pol-money-split-v">{formatCurrency(donations.totalSpent)}</div>
+                    <div className="pol-money-split-l">Spent this cycle</div>
+                  </div>
+                )}
+                {donations.cashOnHand > 0 && (
+                  <div className="pol-money-split">
+                    <div className="pol-money-split-v">{formatCurrency(donations.cashOnHand)}</div>
+                    <div className="pol-money-split-l">Cash on hand</div>
                   </div>
                 )}
               </div>
@@ -499,7 +536,7 @@ function PoliticianDetail() {
         {/* TOP DONORS */}
         {donations?.donors && donations.donors.length > 0 && (
           <div className="pol-donors-block">
-            <h3 className="pol-correlation-h3">Top donors</h3>
+            <h3 className="pol-correlation-h3">Largest itemized receipts shown</h3>
             <div className="pol-donors-list">
               {donations.donors.slice(0, 10).map((donor, i) => (
                 <div key={i} className="pol-donor-row">
@@ -517,17 +554,19 @@ function PoliticianDetail() {
               ))}
             </div>
             {donations.candidate?.id && (
-              <a href={`https://www.fec.gov/data/candidate/${donations.candidate.id}/`} target="_blank" rel="noopener noreferrer" className="pol-fec-link">
-                View full FEC records ↗
-              </a>
+              <div className="pol-fec-source">
+                <p>
+                  Candidate totals include all authorized committees. This list shows the largest
+                  itemized receipts returned for the principal committee; a contributor’s employer
+                  is self-reported context, not a corporate contribution.
+                </p>
+                <a href={`https://www.fec.gov/data/candidate/${donations.candidate.id}/`} target="_blank" rel="noopener noreferrer" className="pol-fec-link">
+                  View full FEC records ↗
+                </a>
+              </div>
             )}
           </div>
         )}
-      </section>
-
-      {/* VOTING PATTERN ANALYSIS */}
-      <section className="pol-editorial">
-        <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
       </section>
 
       {photoAttribution && (

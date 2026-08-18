@@ -58,6 +58,17 @@ enum Config {
 
     static var hasCongressAPIKey: Bool { congressAPIKey != nil }
 
+    /// Optional because OpenFEC supports its public DEMO_KEY for development.
+    /// A project key raises the rate limit and is generated into Secrets.plist
+    /// from VITE_FEC_API_KEY by `ios/scripts/make-secrets.sh`.
+    static var fecAPIKey: String {
+        let value = values["FEC_API_KEY"]
+        guard let value, !value.isEmpty, !value.hasPrefix("YOUR_") else {
+            return "DEMO_KEY"
+        }
+        return value
+    }
+
     static var restURL: URL { URL(string: "\(supabaseURL)/rest/v1")! }
     static var authURL: URL { URL(string: "\(supabaseURL)/auth/v1")! }
     static var functionsURL: URL { URL(string: "\(supabaseURL)/functions/v1")! }

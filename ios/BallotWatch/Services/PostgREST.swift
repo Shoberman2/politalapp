@@ -45,6 +45,11 @@ enum PostgRESTError: LocalizedError {
         return body.contains("42703") || body.contains("PGRST204")
             || body.contains("does not exist")
     }
+
+    var isDuplicate: Bool {
+        guard case .http(_, let body) = self else { return false }
+        return body.contains("23505") || body.contains("duplicate key")
+    }
 }
 
 /// One filter on a column, mirroring PostgREST's `column=operator.value`.
@@ -219,6 +224,16 @@ actor PostgREST {
             items.append(URLQueryItem(name: name, value: value.removingPercentEncoding ?? value))
         }
         _ = try await perform(table: table, queryItems: items, method: "DELETE", headers: [:])
+    }
+
+    /// Call a Postgres function exposed by PostgREST at `/rpc/<name>`.
+    @discardableResult
+    func rpc<T: Encodable>(_ function: String, parameters: T) async throws -> Data {
+        let body = try JSONEncoder().encode(parameters)
+        return try await perform(
+            table: "rpc/\(function)", queryItems: [], method: "POST",
+            headers: ["Content-Type": "application/json"], body: body
+        )
     }
 
     // MARK: - Transport

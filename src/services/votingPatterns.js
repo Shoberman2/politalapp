@@ -23,7 +23,7 @@ import { getDistrictLean } from '../data/districtLean2024.js'
 import { getStateLean } from '../data/stateLean2024.js'
 import { INDUSTRY_TO_POLICY } from '../data/industryMap.js'
 
-export const VPA_SCHEMA_VERSION = '1.0'
+export const VPA_SCHEMA_VERSION = '1.1'
 
 // Classifier weights
 const W_PARTY = 0.60

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { getMemberSponsorship, explainBillWithAI } from '../services/congress'
+import { getMemberSponsorship, explainBillFromOfficialSummary } from '../services/congress'
 import { getBillDisplayTitle } from '../utils/billTitle'
 import { GLOSSARY_FLAT as GLOSSARY } from '../data/proceduralGlossary'
 import '../styles/VotingHistory.css'
@@ -110,12 +110,11 @@ function VotingHistory({ bioguideId }) {
       setExpandedBill(index)
 
       if (!billExplanations[index]) {
-        const explanation = await explainBillWithAI({
+        const explanation = await explainBillFromOfficialSummary({
           congress: bill.congress,
           billType: bill.type,
           number: bill.number,
           title: getBillDisplayTitle(bill),
-          summary: bill.latestAction?.text || '',
         })
         setBillExplanations(prev => ({
           ...prev,
@@ -243,7 +242,7 @@ function VotingHistory({ bioguideId }) {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V9.99h7V2.99L19 7v2H5l7-4.01v7z" fill="currentColor"/>
                     </svg>
-                    Source-Linked Explanation
+                    Official Congress.gov Summary
                   </div>
 
                   {explanation ? (
@@ -259,7 +258,7 @@ function VotingHistory({ bioguideId }) {
                   ) : (
                     <div className="explanation-loading">
                       <div className="loading-spinner-small"></div>
-                      <span>Generating explanation...</span>
+                      <span>Loading official summary...</span>
                     </div>
                   )}
                 </div>

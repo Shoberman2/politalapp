@@ -21,7 +21,6 @@ const congressApi = axios.create({
 congressApi.interceptors.request.use(
   (config) => {
     console.log(`[Congress API] Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
-    console.log('[Congress API] Params:', config.params)
     return config
   },
   (error) => {
@@ -378,10 +377,26 @@ export const getRecentBills = async (limit = 20) => {
   }
 }
 
+export const getBillSummaries = async (congress, billType, billNumber) => {
+  const response = await congressApi.get(`/bill/${congress}/${billType}/${billNumber}/summaries`)
+  return response.data.summaries || []
+}
+
 export const getBillDetails = async (congress, billType, billNumber) => {
   try {
-    const response = await congressApi.get(`/bill/${congress}/${billType}/${billNumber}`)
-    return response.data.bill
+    const [response, summaries] = await Promise.all([
+      congressApi.get(`/bill/${congress}/${billType}/${billNumber}`),
+      getBillSummaries(congress, billType, billNumber).catch((summaryError) => {
+        console.warn('[Congress API] Official bill summary unavailable:', summaryError.message)
+        return []
+      }),
+    ])
+    const bill = response.data.bill
+    if (!bill) return bill
+
+    if (!Array.isArray(bill.summaries)) bill.summaries = summaries
+
+    return bill
   } catch (error) {
     console.error('Error fetching bill details:', error)
     throw error
@@ -956,37 +971,81 @@ export const getTrendingBills = async () => {
   return _notableBillsPromise
 }
 
-export const explainBillWithAI = async ({ congress, billType, number, title, summary }) => {
-  const fallback = (msg) => {
-    const text = `This bill, titled "${title}", ${summary ? String(summary).toLowerCase() : 'is currently under review in Congress.'}`
-    return {
-      explanation: text,
-      paragraphs: [text, msg],
-      isPlaceholder: true,
-    }
+function decodeSummaryEntities(text) {
+  const entities = {
+    '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'",
   }
+  return text.replace(/&(nbsp|amp|lt|gt|quot|#39);/gi, (entity) => entities[entity.toLowerCase()] || entity)
+}
 
+export function officialSummaryParagraphs(html, title) {
+  const text = decodeSummaryEntities(String(html || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' '))
+
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+  if (paragraphs.length > 1) {
+    const normalize = (value) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (normalize(paragraphs[0]) === normalize(title || '')) paragraphs.shift()
+  }
+  return paragraphs
+}
+
+function unavailableExplanation(message = 'Congress.gov has not published an official summary for this bill yet.') {
+  const paragraphs = [
+    message,
+    'BallotWatch won’t infer provisions from the title alone. Use the Congress.gov or full-text link for the official record.',
+  ]
+  return {
+    explanation: paragraphs[0],
+    paragraphs,
+    cached: false,
+    isPlaceholder: true,
+    isGenerated: false,
+    sourceUnavailable: true,
+  }
+}
+
+function officialSummaryExplanation(paragraphs) {
+  return {
+    explanation: paragraphs[0],
+    paragraphs,
+    cached: false,
+    isPlaceholder: true,
+    isGenerated: false,
+    sourceUnavailable: false,
+  }
+}
+
+export const explainBillFromOfficialSummary = async ({
+  congress,
+  billType,
+  number,
+  title,
+  officialSummaryHtml,
+}) => {
   if (!congress || !billType || !number || !title) {
-    return fallback('AI explanation unavailable: missing bill identifiers.')
+    return unavailableExplanation('An official explanation cannot be loaded because the bill identifiers are incomplete.')
   }
 
-  try {
-    const { supabase } = await import('../lib/supabase')
-    const { data, error } = await supabase.functions.invoke('explain-bill', {
-      body: { congress, billType, number, title, summary: summary || '' },
-    })
-
-    if (error) throw error
-    if (!data?.paragraphs?.length) throw new Error('Empty response')
-
-    return {
-      explanation: data.explanation,
-      paragraphs: data.paragraphs,
-      cached: data.cached,
-      isPlaceholder: false,
+  let officialSummary = typeof officialSummaryHtml === 'string' ? officialSummaryHtml : null
+  if (officialSummary === null) {
+    try {
+      const summaries = await getBillSummaries(congress, billType, number)
+      officialSummary = summaries.at(-1)?.text || ''
+    } catch (error) {
+      console.warn('[Congress API] Could not load official summary for explanation:', error.message)
+      return unavailableExplanation('The official Congress.gov summary could not be loaded right now.')
     }
-  } catch (err) {
-    console.error('Error explaining bill with AI:', err)
-    return fallback('AI explanation temporarily unavailable. Please try again later.')
   }
+
+  const paragraphs = officialSummaryParagraphs(officialSummary, title)
+  if (paragraphs.length === 0) return unavailableExplanation()
+
+  return officialSummaryExplanation(paragraphs)
 }

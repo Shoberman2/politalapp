@@ -5,10 +5,10 @@
  *     hit + schemaVersion match: render instantly
  *     miss: getMemberDashboardData (Supabase) OR Congress.gov fallback
  *       → votingPatterns.js (pure compute)
- *       → votingPatternNarration.js (gpt-4o-mini + forbidden filter)
+ *       → votingPatternNarration.js (deterministic record-based wording)
  *       → write localStorage (vpa_ + vpa_index eviction at 25 reps)
  *       → render Signal Agreement percentage + 3 comparison bars + notable vote groups
- *   Degraded mode: OpenAI fails → show stats + template sentences
+ *   No model dependency: recorded stats and wording render together
  * ─────────────────────────────────────────────
  */
 
@@ -179,7 +179,7 @@ export default function VotingPatternAnalysis({ member }) {
     <section className="vpa-section" aria-labelledby="vpa-heading">
       <div className="vpa-heading-row">
         <h2 id="vpa-heading" className="vpa-heading">
-          Voting Pattern Analysis <span className="vpa-ai-tag">AI-assisted</span>
+          Voting Pattern Analysis <span className="vpa-ai-tag">Record-based</span>
         </h2>
       </div>
 
@@ -239,11 +239,6 @@ export default function VotingPatternAnalysis({ member }) {
               Refresh analysis
             </button>
           </div>
-          {analysis.degraded && (
-            <p className="vpa-degraded-notice">
-              AI narration unavailable — showing deterministic summaries.
-            </p>
-          )}
         </div>
       )}
 
@@ -428,10 +423,9 @@ function MethodologyModal({ onClose }) {
             while full dataset is being imported).
           </p>
           <p>
-            <strong>About the AI:</strong> An LLM (gpt-4o-mini) writes the one-sentence
-            descriptions per notable vote. It does not judge. A forbidden-word filter
-            catches politically-loaded phrasing and falls back to deterministic templates
-            on failure.
+            <strong>About the wording:</strong> Each one-sentence description is built
+            directly from the recorded position and party-majority comparison. No model
+            generates or interprets these sentences.
           </p>
         </div>
         <button type="button" className="vpa-modal-close" onClick={onClose}>Close</button>

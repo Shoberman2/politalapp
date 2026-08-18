@@ -9,7 +9,6 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
@@ -35,8 +34,6 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1,2"
         SUPPORTS_MACCATALYST: NO
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO
         SWIFT_EMIT_LOC_STRINGS: YES
         GENERATE_INFOPLIST_FILE: NO
 
@@ -52,8 +49,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.tests
         GENERATE_INFOPLIST_FILE: YES
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO
 
   BallotWatchUITests:
     type: bundle.ui-testing
@@ -68,5 +63,3 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: BallotWatch
-        CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO

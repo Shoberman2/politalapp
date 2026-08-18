@@ -3,6 +3,25 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.4.0.0] - 2026-08-17
+
+### Added
+
+- Signed-in users can watch a bill and review its official committee, floor, and recorded-vote activity in BallotWatch. In-app history has its own durable delivery ledger, so it works independently from email and preserves pause/resume behavior.
+- Member profiles now pair current-cycle FEC fundraising with record-based voting analysis and Voteview ideology context. The same finance and voting views are available in the native iOS app.
+
+### Changed
+
+- Bill explanations now use only the official Congress.gov CRS summary. BallotWatch no longer guesses provisions from a title or requires model credits to explain legislation.
+- Voting-pattern narration is deterministic and sourced from the recorded vote data, so the analysis remains available when external model services are unavailable.
+- The iOS app now includes release privacy metadata, safer secret configuration, stronger authenticated-data handling, and a My Representative lookup aligned with the web experience.
+
+### Fixed
+
+- Campaign-finance totals come from the FEC candidate totals endpoint for the active election cycle. A failed FEC request now reads “Unavailable” instead of making a false `$0` claim, and transient failures are not cached.
+- Congress.gov requests no longer log credential-bearing parameters, bill-summary fetching uses the dedicated official endpoint, and search/ZIP controls have accessible names on desktop and mobile.
+- Bill alerts no longer disappear behind an unset build flag, and their source polling no longer depends on whether email delivery is enabled.
+
 ## [0.3.0.0] - 2026-08-06
 
 ### Added
