@@ -54,7 +54,7 @@ UI work:
 - Thin rule lines.
 - Restrained civic blue accent.
 - Party colors as metadata, not page-dominating surfaces.
-- AI explanations as typographic marginalia, not chatbot bubbles.
+- Official plain-English explanations as typographic marginalia, not chatbot bubbles.
 
 Read `DESIGN.md` before changing user-facing UI.
 
@@ -144,9 +144,10 @@ immutable commits and Dependabot proposes reviewed updates.
 
 The database runtime mode defaults to `off`. Apply the migration, configure the
 signed Resend webhook at `/api/webhooks/resend`, validate an internal account,
-then advance through `shadow` → `internal` → `public`. The browser UI is gated
-separately by `VITE_BILL_ALERTS_ENABLED=true` in the Vercel build environment.
-`off` disables ingestion and delivery, `shadow` ingests without sending,
+then advance through `shadow` → `internal` → `public`. The authenticated in-app
+watchlist ships by default; `VITE_BILL_ALERTS_ENABLED=false` remains an emergency
+UI kill switch. Email controls require `VITE_BILL_ALERT_EMAIL_ENABLED=true` and a
+configured delivery runtime. `off` disables ingestion and delivery, `shadow` ingests without sending,
 `internal` sends only to allow-listed users, and `public` delivers to all active
 follows. The workflow is scheduled every 10 minutes, although GitHub Actions may
 delay scheduled runs.
@@ -254,7 +255,8 @@ User-facing features that require staged rollout ship behind env-gated flags:
 | `VITE_BILLS_SHOW_SPONSOR_FILTER` | `false` | Sponsor and cosponsor filters, sponsor activity badge |
 | `VITE_BILLS_SHOW_ROUTING_PANEL` | `false` | Legislative routing panel, committee route, survival popover |
 | `VITE_SHOW_CHAMBER` | `true` | Historical chamber visualization routes; set to `false` as an emergency kill switch |
-| `VITE_BILL_ALERTS_ENABLED` | `false` | `/alerts`, the navigation link, and bill-page watch controls; database delivery mode remains a separate server-side gate |
+| `VITE_BILL_ALERTS_ENABLED` | `true` | `/alerts`, the navigation link, and bill-page watch controls; set false only as an emergency kill switch |
+| `VITE_BILL_ALERT_EMAIL_ENABLED` | `false` | Shows email controls only after Resend and the public delivery runtime are configured |
 
 ## Contributing
 

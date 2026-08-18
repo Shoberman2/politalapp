@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
+import { SHOW_BILL_ALERTS } from '../config/features'
 import '../styles/Navigation.css'
 
 // Per-route announcement copy for the strip above the masthead.
@@ -24,7 +25,7 @@ const NAV_LINKS = [
   { to: '/my-representative', label: 'My Rep' },
   { to: '/briefings', label: 'Briefings' },
   { to: '/bills', label: 'Bills' },
-  ...(import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true' ? [{ to: '/alerts', label: 'Alerts' }] : []),
+  ...(SHOW_BILL_ALERTS ? [{ to: '/alerts', label: 'Alerts' }] : []),
   { to: '/all', label: 'Members' },
   { to: '/methodology', label: 'Methodology' },
   { to: '/developers', label: 'API' },

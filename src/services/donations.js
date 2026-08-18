@@ -233,10 +233,10 @@ export const getCandidateDonors = async (candidateId, cycle = getCurrentFecCycle
     if (committees.length === 0) {
       return {
         donors: [],
-        totalRaised: totals?.receipts || 0,
-        totalSpent: totals?.disbursements || 0,
-        individualTotal: totals?.individual_contributions || 0,
-        pacTotal: totals?.other_political_committee_contributions || 0,
+        totalRaised: totals?.receipts ?? null,
+        totalSpent: totals?.disbursements ?? null,
+        individualTotal: totals?.individual_contributions ?? null,
+        pacTotal: totals?.other_political_committee_contributions ?? null,
         committees: [],
         cycle,
         coverageEndDate: totals?.coverage_end_date || null,
@@ -284,11 +284,11 @@ export const getCandidateDonors = async (candidateId, cycle = getCurrentFecCycle
       donors,
       corporateDonors,
       corporateCount: corporateDonors.length,
-      totalRaised: totals?.receipts || 0,
-      totalSpent: totals?.disbursements || 0,
-      cashOnHand: totals?.last_cash_on_hand_end_period || 0,
-      individualTotal: totals?.individual_contributions || 0,
-      pacTotal: totals?.other_political_committee_contributions || 0,
+      totalRaised: totals?.receipts ?? null,
+      totalSpent: totals?.disbursements ?? null,
+      cashOnHand: totals?.last_cash_on_hand_end_period ?? null,
+      individualTotal: totals?.individual_contributions ?? null,
+      pacTotal: totals?.other_political_committee_contributions ?? null,
       orgTotal: 0,
       cycle,
       coverageEndDate: totals?.coverage_end_date || null,
@@ -300,7 +300,16 @@ export const getCandidateDonors = async (candidateId, cycle = getCurrentFecCycle
     }
   } catch (error) {
     console.error('[Donations API] Error fetching donors:', error.message)
-    return { donors: [], totalRaised: 0, totalSpent: 0, committees: [], cycle }
+    return {
+      donors: [],
+      totalRaised: null,
+      totalSpent: null,
+      individualTotal: null,
+      pacTotal: null,
+      committees: [],
+      cycle,
+      dataUnavailable: true,
+    }
   }
 }
 
@@ -384,8 +393,8 @@ export const getDonationsByPoliticianName = async (politicianName, state = '') =
       ...donorData
     }
 
-    // Cache for 24 hours
-    setCachedDonations(cacheKey, result)
+    // Never turn a transient FEC failure into a 24-hour cached "$0" claim.
+    if (!result.dataUnavailable) setCachedDonations(cacheKey, result)
 
     return result
   } catch (error) {

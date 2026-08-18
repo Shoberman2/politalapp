@@ -6,6 +6,10 @@ const sql = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260720203000_add_bill_watch_alerts.sql'),
   'utf8',
 );
+const inAppHistorySql = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260818022112_decouple_bill_alert_history_from_email.sql'),
+  'utf8',
+);
 
 describe('bill alert migration safety contract', () => {
   it('repairs the lease-table prerequisite for older linked projects', () => {
@@ -38,5 +42,17 @@ describe('bill alert migration safety contract', () => {
   it('keeps private alert tables inaccessible to anonymous and authenticated clients', () => {
     expect(sql).toMatch(/REVOKE ALL ON TABLE[\s\S]*?public\.bill_notification_outbox[\s\S]*?FROM anon, authenticated/);
     expect(sql).not.toMatch(/GRANT (?:INSERT|UPDATE|DELETE|ALL)[^;]*bill_notification_outbox[^;]*authenticated/);
+  });
+
+  it('fans out authenticated in-app history independently from the email outbox', () => {
+    expect(inAppHistorySql).toMatch(/CREATE TABLE public\.bill_in_app_notifications/);
+    expect(inAppHistorySql).toMatch(/CREATE OR REPLACE FUNCTION public\.start_or_resume_bill_follow_in_app/);
+    expect(inAppHistorySql).toMatch(/SET email_enabled = FALSE/);
+    expect(inAppHistorySql).toMatch(/CREATE OR REPLACE FUNCTION public\.fan_out_bill_event_in_app/);
+    expect(inAppHistorySql).toMatch(/INSERT INTO public\.bill_in_app_notifications/);
+    expect(inAppHistorySql).toMatch(/LEFT JOIN public\.bill_notification_outbox o/);
+    expect(inAppHistorySql).toContain('bill_alert_category_enabled');
+    expect(inAppHistorySql).toMatch(/REVOKE EXECUTE[\s\S]*?FROM PUBLIC, anon/);
+    expect(inAppHistorySql).toMatch(/GRANT EXECUTE[\s\S]*?TO authenticated/);
   });
 });

@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { contentHash } from '../server/alerts/canonical.js';
-import { fanOutEvent, persistObservation, resumePendingFanOut } from '../server/alerts/persistence.js';
+import {
+  fanOutEvent,
+  followedBillIds,
+  persistObservation,
+  resumePendingFanOut,
+} from '../server/alerts/persistence.js';
 
 const lease = { leaseKey: 'bill-alerts:source:source', holder: 'worker', fenceToken: 7 };
 
@@ -39,6 +44,23 @@ const observation = {
 };
 
 describe('fenced bill-alert persistence', () => {
+  it('polls active in-app follows even when email delivery is disabled', async () => {
+    const query: any = {
+      select: vi.fn(() => query),
+      is: vi.fn(() => query),
+      then: (resolve: (value: unknown) => unknown) => resolve({
+        data: [{ bill_id: '119-hr-1' }],
+        error: null,
+      }),
+    };
+    const from = vi.fn(() => query);
+
+    await expect(followedBillIds({ from } as any as SupabaseClient))
+      .resolves.toEqual(new Set(['119-hr-1']));
+    expect(query.is).toHaveBeenCalledTimes(2);
+    expect(query).not.toHaveProperty('eq');
+  });
+
   it('persists evidence and a new event in one fenced RPC', async () => {
     const { supabase, rpc } = persistenceClient(null, [{ event_id: 'event-1', inserted: true }]);
     const result = await persistObservation(supabase, 'run-1', observation, lease);
@@ -69,11 +91,19 @@ describe('fenced bill-alert persistence', () => {
 
 describe('durable fan-out resumption', () => {
   it('pages until the database marks an event complete', async () => {
-    const rpc = vi.fn()
-      .mockResolvedValueOnce({ data: [{ completed: false }], error: null })
-      .mockResolvedValueOnce({ data: [{ completed: true }], error: null });
+    let emailPage = 0;
+    const rpc = vi.fn(async (name: string) => {
+      if (name === 'fan_out_bill_event_in_app') {
+        return { data: 1, error: null };
+      }
+      emailPage += 1;
+      return { data: [{ completed: emailPage > 1 }], error: null };
+    });
     await fanOutEvent({ rpc } as any as SupabaseClient, 'event-1', lease);
-    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(rpc).toHaveBeenCalledTimes(3);
+    expect(rpc).toHaveBeenCalledWith('fan_out_bill_event_in_app', expect.objectContaining({
+      p_event_id: 'event-1', p_fence_token: 7,
+    }));
     expect(rpc).toHaveBeenLastCalledWith('fan_out_bill_event', expect.objectContaining({
       p_event_id: 'event-1', p_fence_token: 7,
     }));
@@ -84,9 +114,13 @@ describe('durable fan-out resumption', () => {
       select: () => query, is: () => query, order: () => query,
       limit: () => Promise.resolve({ data: [{ event_id: 'event-1' }, { event_id: 'event-2' }], error: null }),
     };
-    const rpc = vi.fn().mockResolvedValue({ data: [{ completed: true }], error: null });
+    const rpc = vi.fn(async (name: string) => ({
+      data: name === 'fan_out_bill_event_in_app' ? 1 : [{ completed: true }],
+      error: null,
+    }));
     const supabase = { from: () => query, rpc } as any as SupabaseClient;
     await expect(resumePendingFanOut(supabase, lease)).resolves.toBe(2);
-    expect(rpc.mock.calls.map((call) => call[1].p_event_id)).toEqual(['event-1', 'event-2']);
+    expect(rpc.mock.calls.filter((call) => call[0] === 'fan_out_bill_event')
+      .map((call) => call[1].p_event_id)).toEqual(['event-1', 'event-2']);
   });
 });
