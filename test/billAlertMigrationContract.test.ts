@@ -10,6 +10,10 @@ const inAppHistorySql = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260818022112_decouple_bill_alert_history_from_email.sql'),
   'utf8',
 );
+const functionLintFixSql = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260818135632_fix_bill_alert_function_lint.sql'),
+  'utf8',
+);
 
 describe('bill alert migration safety contract', () => {
   it('repairs the lease-table prerequisite for older linked projects', () => {
@@ -54,5 +58,17 @@ describe('bill alert migration safety contract', () => {
     expect(inAppHistorySql).toContain('bill_alert_category_enabled');
     expect(inAppHistorySql).toMatch(/REVOKE EXECUTE[\s\S]*?FROM PUBLIC, anon/);
     expect(inAppHistorySql).toMatch(/GRANT EXECUTE[\s\S]*?TO authenticated/);
+  });
+
+  it('keeps alert persistence and keyset fan-out executable under Postgres lint', () => {
+    expect(functionLintFixSql).toMatch(
+      /ON CONFLICT ON CONSTRAINT bill_alert_fanout_progress_pkey DO NOTHING/,
+    );
+    expect(functionLintFixSql).toMatch(
+      /WITH eligible AS MATERIALIZED \([\s\S]*?SELECT f\.id, f\.user_id, f\.created_at/,
+    );
+    expect(functionLintFixSql).toMatch(
+      /array_agg\(id ORDER BY created_at DESC, id DESC\)/,
+    );
   });
 });
