@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "forecast-provenance-audit-v1",
+  "congress": 118,
+  "generatedAt": "2026-09-01T22:00:00.000Z",
+  "sources": [
+    {
+      "source": "member_effective_intervals",
+      "status": "blocked",
+      "evidenceUrl": "https://github.com/unitedstates/congress-legislators",
+      "reason": "Candidate day-level terms source identified; official corroboration and pinned revision are not yet complete."
+    },
+    {
+      "source": "house_schedule_publication",
+      "status": "blocked",
+      "evidenceUrl": "https://www.majorityleader.gov/news/documentsingle.aspx?DocumentID=2077",
+      "reason": "Dated weekly pages exist, but exact timestamp and supported-roll-call coverage are unverified."
+    },
+    {
+      "source": "senate_final_passage_schedule_publication",
+      "status": "blocked",
+      "evidenceUrl": "https://www.senate.gov/legislative/cloture/118.htm",
+      "reason": "Official cloture filing dates exist but do not cover the supported final-passage target."
+    }
+  ],
+  "rows": []
+}

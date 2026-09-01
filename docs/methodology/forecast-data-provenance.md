@@ -28,6 +28,29 @@ well on ineligible data.
 | Prior member votes | Eligible only when `voted_at` is strictly before the feature cutoff and the parent roll call has `member_votes_complete_at`. | Derivable exactly after A0 checks | Conditionally allowed |
 | Synthetic cutoff | A conservative timestamp chosen before `voted_at`, with the rule and revision recorded. | Synthetic | Exploratory training only |
 
+## Source-audit findings (2026-09-01)
+
+- The maintained [unitedstates/congress-legislators dataset](https://github.com/unitedstates/congress-legislators)
+  carries legislative-service start/end dates, caucus fields, and dated
+  `party_affiliations`. It is a promising reconciliation source, but it is a
+  community-maintained compilation rather than an official chamber ledger, so
+  sampled official corroboration and revision pinning are still required.
+- The Senate's official [118th Congress cloture archive](https://www.senate.gov/legislative/cloture/118.htm)
+  preserves filing and vote dates. This can support cloture provenance, but
+  cloture is not a version-one public forecast target and the archive does not
+  establish final-passage schedule coverage.
+- The House Majority Leader's official office preserves dated weekly pages,
+  such as the [week of March 11, 2024](https://www.majorityleader.gov/news/documentsingle.aspx?DocumentID=2077),
+  that name measures expected on the floor. The audit has not yet established
+  a complete index, an exact machine-readable publication timestamp, or 95%
+  match coverage against supported House roll calls.
+- The House History office describes official [House service and seniority data](https://history.house.gov/Institution/Seniority/House-Service-Seniority/),
+  but the published material found in this audit does not itself provide the
+  complete machine-readable day-level interval ledger required by the gate.
+
+Run `npm run forecast:provenance` for the current machine-readable decision.
+It deliberately exits nonzero while the source blockers or coverage gate fail.
+
 ## Required evidence before GO
 
 1. Import an authoritative member service-history source with exact inclusive
