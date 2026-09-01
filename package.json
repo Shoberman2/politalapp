@@ -20,6 +20,7 @@
     "etl:backfill-historical-routings": "npx tsx etl/backfillSponsorAndRoutings.ts --phase b",
     "etl:compute-survival": "npx tsx etl/computeCommitteeSurvival.ts",
     "test": "vitest run",
+    "test:db": "supabase test db",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },

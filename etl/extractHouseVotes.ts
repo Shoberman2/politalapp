@@ -32,6 +32,7 @@ import {
   retry,
   sleep,
 } from './utils.js';
+import { normalizeStateCode } from './stateCodes.js';
 
 // =============================================================================
 // API RESPONSE INTERFACES (Internal to this module)
@@ -326,6 +327,17 @@ export type SenatorCandidate = {
   endYear: number | null;
 };
 
+/** Congress 1 began in 1789; every Congress spans two calendar years. */
+export function congressSessionYear(congress: number, session: 1 | 2): number {
+  if (!Number.isInteger(congress) || congress < 1) {
+    throw new RangeError('congress must be a positive integer');
+  }
+  if (session !== 1 && session !== 2) {
+    throw new RangeError('session must be 1 or 2');
+  }
+  return 1789 + (congress - 1) * 2 + (session - 1);
+}
+
 /** Lowercase + strip accents, so "Luján" and "LUJAN" compare equal. */
 function normalizeVoterName(s: string): string {
   return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -388,23 +400,6 @@ async function extractSenateVotesFromXML(
 ): Promise<ExtractedVoteData[]> {
   const extractedVotes: ExtractedVoteData[] = [];
 
-  // Build a lastName-stateAbbr → bioguideId map from Congress.gov member API
-  // Congress.gov returns full state names ("Oklahoma"), senate.gov XML uses abbreviations ("OK")
-  const STATE_TO_ABBR: Record<string, string> = {
-    'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
-    'colorado':'CO','connecticut':'CT','delaware':'DE','florida':'FL','georgia':'GA',
-    'hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA','kansas':'KS',
-    'kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD','massachusetts':'MA',
-    'michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO','montana':'MT',
-    'nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ','new mexico':'NM',
-    'new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH','oklahoma':'OK',
-    'oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC',
-    'south dakota':'SD','tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT',
-    'virginia':'VA','washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY',
-    'district of columbia':'DC','american samoa':'AS','guam':'GU',
-    'northern mariana islands':'MP','puerto rico':'PR','u.s. virgin islands':'VI',
-  };
-
   // Congress.gov caps /member at 250 per page; ~537 members means 3 pages.
   // MEMBER_FETCH_MAX is a runaway guard, not an expected bound.
   const MEMBER_PAGE_SIZE = 250;
@@ -454,7 +449,7 @@ async function extractSenateVotesFromXML(
       const [rawLast, rawFirst = ''] = String(m.name || '').split(',');
       const lastName = normalizeName(rawLast);
       const firstName = normalizeName(rawFirst).split(/\s+/)[0] || '';
-      const stateAbbr = STATE_TO_ABBR[(m.state || '').toLowerCase()] || (m.state || '').toUpperCase();
+      const stateAbbr = normalizeStateCode(m.state);
       if (!lastName || !stateAbbr) continue;
 
       const key = `${lastName}-${stateAbbr.toLowerCase()}`;
@@ -550,7 +545,7 @@ async function extractSenateVotesFromXML(
       }
 
       // Filter by date range - senate dates are like "26-Mar" so we need the year from the session
-      const sessionYear = congress === 119 ? (session === 1 ? 2025 : 2026) : 0;
+      const sessionYear = congressSessionYear(congress, session as 1 | 2);
       const months: Record<string, string> = {
         'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
         'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
