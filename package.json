@@ -1,7 +1,7 @@
 {
   "name": "political-voting-tracker",
   "private": true,
-  "version": "0.4.0.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -19,7 +19,9 @@
     "etl:backfill-sponsors": "npx tsx etl/backfillSponsorAndRoutings.ts --phase a",
     "etl:backfill-historical-routings": "npx tsx etl/backfillSponsorAndRoutings.ts --phase b",
     "etl:compute-survival": "npx tsx etl/computeCommitteeSurvival.ts",
+    "forecast:provenance": "tsx etl/forecast/runProvenanceAudit.ts etl/forecast/fixtures/provenance-118.json",
     "test": "vitest run",
+    "test:db": "supabase test db",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },

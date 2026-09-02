@@ -2,6 +2,10 @@
 
 Congressional voting tracker — React 18 + Vite SPA.
 
+The vote-forecast code is currently a fail-closed data foundation only. Do not
+add model training, prediction APIs, market recommendations, or public forecast
+UI until `docs/methodology/forecast-data-provenance.md` reports `GO`.
+
 ## Design System
 Always read DESIGN.md before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.

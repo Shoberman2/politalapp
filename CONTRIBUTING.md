@@ -31,11 +31,15 @@ npm run dev
 npm run build
 npm test
 npm run test:e2e
+npm run test:db
 npm run etl:dry-run
+npm run forecast:provenance
 ```
 
 Run the smallest useful verification for your change. If a command needs
-private credentials, say so in the PR.
+private credentials, say so in the PR. `npm run test:db` requires a local
+Supabase stack. The forecast provenance audit is expected to exit nonzero while
+`docs/methodology/forecast-data-provenance.md` remains `NO-GO`.
 
 ## Contribution Tracks
 
