@@ -37,6 +37,8 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 - Citation metadata: `CITATION.cff`.
 - Public roadmap: `docs/roadmap.md`.
 - Starter issue list: `docs/starter-issues.md`.
+- Vote forecast design: `docs/designs/congressional-vote-forecast.md`.
+- Forecast provenance gate: `docs/methodology/forecast-data-provenance.md`.
 - OpenAPI spec: `docs/api/openapi.yaml`.
 - Sample data package: `public/data/datapackage.json`.
 - Open-source overview: `docs/open-source.md`.
@@ -166,12 +168,17 @@ npm run build
 npm run preview
 npm test
 npm run test:e2e
+npm run test:db
 npm run etl:dry-run
 npm run alerts:run
+npm run forecast:provenance
 ```
 
 Local end-to-end tests target the full-stack origin on port 3000. Start
 `npm run dev:fullstack` in another terminal before running `npm run test:e2e`.
+`npm run test:db` runs the local Supabase/Postgres contract suite. The forecast
+provenance command deliberately exits nonzero while the documented source gate
+is `NO_GO`; it does not enable model training or public forecasts.
 
 `npm run config:check` validates the core browser/server settings, identifies
 browser-exposed credential names without printing values, and checks the
@@ -241,6 +248,7 @@ Current topics:
 - Sponsor activity
 - Campaign finance matching
 - Corrections
+- Forecast data provenance and release gating
 
 Data corrections should use the source-backed correction issue template. A
 correction needs a BallotWatch record, the field that appears wrong, the expected
