@@ -3,6 +3,23 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.5.0.0] - 2026-09-02
+
+### Added
+
+- Added the fail-closed data foundation for future congressional vote forecasts: versioned vote-target parsing, deterministic pre-vote feature snapshots, source-revision provenance, and an executable 118th-Congress readiness audit.
+- Added a dedicated historical roll-call persistence boundary that verifies member identity, effective terms, source tallies, lease fencing, and checkpoint order in one database transaction.
+- Added a 63-assertion PostgreSQL verification suite covering atomic writes, idempotent retries, stale workers, append-only evidence, private access controls, cross-runtime hashes, and snapshot integrity.
+
+### Security
+
+- Forecast training evidence is private by default, append-only even under `TRUNCATE`, and writable only through reviewed service-role paths.
+- Forecasting remains disabled while the provenance audit is `NO_GO`; no model, prediction endpoint, market recommendation, or public forecast UI is included in this release.
+
+### Migration
+
+- Added `supabase/migrations/20260901214646_forecast_foundation.sql` with target-parse evidence, atomic feature snapshots, completeness markers, compare-and-swap checkpoints, restrictive RLS, and service-only RPCs.
+
 ## [0.4.0.0] - 2026-08-17
 
 ### Added
