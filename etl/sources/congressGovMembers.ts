@@ -18,6 +18,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { logger } from '../utils.js';
+import { normalizeStateCode } from '../stateCodes.js';
 import type {
   MemberCongressTerm,
   SourceFetchResult,
@@ -39,36 +40,6 @@ interface CongressGovMemberListItem {
 interface CongressGovMemberListResponse {
   members: CongressGovMemberListItem[];
   pagination?: { count: number; next?: string };
-}
-
-/**
- * Congress.gov returns full state names like "California". Our schema
- * (politicians.state, member_congress_terms.state) requires 2-letter codes.
- * Mirrors etl/extractHouseVotes.ts STATE_TO_ABBR.
- */
-const STATE_NAME_TO_ABBR: Record<string, string> = {
-  'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
-  'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
-  'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
-  'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD', 'massachusetts': 'MA',
-  'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO', 'montana': 'MT',
-  'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM',
-  'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
-  'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
-  'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
-  'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
-  'district of columbia': 'DC', 'american samoa': 'AS', 'guam': 'GU',
-  'northern mariana islands': 'MP', 'puerto rico': 'PR', 'u.s. virgin islands': 'VI',
-};
-
-function normalizeState(raw: string): string | null {
-  if (!raw) return null;
-  const trimmed = raw.trim();
-  // Already a 2-letter code
-  if (trimmed.length === 2) return trimmed.toUpperCase();
-  // Full name lookup
-  const code = STATE_NAME_TO_ABBR[trimmed.toLowerCase()];
-  return code ?? null;
 }
 
 /**
@@ -104,7 +75,8 @@ export async function fetchMembersForCongress(
 
   while (url) {
     page++;
-    logger.debug(`[congress-gov-members] congress=${congress} page=${page} url=${url}`);
+    // The URL contains the Congress.gov API key. Never log it.
+    logger.debug(`[congress-gov-members] congress=${congress} page=${page}`);
     let resp: Response;
     try {
       resp = await fetch(url);
@@ -141,7 +113,7 @@ export async function fetchMembersForCongress(
       // Congress.gov returns full state names ("California"); our schema
       // requires 2-letter codes. Skip records we can't normalize (territories
       // not in our map are rare but possible).
-      const stateAbbr = normalizeState(m.state);
+      const stateAbbr = normalizeStateCode(m.state);
       if (!stateAbbr) {
         errors.push(
           `skipped member ${m.bioguideId}: unrecognized state "${m.state}"`
