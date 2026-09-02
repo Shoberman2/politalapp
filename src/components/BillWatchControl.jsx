@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getBillFollow, startBillFollow, stopBillFollow, updateBillFollow } from '../services/billAlerts'
+import { BILL_ALERT_EMAIL_ENABLED } from '../config/features'
 
 function optionsFrom(follow) {
   return {
     committeeAlerts: follow?.committee_alerts ?? true,
     floorAlerts: follow?.floor_alerts ?? true,
     voteAlerts: follow?.vote_alerts ?? true,
-    emailEnabled: follow?.email_enabled ?? true,
+    emailEnabled: BILL_ALERT_EMAIL_ENABLED ? (follow?.email_enabled ?? true) : false,
     paused: Boolean(follow?.paused_at),
   }
 }
@@ -67,7 +68,7 @@ export default function BillWatchControl({ billId }) {
       <div className="bill-rail-card bill-watch-card">
         <div className="bill-watch-kicker">Bill alerts</div>
         <h3>Get the next update</h3>
-        <p>Sign in to receive an email when this bill reaches committee, the floor, or a recorded vote.</p>
+        <p>Sign in to add this bill to your watchlist and see official committee, floor, and recorded-vote updates.</p>
         <button
           type="button"
           className="bill-watch-primary"
@@ -84,12 +85,14 @@ export default function BillWatchControl({ billId }) {
       <div className="bill-rail-card bill-watch-card">
         <div className="bill-watch-kicker">Bill alerts</div>
         <h3>Watch this bill</h3>
-        <p>We’ll email your confirmed account address for committee, floor, and recorded-vote updates.</p>
+        <p>BallotWatch will monitor official committee, floor, and recorded-vote updates for this bill.</p>
         <button
           type="button"
           className="bill-watch-primary"
           disabled={loading}
-          onClick={() => run(() => startBillFollow(billId))}
+          onClick={() => run(async () => {
+            return startBillFollow(billId, { emailEnabled: BILL_ALERT_EMAIL_ENABLED })
+          })}
         >
           {loading ? 'Saving…' : 'Watch this bill'}
         </button>
@@ -104,7 +107,7 @@ export default function BillWatchControl({ billId }) {
   return (
     <div className="bill-rail-card bill-watch-card bill-watch-card--active">
       <div className="bill-watch-status"><span /> Watching this bill</div>
-      <p>Choose which official updates should trigger email.</p>
+      <p>Choose which official updates should appear in your watchlist.</p>
       <div className="bill-watch-options">
         <label><input type="checkbox" checked={options.committeeAlerts} onChange={() => toggle('committeeAlerts')} /> Committee activity</label>
         <label><input type="checkbox" checked={options.floorAlerts} onChange={() => toggle('floorAlerts')} /> Floor schedule</label>

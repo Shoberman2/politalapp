@@ -31,6 +31,7 @@ import MethodologyPage from './components/MethodologyPage'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RequireAuth from './components/RequireAuth'
+import { SHOW_BILL_ALERTS } from './config/features'
 
 // Feature flag gates the /committee/:code route registration.
 // When false, requests fall through to the catch-all redirect to "/" — no
@@ -41,8 +42,6 @@ const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'tr
 // false value as an emergency kill switch without making missing config hide
 // the entire feature.
 const SHOW_CHAMBER = import.meta.env.VITE_SHOW_CHAMBER !== 'false'
-const SHOW_BILL_ALERTS = import.meta.env.VITE_BILL_ALERTS_ENABLED === 'true'
-
 function App() {
   const location = useLocation()
   const isLanding = location.pathname === '/'

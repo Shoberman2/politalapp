@@ -10,6 +10,7 @@ import {
   stopBillFollow,
   updateBillFollow,
 } from '../services/billAlerts'
+import { BILL_ALERT_EMAIL_ENABLED } from '../config/features'
 import '../styles/BillAlerts.css'
 
 function billPath(id) {
@@ -43,7 +44,9 @@ export default function BillAlertsPage() {
     setError('')
     try {
       const [followRows, historyRows, preference] = await Promise.all([
-        getBillFollows(), getBillAlertHistory(), getBillAlertPreference(user.id),
+        getBillFollows(),
+        getBillAlertHistory(),
+        BILL_ALERT_EMAIL_ENABLED ? getBillAlertPreference(user.id) : Promise.resolve(null),
       ])
       setFollows(followRows)
       setDrafts(Object.fromEntries(followRows.map((follow) => [follow.bill_id, {
@@ -90,7 +93,11 @@ export default function BillAlertsPage() {
   }
 
   const saveFollow = async (billId, overrides = {}) => {
-    const options = { ...drafts[billId], ...overrides }
+    const options = {
+      ...drafts[billId],
+      ...overrides,
+    }
+    if (!BILL_ALERT_EMAIL_ENABLED) options.emailEnabled = false
     if (!options.committeeAlerts && !options.floorAlerts && !options.voteAlerts) {
       setError('Keep at least one update type selected.')
       return
@@ -121,11 +128,17 @@ export default function BillAlertsPage() {
         <div className="alerts-kicker">Your watchlist</div>
         <h1>Bill <em>alerts</em></h1>
         <p>Follow official committee, floor, and vote activity without repeatedly checking Congress.gov.</p>
-        <p className="alerts-provider-note">Email delivery is handled by Resend. Your address is used only to send the alerts you request.</p>
-        <label className="alerts-email-toggle">
-          <input type="checkbox" checked={emailEnabled} disabled={loading || savingPreference} onChange={toggleAllEmail} />
-          Email alerts enabled
-        </label>
+        {BILL_ALERT_EMAIL_ENABLED ? (
+          <>
+            <p className="alerts-provider-note">Email delivery is handled by Resend. Your address is used only to send the alerts you request.</p>
+            <label className="alerts-email-toggle">
+              <input type="checkbox" checked={emailEnabled} disabled={loading || savingPreference} onChange={toggleAllEmail} />
+              Email alerts enabled
+            </label>
+          </>
+        ) : (
+          <p className="alerts-provider-note">New official updates appear here in BallotWatch. Email delivery is not enabled yet.</p>
+        )}
       </header>
 
       {error && <div className="alerts-error" role="alert">{error}</div>}
@@ -170,7 +183,7 @@ export default function BillAlertsPage() {
                 {history.map((event) => (
                   <article key={`${event.event_id}-${event.follow_id}`}>
                     <div className="alerts-history-date">{new Date(event.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                    <div><Link to={billPath(event.bill_id)}>{billLabel(event.bill_id)}</Link><h3>{event.headline}</h3><p>{eventLabel(event.event_type)} · {event.send_status || event.outbox_status}</p></div>
+                    <div><Link to={billPath(event.bill_id)}>{billLabel(event.bill_id)}</Link><h3>{event.headline}</h3><p>{eventLabel(event.event_type)}</p></div>
                     <a href={event.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>
                   </article>
                 ))}

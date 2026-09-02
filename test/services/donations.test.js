@@ -123,4 +123,14 @@ describe('FEC campaign finance service', () => {
       }),
     )
   })
+
+  it('does not turn a transient FEC failure into a zero-dollar total', async () => {
+    axiosMock.get.mockRejectedValue(new Error('rate limited'))
+
+    await expect(getCandidateDonors('H8NY15148', 2026)).resolves.toMatchObject({
+      totalRaised: null,
+      totalSpent: null,
+      dataUnavailable: true,
+    })
+  })
 })

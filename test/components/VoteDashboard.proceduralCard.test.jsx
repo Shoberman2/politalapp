@@ -10,7 +10,7 @@ vi.mock('../../src/services/supabaseVotes', () => ({
 
 vi.mock('../../src/services/congress', () => ({
   getMemberVotes: vi.fn(),
-  explainBillWithAI: vi.fn(),
+  explainBillFromOfficialSummary: vi.fn(),
 }));
 
 import { getMemberDashboardData } from '../../src/services/supabaseVotes';

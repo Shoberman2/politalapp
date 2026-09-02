@@ -7,7 +7,7 @@ import VotingHistory from '../../src/components/VotingHistory.jsx';
 
 vi.mock('../../src/services/congress', () => ({
   getMemberSponsorship: vi.fn(),
-  explainBillWithAI: vi.fn(),
+  explainBillFromOfficialSummary: vi.fn(),
 }));
 
 import { getMemberSponsorship } from '../../src/services/congress';

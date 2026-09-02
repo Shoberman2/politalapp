@@ -456,7 +456,9 @@ function PoliticianDetail() {
         ) : donations ? (
           <div className="pol-money-grid">
             <div className="pol-money-summary">
-              <div className="pol-money-big-number">{formatCurrency(donations.totalRaised)}</div>
+              <div className="pol-money-big-number">
+                {donations.totalRaised == null ? 'Unavailable' : formatCurrency(donations.totalRaised)}
+              </div>
               <div className="pol-money-big-label">
                 Total raised{formatCoverageDate(donations.coverageEndDate) ? ` · through ${formatCoverageDate(donations.coverageEndDate)}` : ''}
               </div>

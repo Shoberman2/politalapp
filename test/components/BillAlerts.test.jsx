@@ -67,6 +67,22 @@ describe('BillWatchControl', () => {
       '119-hr-1', expect.objectContaining({ floorAlerts: true }),
     ))
   })
+
+  it('starts an in-app follow atomically with email disabled', async () => {
+    authState.user = { id: 'user-1' }
+    services.getBillFollow.mockResolvedValue(null)
+    services.startBillFollow.mockResolvedValue({
+      bill_id: '119-hr-1', committee_alerts: true, floor_alerts: true,
+      vote_alerts: true, email_enabled: false, paused_at: null,
+    })
+    render(<MemoryRouter><BillWatchControl billId="119-hr-1" /></MemoryRouter>)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Watch this bill' }))
+    await waitFor(() => expect(services.startBillFollow).toHaveBeenCalledWith(
+      '119-hr-1', { emailEnabled: false },
+    ))
+    expect(services.updateBillFollow).not.toHaveBeenCalled()
+  })
 })
 
 describe('authenticated alert management', () => {
@@ -82,7 +98,7 @@ describe('authenticated alert management', () => {
     expect(screen.getByText(/Auth destination/)).toHaveTextContent('next=%2Falerts%3Fview%3Dhistory')
   })
 
-  it('edits, pauses, and discloses email delivery on the management page', async () => {
+  it('edits and pauses in-app monitoring without promising unconfigured email delivery', async () => {
     authState.user = { id: 'user-1' }
     const follow = {
       id: 'follow-1', bill_id: '119-hr-1', committee_alerts: true,
@@ -98,7 +114,8 @@ describe('authenticated alert management', () => {
       </HelmetProvider>,
     )
     expect(await screen.findByText('A test bill')).toBeInTheDocument()
-    expect(screen.getByText(/Email delivery is handled by Resend/)).toBeInTheDocument()
+    expect(screen.getByText(/official updates appear here in BallotWatch/i)).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Email alerts enabled' })).not.toBeInTheDocument()
     const row = screen.getByText('A test bill').closest('article')
     fireEvent.click(within(row).getByRole('button', { name: 'Pause' }))
     await waitFor(() => expect(services.updateBillFollow).toHaveBeenCalledWith(

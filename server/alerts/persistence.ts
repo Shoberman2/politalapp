@@ -20,8 +20,7 @@ export async function followedBillIds(supabase: SupabaseClient): Promise<Set<str
     .from('bill_follows')
     .select('bill_id')
     .is('stopped_at', null)
-    .is('paused_at', null)
-    .eq('email_enabled', true);
+    .is('paused_at', null);
   if (error) throwDatabase('Unable to load followed bills', error);
   return new Set((data ?? []).map((row: any) => row.bill_id));
 }
@@ -181,6 +180,14 @@ export async function fanOutEvent(
   eventId: string,
   lease: AlertLeaseIdentity,
 ) {
+  const { error: inAppError } = await supabase.rpc('fan_out_bill_event_in_app', {
+    p_event_id: eventId,
+    p_lease_key: lease.leaseKey,
+    p_holder: lease.holder,
+    p_fence_token: lease.fenceToken,
+  });
+  if (inAppError) throwDatabase('Unable to fan out in-app bill event', inAppError);
+
   for (let page = 0; page < 100; page += 1) {
     const { data, error } = await supabase.rpc('fan_out_bill_event', {
       p_event_id: eventId,

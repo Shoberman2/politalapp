@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { HelmetProvider } from 'react-helmet-async'
 import { MemoryRouter } from 'react-router-dom'
 
@@ -105,6 +105,15 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('Landing — "See every vote" step', () => {
+  it('keeps both mobile ZIP submit buttons explicitly named', async () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    renderLanding()
+
+    const buttons = await screen.findAllByRole('button', { name: 'Find my representatives' })
+    expect(buttons).toHaveLength(2)
+    buttons.forEach((button) => expect(button).toHaveAttribute('aria-label', 'Find my representatives'))
+  })
+
   it('shows tallied votes even when they sit past the feed cut-off', async () => {
     // Five untallied roll calls first, then the tallied ones. The old code kept
     // only the first five and so never saw a single tally.

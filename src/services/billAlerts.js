@@ -16,7 +16,10 @@ export async function getBillFollow(billId) {
 }
 
 export async function startBillFollow(billId, options = {}) {
-  const { data, error } = await supabase.rpc('start_or_resume_bill_follow', {
+  const rpcName = options.emailEnabled === false
+    ? 'start_or_resume_bill_follow_in_app'
+    : 'start_or_resume_bill_follow'
+  const { data, error } = await supabase.rpc(rpcName, {
     p_bill_id: billId,
     p_committee_alerts: options.committeeAlerts ?? true,
     p_floor_alerts: options.floorAlerts ?? true,
