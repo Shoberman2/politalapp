@@ -128,6 +128,44 @@ CREATE TRIGGER forecast_feature_rows_no_truncate
   BEFORE TRUNCATE ON public.forecast_feature_rows
   FOR EACH STATEMENT EXECUTE FUNCTION public.reject_forecast_append_only_mutation();
 
+-- Canonical JSON bytes shared by the database-side hash verifier. V1 feature
+-- values are limited to strings and integers, avoiding cross-runtime numeric
+-- representation differences between PostgreSQL and JavaScript.
+CREATE OR REPLACE FUNCTION public.forecast_canonical_jsonb_text(p_value JSONB)
+RETURNS TEXT
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+SET search_path = ''
+AS $$
+DECLARE
+  v_type TEXT := jsonb_typeof(p_value);
+  v_result TEXT;
+BEGIN
+  IF v_type IN ('null', 'boolean', 'number', 'string') THEN
+    RETURN p_value::TEXT;
+  ELSIF v_type = 'array' THEN
+    SELECT '[' || COALESCE(string_agg(
+      public.forecast_canonical_jsonb_text(item.value),
+      ',' ORDER BY item.ordinality
+    ), '') || ']'
+    INTO v_result
+    FROM jsonb_array_elements(p_value) WITH ORDINALITY AS item(value, ordinality);
+    RETURN v_result;
+  ELSIF v_type = 'object' THEN
+    SELECT '{' || COALESCE(string_agg(
+      to_jsonb(item.key)::TEXT || ':' || public.forecast_canonical_jsonb_text(item.value),
+      ',' ORDER BY item.key COLLATE "C"
+    ), '') || '}'
+    INTO v_result
+    FROM jsonb_each(p_value) AS item(key, value);
+    RETURN v_result;
+  END IF;
+
+  RAISE EXCEPTION 'unsupported canonical JSON type %', v_type;
+END;
+$$;
+
 -- Persist one complete roll call and its fenced cursor advance atomically.
 -- Any exception rolls back every write, including the backfill checkpoint.
 CREATE OR REPLACE FUNCTION public.persist_historical_roll_call(
@@ -175,8 +213,19 @@ DECLARE
   v_not_voting INTEGER;
   v_completed_at TIMESTAMPTZ;
   v_previous_roll_call_id TEXT;
+  v_previous_lease_key TEXT;
   v_existing_parse public.roll_call_target_parses%ROWTYPE;
 BEGIN
+  IF NULLIF(btrim(p_backfill_name), '') IS NULL THEN
+    RAISE EXCEPTION 'backfill name is required';
+  END IF;
+
+  -- Serialize by backfill identity even before a checkpoint row exists. This
+  -- prevents separate valid lease keys from racing the same cursor.
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('forecast-backfill:' || p_backfill_name, 0)
+  );
+
   -- Lock the lease row so the fence cannot change during this transaction.
   PERFORM 1
   FROM public.etl_leases AS lease
@@ -204,10 +253,21 @@ BEGIN
     RAISE EXCEPTION 'checkpoint must be a JSON object';
   END IF;
 
-  SELECT state.checkpoint->>'last_roll_call_id'
-  INTO v_previous_roll_call_id
+  SELECT
+    state.checkpoint->>'last_roll_call_id',
+    state.checkpoint->>'lease_key'
+  INTO v_previous_roll_call_id, v_previous_lease_key
   FROM public.backfill_state AS state
-  WHERE state.name = p_backfill_name;
+  WHERE state.name = p_backfill_name
+  FOR UPDATE;
+
+  IF v_previous_lease_key IS NOT NULL
+    AND v_previous_lease_key IS DISTINCT FROM p_lease_key
+  THEN
+    RAISE EXCEPTION 'backfill lease key mismatch: expected %, found %',
+      v_previous_lease_key, p_lease_key
+      USING ERRCODE = '55000';
+  END IF;
 
   IF v_previous_roll_call_id IS DISTINCT FROM p_expected_previous_roll_call_id
     AND v_previous_roll_call_id IS DISTINCT FROM p_roll_call_id
@@ -451,11 +511,14 @@ DECLARE
   v_distinct_count INTEGER;
   v_bad_count INTEGER;
   v_stored_count INTEGER;
+  v_calculated_event_sha TEXT;
   v_calculated_roster_sha TEXT;
+  v_existing_snapshot public.forecast_feature_snapshots%ROWTYPE;
 BEGIN
   IF (p_source_event_id IS NULL) = (p_roll_call_id IS NULL)
-    OR NULLIF(btrim(p_feature_schema_version), '') IS NULL
+    OR p_feature_schema_version IS DISTINCT FROM 'forecast-features-v1'
     OR p_feature_cutoff_at IS NULL
+    OR NOT pg_catalog.isfinite(p_feature_cutoff_at)
     OR p_cutoff_quality NOT IN ('official_schedule', 'synthetic_conservative')
     OR p_event_sha256 !~ '^[0-9a-f]{64}$'
     OR p_roster_sha256 !~ '^[0-9a-f]{64}$'
@@ -473,6 +536,49 @@ BEGIN
     )
   THEN
     RAISE EXCEPTION 'event features and source revisions are invalid';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM jsonb_object_keys(p_canonical_event_features) AS feature(key)
+    WHERE feature.key NOT IN ('chamber', 'policyArea')
+  ) OR (
+    p_canonical_event_features ? 'chamber'
+    AND (
+      jsonb_typeof(p_canonical_event_features->'chamber') IS DISTINCT FROM 'string'
+      OR p_canonical_event_features->>'chamber' NOT IN ('house', 'senate')
+    )
+  ) OR (
+    p_canonical_event_features ? 'policyArea'
+    AND (
+      jsonb_typeof(p_canonical_event_features->'policyArea') IS DISTINCT FROM 'string'
+      OR NULLIF(btrim(p_canonical_event_features->>'policyArea'), '') IS NULL
+    )
+  ) THEN
+    RAISE EXCEPTION 'event feature schema is invalid';
+  END IF;
+
+  SELECT COUNT(*)::INTEGER
+  INTO v_bad_count
+  FROM jsonb_array_elements(p_event_source_revisions) AS source(item)
+  WHERE CASE
+    WHEN jsonb_typeof(source.item) <> 'object' THEN true
+    ELSE
+      (SELECT COUNT(*) FROM jsonb_object_keys(source.item)) <> 4
+      OR NOT source.item ?& ARRAY['source', 'sourceUrl', 'availableAt', 'revisionId']
+      OR jsonb_typeof(source.item->'source') IS DISTINCT FROM 'string'
+      OR NULLIF(btrim(source.item->>'source'), '') IS NULL
+      OR jsonb_typeof(source.item->'sourceUrl') IS DISTINCT FROM 'string'
+      OR source.item->>'sourceUrl' !~ '^https://'
+      OR jsonb_typeof(source.item->'availableAt') IS DISTINCT FROM 'string'
+      OR NULLIF(btrim(source.item->>'availableAt'), '') IS NULL
+      OR NOT pg_catalog.isfinite((source.item->>'availableAt')::TIMESTAMPTZ)
+      OR (source.item->>'availableAt')::TIMESTAMPTZ > p_feature_cutoff_at
+      OR jsonb_typeof(source.item->'revisionId') IS DISTINCT FROM 'string'
+      OR NULLIF(btrim(source.item->>'revisionId'), '') IS NULL
+  END;
+  IF v_bad_count > 0 THEN
+    RAISE EXCEPTION 'event source revisions are malformed or newer than the feature cutoff';
   END IF;
 
   IF p_rows IS NULL OR jsonb_typeof(p_rows) <> 'array' OR jsonb_array_length(p_rows) = 0 THEN
@@ -500,13 +606,95 @@ BEGIN
     RAISE EXCEPTION 'snapshot rows contain malformed or duplicate members';
   END IF;
 
+  SELECT COUNT(*)::INTEGER
+  INTO v_bad_count
+  FROM jsonb_array_elements(p_rows) AS row(item)
+  WHERE EXISTS (
+    SELECT 1
+    FROM jsonb_object_keys(row.item->'canonical_member_features') AS feature(key)
+    WHERE feature.key <> 'tenure'
+  ) OR (
+    row.item->'canonical_member_features' ? 'tenure'
+    AND CASE
+      WHEN jsonb_typeof(row.item->'canonical_member_features'->'tenure')
+        IS DISTINCT FROM 'number'
+      THEN true
+      WHEN row.item->'canonical_member_features'->>'tenure' !~ '^[0-9]+$'
+      THEN true
+      ELSE (row.item->'canonical_member_features'->>'tenure')::NUMERIC
+        > 9007199254740991
+    END
+  ) OR EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(row.item->'member_source_revisions') AS source(item)
+    WHERE CASE
+      WHEN jsonb_typeof(source.item) <> 'object' THEN true
+      ELSE
+        (SELECT COUNT(*) FROM jsonb_object_keys(source.item)) <> 4
+        OR NOT source.item ?& ARRAY['source', 'sourceUrl', 'availableAt', 'revisionId']
+        OR jsonb_typeof(source.item->'source') IS DISTINCT FROM 'string'
+        OR NULLIF(btrim(source.item->>'source'), '') IS NULL
+        OR jsonb_typeof(source.item->'sourceUrl') IS DISTINCT FROM 'string'
+        OR source.item->>'sourceUrl' !~ '^https://'
+        OR jsonb_typeof(source.item->'availableAt') IS DISTINCT FROM 'string'
+        OR NULLIF(btrim(source.item->>'availableAt'), '') IS NULL
+        OR NOT pg_catalog.isfinite((source.item->>'availableAt')::TIMESTAMPTZ)
+        OR (source.item->>'availableAt')::TIMESTAMPTZ > p_feature_cutoff_at
+        OR jsonb_typeof(source.item->'revisionId') IS DISTINCT FROM 'string'
+        OR NULLIF(btrim(source.item->>'revisionId'), '') IS NULL
+    END
+  );
+  IF v_bad_count > 0 THEN
+    RAISE EXCEPTION 'member feature schema or source revisions are invalid';
+  END IF;
+
   SELECT encode(
     extensions.digest(
       convert_to(
-        '[' || string_agg(
-          to_jsonb(row.item->>'row_sha256')::TEXT,
-          ',' ORDER BY row.item->>'politician_id'
-        ) || ']',
+        public.forecast_canonical_jsonb_text(jsonb_build_object(
+          'featureSchemaVersion', p_feature_schema_version,
+          'features', p_canonical_event_features,
+          'sources', p_event_source_revisions
+        )),
+        'UTF8'
+      ),
+      'sha256'
+    ),
+    'hex'
+  )
+  INTO v_calculated_event_sha;
+  IF v_calculated_event_sha IS DISTINCT FROM p_event_sha256 THEN
+    RAISE EXCEPTION 'snapshot event hash does not match event features and provenance';
+  END IF;
+
+  SELECT COUNT(*)::INTEGER
+  INTO v_bad_count
+  FROM jsonb_array_elements(p_rows) AS row(item)
+  WHERE row.item->>'row_sha256' IS DISTINCT FROM encode(
+    extensions.digest(
+      convert_to(
+        public.forecast_canonical_jsonb_text(jsonb_build_object(
+          'eventSha256', p_event_sha256,
+          'politicianId', row.item->>'politician_id',
+          'features', row.item->'canonical_member_features',
+          'sources', row.item->'member_source_revisions'
+        )),
+        'UTF8'
+      ),
+      'sha256'
+    ),
+    'hex'
+  );
+  IF v_bad_count > 0 THEN
+    RAISE EXCEPTION 'snapshot row hash does not match member features and provenance';
+  END IF;
+
+  SELECT encode(
+    extensions.digest(
+      convert_to(
+        public.forecast_canonical_jsonb_text(jsonb_agg(
+          row.item->>'row_sha256' ORDER BY row.item->>'politician_id'
+        )),
         'UTF8'
       ),
       'sha256'
@@ -518,6 +706,63 @@ BEGIN
 
   IF v_calculated_roster_sha IS DISTINCT FROM p_roster_sha256 THEN
     RAISE EXCEPTION 'snapshot roster hash does not match member rows';
+  END IF;
+
+  -- Serialize a logical snapshot identity so concurrent first writes and
+  -- ambiguous-commit retries cannot race the unique indexes.
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(
+    'forecast-snapshot:'
+      || COALESCE(p_source_event_id::TEXT, p_roll_call_id)
+      || ':' || p_feature_schema_version,
+    0
+  ));
+
+  SELECT snapshot.*
+  INTO v_existing_snapshot
+  FROM public.forecast_feature_snapshots AS snapshot
+  WHERE snapshot.feature_schema_version = p_feature_schema_version
+    AND (
+      (p_source_event_id IS NOT NULL AND snapshot.source_event_id = p_source_event_id)
+      OR (p_roll_call_id IS NOT NULL AND snapshot.roll_call_id = p_roll_call_id)
+    )
+  FOR UPDATE;
+
+  IF FOUND THEN
+    IF v_existing_snapshot.source_event_id IS DISTINCT FROM p_source_event_id
+      OR v_existing_snapshot.roll_call_id IS DISTINCT FROM p_roll_call_id
+      OR v_existing_snapshot.feature_cutoff_at IS DISTINCT FROM p_feature_cutoff_at
+      OR v_existing_snapshot.cutoff_quality IS DISTINCT FROM p_cutoff_quality
+      OR v_existing_snapshot.canonical_event_features IS DISTINCT FROM p_canonical_event_features
+      OR v_existing_snapshot.event_source_revisions IS DISTINCT FROM p_event_source_revisions
+      OR v_existing_snapshot.event_sha256 IS DISTINCT FROM p_event_sha256
+      OR v_existing_snapshot.roster_sha256 IS DISTINCT FROM p_roster_sha256
+      OR v_existing_snapshot.row_count IS DISTINCT FROM v_input_count
+    THEN
+      RAISE EXCEPTION 'conflicting append-only feature snapshot';
+    END IF;
+
+    SELECT COUNT(*)::INTEGER
+    INTO v_stored_count
+    FROM public.forecast_feature_rows AS stored
+    WHERE stored.snapshot_id = v_existing_snapshot.id;
+
+    SELECT COUNT(*)::INTEGER
+    INTO v_bad_count
+    FROM jsonb_array_elements(p_rows) AS row(item)
+    LEFT JOIN public.forecast_feature_rows AS stored
+      ON stored.snapshot_id = v_existing_snapshot.id
+     AND stored.politician_id = row.item->>'politician_id'
+    WHERE stored.politician_id IS NULL
+      OR stored.canonical_member_features IS DISTINCT FROM row.item->'canonical_member_features'
+      OR stored.member_source_revisions IS DISTINCT FROM row.item->'member_source_revisions'
+      OR stored.row_sha256 IS DISTINCT FROM row.item->>'row_sha256';
+
+    IF v_stored_count <> v_input_count OR v_bad_count > 0 THEN
+      RAISE EXCEPTION 'conflicting append-only feature snapshot';
+    END IF;
+
+    RETURN QUERY SELECT v_existing_snapshot.id, v_stored_count;
+    RETURN;
   END IF;
 
   INSERT INTO public.forecast_feature_snapshots (
@@ -582,6 +827,8 @@ GRANT SELECT ON TABLE public.forecast_feature_snapshots TO service_role;
 GRANT SELECT ON TABLE public.forecast_feature_rows TO service_role;
 
 REVOKE EXECUTE ON FUNCTION public.reject_forecast_append_only_mutation()
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE EXECUTE ON FUNCTION public.forecast_canonical_jsonb_text(JSONB)
   FROM PUBLIC, anon, authenticated, service_role;
 
 REVOKE EXECUTE ON FUNCTION public.persist_historical_roll_call(

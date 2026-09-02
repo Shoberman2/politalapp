@@ -80,28 +80,6 @@ export function parseForecastTarget(rawText: string | null | undefined): TargetP
     );
   }
 
-  if (/\b(?:on )?(?:the )?(?:final )?passage\b|\bon passing\b/.test(normalized)) {
-    return parsed(
-      raw,
-      normalized,
-      'final_passage',
-      'simple_majority_present_voting',
-      0.98,
-      null,
-    );
-  }
-
-  if (/\b(?:on |agreeing to )?(?:the )?conference report\b/.test(normalized)) {
-    return parsed(
-      raw,
-      normalized,
-      'final_passage',
-      'simple_majority_present_voting',
-      0.98,
-      null,
-    );
-  }
-
   if (/\bcloture\b|\binvoke cloture\b/.test(normalized)) {
     return parsed(
       raw,
@@ -136,6 +114,28 @@ export function parseForecastTarget(rawText: string | null | undefined): TargetP
       null,
       0.9,
       'procedural_target_not_supported',
+    );
+  }
+
+  if (/\b(?:on )?(?:the )?(?:final )?passage\b|\bon passing\b/.test(normalized)) {
+    return parsed(
+      raw,
+      normalized,
+      'final_passage',
+      'simple_majority_present_voting',
+      0.98,
+      null,
+    );
+  }
+
+  if (/^(?:on )?(?:agreeing to )?(?:the )?conference report$/.test(normalized)) {
+    return parsed(
+      raw,
+      normalized,
+      'final_passage',
+      'simple_majority_present_voting',
+      0.98,
+      null,
     );
   }
 

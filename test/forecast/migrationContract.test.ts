@@ -47,9 +47,13 @@ describe('forecast foundation migration contract', () => {
 
   it('persists snapshot headers and rows through one verified RPC', () => {
     expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.persist_forecast_feature_snapshot\(/);
+    expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.forecast_canonical_jsonb_text\(/);
+    expect(sql).toMatch(/snapshot event hash does not match event features and provenance/);
+    expect(sql).toMatch(/snapshot row hash does not match member features and provenance/);
     expect(sql).toMatch(/snapshot roster hash does not match member rows/);
     expect(sql).toMatch(/INSERT INTO public\.forecast_feature_snapshots[\s\S]*?INSERT INTO public\.forecast_feature_rows/);
     expect(sql).toMatch(/row_count[\s\S]*?v_input_count/);
+    expect(sql).toMatch(/conflicting append-only feature snapshot/);
   });
 
   it('enables default-deny RLS on every private forecast table', () => {

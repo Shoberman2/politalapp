@@ -10,12 +10,16 @@ function document(): ProvenanceAuditDocument {
     schemaVersion: PROVENANCE_AUDIT_SCHEMA_VERSION,
     congress: 118,
     generatedAt: '2026-09-01T22:00:00Z',
-    sources: [{
-      source: 'fixture',
-      status: 'ready',
-      evidenceUrl: 'https://example.test/source',
+    sources: [
+      'member_effective_intervals',
+      'house_schedule_publication',
+      'senate_final_passage_schedule_publication',
+    ].map((source) => ({
+      source,
+      status: 'ready' as const,
+      evidenceUrl: `https://example.test/${source}`,
       reason: 'fixture',
-    }],
+    })),
     rows: Array.from({ length: 100 }, (_, index) => ({
       id: `row-${index}`,
       congress: 118,
@@ -39,7 +43,7 @@ describe('buildProvenanceAuditReport', () => {
     input.sources[0].status = 'blocked';
     expect(buildProvenanceAuditReport(input)).toMatchObject({
       decision: 'NO_GO',
-      sourceBlockers: [{ source: 'fixture' }],
+      sourceBlockers: [{ source: 'member_effective_intervals' }],
     });
   });
 
@@ -91,5 +95,19 @@ describe('buildProvenanceAuditReport', () => {
     } & ProvenanceAuditDocument;
     invalidRow.rows[0].exactMemberInterval = 'false';
     expect(() => buildProvenanceAuditReport(invalidRow)).toThrow(/invalid provenance row/);
+  });
+
+  it('requires the complete versioned source inventory before GO is possible', () => {
+    expect(() => buildProvenanceAuditReport({ ...document(), sources: [] })).toThrow(
+      /must contain exactly/,
+    );
+
+    const missing = document();
+    missing.sources.pop();
+    expect(() => buildProvenanceAuditReport(missing)).toThrow(/must contain exactly/);
+
+    const duplicate = document();
+    duplicate.sources[1] = { ...duplicate.sources[0] };
+    expect(() => buildProvenanceAuditReport(duplicate)).toThrow(/must contain exactly/);
   });
 });

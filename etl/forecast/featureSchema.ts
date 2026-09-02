@@ -79,10 +79,17 @@ function parseTimestamp(value: string, label: string): number {
 
 function assertSourceCutoff(sources: SourceRevision[], cutoffMs: number, context: string): void {
   for (const source of sources) {
-    if (!source.source || !source.sourceUrl || !source.revisionId) {
+    if (
+      !source || typeof source !== 'object'
+      || typeof source.source !== 'string' || !source.source.trim()
+      || typeof source.sourceUrl !== 'string' || !/^https:\/\//.test(source.sourceUrl)
+      || typeof source.revisionId !== 'string' || !source.revisionId.trim()
+    ) {
       throw new Error(`${context} source provenance is incomplete`);
     }
-    if (!source.availableAt) throw new Error(`${context} source timestamp is missing`);
+    if (typeof source.availableAt !== 'string' || !source.availableAt) {
+      throw new Error(`${context} source timestamp is missing`);
+    }
     const availableMs = parseTimestamp(source.availableAt, `${context} availableAt`);
     if (availableMs > cutoffMs) {
       throw new Error(`${context} source ${source.source} is newer than feature cutoff`);
@@ -103,6 +110,30 @@ function assertFeatureContract(
   }
   if (keys.length > 0 && sources.length === 0) {
     throw new Error(`${context} features require source provenance`);
+  }
+  if (allowedKeys === V1_EVENT_FEATURE_KEYS) {
+    if (
+      'chamber' in features
+      && features.chamber !== 'house'
+      && features.chamber !== 'senate'
+    ) {
+      throw new Error(`${context} feature chamber must be house or senate`);
+    }
+    if (
+      'policyArea' in features
+      && (typeof features.policyArea !== 'string' || !features.policyArea.trim())
+    ) {
+      throw new Error(`${context} feature policyArea must be a non-empty string`);
+    }
+  } else if (
+    'tenure' in features
+    && (
+      typeof features.tenure !== 'number'
+      || !Number.isSafeInteger(features.tenure)
+      || features.tenure < 0
+    )
+  ) {
+    throw new Error(`${context} feature tenure must be a non-negative integer`);
   }
 }
 

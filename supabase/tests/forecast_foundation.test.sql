@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(50);
+SELECT plan(63);
 
 SELECT has_table('public', 'bill_event_target_parses', 'event target parses exist');
 SELECT has_table('public', 'roll_call_target_parses', 'roll-call target parses exist');
@@ -198,6 +198,30 @@ SELECT is(
   'stale checkpoint did not advance the cursor'
 );
 
+INSERT INTO public.etl_leases (lease_key, holder, expires_at, fence_token)
+VALUES ('forecast-test-other', 'pgtap-other', NOW() + INTERVAL '1 hour', 42);
+
+SELECT throws_ok(
+  $$
+    SELECT * FROM public.persist_historical_roll_call(
+      'forecast-test-other', 'pgtap-other', 42, 'house-999-1-6', '999-hr-999999',
+      'On Passage', 'Cross-lease fixture', '3787-02-06', 'https://example.test/vote/6',
+      '1.0.0', 'On Passage', 'on passage', 'final_passage',
+      'simple_majority_present_voting', 0.98, NULL,
+      '[{"politician_id":"ZZTEST001","position":"Yea"},{"politician_id":"ZZTEST002","position":"Nay"}]'::jsonb,
+      1, 1, 0, 0, 'forecast-pgtap', 'house-999-1-1', '{"source_cursor":"cross-lease"}'::jsonb
+    )
+  $$,
+  '55000',
+  'backfill lease key mismatch: expected forecast-test, found forecast-test-other',
+  'a second lease key cannot target the same backfill cursor'
+);
+SELECT is(
+  (SELECT COUNT(*) FROM public.roll_calls WHERE id = 'house-999-1-6'),
+  0::BIGINT,
+  'cross-lease checkpoint contention wrote no roll call'
+);
+
 SELECT throws_ok(
   $$
     SELECT * FROM public.persist_historical_roll_call(
@@ -290,39 +314,294 @@ SELECT throws_ok(
   'parser evidence cannot be truncated'
 );
 
-SELECT lives_ok(
+CREATE TEMP TABLE forecast_snapshot_fixture AS
+WITH event_input AS (
+  SELECT
+    '{"chamber":"house","policyArea":"Health"}'::jsonb AS event_features,
+    jsonb_build_array(jsonb_build_object(
+      'source', 'roll_call',
+      'sourceUrl', 'https://example.test/vote/1',
+      'availableAt', '3787-01-31T00:00:00.000Z',
+      'revisionId', 'pgtap-event-v1'
+    )) AS event_sources
+), event_hashed AS (
+  SELECT
+    event_input.*,
+    encode(
+      extensions.digest(
+        convert_to(public.forecast_canonical_jsonb_text(jsonb_build_object(
+          'featureSchemaVersion', 'forecast-features-v1',
+          'features', event_features,
+          'sources', event_sources
+        )), 'UTF8'),
+        'sha256'
+      ),
+      'hex'
+    ) AS event_sha
+  FROM event_input
+), rows_hashed AS (
+  SELECT
+    event_hashed.*,
+    member.politician_id,
+    member.features,
+    member.sources,
+    encode(
+      extensions.digest(
+        convert_to(public.forecast_canonical_jsonb_text(jsonb_build_object(
+          'eventSha256', event_hashed.event_sha,
+          'politicianId', member.politician_id,
+          'features', member.features,
+          'sources', member.sources
+        )), 'UTF8'),
+        'sha256'
+      ),
+      'hex'
+    ) AS row_sha
+  FROM event_hashed
+  CROSS JOIN (
+    VALUES
+      (
+        'ZZTEST001',
+        '{"tenure":2}'::jsonb,
+        '[{"source":"terms","sourceUrl":"https://example.test/terms/1","availableAt":"3787-01-30T00:00:00.000Z","revisionId":"pgtap-member-v1"}]'::jsonb
+      ),
+      (
+        'ZZTEST002',
+        '{"tenure":1}'::jsonb,
+        '[{"source":"terms","sourceUrl":"https://example.test/terms/2","availableAt":"3787-01-30T00:00:00.000Z","revisionId":"pgtap-member-v1"}]'::jsonb
+      )
+  ) AS member(politician_id, features, sources)
+)
+SELECT
+  (SELECT event_features FROM event_hashed) AS event_features,
+  (SELECT event_sources FROM event_hashed) AS event_sources,
+  (SELECT event_sha FROM event_hashed) AS event_sha,
+  encode(
+    extensions.digest(
+      convert_to(public.forecast_canonical_jsonb_text(
+        (SELECT jsonb_agg(row_sha ORDER BY politician_id) FROM rows_hashed)
+      ), 'UTF8'),
+      'sha256'
+    ),
+    'hex'
+  ) AS roster_sha,
+  (
+    SELECT jsonb_agg(jsonb_build_object(
+      'politician_id', politician_id,
+      'canonical_member_features', features,
+      'member_source_revisions', sources,
+      'row_sha256', row_sha
+    ) ORDER BY politician_id)
+    FROM rows_hashed
+  ) AS rows;
+
+SELECT is(
+  (SELECT event_sha FROM forecast_snapshot_fixture),
+  'f9676e0466cc1af5dd54ea35cd75a953bad40497a3e977eef935832767e33f5e',
+  'database event canonicalization matches the TypeScript hash contract'
+);
+SELECT is(
+  (SELECT rows->0->>'row_sha256' FROM forecast_snapshot_fixture),
+  '3dc86cd4609b997a6d280180ff9a2b1c27876cb107c401a06d199e02cfb9832e',
+  'database member canonicalization matches the TypeScript hash contract'
+);
+SELECT is(
+  (SELECT roster_sha FROM forecast_snapshot_fixture),
+  'b3036cabcc3e2e01c1608ceb1d73825c6975b2ab515255c1aff547e2412fcf08',
+  'database roster canonicalization matches the TypeScript hash contract'
+);
+
+SELECT throws_ok(
   $$
-    SELECT * FROM public.persist_forecast_feature_snapshot(
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
       NULL,
       'house-999-1-1',
-      'forecast-v1',
+      'forecast-features-v1',
+      'infinity',
+      'official_schedule',
+      fixture.event_features,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
+  $$,
+  'P0001',
+  'snapshot identity, schema, cutoff, quality, and hashes are required',
+  'an infinite feature cutoff is rejected'
+);
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
       '3787-02-01T00:00:00Z',
       'official_schedule',
-      '{"chamber":"house"}'::jsonb,
-      '["roll-call:pgtap-v1"]'::jsonb,
-      repeat('e', 64),
-      encode(
-        extensions.digest(
-          convert_to('["' || repeat('a', 64) || '","' || repeat('b', 64) || '"]', 'UTF8'),
-          'sha256'
-        ),
-        'hex'
+      fixture.event_features,
+      jsonb_set(
+        fixture.event_sources,
+        '{0,availableAt}',
+        '"-infinity"'::jsonb
       ),
-      jsonb_build_array(
-        jsonb_build_object(
-          'politician_id', 'ZZTEST001',
-          'canonical_member_features', jsonb_build_object('tenure', 2),
-          'member_source_revisions', jsonb_build_array('terms:pgtap-v1'),
-          'row_sha256', repeat('a', 64)
-        ),
-        jsonb_build_object(
-          'politician_id', 'ZZTEST002',
-          'canonical_member_features', jsonb_build_object('tenure', 1),
-          'member_source_revisions', jsonb_build_array('terms:pgtap-v1'),
-          'row_sha256', repeat('b', 64)
-        )
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
+  $$,
+  'P0001',
+  'event source revisions are malformed or newer than the feature cutoff',
+  'an infinite source timestamp is rejected'
+);
+
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      '{"chamber":"house","policyArea":{"actualOutcome":"passed"}}'::jsonb,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
+  $$,
+  'P0001',
+  'event feature schema is invalid',
+  'nested outcome-bearing event features are rejected by the database'
+);
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      fixture.event_features,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      jsonb_set(
+        fixture.rows,
+        '{0,canonical_member_features,tenure}',
+        '"actual tally 250-180"'::jsonb
       )
-    )
+    ) AS persisted
+  $$,
+  'P0001',
+  'member feature schema or source revisions are invalid',
+  'outcome-bearing member feature values are rejected by the database'
+);
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      fixture.event_features,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      jsonb_set(
+        fixture.rows,
+        '{0,canonical_member_features,tenure}',
+        '9007199254740992'::jsonb
+      )
+    ) AS persisted
+  $$,
+  'P0001',
+  'member feature schema or source revisions are invalid',
+  'a tenure above the JavaScript safe-integer ceiling is rejected'
+);
+
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      fixture.event_features,
+      jsonb_set(
+        fixture.event_sources,
+        '{0,availableAt}',
+        '"3787-02-02T00:00:00.000Z"'::jsonb
+      ),
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
+  $$,
+  'P0001',
+  'event source revisions are malformed or newer than the feature cutoff',
+  'post-cutoff event provenance is rejected at the database boundary'
+);
+SELECT throws_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      fixture.event_features,
+      fixture.event_sources,
+      repeat('e', 64),
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
+  $$,
+  'P0001',
+  'snapshot event hash does not match event features and provenance',
+  'a mismatched event digest aborts the snapshot'
+);
+SELECT is(
+  (
+    SELECT COUNT(*)
+    FROM public.forecast_feature_snapshots
+    WHERE roll_call_id = 'house-999-1-1'
+      AND feature_schema_version = 'forecast-features-v1'
+  ),
+  0::BIGINT,
+  'rejected snapshots wrote no header'
+);
+SELECT lives_ok(
+  $$
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
+      NULL,
+      'house-999-1-1',
+      'forecast-features-v1',
+      '3787-02-01T00:00:00Z',
+      'official_schedule',
+      fixture.event_features,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
   $$,
   'a feature snapshot and its rows persist atomically'
 );
@@ -330,7 +609,8 @@ SELECT is(
   (
     SELECT row_count
     FROM public.forecast_feature_snapshots
-    WHERE roll_call_id = 'house-999-1-1' AND feature_schema_version = 'forecast-v1'
+    WHERE roll_call_id = 'house-999-1-1'
+      AND feature_schema_version = 'forecast-features-v1'
   ),
   2,
   'snapshot header derives the member row count'
@@ -341,45 +621,39 @@ SELECT is(
     FROM public.forecast_feature_rows AS feature_row
     JOIN public.forecast_feature_snapshots AS snapshot ON snapshot.id = feature_row.snapshot_id
     WHERE snapshot.roll_call_id = 'house-999-1-1'
-      AND snapshot.feature_schema_version = 'forecast-v1'
+      AND snapshot.feature_schema_version = 'forecast-features-v1'
   ),
   2::BIGINT,
   'snapshot member rows become visible with the header'
 );
-SELECT throws_ok(
+SELECT lives_ok(
   $$
-    SELECT * FROM public.persist_forecast_feature_snapshot(
+    SELECT persisted.*
+    FROM forecast_snapshot_fixture AS fixture
+    CROSS JOIN LATERAL public.persist_forecast_feature_snapshot(
       NULL,
       'house-999-1-1',
-      'forecast-v2',
+      'forecast-features-v1',
       '3787-02-01T00:00:00Z',
       'official_schedule',
-      '{"chamber":"house"}'::jsonb,
-      '["roll-call:pgtap-v1"]'::jsonb,
-      repeat('e', 64),
-      repeat('f', 64),
-      jsonb_build_array(
-        jsonb_build_object(
-          'politician_id', 'ZZTEST001',
-          'canonical_member_features', jsonb_build_object('tenure', 2),
-          'member_source_revisions', jsonb_build_array('terms:pgtap-v1'),
-          'row_sha256', repeat('a', 64)
-        )
-      )
-    )
+      fixture.event_features,
+      fixture.event_sources,
+      fixture.event_sha,
+      fixture.roster_sha,
+      fixture.rows
+    ) AS persisted
   $$,
-  'P0001',
-  'snapshot roster hash does not match member rows',
-  'a mismatched roster digest aborts the snapshot'
+  'an exact snapshot retry returns the existing receipt'
 );
 SELECT is(
   (
     SELECT COUNT(*)
     FROM public.forecast_feature_snapshots
-    WHERE roll_call_id = 'house-999-1-1' AND feature_schema_version = 'forecast-v2'
+    WHERE roll_call_id = 'house-999-1-1'
+      AND feature_schema_version = 'forecast-features-v1'
   ),
-  0::BIGINT,
-  'a rejected snapshot wrote no header'
+  1::BIGINT,
+  'an exact snapshot retry writes no duplicate header'
 );
 
 SET LOCAL ROLE service_role;

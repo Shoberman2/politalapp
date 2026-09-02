@@ -22,6 +22,13 @@ describe('parseForecastTarget', () => {
     expect(parseForecastTarget('On Cloture').publicForecastSupported).toBe(false);
   });
 
+  it('does not promote a procedural motion about a conference report', () => {
+    expect(parseForecastTarget('On the Motion to Recommit the Conference Report')).toMatchObject({
+      forecastTarget: 'other_procedural',
+      publicForecastSupported: false,
+    });
+  });
+
   it('fails closed for ambiguous or missing wording', () => {
     expect(parseForecastTarget('Consideration of the measure')).toMatchObject({
       forecastTarget: 'unknown',

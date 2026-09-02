@@ -43,6 +43,54 @@ describe('buildCanonicalFeatureSnapshot', () => {
     );
   });
 
+  it('keeps the published PostgreSQL interoperability hash fixture stable', () => {
+    const snapshot = buildCanonicalFeatureSnapshot({
+      rollCallId: 'house-999-1-1',
+      featureCutoffAt: '3787-02-01T00:00:00.000Z',
+      cutoffQuality: 'official_schedule',
+      eventFeatures: { chamber: 'house', policyArea: 'Health' },
+      eventSources: [{
+        source: 'roll_call',
+        sourceUrl: 'https://example.test/vote/1',
+        availableAt: '3787-01-31T00:00:00.000Z',
+        revisionId: 'pgtap-event-v1',
+      }],
+      memberRows: [
+        {
+          politicianId: 'ZZTEST001',
+          features: { tenure: 2 },
+          sources: [{
+            source: 'terms',
+            sourceUrl: 'https://example.test/terms/1',
+            availableAt: '3787-01-30T00:00:00.000Z',
+            revisionId: 'pgtap-member-v1',
+          }],
+        },
+        {
+          politicianId: 'ZZTEST002',
+          features: { tenure: 1 },
+          sources: [{
+            source: 'terms',
+            sourceUrl: 'https://example.test/terms/2',
+            availableAt: '3787-01-30T00:00:00.000Z',
+            revisionId: 'pgtap-member-v1',
+          }],
+        },
+      ],
+    });
+
+    expect(snapshot.eventSha256).toBe(
+      'f9676e0466cc1af5dd54ea35cd75a953bad40497a3e977eef935832767e33f5e',
+    );
+    expect(snapshot.rows.map((row) => row.rowSha256)).toEqual([
+      '3dc86cd4609b997a6d280180ff9a2b1c27876cb107c401a06d199e02cfb9832e',
+      '6055fe7a2bfb712ea30452725cc4d61042fc28c2e92fc15158305c1b1c266297',
+    ]);
+    expect(snapshot.rosterSha256).toBe(
+      'b3036cabcc3e2e01c1608ceb1d73825c6975b2ab515255c1aff547e2412fcf08',
+    );
+  });
+
   it('rejects leakage from a post-cutoff source', () => {
     const input = fixture();
     input.memberRows[0].sources = [source('late', '2025-01-02T14:00:00.000Z')];
@@ -110,6 +158,31 @@ describe('buildCanonicalFeatureSnapshot', () => {
     const unsourced = fixture();
     unsourced.eventSources = [];
     expect(() => buildCanonicalFeatureSnapshot(unsourced)).toThrow(/require source provenance/);
+  });
+
+  it('enforces exact runtime value types for every v1 feature', () => {
+    const nestedPolicyArea = fixture();
+    nestedPolicyArea.eventFeatures = {
+      chamber: 'house',
+      policyArea: { actualOutcome: 'passed' },
+    };
+    expect(() => buildCanonicalFeatureSnapshot(nestedPolicyArea)).toThrow(/policyArea/);
+
+    const numericChamber = fixture();
+    numericChamber.eventFeatures = { chamber: 123, policyArea: 'Health' };
+    expect(() => buildCanonicalFeatureSnapshot(numericChamber)).toThrow(/chamber/);
+
+    const outcomeInTenure = fixture();
+    outcomeInTenure.memberRows[0].features = { tenure: 'actual tally 250-180' };
+    expect(() => buildCanonicalFeatureSnapshot(outcomeInTenure)).toThrow(/tenure/);
+
+    const fractionalTenure = fixture();
+    fractionalTenure.memberRows[0].features = { tenure: 2.5 };
+    expect(() => buildCanonicalFeatureSnapshot(fractionalTenure)).toThrow(/tenure/);
+
+    const unsafeTenure = fixture();
+    unsafeTenure.memberRows[0].features = { tenure: Number.MAX_SAFE_INTEGER + 1 };
+    expect(() => buildCanonicalFeatureSnapshot(unsafeTenure)).toThrow(/tenure/);
   });
 
   it('requires a schema bump when the same logical snapshot changes hash', () => {

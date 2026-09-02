@@ -1,6 +1,11 @@
 import { evaluateProvenanceGate, type ProvenanceExample } from './provenance.js';
 
 export const PROVENANCE_AUDIT_SCHEMA_VERSION = 'forecast-provenance-audit-v1';
+export const REQUIRED_PROVENANCE_SOURCES = [
+  'member_effective_intervals',
+  'house_schedule_publication',
+  'senate_final_passage_schedule_publication',
+] as const;
 
 export interface ProvenanceSourceStatus {
   source: string;
@@ -44,6 +49,16 @@ function assertAuditShape(document: ProvenanceAuditDocument): void {
     ) {
       throw new Error(`invalid provenance source at index ${index}`);
     }
+  }
+  const sourceNames = new Set(document.sources.map((source) => source.source));
+  if (
+    sourceNames.size !== document.sources.length
+    || document.sources.length !== REQUIRED_PROVENANCE_SOURCES.length
+    || REQUIRED_PROVENANCE_SOURCES.some((source) => !sourceNames.has(source))
+  ) {
+    throw new Error(
+      `provenance audit must contain exactly: ${REQUIRED_PROVENANCE_SOURCES.join(', ')}`,
+    );
   }
   for (const [index, row] of document.rows.entries()) {
     if (
