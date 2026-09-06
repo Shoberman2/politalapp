@@ -60,8 +60,8 @@ Normalizes raw API data to our database schema.
 | API Field | DB Field | Transformation |
 |-----------|----------|----------------|
 | (computed) | `id` | `{congress}-{type}-{number}` e.g., "118-hr-1234" |
-| `bill.title` | `title` | Direct |
-| `bill.introducedDate` | `introduced_at` | ISO date string |
+| `bill.title` | `title` | Direct; a vote-derived record carries a stub like `HR 1` until the bill detail is fetched |
+| `bill.introducedDate` | `introduced_at` | ISO date string, or null until the bill detail has been fetched (never guessed) |
 | (AI generated) | `summary` | Plain-English summary |
 | (computed) | `source_url` | Congress.gov bill URL |
 
@@ -93,10 +93,20 @@ Normalizes raw API data to our database schema.
 **Key Behaviors**:
 - **Idempotent**: Running multiple times produces the same result
 - **Preserves Summaries**: Existing AI summaries are not overwritten
+- **Preserves Real Titles and Dates**: A stub title (`HR 1`, `S 12`) from the vote feeds never overwrites a real title already stored, and a stored `introduced_at` is kept when the incoming record has none (`mergeBillRow` / `preferRealTitle`)
 - **Batch Processing**: Records processed in batches of 100
 - **Error Handling**: Partial failures don't abort the entire load
+- **Fails Closed**: Existing bill rows are read per batch of 100. If that read fails, the batch is inserted with `ON CONFLICT DO NOTHING` (new ids only, so roll calls and votes can still land) and the error is reported; nothing already stored is overwritten blind
 
-### 4. Enrich Phase (`enrichBillsWithAI.ts`)
+### 4. CRS Phase (`fetchCRS.ts`)
+
+Runs after the load inside `npm run etl`: up to 50 bills per run, 750ms between Congress.gov calls.
+
+**Selection order** (`selectBillsToEnrich`): placeholder-titled bills first, newest Congress first, then rows missing `crs_summary`, `policy_area`, or `introduced_at`. A bill first seen through a roll call therefore gets its real title, introduced date, and policy area within a run or two instead of waiting behind the archive.
+
+**Writes**: `crs_summary` from `/bill/{congress}/{type}/{number}/summaries` (most recent summary, HTML stripped); `title` (only when the stored one is a stub), `introduced_at`, and `policy_area` from `/bill/{congress}/{type}/{number}`.
+
+### 5. Enrich Phase (`enrichBillsWithAI.ts`)
 
 **Purpose**: Generate human-readable bill summaries using AI.
 
@@ -139,6 +149,26 @@ npm run etl -- --days 30
 # Only run AI enrichment
 npm run etl:enrich
 ```
+
+### Operator Scripts
+
+`etl/repairPlaceholderTitles.ts` restores the real title, introduced date, and
+policy area for bills whose title is a vote-feed stub (`HR 1`, `S 1582`) from
+the Congress.gov bill detail endpoint. Idempotent; safe to re-run.
+
+```bash
+npx tsx etl/repairPlaceholderTitles.ts --dry-run    # list what would change
+npx tsx etl/repairPlaceholderTitles.ts              # voted-on bills only (the pages that matter)
+npx tsx etl/repairPlaceholderTitles.ts --all        # every placeholder-titled bill
+npx tsx etl/repairPlaceholderTitles.ts --limit 500  # cap Congress.gov calls this run
+```
+
+Needs `CONGRESS_API_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`. A run
+makes at most 2,000 Congress.gov calls by default (the API allows 5,000 per
+hour), stops after 10 consecutive failures, and a later run continues from
+wherever the last one stopped. A bill that returns no title from Congress.gov
+is logged and left as is. Run against production on 2026-09-06: 476 bills
+restored.
 
 ### GitHub Actions (Automated)
 

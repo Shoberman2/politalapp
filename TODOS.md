@@ -15,6 +15,12 @@
 **Context:** The site derives a roll call's result from the tally and the question (`api/_lib/rollCallResult.js`, `src/services/floorVotes.js`). The ETL already extracts the official `result` string from the House and Senate XML (`etl/extractHouseVotes.ts`) and drops it in `etl/transform.ts`. Derivation now returns null for majority-but-under-60 cloture motions of unknown threshold and reads the description for nominations, but the official result is strictly better.
 **What to do:** Add `roll_calls.result TEXT`, persist it in the ETL, backfill the 119th, and prefer it everywhere `deriveResult` runs; keep derivation as the fallback for rows without it.
 
+## One-off CRS summary and policy-area backfill across the archive
+**Priority:** Medium
+**Blocked by:** Nothing (v0.6.1.0 stopped the loader nulling these columns)
+**Context:** Until v0.6.1.0 the daily loader read every existing bill in the run with one request (8,000+ ids); the server dropped it, the failure was ignored, and each run then wrote NULL over `crs_summary` and `policy_area` on every bill it touched. Production held 51 CRS summaries across 182,646 bills on 2026-09-06. The loader now reads per batch of 100 and fails closed (`mergeBillRow` in `etl/load.ts`), so a backfill will stick, but the daily CRS pass (`etl/fetchCRS.ts`, 50 bills per run, placeholder titles first) would take years to cover the archive on its own.
+**What to do:** Run a one-off pass over the archive that fetches the CRS summary from `/bill/{congress}/{type}/{number}/summaries` and `policyArea` from the bill detail (the same two calls `fetchCRS.ts` makes), newest Congress first, inside the 5,000 requests/hour quota. Make it resumable and idempotent like `etl/repairPlaceholderTitles.ts` (call cap per run, stop on consecutive failures). Record `count(*) where crs_summary is not null` before and after, and spot-check that the daily run does not lower it again.
+
 ## Retention for anonymous api_usage rows
 **Priority:** Medium
 **Blocked by:** Nothing

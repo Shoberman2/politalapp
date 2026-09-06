@@ -22,6 +22,14 @@ The ETL is designed to update records idempotently. Every API response reports
 `meta.data_updated_at` (the last successful ETL run), and single records carry
 the official `source_url`.
 
+Caveat: The roll-call feeds carry a bill's number but rarely its title or
+introduced date. A bill first seen through a vote is stored under a stub title
+(`HR 1`) with no `introduced_at` until the Congress.gov bill detail has been
+fetched; the ETL never writes a stub over a real title, never guesses a date,
+and its daily CRS pass fetches placeholder-titled bills first. Until then the
+bill is left out of the sitemap, and it sorts last in the API's bill list and
+search.
+
 ## Derived Fields
 
 BallotWatch stores the record as ingested. One field is computed rather than
