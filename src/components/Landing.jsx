@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
-import { getRecentFloorVotes } from '../services/floorVotes'
+import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
 import { saveUserAddress } from '../services/userService'
 import SEO from './SEO'
 import '../styles/Landing.css'
@@ -110,6 +110,7 @@ function fromFloorVote(v) {
     key: v.id,
     chamber: v.chamber,
     rollLabel: v.number != null ? `Roll Call ${v.number}` : null,
+    voteHref: rollCallHref(v.id),
     bill: v.bill,
     text: truncate(v.description || v.question || '', 92),
     tally: v.yea != null && v.nay != null ? `${v.yea}–${v.nay}` : null,
@@ -624,7 +625,9 @@ function Landing() {
                 <li className="floor-row" key={v.key} data-reveal>
                   <div className="fr-meta">
                     {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
-                    {v.rollLabel && <span className="fr-roll">{v.rollLabel}</span>}
+                    {v.rollLabel && (v.voteHref
+                      ? <Link className="fr-roll" to={v.voteHref}>{v.rollLabel}</Link>
+                      : <span className="fr-roll">{v.rollLabel}</span>)}
                   </div>
                   <div className="fr-body">
                     {v.bill && (

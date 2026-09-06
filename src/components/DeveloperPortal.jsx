@@ -59,8 +59,9 @@ function DeveloperPortal() {
         <span className="dev-label">BallotWatch API and Open Data</span>
         <h1>Build on source-linked congressional data</h1>
         <p className="dev-hero-subtitle">
-          Start with public samples, inspect the OpenAPI contract, then use hosted
-          access when you need fresh congressional data at production volume.
+          Every GET endpoint is open without a key. Read the OpenAPI contract, point an
+          agent at <code>/llms.txt</code> or the MCP server, and claim a free key when you
+          need more than 60 requests a minute.
         </p>
         <div className="dev-hero-actions">
           <button className="btn-secondary dev-open-button" onClick={() => navigate('/open')}>
@@ -108,6 +109,25 @@ function DeveloperPortal() {
             <code>GET /api/v1/search</code>
             <p>Cross-table search. Find members by name, bills by keyword. One query, all results.</p>
           </div>
+        </div>
+      </section>
+
+      <section className="dev-agents">
+        <div className="dev-open-data-copy">
+          <span className="dev-label">No key needed</span>
+          <h2>For developers and AI agents</h2>
+          <p>
+            Sixty requests a minute and five thousand a day per IP, no signup. Every
+            response carries <code>data_updated_at</code> and the official source URL.
+            Member, bill, and roll-call pages also answer <code>Accept: text/markdown</code>.
+          </p>
+          <pre className="dev-curl"><code>{'curl https://www.ballotwatch.io/api/v1/members/P000197/votes?limit=5'}</code></pre>
+        </div>
+        <div className="dev-open-data-links">
+          <a href="/llms.txt">llms.txt (site map for agents)</a>
+          <a href="/openapi.yaml">OpenAPI spec</a>
+          <a href="/mcp">MCP server endpoint</a>
+          <a href="/sitemap.xml">Sitemap</a>
         </div>
       </section>
 
