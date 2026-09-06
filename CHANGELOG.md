@@ -3,6 +3,13 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.6.1.0] - 2026-09-06
+
+### Fixed
+
+- Bill titles no longer vanish after an ETL run. The vote feeds rarely carry a title, so the loader filled in a stub like "HR 1" and wrote it over the real title an earlier run had fetched from Congress.gov; the weekly 30-day re-run on 2026-09-06 did this to 283 voted-on bills, which then dropped out of the sitemap and lost their titles on member and roll-call pages. The loader now keeps an existing real title when the incoming one is a stub, the introduced-bills feed's title wins over a stub, and vote-derived records no longer claim today as their introduced date.
+- A repair script (`etl/repairPlaceholderTitles.ts`) restores title, introduced date, and policy area for affected bills from the Congress.gov bill detail endpoint. It was run against production for every voted-on bill.
+
 ## [0.6.0.0] - 2026-09-05
 
 ### Added
