@@ -11,7 +11,11 @@ useful to people who want to build on it.
 - Methodology documentation for AI summaries, committee survival, sponsor
   activity, campaign-finance matching, and corrections.
 - Public sample datasets in `public/data`.
-- API shape in `docs/api/openapi.yaml`.
+- API shape in `docs/api/openapi.yaml`, served at `/openapi.yaml`.
+- The agent map at `/llms.txt` (`public/llms.txt`) and the MCP server
+  (`api/mcp.js`, `api/_lib/mcpTools.js`).
+- Server-rendered record pages (`api/prerender.js`) and the generated sitemap
+  (`api/sitemap.js`).
 - Design direction in `DESIGN.md`.
 
 ## What Requires Hosted Infrastructure
@@ -20,11 +24,13 @@ useful to people who want to build on it.
 - Service-role ETL credentials.
 - Stripe billing and subscription state.
 - OpenAI-backed explanation generation.
-- High-volume hosted API access.
+- Paid API keys for higher volume.
 
 The open-source repo should let someone inspect, run, and extend the project.
-The hosted API exists for freshness, uptime, higher volume, support, and managed
-infrastructure.
+The hosted API is free to read: GET requests need no key (60 per minute and
+5,000 per day per IP), and a free key raises that to 600 per minute. Paid keys
+keep a monthly quota. The hosted API exists for freshness, uptime, higher
+volume, support, and managed infrastructure.
 
 ## Who It Helps
 
@@ -33,7 +39,7 @@ infrastructure.
 | Voters | Understand who represents them, how members voted, and where bills stand. |
 | Journalists | Cite stable pages, inspect methodology, and request source-backed corrections. |
 | Researchers | Use sample datasets, API docs, schema notes, and provenance records. |
-| Developers | Build against the API or fork the app for civic experiments. |
+| Developers | Build against the API without a key, point an agent at `/llms.txt` or `/mcp`, or fork the app for civic experiments. |
 | Contributors | Improve docs, tests, data QA, accessibility, examples, ETL, and UI. |
 
 ## Feature Readability Standard
@@ -61,6 +67,9 @@ source license and redistribution term is reviewed.
 
 Use `CITATION.cff` for software citation. When citing data or methodology, cite
 the specific page, dataset version, source date, and methodology version.
+API responses report `meta.data_updated_at`; single records carry a
+`source_url` and a `Link: <official source>; rel="canonical"` header, so a
+citation can name both the BallotWatch URL and the official record.
 
 Suggested text:
 

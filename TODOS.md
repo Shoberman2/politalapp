@@ -50,7 +50,7 @@
 
 ## Monthly API rate limit counter reset
 **Priority:** Low
-**Blocked by:** Nothing (api_keys table must exist in live Supabase)
+**Blocked by:** Nothing (the `api_keys` table exists in production since v0.6.0.0)
 **Context:** API keys track `monthly_count` for rate limiting. The auth middleware resets the count on first request of a new month (by checking `last_reset_at`), so this is not strictly blocking. But a pg_cron job or Supabase scheduled function would keep counts clean for the usage dashboard even when keys aren't actively used.
 **What to do:** Add a pg_cron job: `UPDATE api_keys SET monthly_count = 0, last_reset_at = date_trunc('month', NOW()) WHERE last_reset_at < date_trunc('month', NOW())`. Schedule for 1st of each month at 00:00 UTC.
 
@@ -69,7 +69,7 @@
 ## Add API endpoint tests
 **Priority:** High
 **Blocked by:** Nothing
-**Context:** The B2B API (api/v1/*) has 12 endpoints and auth middleware with zero test coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
+**Context:** The B2B API (api/v1/*) has 12 endpoints. v0.6.0.0 added tests for the auth middleware, anonymous access, rate limiting, and free keys (`test/api/authAnonymous.test.js`, `rateLimit.test.js`, `keysFree*.test.js`, `v1MemberRoute.test.js`), but the endpoint response shapes still have no coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
 **What to do:** Create test/api/ directory with auth.test.js, members.test.js, bills.test.js, votes.test.js, stats.test.js. Mock the Supabase admin client. Verify response shapes, status codes, and error handling for every endpoint.
 
 ## ~~Move client-side OpenAI calls behind an Edge Function~~
@@ -226,7 +226,8 @@
 **Priority:** P3
 **Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics
 
-## Montana is still treated as an at-large state in district.js
+## ~~Montana is still treated as an at-large state in district.js~~
+**Completed:** v0.6.0.0 (2026-09-05). `MT` removed from both `atLargeStates` lists in `src/services/district.js`.
 **Priority:** High
 **Category:** Data correctness
 **Blocked by:** Nothing

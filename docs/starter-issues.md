@@ -5,7 +5,7 @@ or second contribution.
 
 ## Documentation
 
-1. Add a Python example that fetches recent Senate votes from `/api/v1/votes`.
+1. Add a Python example that fetches recent Senate votes from `/api/v1/votes` (no key needed).
 2. Add a Node example that finds bills by policy area and writes a CSV.
 3. Expand `docs/methodology/ai-explanations.md` with one concrete failure mode.
 4. Add a glossary entry for "cloture" and link it from procedural-vote docs.
@@ -29,3 +29,5 @@ or second contribution.
 13. Add a response-shape test for `/api/v1/search`.
 14. Add an auth error test for revoked API keys.
 15. Add an OpenAPI example response for `/api/v1/bills/:id`.
+16. Add an MCP client example (Python or Node) that calls `find_representatives` on `/mcp`.
+17. Add a `curl` example that requests a member page with `Accept: text/markdown`.

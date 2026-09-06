@@ -18,7 +18,29 @@ Used for:
 - Committee routing where available.
 
 Caveat: Official sources can change or correct records after initial publication.
-The ETL is designed to update records idempotently.
+The ETL is designed to update records idempotently. Every API response reports
+`meta.data_updated_at` (the last successful ETL run), and single records carry
+the official `source_url`.
+
+## Derived Fields
+
+BallotWatch stores the record as ingested. One field is computed rather than
+stored: a roll call's result. `api/_lib/rollCallResult.js` (mirrored by
+`src/services/floorVotes.js`) derives it from the question text and the tally
+using the real thresholds:
+
+- Cloture on a nomination: simple majority. Cloture on legislation: 60 votes.
+- Veto overrides and treaty ratification: two-thirds of those voting.
+- Suspension of the rules: two-thirds.
+- Senate budget-rule waivers: 60 votes.
+- Everything else: simple majority; a tie fails.
+
+When the record does not say which threshold applies (for example a cloture
+motion with a majority under 60 whose subject is unknown), no result is
+asserted. The API and MCP tools label this field `result_derived`.
+
+Caveat: The official result string in the House and Senate XML is not yet
+persisted; see the roll-call result item in `TODOS.md`.
 
 ## District Lookup
 

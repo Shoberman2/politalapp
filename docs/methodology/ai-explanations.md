@@ -20,6 +20,10 @@ AI explanation functions receive structured data such as:
 - Generated explanations are cached with a prompt version.
 - Some flows use forbidden-word filters to avoid politically loaded phrasing.
 - If generation fails, the app should fall back to deterministic copy.
+- Share cards, server-rendered bill pages, and the MCP `explain_bill` tool only
+  ever read a cached explanation; nothing is generated on demand for them. A
+  cached explanation is used only when it was generated for the bill as it is
+  titled now (`explanationMatchesBill` in `api/_lib/indexGate.js`).
 
 ## Display Standard
 
@@ -38,3 +42,5 @@ source record or methodology page from any AI-assisted section.
 - `supabase/functions/explain-bill-path/index.ts`
 - `supabase/functions/narrate-votes/index.ts`
 - `src/services/votingPatternNarration.js`
+- `api/_lib/indexGate.js`
+- `api/_lib/mcpTools.js`
