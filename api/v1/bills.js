@@ -28,7 +28,7 @@ async function route(req) {
   if (dateFrom) query = query.gte('introduced_at', dateFrom)
   if (dateTo) query = query.lte('introduced_at', dateTo)
 
-  query = query.order('introduced_at', { ascending: false }).range(offset, offset + limit - 1)
+  query = query.order('introduced_at', { ascending: false, nullsFirst: false }).range(offset, offset + limit - 1)
 
   const { data, count, error } = await query
 

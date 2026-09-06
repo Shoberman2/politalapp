@@ -220,6 +220,10 @@ npm run etl:backfill-historical-routings
 npm run etl:compute-survival
 ```
 
+`etl/repairPlaceholderTitles.ts` (run with `npx tsx`, `--dry-run` first)
+restores real titles, introduced dates, and policy areas for bills the vote
+feeds left as stubs; flags and quota are in `etl/README.md`.
+
 ## Project Structure
 
 ```text
@@ -289,7 +293,9 @@ and `/vote/:congress/:chamber/:session/:roll` into the built `index.html` shell
 so crawlers and agents receive the record and React still takes over in the
 browser. Pages that fail the data-quality gate in `api/_lib/indexGate.js`
 (placeholder titles, tallies that disagree with member votes, members with no
-votes) are served with `noindex` and left out of the sitemap.
+votes) are served with `noindex` and left out of the sitemap. Placeholder
+titles are transient: the ETL never lets a vote-feed stub replace a real title,
+and its CRS pass fetches real titles for placeholder-titled bills first.
 
 ## Data and Methodology
 

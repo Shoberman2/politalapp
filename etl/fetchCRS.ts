@@ -6,9 +6,9 @@
  * Also fetches policyArea for topic categorization.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { ETLConfig } from './types.js';
-import { fetchCongressApi, logger, sleep } from './utils.js';
+import { fetchCongressApi, isPlaceholderTitle, logger, sleep } from './utils.js';
 
 interface CRSResult {
   billsProcessed: number;
@@ -26,10 +26,69 @@ interface CRSSummaryResponse {
 interface CRSBillResponse {
   bill?: {
     title?: string;
+    introducedDate?: string;
     policyArea?: {
       name?: string;
     };
   };
+}
+
+interface EnrichableBill {
+  id: string;
+  title: string | null;
+  introduced_at: string | null;
+  crs_summary: string | null;
+  policy_area: string | null;
+}
+
+// PostgREST cannot express the placeholder regex, so this ilike net is
+// deliberately wide; isPlaceholderTitle decides before anything is written.
+const PLACEHOLDER_TITLE_FILTER =
+  'title.is.null,title.ilike.HR %,title.ilike.S %,title.ilike.HRES %,title.ilike.SRES %,title.ilike.HJRES %,title.ilike.SJRES %,title.ilike.HCONRES %,title.ilike.SCONRES %';
+const MISSING_ENRICHMENT_FILTER = 'crs_summary.is.null,policy_area.is.null,introduced_at.is.null';
+const SELECT_COLUMNS = 'id, title, introduced_at, crs_summary, policy_area';
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Pick the bills to enrich this run. Placeholder-titled bills come first: a
+ * bill whose only name is "HR 4795" is hidden from the sitemap and the API
+ * until a real title arrives, so it must not wait its turn behind the 100k+
+ * archive rows that merely lack a CRS summary. Newest Congress first within
+ * each pass so current bills heal before historical ones.
+ */
+export async function selectBillsToEnrich(
+  supabase: SupabaseClient,
+  maxBills: number
+): Promise<{ bills: EnrichableBill[]; error: string | null }> {
+  const chosen = new Map<string, EnrichableBill>();
+
+  const { data: stubs, error: stubError } = await supabase
+    .from('bills')
+    .select(SELECT_COLUMNS)
+    .or(PLACEHOLDER_TITLE_FILTER)
+    .order('id', { ascending: false })
+    .limit(maxBills);
+  if (stubError) return { bills: [], error: stubError.message };
+  for (const bill of (stubs || []) as EnrichableBill[]) {
+    if (isPlaceholderTitle(bill.title)) chosen.set(bill.id, bill);
+  }
+
+  const remaining = maxBills - chosen.size;
+  if (remaining > 0) {
+    const { data: rest, error: restError } = await supabase
+      .from('bills')
+      .select(SELECT_COLUMNS)
+      .or(MISSING_ENRICHMENT_FILTER)
+      .order('id', { ascending: false })
+      .limit(remaining + chosen.size);
+    if (restError) return { bills: [...chosen.values()], error: restError.message };
+    for (const bill of (rest || []) as EnrichableBill[]) {
+      if (chosen.size >= maxBills) break;
+      if (!chosen.has(bill.id)) chosen.set(bill.id, bill);
+    }
+  }
+
+  return { bills: [...chosen.values()], error: null };
 }
 
 /**
@@ -50,17 +109,12 @@ export async function fetchCRSSummaries(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Fetch bills that need enrichment:
-  // - missing crs_summary or policy_area
-  // - title is just the bill number (e.g., "HR 1234") meaning real title wasn't fetched
-  const { data: bills, error } = await supabase
-    .from('bills')
-    .select('id, title, crs_summary, policy_area')
-    .or('crs_summary.is.null,policy_area.is.null,title.ilike.HR %,title.ilike.S %,title.ilike.HRES %,title.ilike.SRES %,title.ilike.HJRES %,title.ilike.SJRES %,title.ilike.HCONRES %,title.ilike.SCONRES %')
-    .limit(maxBills);
+  // Bills that need enrichment: placeholder titles first, then rows missing a
+  // CRS summary, policy area, or introduced date (see selectBillsToEnrich).
+  const { bills, error } = await selectBillsToEnrich(supabase, maxBills);
 
-  if (error || !bills) {
-    result.errors.push(`Failed to fetch bills: ${error?.message}`);
+  if (error) {
+    result.errors.push(`Failed to fetch bills: ${error}`);
     return result;
   }
 
@@ -100,9 +154,9 @@ export async function fetchCRSSummaries(
       }
     }
 
-    // Fetch bill details (title, policy area) if missing
-    const needsTitle = !bill.title || /^(HR|S|HRES|SRES|HJRES|SJRES|HCONRES|SCONRES)\s+\d+$/i.test(bill.title);
-    if (!bill.policy_area || needsTitle) {
+    // Fetch bill details (title, introduced date, policy area) if missing
+    const needsTitle = isPlaceholderTitle(bill.title);
+    if (!bill.policy_area || !bill.introduced_at || needsTitle) {
       try {
         const billResponse = await fetchCongressApi<CRSBillResponse>(
           `/bill/${congress}/${type}/${number}`,
@@ -115,8 +169,13 @@ export async function fetchCRSSummaries(
             updates.policy_area = billData.policyArea.name;
             result.policyAreasFetched++;
           }
-          if (needsTitle && billData.title) {
+          if (needsTitle && billData.title && !isPlaceholderTitle(billData.title)) {
             updates.title = billData.title;
+          }
+          // The detail's introducedDate is the real one; the vote feed and the
+          // bill list never carry it, so this is where a null date gets filled.
+          if (billData.introducedDate && ISO_DATE.test(billData.introducedDate)) {
+            updates.introduced_at = billData.introducedDate;
           }
         }
       } catch (err) {

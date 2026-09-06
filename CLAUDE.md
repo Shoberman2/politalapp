@@ -38,3 +38,7 @@ Key routing rules:
   `public/llms.txt`.
 - `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in
   `api/_lib/auth.js` and `api/_lib/rateLimit.js`.
+- `PLACEHOLDER_TITLE_RE` in `api/_lib/indexGate.js` and `etl/utils.ts` must
+  stay identical: the index gate, the sitemap, the ETL loader, and
+  `etl/repairPlaceholderTitles.ts` all decide "stub or real title" with it.
+  `test/etl/billTitlePreservation.test.ts` asserts parity.

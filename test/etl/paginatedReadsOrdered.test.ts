@@ -13,6 +13,7 @@ const FILES = [
   { path: '../../etl/computeStats.ts', table: 'votes' },
   { path: '../../etl/computeCommitteeSurvival.ts', table: 'bill_committee_routings' },
   { path: '../../etl/preWarmBillExplanations.ts', table: 'bill_explanations' },
+  { path: '../../etl/repairPlaceholderTitles.ts', table: 'roll_calls' },
 ]
 
 /**

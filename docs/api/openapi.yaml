@@ -115,6 +115,7 @@ paths:
   /api/v1/bills:
     get:
       summary: List bills
+      description: Newest first by introduced_at. Bills with no introduced date sort last and are excluded by date_from and date_to.
       parameters:
         - name: policy_area
           in: query
@@ -276,6 +277,7 @@ paths:
   /api/v1/search:
     get:
       summary: Search members and bills
+      description: Bill matches are newest first by introduced_at; bills with no introduced date sort last.
       parameters:
         - name: q
           in: query
@@ -482,6 +484,7 @@ components:
           type: string
           format: date
           nullable: true
+          description: Introduced date from Congress.gov; null for a bill first seen through a roll call until its bill detail has been fetched.
         source_url:
           type: string
     Vote:

@@ -41,7 +41,7 @@ async function route(req) {
         .from('bills')
         .select('*')
         .ilike('title', `%${searchTerm.replace(/[%_*\\]/g, ' ').trim()}%`)
-        .order('introduced_at', { ascending: false })
+        .order('introduced_at', { ascending: false, nullsFirst: false })
         .limit(limitParam)
 
       if (!error) results.bills = bills || []

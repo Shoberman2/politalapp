@@ -3,6 +3,16 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.6.1.0] - 2026-09-06
+
+### Fixed
+
+- Bill titles no longer vanish after an ETL run. The vote feeds rarely carry a title, so the loader filled in a stub like "HR 1" and wrote it over the real title an earlier run had fetched from Congress.gov; the weekly 30-day re-run on 2026-09-06 did this to 283 voted-on bills, which then dropped out of the sitemap and lost their titles on member and roll-call pages. The loader now keeps an existing real title when the incoming one is a stub, the introduced-bills feed's title wins over a stub, and vote-derived records no longer claim today as their introduced date.
+- The loader's read of existing rows was one request for every bill in the run (8,000+ ids); the server dropped the oversized request, the failure was ignored, and each daily run then wrote NULL over `crs_summary` and `policy_area` for every bill it touched. Production held 51 CRS summaries across 182,646 bills when this was found. The read is now per batch of 100, and if it fails the loader inserts only genuinely new bills (ON CONFLICT DO NOTHING) and reports the error instead of overwriting anything.
+- The introduced-bills feed no longer passes a bill's latest action date off as its introduced date for the thousands of bills outside the per-run detail budget, so a real introduced date, once stored, is kept. Undated bills sort last in the public bills list and search rather than first.
+- The daily CRS pass now picks placeholder-titled bills first (newest Congress first) instead of 50 arbitrary rows from the archive, and writes the introduced date from the bill detail it already fetches, so a bill first seen through a vote heals on its own.
+- A repair script (`etl/repairPlaceholderTitles.ts`) restores title, introduced date, and policy area for affected bills from the Congress.gov bill detail endpoint. It was run against production for every voted-on bill: 476 bills restored, none left with a placeholder title.
+
 ## [0.6.0.0] - 2026-09-05
 
 ### Added

@@ -195,6 +195,44 @@ export function normalizeVotePosition(rawPosition: string): VotePosition {
 }
 
 // =============================================================================
+// BILL TITLES
+// =============================================================================
+
+// Bill titles the vote feeds cannot supply are stubs like "HR 915" or "S 12".
+// Keep in step with PLACEHOLDER_TITLE_RE in api/_lib/indexGate.js (a test
+// asserts the two patterns are identical).
+export const PLACEHOLDER_TITLE_RE =
+  /^(H\.?R\.?|S\.?|H\.?J\.?Res\.?|S\.?J\.?Res\.?|H\.?Con\.?Res\.?|S\.?Con\.?Res\.?|H\.?Res\.?|S\.?Res\.?)\s*\d+$/i;
+
+export function isPlaceholderTitle(title: string | null | undefined): boolean {
+  const t = String(title ?? '').trim();
+  return t.length === 0 || PLACEHOLDER_TITLE_RE.test(t);
+}
+
+/**
+ * The one rule for choosing between two titles for the same bill: a real
+ * title always beats a stub, and the preferred source wins when both are
+ * real (or both stubs). Used by the loader and the run-time merge.
+ */
+export function preferRealTitle(
+  preferred: string | null | undefined,
+  fallback: string | null | undefined
+): string {
+  if (preferred && !isPlaceholderTitle(preferred)) return preferred;
+  if (fallback && !isPlaceholderTitle(fallback)) return fallback;
+  return preferred || fallback || '';
+}
+
+/**
+ * Inverse of generateBillId: "119-hr-1" -> { congress: 119, type: "hr", number: 1 }.
+ */
+export function parseBillId(id: string | null | undefined): { congress: number; type: string; number: number } | null {
+  const m = /^(\d+)-([a-z]+)-(\d+)$/i.exec(String(id ?? ''));
+  if (!m) return null;
+  return { congress: parseInt(m[1], 10), type: m[2].toLowerCase(), number: parseInt(m[3], 10) };
+}
+
+// =============================================================================
 // BILL ID GENERATION
 // =============================================================================
 
@@ -303,7 +341,8 @@ export function chunk<T>(array: T[], size: number): T[][] {
 export async function retry<T>(
   fn: () => Promise<T>,
   maxAttempts: number = 3,
-  baseDelayMs: number = 1000
+  baseDelayMs: number = 1000,
+  shouldRetry: (error: Error) => boolean = () => true
 ): Promise<T> {
   let lastError: Error | undefined;
 
@@ -313,6 +352,7 @@ export async function retry<T>(
     } catch (error) {
       lastError = error as Error;
       logger.warn(`Attempt ${attempt}/${maxAttempts} failed: ${lastError.message}`);
+      if (!shouldRetry(lastError)) break;
 
       if (attempt < maxAttempts) {
         const delay = baseDelayMs * Math.pow(2, attempt - 1);
@@ -323,6 +363,16 @@ export async function retry<T>(
   }
 
   throw lastError;
+}
+
+/**
+ * A 4xx from Congress.gov (other than 429) is a definitive answer, not a
+ * transient failure: retrying a 404 three times burns quota for nothing.
+ */
+export function isTransientCongressError(error: Error): boolean {
+  const status = /Congress API error: (\d{3})/.exec(error.message)?.[1];
+  if (!status) return true;
+  return status === '429' || !status.startsWith('4');
 }
 
 /**
