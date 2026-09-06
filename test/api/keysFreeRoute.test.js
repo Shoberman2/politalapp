@@ -81,6 +81,20 @@ describe('POST /api/keys/free', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
+  it('uses the existing organization when it loses the creation race', async () => {
+    const existing = { id: 'o-existing', plan: 'free', subscription_status: 'active', subscription_id: null, monthly_limit: 0 }
+    let reads = 0
+    const table = {
+      select: () => ({ eq: () => ({ order: () => ({ limit: async () => ({ data: reads++ === 0 ? [] : [existing], error: null }) }) }) }),
+      insert: () => ({ select: () => ({ single: async () => ({ data: null, error: { code: '23505', message: 'duplicate key' } }) }) }),
+      update: vi.fn(),
+    }
+    m.from.mockReturnValue(table)
+    const r = res(); await handler(post(), r)
+    expect(r.statusCode).toBe(200)
+    expect(JSON.parse(r.body)).toMatchObject({ data: existing, meta: { raced: true } })
+  })
+
   it('rate limits repeated attempts per user', async () => {
     orgTable({ existing: { id: 'o1', plan: 'free', subscription_status: 'active', subscription_id: null, monthly_limit: 0 } })
     let last
