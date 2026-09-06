@@ -37,13 +37,20 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
 
+// The Vite build copies dist/index.html to api/_shell/index.html
+// (vite.config.js). These must stay literal `new URL(..., import.meta.url)`
+// expressions: that is what Vercel's file tracer follows to bundle the file
+// with the function, so production and previews never depend on a network
+// hop or on deployment protection to find their own asset tags.
+const BUILT_SHELL_CANDIDATES = [
+  new URL('./_shell/index.html', import.meta.url),
+  new URL('../dist/index.html', import.meta.url),
+]
+
 async function readBuiltShell() {
-  // The built shell is bundled into the function (vercel.json includeFiles),
-  // so production and previews never depend on a network hop or on
-  // deployment protection to find their own asset tags.
-  for (const rel of ['../dist/index.html', './dist/index.html']) {
+  for (const url of BUILT_SHELL_CANDIDATES) {
     try {
-      const html = await readFile(new URL(rel, import.meta.url), 'utf8')
+      const html = await readFile(url, 'utf8')
       if (/<div id="root">/.test(html) && !/\/src\/main\.jsx/.test(html)) return html
     } catch { /* try the next location */ }
   }

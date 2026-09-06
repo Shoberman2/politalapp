@@ -6,11 +6,6 @@
       "schedule": "0 14 * * *"
     }
   ],
-  "functions": {
-    "api/prerender.js": {
-      "includeFiles": "dist/index.html"
-    }
-  },
   "redirects": [
     {
       "source": "/:path*",
