@@ -1,13 +1,14 @@
 {
   "name": "political-voting-tracker",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:fullstack": "vercel dev --listen 3000",
     "config:check": "node scripts/check-config.mjs",
     "config:check:full": "node scripts/check-config.mjs --full",
+    "prebuild": "node scripts/sync-openapi.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "data:voteview-ideology": "node scripts/update-voteview-ideology.mjs",
@@ -26,6 +27,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@stripe/stripe-js": "^8.7.0",
     "@supabase/supabase-js": "^2.39.0",
     "@vercel/analytics": "^1.6.1",
@@ -37,7 +39,8 @@
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.22.0",
     "react-simple-maps": "^3.0.0",
-    "stripe": "^22.0.1"
+    "stripe": "^22.0.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

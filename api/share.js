@@ -59,7 +59,9 @@ function renderHtml(data, origin) {
         .join(' · ')
     : null
 
-  const canonical = `${origin}/s/bill/${parsed.congress}/${parsed.billType}/${parsed.number}`
+  // The app URL is the one canonical for a bill; this card is a social
+  // preview only, so it points at the app page and stays out of the index.
+  const canonical = `${origin}/bill/${parsed.congress}/${parsed.billType}/${parsed.number}`
   // Capitol photo as the static OG image. Bill-specific text still varies in
   // og:title and og:description, but the image is constant — crawlers (iMessage,
   // X, Slack) get a reliable, fast, always-cached preview instead of waiting on
@@ -79,6 +81,7 @@ function renderHtml(data, origin) {
 <title>${escapeHtml(socialTitle)} — BallotWatch</title>
 <meta name="description" content="${escapeHtml(metaDescription)}" />
 <link rel="canonical" href="${escapeHtml(canonical)}" />
+<meta name="robots" content="noindex, follow" />
 
 <meta property="og:type" content="article" />
 <meta property="og:url" content="${escapeHtml(canonical)}" />

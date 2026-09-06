@@ -1,23 +1,121 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
-    { "path": "/api/briefings/cron", "schedule": "0 14 * * *" }
+    {
+      "path": "/api/briefings/cron",
+      "schedule": "0 14 * * *"
+    }
+  ],
+  "functions": {
+    "api/prerender.js": {
+      "includeFiles": "dist/index.html"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "politicalapp.vercel.app"
+        }
+      ],
+      "destination": "https://www.ballotwatch.io/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "politicalapp-git-main-shoberman2s-projects.vercel.app"
+        }
+      ],
+      "destination": "https://www.ballotwatch.io/:path*",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/s/bill/:congress/:billType/:number", "destination": "/api/share?bill=:congress-:billType-:number" },
-    { "source": "/((?!api/|assets/|s/|@vite/|@react-refresh|src/|node_modules/|etl/|shared/|.*\\..*).*)", "destination": "/index.html" }
+    {
+      "source": "/politician/:bioguideId",
+      "destination": "/api/prerender?kind=member&id=:bioguideId"
+    },
+    {
+      "source": "/bill/:congress/:type/:number",
+      "destination": "/api/prerender?kind=bill&congress=:congress&type=:type&number=:number"
+    },
+    {
+      "source": "/vote/:congress/:chamber/:session/:roll",
+      "destination": "/api/prerender?kind=vote&congress=:congress&chamber=:chamber&session=:session&roll=:roll"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/sitemap-:part.xml",
+      "destination": "/api/sitemap?part=:part"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/api/mcp"
+    },
+    {
+      "source": "/s/bill/:congress/:billType/:number",
+      "destination": "/api/share?bill=:congress-:billType-:number"
+    },
+    {
+      "source": "/((?!api/|assets/|s/|@vite/|@react-refresh|src/|node_modules/|etl/|shared/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/(.*).html",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/openapi.yaml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/yaml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
       ]
     }
   ]
