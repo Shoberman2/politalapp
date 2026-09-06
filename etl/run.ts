@@ -29,12 +29,12 @@ import { createClient } from '@supabase/supabase-js';
 import { extractRecentVotes } from './extractHouseVotes.js';
 import { extractIntroducedBills } from './extractIntroducedBills.js';
 import { transformVoteData, validateTransformedData, getTransformStats } from './transform.js';
-import { loadToSupabase, checkTablesExist, getExistingCounts } from './load.js';
+import { loadToSupabase, checkTablesExist, getExistingCounts, mergeIntroducedBill } from './load.js';
 import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
 import { preWarmBillExplanations } from './preWarmBillExplanations.js';
 import { computeMemberStats, type ComputeStatsResult } from './computeStats.js';
 import { fetchCRSSummaries } from './fetchCRS.js';
-import { loadConfig, logger, setLogLevel, LogLevel, isPlaceholderTitle } from './utils.js';
+import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
 
 // =============================================================================
 // CLI ARGUMENT PARSING
@@ -217,18 +217,9 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
       for (const bill of intro.bills) {
         const existing = transformedData.bills.get(bill.id);
         if (existing) {
-          // Vote-derived bill already present; merge sponsor + stage onto it.
-          transformedData.bills.set(bill.id, {
-            ...existing,
-            title: isPlaceholderTitle(existing.title) ? (bill.title || existing.title) : existing.title,
-            introduced_at: existing.introduced_at || bill.introduced_at,
-            policy_area: existing.policy_area || bill.policy_area,
-            sponsor_bioguide_id: bill.sponsor_bioguide_id ?? existing.sponsor_bioguide_id ?? null,
-            sponsor_name: bill.sponsor_name ?? existing.sponsor_name ?? null,
-            sponsor_party: bill.sponsor_party ?? existing.sponsor_party ?? null,
-            sponsor_state: bill.sponsor_state ?? existing.sponsor_state ?? null,
-            legislative_stage: bill.legislative_stage ?? existing.legislative_stage ?? null,
-          });
+          // Vote-derived bill already present; merge sponsor + stage onto it
+          // and let the feed's real title replace the vote-feed stub.
+          transformedData.bills.set(bill.id, mergeIntroducedBill(existing, bill));
         } else {
           transformedData.bills.set(bill.id, bill);
         }

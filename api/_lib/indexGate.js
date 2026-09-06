@@ -5,6 +5,7 @@
 // prerender function, the sitemap, and the ETL.
 
 // Bill *titles* in the table are sometimes stubs like "HR 915" or "S. 12".
+// Keep in step with PLACEHOLDER_TITLE_RE in etl/utils.ts (a test asserts parity).
 export const PLACEHOLDER_TITLE_RE =
   /^(H\.?R\.?|S\.?|H\.?J\.?Res\.?|S\.?J\.?Res\.?|H\.?Con\.?Res\.?|S\.?Con\.?Res\.?|H\.?Res\.?|S\.?Res\.?)\s*\d+$/i
 

@@ -29,6 +29,7 @@ import type {
   ETLConfig,
 } from './types.js';
 import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
+import { mergeBillRow } from './load.js';
 import { MAX_CONSECUTIVE_5XX } from './historicalTypes.js';
 import { BILL_CONGRESS_MIN, CONGRESS_MAX } from '../src/utils/congressUtil.js';
 
@@ -221,27 +222,8 @@ function isLikely5xx(error: unknown): boolean {
   return /\b5\d\d\b/.test(message);
 }
 
-function billRowForBackfill(bill: Bill, existing?: ExistingBillFields): Record<string, unknown> {
-  const row: Record<string, unknown> = {
-    id: bill.id,
-    title: bill.title,
-    introduced_at: bill.introduced_at,
-    summary: bill.summary || existing?.summary || null,
-    crs_summary: bill.crs_summary || existing?.crs_summary || null,
-    policy_area: bill.policy_area || existing?.policy_area || null,
-    source_url: bill.source_url,
-  };
-
-  // Omit sparse detail fields when list-only mode did not fetch them, so a
-  // fast visibility backfill does not erase richer rows already in Supabase.
-  if (bill.sponsor_bioguide_id != null) row.sponsor_bioguide_id = bill.sponsor_bioguide_id;
-  if (bill.sponsor_name != null) row.sponsor_name = bill.sponsor_name;
-  if (bill.sponsor_party != null) row.sponsor_party = bill.sponsor_party;
-  if (bill.sponsor_state != null) row.sponsor_state = bill.sponsor_state;
-  if (bill.legislative_stage != null) row.legislative_stage = bill.legislative_stage;
-
-  return row;
-}
+// Row construction shares mergeBillRow with the daily loader so a list-only
+// backfill can never stamp a stub title or blank a known introduced date.
 
 async function upsertBillsForBackfill(
   supabase: SupabaseClient,
@@ -257,7 +239,7 @@ async function upsertBillsForBackfill(
     try {
       const { data: existing, error: existingError } = await supabase
         .from('bills')
-        .select('id, summary, crs_summary, policy_area')
+        .select('id, title, introduced_at, summary, crs_summary, policy_area')
         .in('id', batch.map((b) => b.id));
 
       if (existingError) {
@@ -276,7 +258,7 @@ async function upsertBillsForBackfill(
       const { data, error } = await supabase
         .from('bills')
         .upsert(
-          batch.map((bill) => billRowForBackfill(bill, existingBills.get(bill.id))),
+          batch.map((bill) => mergeBillRow(bill, existingBills.get(bill.id))),
           {
             onConflict: 'id',
             ignoreDuplicates: false,

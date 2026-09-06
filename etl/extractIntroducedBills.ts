@@ -343,16 +343,15 @@ export async function extractIntroducedBills(
       skippedForBudget++;
     }
 
-    // Fallbacks if detail was skipped or returned nothing useful.
+    // Fallbacks if detail was skipped or returned nothing useful. The list
+    // endpoint never carries introducedDate, and its latestAction.actionDate
+    // and updateDate are not introduction dates, so a list-only row leaves
+    // the date unknown (null). The loader keeps whatever date is already
+    // stored (see mergeBillRow in load.ts) and fetchCRS fills the gap from the
+    // bill detail when it visits the row.
     const latestActionText = listItem.latestAction?.text ?? null;
-    if (!introducedAt) {
-      introducedAt =
-        listItem.latestAction?.actionDate ??
-        listItem.updateDate ??
-        null;
-    }
     if (!title) title = `${typeLower.toUpperCase()} ${number}`;
-    if (!introducedAt) introducedAt = new Date().toISOString().slice(0, 10);
+    if (!introducedAt) introducedAt = null;
 
     bills.push({
       id,

@@ -24,7 +24,7 @@ import type {
   LoadResult,
   ETLConfig,
 } from './types.js';
-import { logger, chunk, isPlaceholderTitle } from './utils.js';
+import { logger, chunk, preferRealTitle } from './utils.js';
 
 // =============================================================================
 // SUPABASE CLIENT
@@ -219,11 +219,24 @@ async function upsertPoliticians(
 }
 
 /**
- * Upserts bills to Supabase.
- *
- * Uses the bill ID as the primary key for conflict resolution.
- * Preserves existing summaries if not provided in new data.
+ * Merges an introduced-bills feed record onto a vote-derived record for the
+ * same bill before loading. The feed knows sponsor and stage; the vote record
+ * usually only knows the number, so its stub title never wins over a real one.
  */
+export function mergeIntroducedBill(existing: Bill, incoming: Bill): Bill {
+  return {
+    ...existing,
+    title: preferRealTitle(existing.title, incoming.title),
+    introduced_at: existing.introduced_at || incoming.introduced_at || null,
+    policy_area: existing.policy_area || incoming.policy_area || null,
+    sponsor_bioguide_id: incoming.sponsor_bioguide_id ?? existing.sponsor_bioguide_id ?? null,
+    sponsor_name: incoming.sponsor_name ?? existing.sponsor_name ?? null,
+    sponsor_party: incoming.sponsor_party ?? existing.sponsor_party ?? null,
+    sponsor_state: incoming.sponsor_state ?? existing.sponsor_state ?? null,
+    legislative_stage: incoming.legislative_stage ?? existing.legislative_stage ?? null,
+  };
+}
+
 /**
  * Builds the upsert row for one bill. A vote-derived record carries a stub
  * title ("HR 4795") and no introduced date; those must never overwrite the
@@ -235,11 +248,10 @@ export function mergeBillRow(
   b: Bill,
   existing: Partial<Bill> | undefined
 ): Record<string, unknown> {
-  const incomingIsStub = isPlaceholderTitle(b.title);
-  const existingIsReal = !!existing?.title && !isPlaceholderTitle(existing.title);
   const row: Record<string, unknown> = {
     id: b.id,
-    title: incomingIsStub && existingIsReal ? existing!.title : b.title,
+    // Incoming wins when it is real; a stub never replaces a real title.
+    title: preferRealTitle(b.title, existing?.title) || b.title,
     introduced_at: b.introduced_at || existing?.introduced_at || null,
     summary: b.summary || existing?.summary || null,
     crs_summary: b.crs_summary || existing?.crs_summary || null,
@@ -254,6 +266,13 @@ export function mergeBillRow(
   return row;
 }
 
+/**
+ * Upserts bills to Supabase.
+ *
+ * Uses the bill ID as the primary key for conflict resolution. Preserves an
+ * existing real title, introduced date, and summaries when the incoming
+ * record lacks them (see mergeBillRow).
+ */
 async function upsertBills(
   supabase: SupabaseClient,
   bills: Bill[]
@@ -264,27 +283,45 @@ async function upsertBills(
     return result;
   }
 
-  // First, fetch existing bills to preserve real titles, dates and summaries
-  const existingBills = new Map<string, Bill>();
-  try {
-    const { data: existing } = await supabase
-      .from('bills')
-      .select('id, title, introduced_at, summary, crs_summary, policy_area')
-      .in('id', bills.map((b) => b.id));
-
-    if (existing) {
-      for (const bill of existing) {
-        existingBills.set(bill.id, bill as Bill);
-      }
-    }
-  } catch (error) {
-    logger.warn('Could not fetch existing bills for summary preservation', error);
-  }
-
-  // Process in batches
+  // Process in batches. The existing-row read happens per batch: PostgREST
+  // caps a single response at 1,000 rows, and a daily run's 8,000+ ids in one
+  // .in() overflow the request so the server drops the connection. (That is
+  // how the old one-shot read silently came back empty and let each run null
+  // out crs_summary and policy_area on every bill it touched.) A failed read
+  // fails closed for stored rows: without their titles we cannot tell a stub
+  // from the truth, so nothing is written over them. New ids are still
+  // inserted with ON CONFLICT DO NOTHING so the roll calls and votes that
+  // reference them can land, and the error is reported.
   const batches = chunk(bills, 100);
 
   for (const batch of batches) {
+    const existingBills = new Map<string, Partial<Bill>>();
+    const { data: existing, error: readError } = await supabase
+      .from('bills')
+      .select('id, title, introduced_at, summary, crs_summary, policy_area')
+      .in('id', batch.map((b) => b.id));
+    if (readError) {
+      result.errors.push(`Bills read error (existing rows left untouched, new ids inserted only): ${readError.message}`);
+      logger.error('Bills read error; inserting new ids only', readError);
+      const { data: inserted, error: insertError } = await supabase
+        .from('bills')
+        .upsert(
+          batch.map((b) => mergeBillRow(b, undefined)),
+          { onConflict: 'id', ignoreDuplicates: true }
+        )
+        .select();
+      if (insertError) {
+        result.errors.push(`Bills insert error: ${insertError.message}`);
+        logger.error('Bills insert error', insertError);
+      } else {
+        result.count += inserted?.length || 0;
+      }
+      continue;
+    }
+    for (const bill of existing || []) {
+      existingBills.set(bill.id, bill as Partial<Bill>);
+    }
+
     try {
       const { data, error } = await supabase
         .from('bills')
