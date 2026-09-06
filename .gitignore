@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+# Built SPA shell copied for api/prerender.js (vite.config.js)
+api/_shell/
 dist-ssr
 playwright-report/
 test-results/

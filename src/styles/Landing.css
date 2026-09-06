@@ -555,6 +555,8 @@
   width: fit-content;
 }
 .landing a.fr-bill:hover { text-decoration: underline; }
+.landing a.fr-roll { color: var(--accent); text-decoration: none; }
+.landing a.fr-roll:hover { text-decoration: underline; }
 .landing .fr-text {
   font-size: 15px;
   line-height: 1.4;

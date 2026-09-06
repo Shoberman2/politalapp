@@ -108,7 +108,8 @@ export const getDistrictFromAddress = async (address) => {
       if (stateAbbr) {
         // We have the state, but need to determine district
         // For at-large states (1 district), we can auto-select
-        const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
+        // Montana regained a second seat in 2023; it is not at-large.
+        const atLargeStates = ['AK', 'DE', 'ND', 'SD', 'VT', 'WY']
 
         if (atLargeStates.includes(stateAbbr)) {
           return {
@@ -494,7 +495,7 @@ export const getDistrictsByState = async (stateAbbr) => {
     // Handle at-large states (single district represented as "0" or "00")
     if (districts.length === 0) {
       // Check if this state has any house members at all - might be at-large
-      const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
+      const atLargeStates = ['AK', 'DE', 'ND', 'SD', 'VT', 'WY']
       if (atLargeStates.includes(stateAbbr)) {
         console.log(`[District API] ${stateAbbr} is at-large state`)
         return ['0']

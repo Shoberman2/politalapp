@@ -1,4 +1,4 @@
-import { sendResponse } from './request.js'
+import { sendResponse, getHeader } from './request.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,10 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Authorization, Content-Type',
 }
 
-export function jsonResponse(data, status = 200) {
+// Anonymous GET responses carry no Authorization header, so the CDN may cache
+// them. Keyed responses stay private to the caller.
+export const ANON_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
+
+export function jsonResponse(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
   })
 }
 
@@ -31,16 +35,22 @@ export function paginatedResponse(data, offset, limit, total, meta = {}) {
   })
 }
 
-export function handleCors(req) {
+export function handleCors(req, { methods = corsHeaders['Access-Control-Allow-Methods'] } = {}) {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders })
+    return new Response(null, { status: 204, headers: { ...corsHeaders, 'Access-Control-Allow-Methods': methods } })
   }
   return null
 }
 
 export function nodeHandler(route) {
   return async function handler(req, res) {
-    return sendResponse(res, await route(req))
+    const response = await route(req)
+    const method = String(req.method || '').toUpperCase()
+    if (response && response.status === 200 && (method === 'GET' || method === 'HEAD') && !getHeader(req, 'authorization') && !response.headers.has('Cache-Control')) {
+      response.headers.set('Cache-Control', ANON_CACHE_CONTROL)
+      response.headers.set('Vary', 'Authorization')
+    }
+    return sendResponse(res, response)
   }
 }
 

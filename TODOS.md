@@ -1,5 +1,44 @@
 # TODOs
 
+## Provision Upstash Redis for shared API rate limits
+**Priority:** High
+**Blocked by:** A Vercel Marketplace (or Upstash) account action by the owner
+**Context:** Anonymous API access and free keys (shipped 2026-09-05) rate-limit per IP in `api/_lib/rateLimit.js`. Without `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` the counter is in-memory per function instance, so the limit is soft under Fluid Compute.
+**What to do:** Add the Upstash Redis integration in the Vercel dashboard (Marketplace), which sets both env vars, then redeploy. No code change needed; `hasSharedStore()` flips to true.
+
+## ~~Apply the anonymous-usage migration in production~~
+**Status:** Done 2026-09-05. `20260905170000_anonymous_api_usage.sql` (creates the B2B API tables that had never existed in production) and `20260905190000_api_grants_hardening.sql` (column-level grants so a signed-in user cannot set their own plan) are applied to the linked project.
+
+## Persist the official roll-call result from the ETL
+**Priority:** High
+**Blocked by:** Nothing
+**Context:** The site derives a roll call's result from the tally and the question (`api/_lib/rollCallResult.js`, `src/services/floorVotes.js`). The ETL already extracts the official `result` string from the House and Senate XML (`etl/extractHouseVotes.ts`) and drops it in `etl/transform.ts`. Derivation now returns null for majority-but-under-60 cloture motions of unknown threshold and reads the description for nominations, but the official result is strictly better.
+**What to do:** Add `roll_calls.result TEXT`, persist it in the ETL, backfill the 119th, and prefer it everywhere `deriveResult` runs; keep derivation as the fallback for rows without it.
+
+## Retention for anonymous api_usage rows
+**Priority:** Medium
+**Blocked by:** Nothing
+**Context:** Anonymous API requests (shipped 2026-09-05) insert an `api_usage` row with `ip_hash` and `key_id = NULL`. Nothing deletes them, so the table grows with crawler traffic (up to 5,000 rows per IP per day). The hash is an HMAC keyed by `RATE_LIMIT_SALT`; set that secret in Vercel so it is not the development default.
+**What to do:** Add a pg_cron job (or a step in the daily ETL) that deletes `api_usage` rows where `key_id IS NULL AND created_at < now() - interval '30 days'` in batches, and set `RATE_LIMIT_SALT` in the Vercel project.
+
+## ZIP-to-district crosswalk for the MCP find_representatives tool
+**Priority:** Medium
+**Blocked by:** Downloading the HUD USPS ZIP-to-congressional-district crosswalk
+**Context:** `api/_lib/geocode.js` resolves a ZIP by its centroid through the Census geocoder and flags the answer as `precision: zip`. ZIPs that straddle districts get one answer. The HUD crosswalk lists every district a ZIP touches with residential ratios.
+**What to do:** Ship the crosswalk as static JSON under `public/data/`, return every district with its share, and keep the centroid path as fallback.
+
+## List the MCP server in registries
+**Priority:** Medium
+**Blocked by:** The production deploy of `/mcp`
+**Context:** Being wired in by name is how agents find the server. The official MCP registry, Smithery, and Glama are self-serve; the Anthropic connector directory requires partner review.
+**What to do:** Submit `https://www.ballotwatch.io/mcp` with the tool list from `/llms.txt`; apply to the Anthropic directory and wait.
+
+## Google Search Console: submit the generated sitemap
+**Priority:** High
+**Blocked by:** The production deploy
+**Context:** `/sitemap.xml` is now generated from the database on the canonical domain. The old static file pointed at `politicalapp.vercel.app` and listed 26 URLs.
+**What to do:** In Search Console, remove the old sitemap, submit `https://www.ballotwatch.io/sitemap.xml`, and record the indexed-page baseline in `docs/designs/agent-front-door-and-tell-your-rep.md`.
+
 ## Add unit tests for voting dashboard
 **Priority:** Medium
 **Blocked by:** Nothing (schema fix shipped)
@@ -11,7 +50,7 @@
 
 ## Monthly API rate limit counter reset
 **Priority:** Low
-**Blocked by:** Nothing (api_keys table must exist in live Supabase)
+**Blocked by:** Nothing (the `api_keys` table exists in production since v0.6.0.0)
 **Context:** API keys track `monthly_count` for rate limiting. The auth middleware resets the count on first request of a new month (by checking `last_reset_at`), so this is not strictly blocking. But a pg_cron job or Supabase scheduled function would keep counts clean for the usage dashboard even when keys aren't actively used.
 **What to do:** Add a pg_cron job: `UPDATE api_keys SET monthly_count = 0, last_reset_at = date_trunc('month', NOW()) WHERE last_reset_at < date_trunc('month', NOW())`. Schedule for 1st of each month at 00:00 UTC.
 
@@ -30,7 +69,7 @@
 ## Add API endpoint tests
 **Priority:** High
 **Blocked by:** Nothing
-**Context:** The B2B API (api/v1/*) has 12 endpoints and auth middleware with zero test coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
+**Context:** The B2B API (api/v1/*) has 12 endpoints. v0.6.0.0 added tests for the auth middleware, anonymous access, rate limiting, and free keys (`test/api/authAnonymous.test.js`, `rateLimit.test.js`, `keysFree*.test.js`, `v1MemberRoute.test.js`), but the endpoint response shapes still have no coverage. B2B customers depend on stable API contracts. ~40 test cases needed covering auth middleware (valid/invalid/revoked/rate-limited keys), all endpoint filters, pagination, 404s, and error responses. Vitest is configured.
 **What to do:** Create test/api/ directory with auth.test.js, members.test.js, bills.test.js, votes.test.js, stats.test.js. Mock the Supabase admin client. Verify response shapes, status codes, and error handling for every endpoint.
 
 ## ~~Move client-side OpenAI calls behind an Edge Function~~
@@ -187,7 +226,8 @@
 **Priority:** P3
 **Depends on:** Bill Watch Alerts public launch and at least two weeks of queue-latency metrics
 
-## Montana is still treated as an at-large state in district.js
+## ~~Montana is still treated as an at-large state in district.js~~
+**Completed:** v0.6.0.0 (2026-09-05). `MT` removed from both `atLargeStates` lists in `src/services/district.js`.
 **Priority:** High
 **Category:** Data correctness
 **Blocked by:** Nothing

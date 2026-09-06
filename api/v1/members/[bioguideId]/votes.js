@@ -2,6 +2,7 @@ import { validateApiKey } from '../../../_lib/auth.js'
 import { supabaseAdmin } from '../../../_lib/supabase.js'
 import { handleCors, paginatedResponse, errorResponse, parsePagination, nodeHandler } from '../../../_lib/response.js'
 import { logUsage } from '../../../_lib/usage.js'
+import { getDataUpdatedAt } from '../../../_lib/etlMeta.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -25,7 +26,7 @@ async function route(req) {
     .single()
 
   if (!member) {
-    logUsage(auth.key.id, `/v1/members/${bioguideId}/votes`, 'GET', 404, Date.now() - start)
+    logUsage(auth.key, `/v1/members/${bioguideId}/votes`, 'GET', 404, Date.now() - start)
     return errorResponse(`Member not found: ${bioguideId}`, 404, 'NOT_FOUND')
   }
 
@@ -42,7 +43,7 @@ async function route(req) {
     .range(offset, offset + limit - 1)
 
   if (error) {
-    logUsage(auth.key.id, `/v1/members/${bioguideId}/votes`, 'GET', 500, Date.now() - start)
+    logUsage(auth.key, `/v1/members/${bioguideId}/votes`, 'GET', 500, Date.now() - start)
     return errorResponse('Failed to fetch votes', 500, 'QUERY_ERROR')
   }
 
@@ -57,9 +58,9 @@ async function route(req) {
     bill: v.bills || null,
   }))
 
-  logUsage(auth.key.id, `/v1/members/${bioguideId}/votes`, 'GET', 200, Date.now() - start)
+  logUsage(auth.key, `/v1/members/${bioguideId}/votes`, 'GET', 200, Date.now() - start)
 
-  return paginatedResponse(formatted, offset, limit, count || 0)
+  return paginatedResponse(formatted, offset, limit, count || 0, { data_updated_at: await getDataUpdatedAt() })
 }
 
 export default nodeHandler(route)

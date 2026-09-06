@@ -2,6 +2,7 @@ import { validateApiKey } from '../../_lib/auth.js'
 import { supabaseAdmin } from '../../_lib/supabase.js'
 import { handleCors, jsonResponse, errorResponse, nodeHandler } from '../../_lib/response.js'
 import { logUsage } from '../../_lib/usage.js'
+import { getDataUpdatedAt } from '../../_lib/etlMeta.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -30,12 +31,12 @@ async function route(req) {
     .order('position')
 
   if (error) {
-    logUsage(auth.key.id, `/v1/votes/${rollCallId}`, 'GET', 500, Date.now() - start)
+    logUsage(auth.key, `/v1/votes/${rollCallId}`, 'GET', 500, Date.now() - start)
     return errorResponse('Failed to fetch roll call', 500, 'QUERY_ERROR')
   }
 
   if (!votes || votes.length === 0) {
-    logUsage(auth.key.id, `/v1/votes/${rollCallId}`, 'GET', 404, Date.now() - start)
+    logUsage(auth.key, `/v1/votes/${rollCallId}`, 'GET', 404, Date.now() - start)
     return errorResponse(`Roll call not found: ${rollCallId}`, 404, 'NOT_FOUND')
   }
 
@@ -55,18 +56,20 @@ async function route(req) {
     member: v.politicians || null,
   }))
 
-  logUsage(auth.key.id, `/v1/votes/${rollCallId}`, 'GET', 200, Date.now() - start)
+  logUsage(auth.key, `/v1/votes/${rollCallId}`, 'GET', 200, Date.now() - start)
 
+  const sourceUrl = votes[0]?.source_url || null
   return jsonResponse({
     data: {
       roll_call_id: rollCallId,
       voted_at: votes[0]?.voted_at,
+      source_url: sourceUrl,
       bill,
       summary,
       votes: formatted,
     },
-    meta: { api_version: 'v1' },
-  })
+    meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
+  }, 200, sourceUrl ? { Link: `<${sourceUrl}>; rel="canonical"` } : {})
 }
 
 export default nodeHandler(route)

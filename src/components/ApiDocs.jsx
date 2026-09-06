@@ -181,7 +181,7 @@ function ApiDocs() {
         <p>Base URL: <code>https://www.ballotwatch.io</code></p>
         <p>Authentication: <code>Authorization: Bearer bw_live_xxx</code></p>
         <p>
-          OpenAPI source: <a href="https://github.com/Shoberman2/politalapp/blob/main/docs/api/openapi.yaml">docs/api/openapi.yaml</a>
+          OpenAPI spec: <a href="/openapi.yaml">/openapi.yaml</a> · agents start at <a href="/llms.txt">/llms.txt</a>
           {' '} · Sample data: <a href="/data/datapackage.json">/data/datapackage.json</a>
         </p>
       </div>
@@ -266,9 +266,12 @@ function ApiDocs() {
           {/* Auth section */}
           <div className="api-docs-auth-section">
             <h3>Authentication</h3>
-            <p>All API requests require a valid API key in the Authorization header:</p>
+            <p>
+              GET requests need no key. Send one to raise your rate limit; keys are optional
+              on every read endpoint and go in the Authorization header:
+            </p>
             <pre className="api-docs-code">Authorization: Bearer bw_live_your_key_here</pre>
-            <p>Get your API key at <a href="/developers/keys">/developers/keys</a>.</p>
+            <p>Claim a free key or a paid plan at <a href="/developers/keys">/developers/keys</a>.</p>
 
             <h3>Open Data Samples</h3>
             <p>
@@ -279,15 +282,23 @@ function ApiDocs() {
             <h3>Rate Limits</h3>
             <table className="api-docs-params-table">
               <thead>
-                <tr><th>Plan</th><th>Monthly Limit</th><th>Price</th></tr>
+                <tr><th>Access</th><th>Limit</th><th>Price</th></tr>
               </thead>
               <tbody>
-                <tr><td>Starter</td><td>10,000 requests</td><td>$50/mo</td></tr>
-                <tr><td>Pro</td><td>100,000 requests</td><td>$200/mo</td></tr>
+                <tr><td>No key</td><td>60 per minute, 5,000 per day, per IP</td><td>Free</td></tr>
+                <tr><td>Free key</td><td>600 per minute, no monthly cap</td><td>Free</td></tr>
+                <tr><td>Starter</td><td>10,000 requests per month</td><td>$50/mo</td></tr>
+                <tr><td>Pro</td><td>100,000 requests per month</td><td>$200/mo</td></tr>
                 <tr><td>Enterprise</td><td>Unlimited</td><td>$500/mo</td></tr>
               </tbody>
             </table>
-            <p>When you exceed your limit, the API returns <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</p>
+            <p>
+              Over the limit, the API returns <code>429 Too Many Requests</code> with <code>Retry-After</code>,
+              <code>X-RateLimit-Limit</code>, and <code>X-RateLimit-Remaining</code> headers; the body's
+              <code>error.window</code> says whether the minute, day, or month window was hit. Responses to
+              requests without a key are cached at the edge for five minutes. Every response carries
+              <code>meta.data_updated_at</code>; single records add a <code>Link: &lt;official source&gt;; rel="canonical"</code> header.
+            </p>
 
             <h3>Error Codes</h3>
             <table className="api-docs-params-table">
@@ -295,11 +306,11 @@ function ApiDocs() {
                 <tr><th>Status</th><th>Code</th><th>Description</th></tr>
               </thead>
               <tbody>
-                <tr><td>401</td><td>UNAUTHORIZED</td><td>Missing or invalid API key</td></tr>
+                <tr><td>401</td><td>UNAUTHORIZED</td><td>Malformed or unknown API key (keyless GET is allowed)</td></tr>
                 <tr><td>403</td><td>KEY_REVOKED</td><td>API key has been revoked</td></tr>
                 <tr><td>403</td><td>SUBSCRIPTION_INACTIVE</td><td>No active subscription</td></tr>
                 <tr><td>404</td><td>NOT_FOUND</td><td>Resource not found</td></tr>
-                <tr><td>429</td><td>RATE_LIMIT_EXCEEDED</td><td>Monthly request limit reached</td></tr>
+                <tr><td>429</td><td>RATE_LIMIT_EXCEEDED</td><td>Per-minute, per-day, or monthly limit reached</td></tr>
                 <tr><td>503</td><td>SERVICE_UNAVAILABLE</td><td>Temporary outage, retry later</td></tr>
               </tbody>
             </table>

@@ -8,26 +8,34 @@ import { supabase } from '../lib/supabase'
 // check against the chamber size. Nothing here is fabricated; missing data is
 // simply omitted.
 
-const CHAMBER_SIZE = { House: 435, Senate: 100 }
+export const CHAMBER_SIZE = { House: 435, Senate: 100 }
 
-const BILL_TYPE_LABELS = {
+export const BILL_TYPE_LABELS = {
   hr: 'H.R.', s: 'S.', hres: 'H.Res.', sres: 'S.Res.',
   hjres: 'H.J.Res.', sjres: 'S.J.Res.', hconres: 'H.Con.Res.', sconres: 'S.Con.Res.',
 }
 
-// "house-119-2-225" -> { chamber:'House', congress:119, number:225 }
-function parseRollCallId(id) {
-  const m = /^([a-z]+)-(\d+)-\d+-(\d+)$/.exec(id || '')
+// "house-119-2-225" -> { chamber:'House', congress:119, session:2, number:225 }
+export function parseRollCallId(id) {
+  const m = /^([a-z]+)-(\d+)-(\d+)-(\d+)$/.exec(id || '')
   if (!m) return null
   return {
+    chamberKey: m[1],
     chamber: m[1] === 'senate' ? 'Senate' : 'House',
     congress: Number(m[2]),
-    number: Number(m[3]),
+    session: Number(m[3]),
+    number: Number(m[4]),
   }
 }
 
+// Canonical app path for a roll call: /vote/119/house/2/225
+export function rollCallHref(id) {
+  const p = parseRollCallId(id)
+  return p ? `/vote/${p.congress}/${p.chamberKey}/${p.session}/${p.number}` : null
+}
+
 // "119-hr-7401" -> { display:'H.R. 7401', href:'/bill/119/hr/7401' }
-function parseBill(billId) {
+export function parseBill(billId) {
   if (!billId) return null
   const parts = billId.split('-')
   if (parts.length < 3) return null
@@ -42,19 +50,35 @@ function parseBill(billId) {
 // Result word, derived only from a tally we trust. Uses the real thresholds:
 // cloture needs 60 in the Senate, suspension of the rules needs two-thirds,
 // everything else is a simple majority. Returns null when we shouldn't assert.
-function deriveResult(question, yea, nay, chamber) {
+// Mirrors api/_lib/rollCallResult.js deriveResult; keep the two in step.
+export function deriveResult(question, yea, nay, chamber = null, description = null) {
   if (yea == null || nay == null) return null
-  const q = (question || '').toLowerCase()
-  if (q.includes('cloture')) return yea >= 60 ? 'Cloture invoked' : 'Cloture rejected'
-  if (q.includes('nomination') || q.includes('confirmation')) return yea > nay ? 'Confirmed' : 'Rejected'
-  if (q.includes('suspend')) return yea / (yea + nay) >= 2 / 3 ? 'Passed' : 'Failed'
-  if (q.includes('proceed')) return yea > nay ? 'Motion agreed to' : 'Motion rejected'
+  const q = String(question || '').toLowerCase()
+  const text = `${q} ${String(description || '').toLowerCase()}`
+  const total = yea + nay
+  const twoThirds = total > 0 && yea / total >= 2 / 3
+  // The description says what a cloture motion is about (a nomination or a
+  // bill); for every other question only the question text decides.
+  const nominationCloture = /nominat|confirm/.test(text)
+  const nominationQuestion = /nominat|confirm/.test(q)
+  if (q.includes('cloture')) {
+    if (yea >= 60) return 'Cloture invoked'
+    if (nominationCloture) return yea > nay ? 'Cloture invoked' : 'Cloture rejected'
+    if (yea <= nay) return 'Cloture rejected'
+    return null
+  }
+  if (q.includes('override') || q.includes('veto')) return twoThirds ? 'Veto overridden' : 'Veto sustained'
+  if (q.includes('treaty') || q.includes('ratification')) return twoThirds ? 'Ratified' : 'Not ratified'
+  if (q.includes('suspend')) return twoThirds ? 'Passed' : 'Failed'
+  if (q.includes('waive') && chamber === 'Senate') return yea >= 60 ? 'Motion agreed to' : 'Motion rejected'
+  if (/\bmotion\b/.test(q) || q.includes('proceed')) return yea > nay ? 'Motion agreed to' : 'Motion rejected'
+  if (nominationQuestion) return yea > nay ? 'Confirmed' : 'Rejected'
   if (yea === nay) return 'Failed on a tie'
   return yea > nay ? 'Passed' : 'Failed'
 }
 
 // Reject impossible totals (double-counted ETL rows) and empty rows.
-function sane(yea, nay, chamber) {
+export function sane(yea, nay, chamber) {
   const total = yea + nay
   return total > 0 && total <= (CHAMBER_SIZE[chamber] || 435)
 }
@@ -169,7 +193,7 @@ export async function getRecentFloorVotes(fetchCount = 16) {
         bill: parseBill(c.bill_id),
         yea,
         nay,
-        result: deriveResult(c.question, yea, nay, chamber),
+        result: deriveResult(c.question, yea, nay, chamber, c.description),
       }
     })
 
@@ -188,7 +212,7 @@ export async function getRecentFloorVotes(fetchCount = 16) {
       if (!t) return
       v.yea = t.yea
       v.nay = t.nay
-      v.result = deriveResult(v.question, t.yea, t.nay, v.chamber)
+      v.result = deriveResult(v.question, t.yea, t.nay, v.chamber, v.description)
     }))
 
     return { votes, recordedThrough }

@@ -39,9 +39,13 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 - Starter issue list: `docs/starter-issues.md`.
 - Vote forecast design: `docs/designs/congressional-vote-forecast.md`.
 - Forecast provenance gate: `docs/methodology/forecast-data-provenance.md`.
-- OpenAPI spec: `docs/api/openapi.yaml`.
+- OpenAPI spec: `docs/api/openapi.yaml`, served at `/openapi.yaml`.
+- Agent map: `public/llms.txt`, served at `/llms.txt`.
+- Agent front door design record: `docs/designs/agent-front-door-and-tell-your-rep.md`.
 - Sample data package: `public/data/datapackage.json`.
 - Open-source overview: `docs/open-source.md`.
+- Changelog: `CHANGELOG.md`. Backlog: `TODOS.md`.
+- ETL guide: `etl/README.md`. iOS app: `ios/README.md`.
 
 ## Product Direction
 
@@ -100,7 +104,8 @@ http://localhost:3000
 
 `npm run dev:fullstack` runs the Vite SPA and Vercel API routes on one origin.
 For frontend-only UI work, use `npm run dev` at `http://localhost:5173`;
-serverless routes such as `/api/briefings/*` are not available in that mode.
+serverless routes such as `/api/briefings/*`, the server-rendered record
+pages, `/mcp`, and `/sitemap.xml` are not available in that mode.
 
 Most UI and docs work can be done without production credentials. Features that
 read or write Supabase need configured environment variables.
@@ -154,6 +159,20 @@ configured delivery runtime. `off` disables ingestion and delivery, `shadow` ing
 follows. The workflow is scheduled every 10 minutes, although GitHub Actions may
 delay scheduled runs.
 
+Optional for the keyless public API, `/mcp`, and the generated sitemap (server
+side only; `.env.example` lists the defaults):
+
+```env
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
+RATE_LIMIT_SALT=...
+```
+
+`API_ANON_PER_MINUTE`, `API_ANON_PER_DAY`, `API_FREE_KEY_PER_MINUTE`,
+`PRERENDER_TIMEOUT_MS`, and `SITEMAP_PER_MINUTE` override the documented
+limits. Set `RATE_LIMIT_SALT` in production; without it anonymous usage rows
+omit the IP hash.
+
 Optional services include OpenAI, FEC, OpenSecrets, Stripe, and feature flags.
 Never commit `.env`.
 
@@ -187,6 +206,10 @@ connected Supabase Auth provider. Use
 should all be configured; optional integration gaps are errors in that stricter
 mode.
 
+`npm run build` first runs `scripts/sync-openapi.mjs`, which copies
+`docs/api/openapi.yaml` to `public/openapi.yaml`. Edit the `docs/` copy only;
+`test/api/openapiParity.test.js` fails when the two differ.
+
 ETL commands:
 
 ```bash
@@ -200,10 +223,12 @@ npm run etl:compute-survival
 ## Project Structure
 
 ```text
-api/                  Vercel API routes and hosted API helpers
+api/                  Vercel functions: public API (v1), prerender, sitemap, MCP, share cards, briefings
 docs/                 Public project docs, roadmap, methodology, OpenAPI
 etl/                  Congress.gov extraction, transforms, loaders, backfills
+ios/                  Native SwiftUI client on the same Supabase data
 public/data/          Sample datasets and datapackage metadata
+scripts/              Config check, OpenAPI sync (prebuild), data refresh scripts
 server/alerts/        Bill Watch source ingestion, event fan-out, and email delivery
 shared/               Shared utilities
 src/components/       React views and UI components
@@ -214,10 +239,33 @@ supabase/             Schema, migrations, and Edge Functions
 test/                 Unit, component, API, ETL, and e2e tests
 ```
 
-## Public API
+## Public API, llms.txt, and MCP
 
 Hosted API docs live at `/developers/docs`. The OpenAPI source is
-`docs/api/openapi.yaml`.
+`docs/api/openapi.yaml`, served at `/openapi.yaml`.
+
+GET requests need no key: 60 per minute and 5,000 per day per IP. A free key
+(sign in at `/developers/keys`, no payment) raises that to 600 per minute. Paid
+keys keep their monthly quota. Every response carries `meta.data_updated_at`;
+single records carry a `Link: <official source>; rel="canonical"` header.
+Keyless 200 responses are CDN-cacheable for five minutes (`Cache-Control:
+public, s-maxage=300, stale-while-revalidate=3600`, `Vary: Authorization`);
+keyed responses are not cached.
+
+Agent surfaces:
+
+- `/llms.txt` is the machine-readable map of the site, URL patterns, and limits.
+- `/mcp` is a stateless Streamable HTTP MCP server with `find_representatives`,
+  `get_member`, `get_member_votes`, `get_roll_call`, `search_bills`, `get_bill`,
+  and `explain_bill` (cached explanations only).
+- Member, bill, and roll-call pages return full HTML without JavaScript and
+  answer `Accept: text/markdown` with a compact Markdown record.
+- `/sitemap.xml` is generated from the database and lists every member with
+  votes, every roll call with a sane tally, and every bill with a recorded vote.
+
+Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
+`UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per
+function instance.
 
 Main routes:
 
@@ -232,8 +280,16 @@ Main routes:
 - `GET /api/v1/stats`
 - `GET /api/v1/search`
 
-Hosted high-volume access uses API keys. Public sample data is available under
-`public/data`.
+Public sample data is available under `public/data`.
+
+### Server-rendered record pages
+
+`api/prerender.js` renders `/politician/:id`, `/bill/:congress/:type/:number`,
+and `/vote/:congress/:chamber/:session/:roll` into the built `index.html` shell
+so crawlers and agents receive the record and React still takes over in the
+browser. Pages that fail the data-quality gate in `api/_lib/indexGate.js`
+(placeholder titles, tallies that disagree with member votes, members with no
+votes) are served with `noindex` and left out of the sitemap.
 
 ## Data and Methodology
 

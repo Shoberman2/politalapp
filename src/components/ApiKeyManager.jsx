@@ -15,6 +15,7 @@ function ApiKeyManager() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [claiming, setClaiming] = useState(false)
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -121,6 +122,24 @@ function ApiKeyManager() {
 
     if (!updateError) {
       await loadData()
+    }
+  }
+
+  async function claimFreeKey() {
+    if (claiming) return
+    setClaiming(true)
+    setError(null)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error('no session')
+      const res = await fetch('/api/keys/free', { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error(`status ${res.status}`)
+      await loadData()
+    } catch (err) {
+      setError('Could not activate the free plan. Try again in a moment.')
+    } finally {
+      setClaiming(false)
     }
   }
 
@@ -236,11 +255,19 @@ function ApiKeyManager() {
 
       {org?.subscription_status !== 'active' && (
         <div className="api-keys-subscribe-prompt">
-          <h3>Subscribe to activate your API keys</h3>
-          <p>API keys require an active subscription. Choose a plan to get started.</p>
-          <button className="btn-primary" onClick={() => navigate('/developers#pricing')}>
-            View Plans
-          </button>
+          <h3>Activate your keys</h3>
+          <p>
+            GET requests need no key at all (60 per minute per IP). A free key raises that to
+            600 per minute, no payment required. Paid plans add monthly volume and support.
+          </p>
+          <div className="api-keys-activate-actions">
+            <button className="btn-primary" onClick={claimFreeKey} disabled={claiming}>
+              {claiming ? 'Activating…' : 'Get a free key'}
+            </button>
+            <button className="btn-tertiary" onClick={() => navigate('/developers#pricing')}>
+              View paid plans
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -24,9 +24,10 @@ const { services } = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../src/services/floorVotes', () => ({
-  getRecentFloorVotes: services.getRecentFloorVotes,
-}))
+vi.mock('../../src/services/floorVotes', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, getRecentFloorVotes: services.getRecentFloorVotes }
+})
 vi.mock('../../src/services/congress', () => ({
   getRecentBills: services.getRecentBills,
   getFeaturedMembers: services.getFeaturedMembers,

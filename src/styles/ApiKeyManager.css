@@ -275,3 +275,6 @@
   .api-keys-header { flex-direction: column; gap: 12px; }
   .api-keys-create { flex-direction: column; }
 }
+
+.api-keys-activate-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.api-keys-activate-actions .btn-primary { flex: 0 0 auto; }

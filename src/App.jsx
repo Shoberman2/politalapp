@@ -30,6 +30,7 @@ import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
+import RollCallPage from './components/RollCallPage'
 import RequireAuth from './components/RequireAuth'
 import { SHOW_BILL_ALERTS } from './config/features'
 
@@ -91,6 +92,9 @@ function App() {
           <Route path="/politician/:bioguideId" element={
             <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
           } />
+          {/* One roll call: the tally, the derived result, every member's vote.
+              Server-rendered first by api/prerender.js; React takes over here. */}
+          <Route path="/vote/:congress/:chamber/:session/:roll" element={<RollCallPage />} />
           {SHOW_ROUTING_PANEL && (
             <Route path="/committee/:code" element={
               <ProtectedRoute><CommitteePage /></ProtectedRoute>

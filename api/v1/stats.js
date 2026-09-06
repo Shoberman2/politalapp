@@ -2,6 +2,7 @@ import { validateApiKey } from '../_lib/auth.js'
 import { supabaseAdmin } from '../_lib/supabase.js'
 import { handleCors, jsonResponse, errorResponse, nodeHandler } from '../_lib/response.js'
 import { logUsage } from '../_lib/usage.js'
+import { getDataUpdatedAt } from '../_lib/etlMeta.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -46,10 +47,10 @@ async function route(req) {
       const { data, error } = await query
       if (error) throw error
 
-      logUsage(auth.key.id, '/v1/stats', 'GET', 200, Date.now() - start)
+      logUsage(auth.key, '/v1/stats', 'GET', 200, Date.now() - start)
       return jsonResponse({
         data: { type: 'party_loyalty', rankings: data || [] },
-        meta: { api_version: 'v1' },
+        meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
       })
     }
 
@@ -75,10 +76,10 @@ async function route(req) {
           : 0,
       }))
 
-      logUsage(auth.key.id, '/v1/stats', 'GET', 200, Date.now() - start)
+      logUsage(auth.key, '/v1/stats', 'GET', 200, Date.now() - start)
       return jsonResponse({
         data: { type: 'attendance', rankings: ranked },
-        meta: { api_version: 'v1' },
+        meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
       })
     }
 
@@ -99,21 +100,21 @@ async function route(req) {
         .map(([area, count]) => ({ policy_area: area, bill_count: count }))
         .sort((a, b) => b.bill_count - a.bill_count)
 
-      logUsage(auth.key.id, '/v1/stats', 'GET', 200, Date.now() - start)
+      logUsage(auth.key, '/v1/stats', 'GET', 200, Date.now() - start)
       return jsonResponse({
         data: { type: 'bills_by_area', areas: sorted },
-        meta: { api_version: 'v1' },
+        meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
       })
     }
 
-    logUsage(auth.key.id, '/v1/stats', 'GET', 400, Date.now() - start)
+    logUsage(auth.key, '/v1/stats', 'GET', 400, Date.now() - start)
     return errorResponse(
       `Invalid type: ${type}. Valid types: party_loyalty, attendance, bills_by_area`,
       400,
       'INVALID_PARAMETER'
     )
   } catch (err) {
-    logUsage(auth.key.id, '/v1/stats', 'GET', 500, Date.now() - start)
+    logUsage(auth.key, '/v1/stats', 'GET', 500, Date.now() - start)
     return errorResponse('Failed to fetch stats', 500, 'QUERY_ERROR')
   }
 }

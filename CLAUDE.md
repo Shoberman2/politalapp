@@ -25,3 +25,16 @@ Key routing rules:
 - Design system, brand → invoke design-consultation
 - Visual audit, design polish → invoke design-review
 - Architecture review → invoke plan-eng-review
+
+## Public API and agent surfaces
+
+- `docs/api/openapi.yaml` is the OpenAPI source. `public/openapi.yaml` is a
+  generated copy (`scripts/sync-openapi.mjs`, run on `prebuild`); never edit it
+  by hand. `test/api/openapiParity.test.js` fails when they differ.
+- `/politician/:id`, `/bill/:congress/:type/:number`, and
+  `/vote/:congress/:chamber/:session/:roll` are server-rendered by
+  `api/prerender.js` through `vercel.json` rewrites. A new record route needs
+  the React route, the rewrite, the sitemap (`api/sitemap.js`), and
+  `public/llms.txt`.
+- `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in
+  `api/_lib/auth.js` and `api/_lib/rateLimit.js`.

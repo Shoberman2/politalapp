@@ -3,6 +3,38 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.6.0.0] - 2026-09-05
+
+### Added
+
+- Every member, bill, and roll-call page now arrives as real HTML. Search engines, link unfurlers, and AI agents that do not run JavaScript get the record (title, tally, every member's vote, JSON-LD, canonical URL) instead of an empty shell; the app still takes over in the browser. Bills with no recorded vote and no official summary keep the app shell.
+- A page for every roll call at `/vote/{congress}/{house|senate}/{session}/{roll}`: the question, the bill, the tally and party split, the derived result, an official-record link, and a filterable table of how each member voted. The landing page's floor feed links to it.
+- The API answers GET requests without a key: 60 per minute and 5,000 per day per IP, with `Retry-After` and `X-RateLimit-*` headers when the limit is hit. A free key (sign in, no payment) raises that to 600 per minute with no monthly cap. Every response carries `meta.data_updated_at`; single records carry a `Link: <official source>; rel="canonical"` header and a `source_url`.
+- An MCP server at `/mcp` (stateless Streamable HTTP) with `find_representatives`, `get_member`, `get_member_votes`, `get_roll_call`, `search_bills`, `get_bill`, and `explain_bill` (cached explanations only), rate-limited like the API.
+- Member, bill, and roll-call URLs answer `Accept: text/markdown` with a compact Markdown record for agents.
+- `/llms.txt` (a machine-readable map of the site, URL patterns, limits, and citation format), `/openapi.yaml` at a public URL, and a sitemap generated from the database that lists every member with votes, every roll call with a sane tally, and every bill with a recorded vote. `robots.txt` names the AI crawlers that are welcome.
+- A "For developers and AI agents" section on `/developers`, a "Get a free key" action on `/developers/keys`, and API docs that describe the keyless tier.
+
+### Changed
+
+- The old Vercel hostname now redirects permanently to `www.ballotwatch.io`, so there is one indexable copy of the site.
+- Social share cards for bills point their canonical URL at the bill page and are marked `noindex`, so a bill has exactly one canonical.
+- A roll call's derived result now respects the real thresholds: nomination cloture is a simple majority, legislative cloture needs 60, veto overrides and treaties need two-thirds, and Senate budget waivers need 60. When the threshold cannot be told from the record, no result is asserted.
+- Pages that fail a data-quality check (placeholder bill titles, tallies that disagree with member votes, members with no votes) are served with `noindex` and left out of the sitemap.
+
+### Fixed
+
+- The H.R. 1 share card no longer describes the wrong bill. A cached explanation is used only when it was generated for the bill as it is titled now.
+- Montana is no longer treated as an at-large state in the district lookup; it has had two districts since 2023.
+- House members' districts, missing from the roster table, now come from their current term, so titles read "D-CA-11" rather than "D-CA".
+- Delegate and resident-commissioner districts (Census codes 98 and 99) resolve to the state's single seat.
+
+### Security
+
+- The B2B API tables (`organizations`, `api_keys`, `api_usage`) had never existed in production, so no API key could ever have validated. They are created by migration, with column-level grants so a signed-in user cannot set their own plan, subscription status, or monthly limit from the browser, and one organization per owner.
+- Anonymous usage rows record an HMAC of the caller's IP (`RATE_LIMIT_SALT`), not the address. Rate limits use Upstash Redis when configured and a bounded in-memory counter otherwise.
+- The prerender function inserts record text literally (no `$`-pattern expansion), allows only http(s) URLs into links, and never derives its origin from a client-supplied host in production.
+
 ## [0.5.0.0] - 2026-09-02
 
 ### Added

@@ -21,13 +21,17 @@ cp .env.example .env
 npm run dev
 ```
 
-For most UI and docs work, placeholder environment values are enough. ETL,
-Supabase-backed pages, and hosted API tests need real keys.
+For most UI and docs work, placeholder environment values are enough. ETL and
+Supabase-backed pages need real keys; the API tests in `test/api` mock Supabase
+and run without them. The server-rendered record pages, `/mcp`, `/sitemap.xml`,
+and the API routes only run under `npm run dev:fullstack` (Vercel dev);
+`npm run dev` serves the SPA alone.
 
 ## Useful Commands
 
 ```bash
 npm run dev
+npm run dev:fullstack
 npm run build
 npm test
 npm run test:e2e
@@ -46,7 +50,9 @@ Supabase stack. The forecast provenance audit is expected to exit nonzero while
 ### Documentation
 
 - Clarify README setup steps.
-- Add examples to `docs/api/openapi.yaml`.
+- Add examples to `docs/api/openapi.yaml`. It is the source; `public/openapi.yaml`
+  is regenerated from it by `npm run build`, and `test/api/openapiParity.test.js`
+  fails when they differ.
 - Improve `docs/methodology/*`.
 - Add glossary entries for congressional terms.
 
@@ -71,6 +77,8 @@ Supabase stack. The forecast provenance audit is expected to exit nonzero while
 - Preserve source-backed facts.
 - Never let AI output overwrite factual records.
 - Add tests for new schema transforms and public response shapes.
+- Keep every `GET /api/v1/*` route working without a key. New public URL
+  patterns or limits belong in `docs/api/openapi.yaml` and `public/llms.txt`.
 
 ## Pull Request Checklist
 

@@ -2,6 +2,8 @@ import { validateApiKey } from '../../../_lib/auth.js'
 import { supabaseAdmin } from '../../../_lib/supabase.js'
 import { handleCors, jsonResponse, errorResponse, nodeHandler } from '../../../_lib/response.js'
 import { logUsage } from '../../../_lib/usage.js'
+import { getDataUpdatedAt } from '../../../_lib/etlMeta.js'
+import { congressGovMemberUrl } from '../../../_lib/site.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -23,7 +25,7 @@ async function route(req) {
     .single()
 
   if (!member) {
-    logUsage(auth.key.id, `/v1/members/${bioguideId}/stats`, 'GET', 404, Date.now() - start)
+    logUsage(auth.key, `/v1/members/${bioguideId}/stats`, 'GET', 404, Date.now() - start)
     return errorResponse(`Member not found: ${bioguideId}`, 404, 'NOT_FOUND')
   }
 
@@ -34,19 +36,21 @@ async function route(req) {
     .order('congress', { ascending: false })
 
   if (error) {
-    logUsage(auth.key.id, `/v1/members/${bioguideId}/stats`, 'GET', 500, Date.now() - start)
+    logUsage(auth.key, `/v1/members/${bioguideId}/stats`, 'GET', 500, Date.now() - start)
     return errorResponse('Failed to fetch stats', 500, 'QUERY_ERROR')
   }
 
-  logUsage(auth.key.id, `/v1/members/${bioguideId}/stats`, 'GET', 200, Date.now() - start)
+  logUsage(auth.key, `/v1/members/${bioguideId}/stats`, 'GET', 200, Date.now() - start)
 
+  const sourceUrl = congressGovMemberUrl(member.id)
   return jsonResponse({
     data: {
       member,
       stats: stats || [],
+      source_url: sourceUrl,
     },
-    meta: { api_version: 'v1' },
-  })
+    meta: { api_version: 'v1', source_url: sourceUrl, data_updated_at: await getDataUpdatedAt() },
+  }, 200, { Link: `<${sourceUrl}>; rel="canonical"` })
 }
 
 export default nodeHandler(route)

@@ -2,6 +2,7 @@ import { validateApiKey } from '../_lib/auth.js'
 import { supabaseAdmin } from '../_lib/supabase.js'
 import { handleCors, paginatedResponse, errorResponse, parsePagination, nodeHandler } from '../_lib/response.js'
 import { logUsage } from '../_lib/usage.js'
+import { getDataUpdatedAt } from '../_lib/etlMeta.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -31,13 +32,13 @@ async function route(req) {
   const { data, count, error } = await query
 
   if (error) {
-    logUsage(auth.key.id, '/v1/votes', 'GET', 500, Date.now() - start)
+    logUsage(auth.key, '/v1/votes', 'GET', 500, Date.now() - start)
     return errorResponse('Failed to fetch votes', 500, 'QUERY_ERROR')
   }
 
-  logUsage(auth.key.id, '/v1/votes', 'GET', 200, Date.now() - start)
+  logUsage(auth.key, '/v1/votes', 'GET', 200, Date.now() - start)
 
-  return paginatedResponse(data, offset, limit, count || 0)
+  return paginatedResponse(data, offset, limit, count || 0, { data_updated_at: await getDataUpdatedAt() })
 }
 
 export default nodeHandler(route)

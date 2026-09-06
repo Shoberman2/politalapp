@@ -1,0 +1,109 @@
+/* Roll-call page (/vote/…) and the shared record tables used by the
+   server-rendered member pages. Editorial: type carries the hierarchy, thin
+   rules divide, color is reserved for yea/nay and the accent. */
+
+.rc {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+.rc-loading, .rc-error {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 24px; text-align: center; color: var(--text-secondary);
+}
+.rc-loading p { font-family: var(--font-display); font-style: italic; color: var(--text-secondary); margin-top: 16px; }
+.rc-error h1 { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; margin-bottom: 8px; }
+
+.rc-crumb {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 48px;
+}
+.rc-crumb a { color: var(--accent); text-decoration: none; }
+.rc-crumb a:hover { text-decoration: underline; }
+.rc-crumb-sep { color: var(--border); }
+
+.rc-masthead { padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
+.rc-kicker {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 16px;
+}
+.rc-title {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(1.75rem, 4vw, 2.75rem);
+  line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--text-primary);
+}
+.rc-title a { color: var(--accent); text-decoration: none; font-style: italic; }
+.rc-title a:hover { text-decoration: underline; }
+.rc-standfirst { font-size: 1.125rem; line-height: 1.5; color: var(--text-secondary); max-width: 72ch; margin: 0 0 24px; }
+.rc-muted { color: var(--text-muted); }
+
+.rc-tally { border-top: 2px solid var(--rule-strong); padding-top: 16px; margin: 24px 0; max-width: 720px; }
+.rc-tally-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+.rc-tally-numbers { font-family: var(--font-mono); font-size: 1.125rem; }
+.rc-yea { color: var(--success); }
+.rc-nay { color: var(--error); }
+.rc-result { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.rc-result-passed { color: var(--success); }
+.rc-result-failed { color: var(--error); }
+.rc-tally-bar { display: flex; height: 8px; margin-top: 12px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.rc-tally-yea { background: var(--success); display: block; }
+.rc-tally-nay { background: var(--error); display: block; }
+.rc-party { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+
+.rc-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.rc-action-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--r-btn);
+  font-size: 13px; font-weight: 500; color: var(--text-primary); text-decoration: none; background: var(--surface);
+}
+.rc-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.rc-section { margin-bottom: 48px; }
+.rc-section-label {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 12px;
+}
+.rc-section-title { font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 24px; }
+.rc-section-title em { font-style: italic; color: var(--accent); }
+
+.rc-filter { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.rc-filter input {
+  flex: 1 1 240px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--text-primary); font: inherit; font-size: 14px;
+}
+.rc-filter-positions { display: flex; gap: 4px; flex-wrap: wrap; }
+.rc-filter-positions button {
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--r-btn); background: var(--surface);
+  color: var(--text-secondary); font: inherit; font-size: 13px; cursor: pointer;
+}
+.rc-filter-positions button:hover,
+.rc-filter-positions button.is-active { border-color: var(--text-primary); color: var(--text-primary); }
+.rc-filter-positions button:disabled { cursor: default; }
+
+.rc-table-wrap { overflow-x: auto; border-top: 1px solid var(--rule-strong); }
+.rc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rc-table th {
+  text-align: left; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 500; padding: 12px 12px 8px 0; border-bottom: 1px solid var(--border);
+}
+.rc-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+.rc-table a { color: var(--accent); text-decoration: none; }
+.rc-table a:hover { text-decoration: underline; }
+.rc-mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+.rc-position { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; }
+.rc-position-yea { color: var(--success); }
+.rc-position-nay { color: var(--error); }
+.rc-position-present, .rc-position-not-voting { color: var(--text-muted); }
+
+.rc-colophon { font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
+.rc-colophon a { color: var(--text-secondary); }
+
+/* Server-rendered member page: terms list */
+.pol-terms { list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--text-secondary); }
+.pol-terms li { padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+
+@media (max-width: 640px) {
+  .rc { padding: 24px 16px 64px; }
+  .rc-crumb { margin-bottom: 24px; }
+  .rc-masthead { margin-bottom: 32px; }
+}
