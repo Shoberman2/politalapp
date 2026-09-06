@@ -39,7 +39,8 @@ vi.mock('@supabase/supabase-js', () => ({
   })),
 }))
 
-vi.mock('../../etl/utils.js', () => ({
+vi.mock('../../etl/utils.js', async (importOriginal) => ({
+  ...(await importOriginal()),
   logger: { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} },
   chunk: (arr, size) => {
     const out = []

@@ -24,7 +24,7 @@ import type {
   LoadResult,
   ETLConfig,
 } from './types.js';
-import { logger, chunk } from './utils.js';
+import { logger, chunk, isPlaceholderTitle } from './utils.js';
 
 // =============================================================================
 // SUPABASE CLIENT
@@ -224,6 +224,36 @@ async function upsertPoliticians(
  * Uses the bill ID as the primary key for conflict resolution.
  * Preserves existing summaries if not provided in new data.
  */
+/**
+ * Builds the upsert row for one bill. A vote-derived record carries a stub
+ * title ("HR 4795") and no introduced date; those must never overwrite the
+ * real title and date an earlier run got from Congress.gov. The weekly
+ * 30-day re-run stamped 283 real titles with stubs on 2026-09-06 before this
+ * rule existed.
+ */
+export function mergeBillRow(
+  b: Bill,
+  existing: Partial<Bill> | undefined
+): Record<string, unknown> {
+  const incomingIsStub = isPlaceholderTitle(b.title);
+  const existingIsReal = !!existing?.title && !isPlaceholderTitle(existing.title);
+  const row: Record<string, unknown> = {
+    id: b.id,
+    title: incomingIsStub && existingIsReal ? existing!.title : b.title,
+    introduced_at: b.introduced_at || existing?.introduced_at || null,
+    summary: b.summary || existing?.summary || null,
+    crs_summary: b.crs_summary || existing?.crs_summary || null,
+    policy_area: b.policy_area || existing?.policy_area || null,
+    source_url: b.source_url,
+  };
+  if (b.sponsor_bioguide_id != null) row.sponsor_bioguide_id = b.sponsor_bioguide_id;
+  if (b.sponsor_name != null) row.sponsor_name = b.sponsor_name;
+  if (b.sponsor_party != null) row.sponsor_party = b.sponsor_party;
+  if (b.sponsor_state != null) row.sponsor_state = b.sponsor_state;
+  if (b.legislative_stage != null) row.legislative_stage = b.legislative_stage;
+  return row;
+}
+
 async function upsertBills(
   supabase: SupabaseClient,
   bills: Bill[]
@@ -234,12 +264,12 @@ async function upsertBills(
     return result;
   }
 
-  // First, fetch existing bills to preserve summaries
+  // First, fetch existing bills to preserve real titles, dates and summaries
   const existingBills = new Map<string, Bill>();
   try {
     const { data: existing } = await supabase
       .from('bills')
-      .select('id, summary, crs_summary, policy_area')
+      .select('id, title, introduced_at, summary, crs_summary, policy_area')
       .in('id', bills.map((b) => b.id));
 
     if (existing) {
@@ -259,26 +289,9 @@ async function upsertBills(
       const { data, error } = await supabase
         .from('bills')
         .upsert(
-          batch.map((b) => {
-            const existing = existingBills.get(b.id);
-            // Build payload — only include sponsor cols when we have a value,
-            // so older rows whose detail fetch was skipped don't get null'd out.
-            const row: Record<string, unknown> = {
-              id: b.id,
-              title: b.title,
-              introduced_at: b.introduced_at,
-              summary: b.summary || existing?.summary || null,
-              crs_summary: b.crs_summary || (existing as any)?.crs_summary || null,
-              policy_area: b.policy_area || (existing as any)?.policy_area || null,
-              source_url: b.source_url,
-            };
-            if (b.sponsor_bioguide_id != null) row.sponsor_bioguide_id = b.sponsor_bioguide_id;
-            if (b.sponsor_name != null) row.sponsor_name = b.sponsor_name;
-            if (b.sponsor_party != null) row.sponsor_party = b.sponsor_party;
-            if (b.sponsor_state != null) row.sponsor_state = b.sponsor_state;
-            if (b.legislative_stage != null) row.legislative_stage = b.legislative_stage;
-            return row;
-          }),
+          // Only include sponsor cols when we have a value, so older rows whose
+          // detail fetch was skipped don't get null'd out (see mergeBillRow).
+          batch.map((b) => mergeBillRow(b, existingBills.get(b.id))),
           {
             onConflict: 'id',
             ignoreDuplicates: false,

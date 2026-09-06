@@ -206,6 +206,16 @@ export function normalizeVotePosition(rawPosition: string): VotePosition {
  *
  * This ensures the same bill always gets the same ID, enabling proper deduplication.
  */
+// Bill titles the vote feeds cannot supply are stubs like "HR 915" or "S 12".
+// Keep in step with PLACEHOLDER_TITLE_RE in api/_lib/indexGate.js.
+const PLACEHOLDER_TITLE_RE =
+  /^(H\.?R\.?|S\.?|H\.?J\.?Res\.?|S\.?J\.?Res\.?|H\.?Con\.?Res\.?|S\.?Con\.?Res\.?|H\.?Res\.?|S\.?Res\.?)\s*\d+$/i;
+
+export function isPlaceholderTitle(title: string | null | undefined): boolean {
+  const t = String(title ?? '').trim();
+  return t.length === 0 || PLACEHOLDER_TITLE_RE.test(t);
+}
+
 export function generateBillId(congress: number, type: string, number: number): string {
   // Normalize type to lowercase
   const normalizedType = type.toLowerCase().replace(/\./g, '');

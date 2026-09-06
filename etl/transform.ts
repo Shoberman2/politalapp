@@ -213,8 +213,10 @@ function transformBill(
 
   return {
     id: billId,
+    // A vote record rarely carries the title. The stub keeps the row valid;
+    // upsertBills never lets it overwrite a real title (see mergeBillRow).
     title: title || `${type.toUpperCase()} ${number}`,
-    introduced_at: new Date().toISOString().split('T')[0], // Will be enriched later
+    introduced_at: null, // Unknown here; the introduced-bills feed and CRS fetch supply it
     summary: null, // Will be populated by AI enrichment
     crs_summary: null, // Will be populated by fetchCRS
     policy_area: null, // Will be populated by fetchCRS

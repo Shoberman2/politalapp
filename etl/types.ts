@@ -22,7 +22,7 @@ export interface Politician {
 export interface Bill {
   id: string;              // Format: "{congress}-{type}-{number}" e.g., "118-hr-1"
   title: string;
-  introduced_at: string;   // ISO date string
+  introduced_at: string | null; // ISO date string; null until Congress.gov supplies it
   summary: string | null;  // AI-generated, cached
   crs_summary: string | null; // Official CRS summary from Congress.gov
   policy_area: string | null; // e.g., "Healthcare", "Defense", from Congress.gov policyArea

@@ -34,7 +34,7 @@ import { enrichBillsWithSummaries } from './enrichBillsWithAI.js';
 import { preWarmBillExplanations } from './preWarmBillExplanations.js';
 import { computeMemberStats, type ComputeStatsResult } from './computeStats.js';
 import { fetchCRSSummaries } from './fetchCRS.js';
-import { loadConfig, logger, setLogLevel, LogLevel } from './utils.js';
+import { loadConfig, logger, setLogLevel, LogLevel, isPlaceholderTitle } from './utils.js';
 
 // =============================================================================
 // CLI ARGUMENT PARSING
@@ -220,7 +220,7 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
           // Vote-derived bill already present; merge sponsor + stage onto it.
           transformedData.bills.set(bill.id, {
             ...existing,
-            title: existing.title || bill.title,
+            title: isPlaceholderTitle(existing.title) ? (bill.title || existing.title) : existing.title,
             introduced_at: existing.introduced_at || bill.introduced_at,
             policy_area: existing.policy_area || bill.policy_area,
             sponsor_bioguide_id: bill.sponsor_bioguide_id ?? existing.sponsor_bioguide_id ?? null,
