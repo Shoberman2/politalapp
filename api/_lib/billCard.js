@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { explanationMatchesBill } from './indexGate.js'
+import { EXPLANATION_MODEL, EXPLANATION_PROMPT_VERSION } from './site.js'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
@@ -80,10 +82,10 @@ export async function fetchCardData(billId) {
       .maybeSingle(),
     supabase
       .from('bill_explanations')
-      .select('paragraphs')
+      .select('paragraphs, bill_title')
       .eq('bill_key', billId.toLowerCase())
-      .eq('model', 'gpt-4o-mini')
-      .eq('prompt_version', 2)
+      .eq('model', EXPLANATION_MODEL)
+      .eq('prompt_version', EXPLANATION_PROMPT_VERSION)
       .maybeSingle(),
   ])
 
@@ -117,7 +119,14 @@ export async function fetchCardData(billId) {
     question = rc?.question || null
   }
 
-  const aiOneLiner = explanation?.paragraphs?.[0] || bill.summary || bill.crs_summary || null
+  // A cached explanation generated for an earlier (wrong) title is not this
+  // bill's explanation. H.R. 1 of the 119th once carried "For the People Act"
+  // prose on its share card for exactly this reason.
+  const candidate = explanation?.paragraphs?.[0] || null
+  const explanationOk = candidate
+    ? explanationMatchesBill({ explanationTitle: explanation.bill_title, oneLiner: candidate }, bill)
+    : false
+  const aiOneLiner = (explanationOk ? candidate : null) || bill.crs_summary || bill.summary || null
 
   return { bill, parsed, tally, question, aiOneLiner }
 }

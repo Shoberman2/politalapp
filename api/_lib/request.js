@@ -1,3 +1,5 @@
+import { SITE_ORIGIN } from './site.js'
+
 export function getHeader(req, name) {
   if (req.headers?.get) return req.headers.get(name) || req.headers.get(name.toLowerCase()) || ''
   const value = req.headers?.[name.toLowerCase()] || req.headers?.[name]
@@ -44,4 +46,17 @@ export async function sendResponse(res, response) {
   const body = await response.text()
   res.end(body)
   return undefined
+}
+
+// Hosts we are willing to echo back into shell fetches, sitemap <loc>s, and
+// canonical links. In production the answer is always the canonical origin,
+// so a spoofed x-forwarded-host can never become a cached page's origin.
+const TRUSTED_HOST = /^(www\.ballotwatch\.io|ballotwatch\.io|[a-z0-9-]+\.vercel\.app|localhost(:\d+)?|127\.0\.0\.1(:\d+)?)$/i
+
+export function originFrom(req) {
+  if (process.env.VERCEL_ENV === 'production') return SITE_ORIGIN
+  const proto = getHeader(req, 'x-forwarded-proto') || 'https'
+  const host = getHeader(req, 'x-forwarded-host') || getHeader(req, 'host') || ''
+  if (!TRUSTED_HOST.test(host)) return SITE_ORIGIN
+  return `${proto}://${host}`
 }

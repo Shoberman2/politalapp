@@ -31,14 +31,20 @@ describe('Vercel Node runtime adapters', () => {
     await expect(readJsonBody({ body: Buffer.from('{"ok":true}') })).resolves.toEqual({ ok: true })
   })
 
-  it('returns a 401 for a Node request without an API key', async () => {
-    const result = await validateApiKey({ headers: {} })
+  it('returns a 401 for a non-GET Node request without an API key', async () => {
+    const result = await validateApiKey({ method: 'POST', headers: {} })
 
     expect(result.error).toBeInstanceOf(Response)
     expect(result.error.status).toBe(401)
     await expect(result.error.json()).resolves.toMatchObject({
       error: { code: 'UNAUTHORIZED' },
     })
+  })
+
+  it('admits a keyless GET anonymously', async () => {
+    const result = await validateApiKey({ method: 'GET', headers: { 'x-real-ip': '192.0.2.1' } })
+    expect(result.error).toBeUndefined()
+    expect(result.anonymous).toBe(true)
   })
 
   it('writes Fetch responses through a Node response object', async () => {

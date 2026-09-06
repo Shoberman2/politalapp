@@ -1,20 +1,101 @@
-import { createHash } from 'crypto'
+import { createHash, createHmac } from 'crypto'
 import { supabaseAdmin } from './supabase.js'
-import { errorResponse } from './response.js'
+import { errorResponse, jsonResponse } from './response.js'
 import { getHeader } from './request.js'
+import { checkRateLimit } from './rateLimit.js'
+
+// The data is public. Unauthenticated GET requests are allowed with a per-IP
+// limit; free self-serve keys get a higher per-minute limit because agent
+// platforms share egress IPs; paid keys keep their monthly quota.
+export const ANON_PER_MINUTE = Number(process.env.API_ANON_PER_MINUTE || 60)
+export const ANON_PER_DAY = Number(process.env.API_ANON_PER_DAY || 5000)
+export const FREE_KEY_PER_MINUTE = Number(process.env.API_FREE_KEY_PER_MINUTE || 600)
 
 function hashKey(rawKey) {
   return createHash('sha256').update(rawKey).digest('hex')
 }
 
-/**
- * Validate an API key from the Authorization header.
- * Returns { org, key } on success, or a Response on failure.
- */
-export async function validateApiKey(req) {
-  const authHeader = getHeader(req, 'authorization')
+// Vercel sets x-vercel-forwarded-for and x-real-ip from the connection it
+// terminated, so those cannot be spoofed by the client. x-forwarded-for is
+// the fallback for other hosts.
+export function clientIp(req) {
+  const vercel = getHeader(req, 'x-vercel-forwarded-for')
+  if (vercel) return vercel.split(',')[0].trim()
+  const real = getHeader(req, 'x-real-ip')
+  if (real) return real.trim()
+  const fwd = getHeader(req, 'x-forwarded-for')
+  if (fwd) return fwd.split(',')[0].trim()
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown'
+}
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+let warnedAboutSalt = false
+// Keyed hash: without the secret, the 2^32 IPv4 space is trivially reversible.
+export function hashIp(ip) {
+  const secret = process.env.RATE_LIMIT_SALT
+  if (!secret && !warnedAboutSalt && process.env.VERCEL_ENV === 'production') {
+    warnedAboutSalt = true
+    console.warn('[API Auth] RATE_LIMIT_SALT is not set; ip_hash values use a default key')
+  }
+  return createHmac('sha256', secret || 'ballotwatch-dev').update(String(ip)).digest('hex').slice(0, 32)
+}
+
+function rateLimited(rl, scope) {
+  return jsonResponse({
+    error: {
+      message: scope === 'anonymous'
+        ? `Rate limit reached for unauthenticated requests (${rl.limit} per ${rl.window}). Create a free key at /developers/keys for a higher limit.`
+        : `Rate limit reached (${rl.limit} per ${rl.window}).`,
+      code: 'RATE_LIMIT_EXCEEDED',
+      limit: rl.limit,
+      window: rl.window,
+    },
+  }, 429, {
+    'Retry-After': String(rl.retryAfter || 60),
+    'X-RateLimit-Limit': String(rl.limit),
+    'X-RateLimit-Remaining': '0',
+  })
+}
+
+// Usage rows store the hash only when it is keyed by a real secret (or we
+// are not in production); the rate limiter uses it either way.
+function ipHashForStorage(ipHash) {
+  return process.env.RATE_LIMIT_SALT || process.env.VERCEL_ENV !== 'production' ? ipHash : null
+}
+
+async function anonymousAccess(req) {
+  const ip = clientIp(req)
+  const ipHash = hashIp(ip)
+  const rl = await checkRateLimit({ id: `ip:${ipHash}`, perMinute: ANON_PER_MINUTE, perDay: ANON_PER_DAY })
+  if (!rl.allowed) return { error: rateLimited(rl, 'anonymous') }
+  const stored = ipHashForStorage(ipHash)
+  return {
+    org: null,
+    key: { id: null, name: 'anonymous', monthlyCount: 0, ipHash: stored },
+    anonymous: true,
+    ipHash: stored,
+    rateLimit: rl,
+  }
+}
+
+/**
+ * Validate an API key from the Authorization header, or admit an anonymous
+ * GET/HEAD under the per-IP limit.
+ *
+ * Returns { error: Response } on failure. On success:
+ *   keyed:      { org, key: { id, name, monthlyCount }, anonymous: false }
+ *   anonymous:  { org: null, key: { id: null, name: 'anonymous', monthlyCount: 0, ipHash },
+ *                 anonymous: true, ipHash, rateLimit }
+ * Pass `auth.key` to logUsage so anonymous rows carry the ip hash.
+ */
+export async function validateApiKey(req, { allowAnonymous = true } = {}) {
+  const authHeader = getHeader(req, 'authorization')
+  const method = String(req.method || '').toUpperCase()
+
+  if (!authHeader) {
+    if (allowAnonymous && (method === 'GET' || method === 'HEAD')) return anonymousAccess(req)
+    return { error: errorResponse('Missing or invalid Authorization header. Use: Bearer bw_live_xxx', 401, 'UNAUTHORIZED') }
+  }
+  if (!authHeader.startsWith('Bearer ')) {
     return { error: errorResponse('Missing or invalid Authorization header. Use: Bearer bw_live_xxx', 401, 'UNAUTHORIZED') }
   }
 
@@ -47,7 +128,13 @@ export async function validateApiKey(req) {
 
     const org = keyRow.organizations
     if (!org || org.subscription_status !== 'active') {
-      return { error: errorResponse('Organization subscription is not active. Visit /developers to subscribe.', 403, 'SUBSCRIPTION_INACTIVE') }
+      return { error: errorResponse('Organization subscription is not active. Visit /developers to subscribe or claim a free key.', 403, 'SUBSCRIPTION_INACTIVE') }
+    }
+
+    // Free keys are limited per minute; their monthly_limit is 0 (no monthly cap).
+    if (org.plan === 'free') {
+      const rl = await checkRateLimit({ id: `org:${org.id}`, perMinute: FREE_KEY_PER_MINUTE })
+      if (!rl.allowed) return { error: rateLimited(rl, 'free') }
     }
 
     // Check and reset monthly counter if new month
@@ -111,6 +198,7 @@ export async function validateApiKey(req) {
         name: keyRow.name,
         monthlyCount: currentCount,
       },
+      anonymous: false,
     }
   } catch (err) {
     console.error('[API Auth] Validation failed:', err)
