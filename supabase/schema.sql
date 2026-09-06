@@ -464,13 +464,13 @@ CREATE TRIGGER on_auth_user_created
 CREATE TABLE IF NOT EXISTS organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  owner_id UUID NOT NULL REFERENCES auth.users(id),
+  owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   stripe_customer_id TEXT,
   subscription_status TEXT DEFAULT 'inactive'
     CHECK (subscription_status IN ('active', 'inactive', 'canceled', 'past_due')),
   subscription_id TEXT,
   plan TEXT DEFAULT 'starter'
-    CHECK (plan IN ('starter', 'pro', 'enterprise')),
+    CHECK (plan IN ('free', 'starter', 'pro', 'enterprise')),
   monthly_limit INTEGER DEFAULT 10000,
   current_period_end TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -478,6 +478,7 @@ CREATE TABLE IF NOT EXISTS organizations (
 );
 
 CREATE INDEX IF NOT EXISTS idx_organizations_owner ON organizations(owner_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_owner_unique ON organizations(owner_id);
 
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
@@ -491,16 +492,9 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'organizations' AND policyname = 'Org owners can update own org'
-  ) THEN
-    CREATE POLICY "Org owners can update own org"
-      ON organizations FOR UPDATE
-      USING (auth.uid() = owner_id)
-      WITH CHECK (auth.uid() = owner_id);
-  END IF;
-END $$;
+-- No client UPDATE on organizations: plan, subscription_status and
+-- monthly_limit are written only by the service role (Stripe webhook,
+-- api/keys/free.js). See migration 20260905190000.
 
 DO $$ BEGIN
   IF NOT EXISTS (
@@ -522,7 +516,8 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-GRANT SELECT, INSERT, UPDATE ON organizations TO authenticated;
+GRANT SELECT ON organizations TO authenticated;
+GRANT INSERT (name, owner_id) ON organizations TO authenticated;
 GRANT ALL ON organizations TO service_role;
 
 DROP TRIGGER IF EXISTS update_organizations_updated_at ON organizations;
@@ -550,7 +545,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 
 CREATE INDEX IF NOT EXISTS idx_api_keys_org ON api_keys(org_id);
-CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+-- key_hash is UNIQUE and already indexed.
 
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 
@@ -601,7 +596,9 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-GRANT SELECT, INSERT, UPDATE ON api_keys TO authenticated;
+GRANT SELECT ON api_keys TO authenticated;
+GRANT INSERT (org_id, key_hash, key_prefix, name) ON api_keys TO authenticated;
+GRANT UPDATE (active, name) ON api_keys TO authenticated;
 GRANT ALL ON api_keys TO service_role;
 
 
@@ -611,7 +608,8 @@ GRANT ALL ON api_keys TO service_role;
 
 CREATE TABLE IF NOT EXISTS api_usage (
   id BIGSERIAL PRIMARY KEY,
-  key_id UUID NOT NULL REFERENCES api_keys(id) ON DELETE CASCADE,
+  key_id UUID REFERENCES api_keys(id) ON DELETE CASCADE, -- NULL for anonymous requests
+  ip_hash TEXT,                        -- salted SHA-256 of the caller IP, anonymous requests only
   endpoint TEXT NOT NULL,
   method TEXT DEFAULT 'GET',
   status_code INTEGER,
@@ -620,6 +618,10 @@ CREATE TABLE IF NOT EXISTS api_usage (
 );
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_key_date ON api_usage(key_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_api_usage_ip_hash_date
+  ON api_usage (ip_hash, created_at DESC)
+  WHERE ip_hash IS NOT NULL;
+COMMENT ON COLUMN api_usage.ip_hash IS 'SHA-256 of salt:ip, first 32 hex chars; set only for anonymous requests';
 
 ALTER TABLE api_usage ENABLE ROW LEVEL SECURITY;
 
@@ -651,6 +653,7 @@ DO $$ BEGIN
 END $$;
 
 GRANT SELECT ON api_usage TO authenticated;
+REVOKE ALL ON organizations, api_keys, api_usage FROM anon;
 GRANT ALL ON api_usage TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE api_usage_id_seq TO service_role;
 
