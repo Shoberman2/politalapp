@@ -214,10 +214,30 @@ supabase/             Schema, migrations, and Edge Functions
 test/                 Unit, component, API, ETL, and e2e tests
 ```
 
-## Public API
+## Public API, llms.txt, and MCP
 
 Hosted API docs live at `/developers/docs`. The OpenAPI source is
-`docs/api/openapi.yaml`.
+`docs/api/openapi.yaml`, served at `/openapi.yaml`.
+
+GET requests need no key: 60 per minute and 5,000 per day per IP. A free key
+(sign in at `/developers/keys`, no payment) raises that to 600 per minute. Paid
+keys keep their monthly quota. Every response carries `meta.data_updated_at`;
+single records carry a `Link: <official source>; rel="canonical"` header.
+
+Agent surfaces:
+
+- `/llms.txt` is the machine-readable map of the site, URL patterns, and limits.
+- `/mcp` is a stateless Streamable HTTP MCP server with `find_representatives`,
+  `get_member`, `get_member_votes`, `get_roll_call`, `search_bills`, `get_bill`,
+  and `explain_bill` (cached explanations only).
+- Member, bill, and roll-call pages return full HTML without JavaScript and
+  answer `Accept: text/markdown` with a compact Markdown record.
+- `/sitemap.xml` is generated from the database and lists every member with
+  votes, every roll call with a sane tally, and every bill with a recorded vote.
+
+Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
+`UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per
+function instance.
 
 Main routes:
 
@@ -232,8 +252,16 @@ Main routes:
 - `GET /api/v1/stats`
 - `GET /api/v1/search`
 
-Hosted high-volume access uses API keys. Public sample data is available under
-`public/data`.
+Public sample data is available under `public/data`.
+
+### Server-rendered record pages
+
+`api/prerender.js` renders `/politician/:id`, `/bill/:congress/:type/:number`,
+and `/vote/:congress/:chamber/:session/:roll` into the built `index.html` shell
+so crawlers and agents receive the record and React still takes over in the
+browser. Pages that fail the data-quality gate in `api/_lib/indexGate.js`
+(placeholder titles, tallies that disagree with member votes, members with no
+votes) are served with `noindex` and left out of the sitemap.
 
 ## Data and Methodology
 
