@@ -59,7 +59,7 @@
   line-height: 1.6;
   color: var(--ink-3);
 }
-.offices-page a { color: var(--accent); }
+.offices-page blockquote a { color: var(--accent); }
 
 .offices-page .op-grid {
   display: grid;
@@ -79,7 +79,7 @@
 }
 
 .offices-page .op-links { display: flex; gap: 22px; margin-top: 18px; }
-.offices-page .op-links a { font-size: 14px; font-weight: 600; text-decoration: none; }
+.offices-page .op-links a { font-size: 14px; font-weight: 600; color: var(--accent); text-decoration: none; }
 .offices-page .op-links a:hover { text-decoration: underline; }
 
 .offices-page .op-contact { background: var(--bg-tint); border-bottom: 0; }
