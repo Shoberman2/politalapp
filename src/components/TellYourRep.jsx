@@ -13,9 +13,10 @@ import {
 } from '../utils/tellYourRepDraft'
 import { getUserAddress, saveUserAddress } from '../services/userService'
 import { findMembersForAddress, getMemberContact } from '../services/myMembers'
+import { BRAND } from '../config/brand'
 import '../styles/TellYourRep.css'
 
-// "Tell your rep": a hand-off, not a sender. BallotWatch prefills a factual
+// "Tell your rep": a hand-off, not a sender. We prefill a factual
 // outline, the person writes the message, copies it, and opens the office's
 // own contact page. Nothing here submits a form, sends mail, or stores the
 // text. The only thing counted is an anonymous event with the record
@@ -390,7 +391,7 @@ export default function TellYourRep({ context, members }) {
           <button type="button" className="tyr-link-btn" onClick={() => setOpen(false)}>Close</button>
         </div>
         <p className="tyr-disclaimer">
-          <strong>BallotWatch doesn't send this for you. Copy your message and send it through your representative's official contact page.</strong>{' '}
+          <strong>{BRAND.name} doesn't send this for you. Copy your message and send it through your representative's official contact page.</strong>{' '}
           Not affiliated with Congress. We don't save what you write.
         </p>
 

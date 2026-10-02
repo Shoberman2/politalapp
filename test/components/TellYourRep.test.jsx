@@ -93,7 +93,7 @@ describe('TellYourRep', { timeout: 20000 }, () => {
     expect(document.activeElement).toBe(heading)
 
     // Required disclosures.
-    expect(screen.getByText("BallotWatch doesn't send this for you. Copy your message and send it through your representative's official contact page.")).toBeTruthy()
+    expect(screen.getByText("Plainfloor doesn't send this for you. Copy your message and send it through your representative's official contact page.")).toBeTruthy()
     expect(screen.getByText(/Not affiliated with Congress\./)).toBeTruthy()
 
     // Factual scaffold, no position.
