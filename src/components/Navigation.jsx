@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import { SHOW_BILL_ALERTS } from '../config/features'
+import { BRAND } from '../config/brand'
 import '../styles/Navigation.css'
 
 // Per-route announcement copy for the strip above the masthead.
 function announceFor(pathname) {
   if (pathname === '/') {
-    return 'Open-source congressional records / Built from public Congress.gov, Census & FEC data'
+    return 'Every vote, bill & member of Congress / Built from public Congress.gov, Census & FEC data'
   }
   if (pathname.startsWith('/all')) {
     return 'Open-source congressional records / Current members and delegates of the 119th Congress'
@@ -29,56 +30,26 @@ const NAV_LINKS = [
   { to: '/all', label: 'Members' },
   { to: '/methodology', label: 'Methodology' },
   { to: '/developers', label: 'API' },
+  { to: '/offices', label: 'For Offices' },
 ]
 
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const isLanding = location.pathname === '/'
-  const [overHero, setOverHero] = useState(isLanding)
 
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
 
-  // On the landing page the masthead overlays the cinematic film: transparent
-  // with light text while a dark shot sits behind the bar, then solid once the
-  // page scrolls down to the editorial content. Driven off the film's own
-  // geometry so it stays correct across breakpoints and the reduced-motion
-  // static hero (no hard-coded viewport thresholds).
-  useEffect(() => {
-    if (!isLanding) {
-      setOverHero(false)
-      return
-    }
-    let raf = 0
-    const update = () => {
-      raf = 0
-      const film = document.querySelector('.film')
-      setOverHero(!!film && film.getBoundingClientRect().bottom > 72)
-    }
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [isLanding])
-
-  const mastheadClass = `bw bw-masthead${isLanding ? ' masthead-landing' : ''}${isLanding && overHero ? ' over-hero' : ''}`
-
   return (
-    <div className={mastheadClass}>
+    <div className="bw bw-masthead">
       <div className="announce"><span>{announceFor(location.pathname)}</span></div>
       <div className="topbar-wrap">
         <div className="topbar">
-          <button className="brand" onClick={() => navigate('/')} aria-label="BallotWatch home">
+          <button className="brand" onClick={() => navigate('/')} aria-label={`${BRAND.name} home`}>
             <span className="brand-mark"><img src="/capitol-logo.svg" alt="" /></span>
-            <span className="brand-name">BallotWatch</span>
+            <span className="brand-name">{BRAND.name}</span>
           </button>
 
           <nav className={`topnav ${menuOpen ? 'open-mobile' : ''}`}>

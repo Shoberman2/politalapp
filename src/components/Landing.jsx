@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
 import { saveUserAddress } from '../services/userService'
 import SEO from './SEO'
+import { BRAND } from '../config/brand'
 import '../styles/Landing.css'
 
 const ArrowRight = () => (
@@ -25,63 +26,40 @@ const SOURCES = [
   { name: 'FEC', detail: 'Campaign finance' },
 ]
 
-// The "how it works" walkthrough. Each step pairs a plain-language promise with
-// a small illustrative UI mock so the abstract concept lands visually. The mocks
-// are representative, not live data; they're set dressing for the narrative.
+// The record, in three steps. Every illustration renders from live data
+// (members, recorded votes, a current bill); skeletons only while loading.
 const STEPS = [
   {
     id: 'find',
     title: 'Find who represents you.',
     body: 'One ZIP code maps you to your two senators and your House member, drawn from U.S. Census district data. Not a guess.',
-    // visual is rendered from live member data in the component (see repsVisual).
-    visual: null,
   },
   {
     id: 'votes',
-    title: 'See every vote, with the receipts.',
-    body: 'Each yea and nay is tied to the official roll call. No spin, no summary of a summary. The record, linked to its source.',
-    // visual is rendered from live recorded votes in the component (votesVisual).
-    visual: null,
+    title: 'See how they voted, on every roll call.',
+    body: 'Each yea and nay is tied to the official roll call, this week’s and every one before it. The record, linked to its source.',
   },
   {
     id: 'explain',
-    title: 'Understand any bill in plain English.',
-    body: 'A source-linked explanation sits in the margin of every bill: what it does, who it affects, why it matters. Written to inform, not persuade.',
-    // visual is rendered from a real current bill in the component (billVisual).
-    visual: null,
-  },
-  {
-    id: 'money',
-    title: 'Follow the money.',
-    body: 'Line up a member’s votes against who funds their campaigns, straight from FEC filings. Judge the pattern for yourself.',
-    visual: (
-      <div className="mock mock-money" aria-hidden="true">
-        <div className="mk-bar"><span className="mk-bar-label">Energy &amp; Natural Resources</span><span className="mk-bar-track"><i style={{ '--w': '94%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Finance &amp; Insurance</span><span className="mk-bar-track"><i style={{ '--w': '71%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Health Professionals</span><span className="mk-bar-track"><i style={{ '--w': '48%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Labor Organizations</span><span className="mk-bar-track"><i style={{ '--w': '33%' }} /></span></div>
-        <div className="mk-src">Source · FEC campaign filings <ArrowRight /></div>
-      </div>
-    ),
+    title: 'Read any bill, past or present, in plain English.',
+    body: 'An AI explanation built from the official summary sits in the margin of every bill, labeled as AI and linked to Congress.gov. Written to inform, not persuade.',
   },
 ]
 
-// The opening film is a silent, calm move through the REAL U.S. Capitol,
-// built entirely from real, freely-licensed footage/photography (no AI):
-//   1. the actual Capitol dome from the west lawn, gentle push-in
-//      (real video, Pexels, free license),
-//   2. up into the Rotunda dome — the Apotheosis of Washington fresco
-//      (real photo, Carol Highsmith / Library of Congress, public domain).
-// Deliberately short: two ~2s shots (~4s total). A landing film that outstays
-// its welcome is a bounce, and every extra megabyte delays first frame — the
-// clips are 1440px/CRF28 so the first one starts playing on load, not after a
-// buffer. (A third shot, the Brumidi Corridors, was cut for length.)
-// Clips play once and hand off; the last loops. See public/hero-*.{mp4,jpg}.
-const FILM_CLIPS = [
-  { src: '/hero-run.mp4', poster: '/hero-run.jpg', line: 'title' },
-  { src: '/hero-topdown.mp4', poster: '/hero-topdown.jpg', line: 'question' },
+// Where AI is used and where it never is. This is the substance behind the
+// mission line, so it's stated as plain lists rather than a pitch.
+const AI_USES = [
+  'Explain bills from the official summary, with the source beside it',
+  'Explain what a procedural vote actually decided',
+  'Help you, or your AI assistant, find the right roll call',
 ]
-const FILM_STATIC_INDEX = FILM_CLIPS.length - 1 // Rotunda frame shown under reduced motion
+const AI_NEVER = [
+  'Write in your representative’s voice or guess their positions',
+  'Send anything you haven’t read and approved',
+  'Choose a side for you, or rank and score constituents',
+]
+
+const WRITE_STEPS = ['You write', 'You approve the exact text', 'You send it to the office', 'You see how they vote next']
 
 // The "On the floor" feed and the step-two mock render only real recorded
 // votes. While the live fetch is in flight (or if it fails) we show neutral
@@ -139,25 +117,15 @@ function fromBill(b) {
 function Landing() {
   const navigate = useNavigate()
   const rootRef = useRef(null)
-  const videoRefs = useRef([])
-  const votingVidRef = useRef(null)
-  // The <video> ref callback below is an inline arrow, so React re-invokes it
-  // on every render, not just on mount. Without this latch the opening shot
-  // would be re-played each time state changed — invisibly, since by then the
-  // film has crossfaded to the next clip — burning CPU behind the scenes.
-  const openingKicked = useRef(false)
-
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
   // Which of the two lookup forms was submitted, so the result renders next to
   // the field the reader actually used instead of somewhere off-screen.
-  const [lookupPlace, setLookupPlace] = useState('turn')
+  const [lookupPlace, setLookupPlace] = useState('hero')
   const [floor, setFloor] = useState([])
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
   const [reduced, setReduced] = useState(false)
-  const [current, setCurrent] = useState(0)
-  const [playBlocked, setPlayBlocked] = useState(false)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
 
@@ -182,7 +150,7 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // Honor prefers-reduced-motion: no scroll-scored film, no video autoplay.
+  // Honor prefers-reduced-motion: no entrance reveals.
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
     const apply = () => setReduced(mq.matches)
@@ -222,68 +190,6 @@ function Landing() {
     })()
     return () => { cancelled = true }
   }, [])
-
-  // Start a clip muted, and surface a Play button only if the browser refuses.
-  // `rewind` is for hand-offs (a clip we're returning to should start over);
-  // the opening shot is never rewound, so kicking it twice can't stutter it.
-  const playClip = useCallback((v, { rewind = false } = {}) => {
-    if (!v) return
-    v.muted = true
-    if (rewind && v.currentTime > 0.05) {
-      try { v.currentTime = 0 } catch { /* not seekable yet */ }
-    }
-    const p = v.play()
-    if (p && p.then) p.then(() => setPlayBlocked(false)).catch(() => setPlayBlocked(true))
-  }, [])
-
-  // Drive the clip sequence: play the current (muted) shot and pause the rest.
-  // The videos advance themselves via `onEnded`.
-  useEffect(() => {
-    if (reduced) return
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return
-      if (i === current) playClip(v, { rewind: true })
-      else v.pause()
-    })
-  }, [current, reduced, playClip])
-
-  // Bulletproof autoplay: muted clips should start on load, but a few browsers
-  // still hold until a user gesture. The moment the user does anything (scroll,
-  // tap, key), kick the active clip once — so the film is never a frozen poster.
-  useEffect(() => {
-    if (reduced) return
-    const kick = () => {
-      const v = document.querySelector('.film-vid.is-current')
-      if (v) { v.muted = true; v.play().then(() => setPlayBlocked(false)).catch(() => {}) }
-    }
-    const events = ['pointerdown', 'touchstart', 'keydown', 'scroll']
-    events.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }))
-    return () => events.forEach((e) => window.removeEventListener(e, kick))
-  }, [reduced])
-
-  // Under reduced motion, hold on the chamber still with the question shown.
-  useEffect(() => {
-    if (reduced) setCurrent(FILM_STATIC_INDEX)
-  }, [reduced])
-
-  // The closing bill shot sits far below the fold. Autoplaying it at mount
-  // steals bandwidth from the hero and leaves it mid-loop by the time anyone
-  // scrolls to it — start it when it actually comes into view instead.
-  useEffect(() => {
-    const v = votingVidRef.current
-    if (!v || reduced) return
-    if (!('IntersectionObserver' in window)) {
-      v.muted = true
-      v.play().catch(() => {})
-      return
-    }
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { v.muted = true; v.play().catch(() => {}) }
-      else v.pause()
-    }, { threshold: 0.2 })
-    io.observe(v)
-    return () => io.disconnect()
-  }, [reduced])
 
   // Staggered entrance reveals for anything tagged [data-reveal].
   useEffect(() => {
@@ -357,8 +263,6 @@ function Landing() {
     navigate('/my-representative')
   }
 
-  const advanceClip = () => setCurrent((c) => (c < FILM_CLIPS.length - 1 ? c + 1 : c))
-
   // The one primary action, rendered at both the top of the page and the
   // bottom. The closing section runs the real lookup rather than bouncing the
   // reader back up to the top — a CTA that only scrolls is a dead end.
@@ -397,9 +301,6 @@ function Landing() {
       )}
     </>
   )
-
-  // Kick off playback from a real user gesture when the browser blocked autoplay.
-  const startPlayback = () => playClip(videoRefs.current[current])
 
   // Step-one illustration built from real members, with a skeleton fallback.
   const repsRows = featuredMembers.length ? featuredMembers : [null, null, null]
@@ -494,17 +395,24 @@ function Landing() {
     </div>
   )
 
+  // The hero's proof: the most recent recorded vote with a bill and a real
+  // tally, else the most recent recorded vote of any kind. Never invented.
+  const headlineVote = floor.find((v) => v.voteHref && v.bill && v.tally) || floor.find((v) => v.voteHref) || null
+  const recordedLabel = recordedThrough
+    ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : null
+
   return (
     <div className="bw landing" ref={rootRef}>
       <SEO
-        title="See How Congress Votes: Source-Linked Records"
-        description="BallotWatch is an open-source civic reference for reviewing representatives, bills, votes, methodology, and public legislative data."
+        title="How Did Your Representative Vote This Week?"
+        description={`${BRAND.mission} Every vote, bill, and member of Congress, linked to its official source.`}
         path="/"
         schema={{
           '@graph': [
             {
               '@type': 'WebSite',
-              name: 'BallotWatch',
+              name: BRAND.name,
               url: 'https://www.ballotwatch.io',
               potentialAction: {
                 '@type': 'SearchAction',
@@ -514,7 +422,7 @@ function Landing() {
             },
             {
               '@type': 'Organization',
-              name: 'BallotWatch',
+              name: BRAND.name,
               url: 'https://www.ballotwatch.io',
               logo: 'https://www.ballotwatch.io/capitol-logo.svg',
             },
@@ -522,86 +430,65 @@ function Landing() {
         }}
       />
 
-      {/* ===== CINEMATIC OPENER: approach the real Capitol → through the halls → up into the Rotunda ===== */}
-      <section className={`film${reduced ? ' film--static' : ''}`}>
-        <div className="film-stage">
-          {FILM_CLIPS.map((clip, i) => (
-            <video
-              key={clip.src}
-              // Set muted on the element itself: React's `muted` prop is not
-              // always reflected to the DOM, and unmuted = blocked autoplay.
-              ref={(el) => {
-                videoRefs.current[i] = el
-                if (!el) return
-                el.muted = true; el.defaultMuted = true; el.playsInline = true
-                // Don't wait for an effect (which runs after paint): kick the
-                // opening shot the instant the element exists, so arriving on
-                // the page shows motion, not a frozen poster. Once only —
-                // see `openingKicked`.
-                if (i === 0 && !reduced && !openingKicked.current) {
-                  openingKicked.current = true
-                  playClip(el)
-                }
-              }}
-              className={`film-vid${i === current ? ' is-current' : ''}`}
-              src={clip.src}
-              poster={clip.poster}
-              autoPlay={i === 0 && !reduced}
-              muted
-              playsInline
-              preload="auto"
-              loop={i === FILM_CLIPS.length - 1}
-              // The element may exist before it has enough data to start; try
-              // again the moment it does.
-              onCanPlay={() => { if (i === current && !reduced) playClip(videoRefs.current[i]) }}
-              onEnded={i === FILM_CLIPS.length - 1 ? undefined : advanceClip}
-            />
-          ))}
-          <div className="film-grade" />
+      {/* ===== HERO: the question, the mission, the lookup, and a real vote as proof ===== */}
+      <section className="hero">
+        <div className="hero-inner">
+          <span className="hero-kicker">
+            {recordedLabel ? `Recorded through ${recordedLabel} · 119th Congress` : '119th Congress'}
+          </span>
+          <h1 className="hero-title">How did your representative vote <em>this week?</em></h1>
+          <p className="hero-mission">{BRAND.mission}</p>
 
-          {!reduced && playBlocked && (
-            <button type="button" className="film-play" onClick={startPlayback} aria-label="Play the film">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
-            </button>
-          )}
+          {renderLookup('hero')}
 
-          <div className="film-copy">
-            <div className="film-lines">
-              <h1 className={`film-line film-title-a${FILM_CLIPS[current].line === 'title' ? ' show' : ''}`}>See how Congress <em>votes.</em></h1>
-              <div className={`film-line film-questions${FILM_CLIPS[current].line === 'question' ? ' show' : ''}`}>
-                <span className="film-q">Do you know what happens <em>under this dome?</em></span>
+          <div className="headline-vote" aria-live="polite">
+            {!floorReady ? (
+              <div className="hv-card" aria-hidden="true">
+                <span className="mk-skel" style={{ width: 160, maxWidth: 'none' }} />
+                <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', height: 18, marginTop: 10 }} />
+                <span className="mk-skel" style={{ width: 120, maxWidth: 'none', marginTop: 12 }} />
               </div>
-            </div>
+            ) : headlineVote && (
+              <div className="hv-card">
+                <div className="hv-meta">
+                  <span>Latest recorded vote</span>
+                  {headlineVote.chamber && <span>{headlineVote.chamber}</span>}
+                  {headlineVote.rollLabel && <span>{headlineVote.rollLabel}</span>}
+                </div>
+                <div className="hv-main">
+                  <p className="hv-text">
+                    {headlineVote.bill && <span className="hv-bill">{headlineVote.bill.display}</span>}
+                    {headlineVote.text}
+                  </p>
+                  <div className="hv-outcome">
+                    {headlineVote.tally && <span className="fr-tally">{headlineVote.tally}</span>}
+                    {headlineVote.result && <span className={`fr-result ${headlineVote.resultKind}`}>{headlineVote.result}</span>}
+                  </div>
+                </div>
+                <div className="hv-links">
+                  <Link to={headlineVote.voteHref}>How each member voted <ArrowRight /></Link>
+                  <Link to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about this vote <ArrowRight /></Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ===== THE TURN: the answer + the one primary action (ZIP lookup) ===== */}
-      <section className="turn">
-        <div className="turn-inner">
-          <h2 className="turn-head" data-reveal>
-            Your representatives cast hundreds of votes a year in that room.
-            BallotWatch shows you every one, <em>with the receipts.</em>
-          </h2>
-
-          {renderLookup('turn')}
-        </div>
-      </section>
-
-      {/* ===== STEP BY STEP: how the platform changes that ===== */}
+      {/* ===== THE RECORD: who represents you, how they voted, what the bills say ===== */}
       <section className="steps">
         <div className="steps-inner">
           <header className="steps-head" data-reveal>
-            <h2>From an empty chamber to a clear record.</h2>
+            <h2>The whole record, in one place.</h2>
           </header>
 
-          {STEPS.map((s, i) => (
+          {STEPS.map((s) => (
             <article className="step" key={s.id} data-reveal>
               <div className="step-text">
                 <h3>{s.title}</h3>
                 <p>{s.body}</p>
               </div>
-              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'votes' ? votesVisual : s.id === 'explain' ? billVisual : s.visual}</div>
+              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'votes' ? votesVisual : billVisual}</div>
             </article>
           ))}
         </div>
@@ -612,11 +499,7 @@ function Landing() {
         <div className="floor-inner">
           <header className="floor-head" data-reveal>
             <span className="floor-title"><span className="floor-dot" />On the floor</span>
-            <span className="floor-sub">
-              {recordedThrough
-                ? `Recorded through ${new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                : 'Latest recorded votes'}
-            </span>
+            <span className="floor-sub">{recordedLabel ? `Recorded through ${recordedLabel}` : 'Latest recorded votes'}</span>
           </header>
 
           <ul className="floor-feed">
@@ -655,7 +538,54 @@ function Landing() {
               ))}
           </ul>
 
-          <Link className="floor-more" to="/bills">Browse bills and sources <ArrowRight /></Link>
+          <Link className="floor-more" to="/bills">Browse every bill, past and present <ArrowRight /></Link>
+        </div>
+      </section>
+
+      {/* ===== AI, STATED PLAINLY: where it's used and where it never is ===== */}
+      <section className="ai">
+        <div className="ai-inner">
+          <header className="ai-head" data-reveal>
+            <span className="section-kicker">How we use AI</span>
+            <h2>More people reading the record. More people heard. Nobody speaking for anyone.</h2>
+          </header>
+          <div className="ai-cols" data-reveal>
+            <div className="ai-col">
+              <h3>We use AI to</h3>
+              <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>
+            <div className="ai-col ai-col-never">
+              <h3>We never use AI to</h3>
+              <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>
+          </div>
+          <Link className="floor-more" to="/methodology/ai-explanations" data-reveal>How AI explanations are made <ArrowRight /></Link>
+        </div>
+      </section>
+
+      {/* ===== WRITE: read the vote, then write to the person who cast it ===== */}
+      <section className="write">
+        <div className="write-inner">
+          <header className="write-head" data-reveal>
+            <span className="section-kicker">Tell your rep</span>
+            <h2>Read the vote. Then write to the person who cast it.</h2>
+          </header>
+          <ol className="write-steps" data-reveal>
+            {WRITE_STEPS.map((t, i) => (
+              <li key={t}><span className="ws-num">{i + 1}</span>{t}</li>
+            ))}
+          </ol>
+          <p className="write-note" data-reveal>
+            Every roll call and bill page starts a message with the facts already in it: the vote, how your
+            member voted, and the official source. You add why it matters to you. {BRAND.name} doesn’t send it
+            for you; you send it through your representative’s official contact page, the way their office
+            already counts mail.
+          </p>
+          {headlineVote && (
+            <Link className="floor-more" to={`${headlineVote.voteHref}#tell-your-rep`} data-reveal>
+              Start with the latest vote <ArrowRight />
+            </Link>
+          )}
         </div>
       </section>
 
@@ -672,33 +602,40 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== VOTING: the second question, over a bill ===== */}
-      <section className="voting">
-        <video
-          ref={votingVidRef}
-          className="voting-vid"
-          src="/hero-bill.mp4"
-          poster="/hero-bill.jpg"
-          muted
-          loop
-          playsInline
-          preload="metadata"
-        />
-        <div className="voting-grade" />
-        <div className="voting-inner">
-          <h2 className="voting-q" data-reveal>Do you know what they're actually <em>voting on?</em></h2>
-          {featuredBill && (
-            <Link
-              to={`/bill/${featuredBill.congress || 119}/${(featuredBill.type || '').toLowerCase()}/${featuredBill.number}`}
-              className="voting-bill"
-              data-reveal
-            >
-              <span className="vb-num">{billLabel(featuredBill)}</span>
-              <span className="vb-title">{featuredBill.headline || featuredBill.title}</span>
-              <span className="vb-go">Read it in plain English <ArrowRight /></span>
-            </Link>
-          )}
-          <Link to="/bills" className="voting-cta" data-reveal>Browse every bill <ArrowRight /></Link>
+      {/* ===== FOR OFFICES: one band, one link; the page belongs to constituents ===== */}
+      <section className="offices-band">
+        <div className="offices-inner">
+          <span className="section-kicker" data-reveal>If you work in a congressional office</span>
+          <h2 data-reveal>A better way for constituents to reach your office, and for your office to answer.</h2>
+          <div className="offices-points" data-reveal>
+            <p><b>Answer before it becomes mail.</b> “How did the Member vote on this bill?” answered from the official record and your office’s own published statements, cited every time.</p>
+            <p><b>Mail you can use.</b> One message per person, written and approved by that person, tagged to the exact bill or roll call it’s about.</p>
+            <p><b>Nothing in your name.</b> No generated statements, no automated replies, nothing sent without the constituent’s approval.</p>
+          </div>
+          <p className="offices-status" data-reveal>
+            In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
+          </p>
+          <Link className="floor-more" to="/offices" data-reveal>How it would work for your office <ArrowRight /></Link>
+        </div>
+      </section>
+
+      {/* ===== FOR DEVELOPERS AND AI ASSISTANTS ===== */}
+      <section className="devs">
+        <div className="devs-inner" data-reveal>
+          <div className="devs-text">
+            <span className="section-kicker">For developers and AI assistants</span>
+            <h2>The same record, open to anyone who builds.</h2>
+            <p>A keyless public API, an MCP server your assistant can call, and <code>/llms.txt</code>. Every answer carries its official source.</p>
+            <div className="devs-links">
+              <Link to="/developers/docs">API docs</Link>
+              <a href="/llms.txt">llms.txt</a>
+              <Link to="/open">Open data</Link>
+            </div>
+          </div>
+          <pre className="devs-code" aria-label="Example requests"><code>{`curl https://www.ballotwatch.io/api/v1/votes
+
+# MCP (Streamable HTTP), no key needed
+https://www.ballotwatch.io/mcp`}</code></pre>
         </div>
       </section>
 
@@ -714,10 +651,11 @@ function Landing() {
       {/* ===== COLOPHON ===== */}
       <footer className="colophon">
         <div className="colophon-inner">
-          <span className="colophon-word">BallotWatch</span>
-          <span>© 2026 · Public data and public methods</span>
+          <span className="colophon-word">{BRAND.name}</span>
+          <span>© 2026 · Public data and public methods · Not affiliated with the U.S. Congress</span>
           <div className="colophon-links">
             <Link to="/methodology">Methodology</Link>
+            <Link to="/offices">For offices</Link>
             <Link to="/developers">API</Link>
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
             <Link to="/open">Corrections</Link>

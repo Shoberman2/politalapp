@@ -28,6 +28,7 @@ import ChamberPage from './components/ChamberPage'
 import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
+import OfficesPage from './components/OfficesPage'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
@@ -61,6 +62,7 @@ function App() {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/open" element={<OpenSourcePage />} />
+          <Route path="/offices" element={<OfficesPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
           {SHOW_BILL_ALERTS && (

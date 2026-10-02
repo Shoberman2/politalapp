@@ -186,7 +186,7 @@ describe('Landing — "See every vote" step', () => {
       expect(container.querySelector('.finale .lookup-result')).not.toBeNull()
     })
     // ...and nowhere else.
-    expect(container.querySelector('.turn .lookup-result')).toBeNull()
+    expect(container.querySelector('.hero .lookup-result')).toBeNull()
     expect(within(container.querySelector('.finale')).getByText('2 Senators found.')).toBeTruthy()
   })
 
@@ -196,12 +196,12 @@ describe('Landing — "See every vote" step', () => {
 
     const { container } = renderLanding()
 
-    const turnForm = container.querySelector('.turn .lookup-form')
+    const turnForm = container.querySelector('.hero .lookup-form')
     fireEvent.change(turnForm.querySelector('input'), { target: { value: '02134' } })
     fireEvent.submit(turnForm)
 
     await waitFor(() => {
-      expect(container.querySelector('.turn .lookup-result')).not.toBeNull()
+      expect(container.querySelector('.hero .lookup-result')).not.toBeNull()
     })
     expect(container.querySelector('.finale .lookup-result')).toBeNull()
   })
@@ -218,5 +218,52 @@ describe('Landing — "See every vote" step', () => {
       expect(container.querySelectorAll('.floor-feed .floor-row').length).toBeGreaterThan(0)
     })
     expect(container.querySelectorAll('.floor-feed .floor-row').length).toBe(5)
+  })
+})
+
+describe('Landing — record-first hero (2026-10 redesign)', () => {
+  it('shows the latest real tallied vote under the lookup, with links to the record and to Tell your rep', async () => {
+    services.getRecentFloorVotes.mockResolvedValue({
+      votes: [untallied(207), untallied(208), tallied(281, '8800', 216, 214)],
+      recordedThrough: '2026-07-24',
+    })
+
+    const { container } = renderLanding()
+
+    await waitFor(() => {
+      expect(container.querySelector('.hero .hv-card .hv-bill')).not.toBeNull()
+    })
+    const card = container.querySelector('.hero .hv-card')
+    expect(within(card).getByText('H.R. 8800')).toBeTruthy()
+    expect(within(card).getByText('216–214')).toBeTruthy()
+    const hrefs = [...card.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain('/vote/119/house/2/281')
+    expect(hrefs).toContain('/vote/119/house/2/281#tell-your-rep')
+  })
+
+  it('renders no hero card at all when there is no recorded vote, never an invented one', async () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+
+    const { container } = renderLanding()
+
+    await waitFor(() => {
+      expect(container.querySelector('.hero .hv-card .mk-skel')).toBeNull()
+    })
+    expect(container.querySelector('.hero .hv-card')).toBeNull()
+  })
+
+  it('has no video on the page', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    expect(container.querySelectorAll('video').length).toBe(0)
+  })
+
+  it('links offices to /offices and states the in-development status', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    const band = container.querySelector('.offices-band')
+    expect(band.querySelector('a[href="/offices"]')).not.toBeNull()
+    expect(band.textContent).toMatch(/not yet authorized/i)
+    expect(band.textContent).not.toMatch(/free trial|pilot/i)
   })
 })

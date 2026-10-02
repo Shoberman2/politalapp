@@ -17,8 +17,8 @@ const spaRoutePattern = new RegExp(`^${spaRewrite.source}$`)
 describe('Vercel SPA routing regression', () => {
   it.each([
     '/capitol-logo.svg',
-    '/hero-run.jpg',
-    '/hero-run.mp4',
+    '/og-default.png',
+    '/clip.mp4',
     '/favicon.ico',
     '/site.webmanifest',
     '/data/datapackage.json',

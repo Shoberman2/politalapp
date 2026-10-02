@@ -12,6 +12,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - Members index: https://www.ballotwatch.io/all
 - Bills index: https://www.ballotwatch.io/bills
 - Methodology: https://www.ballotwatch.io/methodology
+- For congressional offices (in development): https://www.ballotwatch.io/offices
 
 Every member and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
