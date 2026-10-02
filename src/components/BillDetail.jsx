@@ -8,6 +8,8 @@ import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
 import BillWatchControl from './BillWatchControl'
+import TellYourRep from './TellYourRep'
+import { billRef, congressGovBillUrl, formatDate as formatLongDate } from '../utils/tellYourRepDraft'
 import { SHOW_BILL_ALERTS } from '../config/features'
 import '../styles/BillDetail.css'
 
@@ -172,6 +174,19 @@ function BillDetail() {
   const latestOfficialParagraphs = latestOfficialSummary
     ? officialSummaryParagraphs(latestOfficialSummary.text, displayTitle)
     : []
+
+  const latestActionText = bill.latestAction?.text
+    ? `${bill.latestAction.text}${bill.latestAction.actionDate ? ` (${formatLongDate(bill.latestAction.actionDate)})` : ''}`
+    : undefined
+  const tellContext = {
+    kind: 'bill',
+    ref: billRef({ congress, billType, number }),
+    label: `${formatBillId(bill, billType, number)} (${congress}th Congress)`,
+    title: displayTitle,
+    sourceUrl: congressGovBillUrl(congress, billType, number) || undefined,
+    href: `/bill/${congress}/${billType}/${number}`,
+    result: latestActionText,
+  }
 
   const cosponsorByParty = cosponsors.reduce((acc, c) => {
     const p = c.party?.toLowerCase()?.charAt(0) || 'i'
@@ -354,6 +369,8 @@ function BillDetail() {
               </div>
             </section>
           )}
+
+          <TellYourRep context={tellContext} />
 
           {/* TIMELINE OF ACTIONS */}
           {actions.length > 0 && (
