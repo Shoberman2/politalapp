@@ -389,6 +389,9 @@ function PoliticianDetail() {
             )}
           </dl>
           <div className="pol-actions">
+            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn">
+              Record in 60 seconds
+            </Link>
             {member.officialWebsiteUrl && (
               <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary">
                 Official website ↗

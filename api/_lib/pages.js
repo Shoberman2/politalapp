@@ -8,6 +8,7 @@ import { parseRollCallId, deriveResult, resultKind, saneTally, tallyFromStats } 
 import { memberGate, rollCallGate, billGate, explanationMatchesBill, isPlaceholderTitle } from './indexGate.js'
 import { getDataUpdatedAt } from './etlMeta.js'
 import { MAX_ROLL_CALL_ROWS, EXPLANATION_MODEL, EXPLANATION_PROMPT_VERSION, congressGovMemberUrl, bioguideUrl } from './site.js'
+import { shapeMemberRecord, RECORD_VOTE_LIMIT } from '../../shared/memberRecord.js'
 
 // Bill titles are sometimes stubs ("HR 4795"); treat those as unknown.
 function realTitle(title) {
@@ -89,6 +90,43 @@ export async function getMemberPage(bioguideId) {
     noindexReason: gate.reason,
     updatedAt,
   }
+}
+
+// "Record in 60 seconds" card: the same template and facts for every member
+// (shared/memberRecord.js). Indexed under the same rule as the member page.
+export async function getRecordPage(bioguideId) {
+  const id = String(bioguideId || '').toUpperCase()
+  if (!/^[A-Z]\d{6}$/.test(id)) return null
+
+  const [{ data: member }, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
+    supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url').eq('id', id).maybeSingle(),
+    supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
+    supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
+    supabaseAdmin.from('votes')
+      .select('roll_call_id, position, voted_at, source_url, bill_id, bills:bill_id ( id, title )', { count: 'exact' })
+      .eq('politician_id', id)
+      .order('voted_at', { ascending: false, nullsFirst: false })
+      .limit(RECORD_VOTE_LIMIT),
+    lastRun(),
+  ])
+  if (!member) return null
+
+  const votes = votesRes.data || []
+  const ids = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]
+  let rollCalls = []
+  let rollCallStats = []
+  if (ids.length) {
+    const [rcRes, statsRes] = await Promise.all([
+      supabaseAdmin.from('roll_calls').select('id, question, description, bill_id').in('id', ids),
+      supabaseAdmin.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', ids),
+    ])
+    rollCalls = rcRes.data || []
+    rollCallStats = statsRes.data || []
+  }
+
+  const record = shapeMemberRecord({ member, terms: terms || [], stats: stats || null, votes, voteCount: votesRes.count ?? votes.length, rollCalls, rollCallStats, updatedAt })
+  const gate = memberGate({ voteCount: record.voteCount })
+  return { ...record, indexable: gate.indexable, noindexReason: gate.reason }
 }
 
 export async function getRollCallPage(rollCallId) {
