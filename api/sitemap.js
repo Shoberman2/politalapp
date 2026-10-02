@@ -1,6 +1,7 @@
 // Generated sitemaps on the canonical domain.
 //   /sitemap.xml           -> index pointing at the parts below
 //   /sitemap-members.xml   -> every member with at least one recorded vote
+//   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members
 //   /sitemap-votes.xml     -> every roll call with a sane, non-empty tally
 //   /sitemap-bills.xml     -> every bill with a recorded vote and a real title
 // Reads with the service role in pages of 1,000 (the PostgREST cap). Each
@@ -15,6 +16,7 @@ import { isPlaceholderTitle } from './_lib/indexGate.js'
 import { billPath } from './_lib/pages.js'
 import { SITE_ORIGIN } from './_lib/site.js'
 import { checkRateLimit } from './_lib/rateLimit.js'
+import { recordPath } from '../shared/memberRecord.js'
 import { clientIp, hashIp } from './_lib/auth.js'
 
 const PAGE = 1000
@@ -50,6 +52,12 @@ export async function memberEntries() {
   ])
   const withVotes = new Set(stats.map((s) => s.politician_id))
   return politicians.filter((p) => withVotes.has(p.id)).map((p) => ({ path: `/politician/${p.id}`, lastmod, changefreq: 'weekly' }))
+}
+
+// Same members and the same gate as the member pages (at least one vote).
+export async function recordEntries() {
+  const members = await memberEntries()
+  return members.map((m) => ({ ...m, path: recordPath(m.path.slice('/politician/'.length)) }))
 }
 
 export async function voteEntries() {
@@ -108,12 +116,13 @@ async function billPartCount() {
 export async function buildPart(part) {
   if (!part) {
     const [lastmod, billParts] = await Promise.all([latestVoteDate(), billPartCount()])
-    const parts = [{ name: 'members', lastmod }, { name: 'votes', lastmod }]
+    const parts = [{ name: 'members', lastmod }, { name: 'records', lastmod }, { name: 'votes', lastmod }]
     if (billParts === 1) parts.push({ name: 'bills', lastmod })
     else for (let i = 1; i <= billParts; i += 1) parts.push({ name: `bills-${i}`, lastmod })
     return buildSitemapIndex(SITE_ORIGIN, parts)
   }
   if (part === 'members') return buildUrlset(SITE_ORIGIN, await memberEntries())
+  if (part === 'records') return buildUrlset(SITE_ORIGIN, await recordEntries())
   if (part === 'votes') return buildUrlset(SITE_ORIGIN, await voteEntries())
   if (/^bills(-\d+)?$/.test(part)) {
     const n = part === 'bills' ? 1 : Number(part.split('-')[1])

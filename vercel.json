@@ -32,6 +32,10 @@
   ],
   "rewrites": [
     {
+      "source": "/politician/:bioguideId/record",
+      "destination": "/api/prerender?kind=record&id=:bioguideId"
+    },
+    {
       "source": "/politician/:bioguideId",
       "destination": "/api/prerender?kind=member&id=:bioguideId"
     },

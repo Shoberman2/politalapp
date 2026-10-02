@@ -31,6 +31,7 @@ import MethodologyPage from './components/MethodologyPage'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
+import MemberRecord from './components/MemberRecord'
 import RequireAuth from './components/RequireAuth'
 import { SHOW_BILL_ALERTS } from './config/features'
 
@@ -92,6 +93,8 @@ function App() {
           <Route path="/politician/:bioguideId" element={
             <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
           } />
+          {/* "Record in 60 seconds" card, server-rendered by api/prerender.js. */}
+          <Route path="/politician/:bioguideId/record" element={<MemberRecord />} />
           {/* One roll call: the tally, the derived result, every member's vote.
               Server-rendered first by api/prerender.js; React takes over here. */}
           <Route path="/vote/:congress/:chamber/:session/:roll" element={<RollCallPage />} />
