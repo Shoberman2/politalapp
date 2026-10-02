@@ -5,6 +5,7 @@ import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../service
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
 import { saveUserAddress } from '../services/userService'
 import SEO from './SEO'
+import ThisWeekOnFloor from './ThisWeekOnFloor'
 import { BRAND } from '../config/brand'
 import '../styles/Landing.css'
 
@@ -61,14 +62,11 @@ const AI_NEVER = [
 
 const WRITE_STEPS = ['You write', 'You approve the exact text', 'You send it to the office', 'You see how they vote next']
 
-// The "On the floor" feed and the step-two mock render only real recorded
-// votes. While the live fetch is in flight (or if it fails) we show neutral
-// skeleton rows — never invented bills. See `floorReady` below.
-const FLOOR_SKELETON = [0, 1, 2, 3]
-// `floor` holds everything the fetch returned; the feed shows the most recent
-// slice of it while the step-two mock picks the best-illustrated rows from the
-// whole set. Truncating on fetch used to throw away the votes carrying tallies.
-const FLOOR_FEED_ROWS = 5
+// The hero card and the step-two mock render only real recorded votes. While
+// the live fetch is in flight (or if it fails) they show neutral skeletons —
+// never invented bills. See `floorReady` below. `floor` keeps everything the
+// fetch returned so the mock can pick the best-illustrated rows; truncating on
+// fetch used to throw away the votes carrying tallies.
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
@@ -494,51 +492,14 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== ON THE FLOOR: live feed of recorded votes ===== */}
+      {/* ===== THIS WEEK ON THE FLOOR: scheduled (House) beside just recorded ===== */}
       <section className="floor">
-        <div className="floor-inner">
-          <header className="floor-head" data-reveal>
-            <span className="floor-title"><span className="floor-dot" />On the floor</span>
-            <span className="floor-sub">{recordedLabel ? `Recorded through ${recordedLabel}` : 'Latest recorded votes'}</span>
-          </header>
-
-          <ul className="floor-feed">
-            {floorReady
-              ? floor.slice(0, FLOOR_FEED_ROWS).map((v) => (
-                <li className="floor-row" key={v.key} data-reveal>
-                  <div className="fr-meta">
-                    {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
-                    {v.rollLabel && (v.voteHref
-                      ? <Link className="fr-roll" to={v.voteHref}>{v.rollLabel}</Link>
-                      : <span className="fr-roll">{v.rollLabel}</span>)}
-                  </div>
-                  <div className="fr-body">
-                    {v.bill && (
-                      v.bill.href
-                        ? <Link className="fr-bill" to={v.bill.href}>{v.bill.display}</Link>
-                        : <span className="fr-bill">{v.bill.display}</span>
-                    )}
-                    <span className="fr-text">{v.text}</span>
-                  </div>
-                  <div className="fr-outcome">
-                    {v.tally && <span className="fr-tally">{v.tally}</span>}
-                    {v.result && <span className={`fr-result ${v.resultKind}`}>{v.result}</span>}
-                  </div>
-                </li>
-              ))
-              : FLOOR_SKELETON.map((i) => (
-                <li className="floor-row" key={`sk-${i}`} aria-hidden="true">
-                  <div className="fr-meta"><span className="mk-skel" style={{ width: 58, maxWidth: 'none' }} /></div>
-                  <div className="fr-body">
-                    <span className="mk-skel" style={{ width: 78, maxWidth: 'none' }} />
-                    <span className="mk-skel" style={{ width: '68%', maxWidth: 'none', marginTop: 6 }} />
-                  </div>
-                  <div className="fr-outcome"><span className="mk-skel" style={{ width: 54, maxWidth: 'none', height: 14 }} /></div>
-                </li>
-              ))}
-          </ul>
-
-          <Link className="floor-more" to="/bills">Browse every bill, past and present <ArrowRight /></Link>
+        <div className="floor-inner" data-reveal>
+          <ThisWeekOnFloor limit={5} />
+          <div className="floor-links">
+            <Link className="floor-more" to="/this-week">This week on the floor <ArrowRight /></Link>
+            <Link className="floor-more" to="/bills">Browse every bill, past and present <ArrowRight /></Link>
+          </div>
         </div>
       </section>
 

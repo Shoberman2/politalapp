@@ -28,6 +28,10 @@ vi.mock('../../src/services/floorVotes', async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, getRecentFloorVotes: services.getRecentFloorVotes }
 })
+vi.mock('../../src/services/floorSchedule', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, getFloorSchedule: vi.fn().mockResolvedValue(null) }
+})
 vi.mock('../../src/services/congress', () => ({
   getRecentBills: services.getRecentBills,
   getFeaturedMembers: services.getFeaturedMembers,
@@ -206,18 +210,12 @@ describe('Landing — "See every vote" step', () => {
     expect(container.querySelector('.finale .lookup-result')).toBeNull()
   })
 
-  it('keeps the floor feed to its five most recent rows', async () => {
-    services.getRecentFloorVotes.mockResolvedValue({
-      votes: [207, 208, 209, 206, 205, 204, 203, 202].map(untallied),
-      recordedThrough: '2026-07-24',
-    })
-
+  it('shows This week on the floor between the record and the AI section', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-
-    await waitFor(() => {
-      expect(container.querySelectorAll('.floor-feed .floor-row').length).toBeGreaterThan(0)
-    })
-    expect(container.querySelectorAll('.floor-feed .floor-row').length).toBe(5)
+    const floor = container.querySelector('.floor')
+    expect(within(floor).getByText('Coming up, and just decided.')).toBeTruthy()
+    expect(floor.querySelector('a[href="/this-week"]')).not.toBeNull()
   })
 })
 

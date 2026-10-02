@@ -2,7 +2,7 @@
    No film. The first screen is the question ("How did your representative
    vote this week?"), the mission line, the ZIP lookup, and the latest real
    recorded vote as proof. Then: the record in three steps (each visual
-   rendered from live data), the On the floor feed, how AI is and isn't used,
+   rendered from live data), This week on the floor, how AI is and isn't used,
    Tell your rep, sources, one band for congressional offices, one for
    developers, and a closing repeat of the lookup. Every selector is scoped
    under `.landing`. Shared primitives (.btn, tokens) come from
@@ -430,95 +430,14 @@
 }
 
 /* =====================================================
-   ON THE FLOOR — live feed
+   THIS WEEK ON THE FLOOR — wraps <ThisWeekOnFloor>, which brings its own
+   styles; .fr-tally/.fr-result below are reused by the hero vote card
    ===================================================== */
 .landing .floor { border-bottom: 1px solid var(--rule); background: var(--bg); }
 .landing .floor-inner {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: clamp(56px, 8vh, 88px) 40px clamp(64px, 9vh, 96px);
-}
-.landing .floor-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 18px;
-  border-bottom: 2px solid var(--rule-strong);
-}
-.landing .floor-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--serif);
-  font-size: clamp(24px, 3vw, 34px);
-  font-weight: 400;
-  color: var(--ink);
-}
-.landing .floor-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--error);
-  flex-shrink: 0;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .landing .floor-dot { animation: bw-pulse 2s infinite; }
-}
-@keyframes bw-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
-.landing .floor-sub {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-
-.landing .floor-feed { list-style: none; margin: 0; padding: 0; }
-.landing .floor-row {
-  display: grid;
-  grid-template-columns: 150px 1fr auto;
-  gap: 24px;
-  align-items: baseline;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--rule);
-}
-.landing .fr-meta { display: flex; flex-direction: column; gap: 3px; }
-.landing .fr-chamber {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.landing .fr-roll {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--ink-3);
-}
-.landing .fr-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.landing .fr-bill {
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  width: fit-content;
-}
-.landing a.fr-bill:hover { text-decoration: underline; }
-.landing a.fr-roll { color: var(--accent); text-decoration: none; }
-.landing a.fr-roll:hover { text-decoration: underline; }
-.landing .fr-text {
-  font-size: 15px;
-  line-height: 1.4;
-  color: var(--ink-2);
-}
-.landing .fr-outcome {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  justify-content: flex-end;
-  white-space: nowrap;
 }
 .landing .fr-tally {
   font-family: var(--mono);
@@ -550,6 +469,7 @@
   color: var(--accent);
   text-decoration: none;
 }
+.landing .floor-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
 .landing .floor-more svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
 .landing .floor-more:hover svg { transform: translateX(3px); }
 
@@ -825,15 +745,4 @@
   .landing .hv-outcome { flex-direction: row; align-items: center; }
   .landing .lookup-form { padding-left: 6px; }
   .landing .lookup-form button .btn-word { display: none; }
-  .landing .floor-row {
-    grid-template-columns: 1fr auto;
-    gap: 6px 16px;
-  }
-  .landing .fr-meta {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .landing .fr-outcome { flex-direction: column; align-items: flex-end; gap: 4px; }
 }
