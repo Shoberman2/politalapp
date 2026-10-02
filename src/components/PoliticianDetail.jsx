@@ -20,6 +20,8 @@ import VotingPatternAnalysis from './VotingPatternAnalysis'
 import VotingRecordSummary from './VotingRecordSummary'
 import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
+import TellYourRep from './TellYourRep'
+import { memberRef } from '../utils/tellYourRepDraft'
 import '../styles/PoliticianDetail.css'
 
 // Same feature flag as the BillsPage filter pills — both surfaces depend on
@@ -402,6 +404,25 @@ function PoliticianDetail() {
           </div>
         </div>
       </header>
+
+      <TellYourRep
+        context={{
+          kind: 'member',
+          ref: memberRef(bioguideId),
+          label: displayName,
+          href: `/politician/${bioguideId}`,
+        }}
+        members={[{
+          bioguideId,
+          name: displayName,
+          lastName: member.lastName,
+          chamber,
+          state: stateAbbr,
+          district,
+          officialWebsiteUrl: member.officialWebsiteUrl,
+          phone: member.addressInformation?.phoneNumber,
+        }]}
+      />
 
       <VotingRecordSummary
         bioguideId={bioguideId}
