@@ -84,14 +84,14 @@
   align-items: center;
   gap: 8px;
   border: 1px solid var(--rule);
-  border-radius: 9999px;
-  padding: 6px 14px 6px 10px;
+  border-radius: var(--r-toggle);
+  padding: 6px 12px 6px 10px;
   font-family: var(--sans);
   font-size: 13px;
   color: var(--ink);
   background: none;
   cursor: pointer;
-  transition: all .15s ease;
+  transition: border-color .15s ease, color .15s ease;
   max-width: 280px;
 }
 .bills-desk .tr-pill:hover { border-color: var(--accent); color: var(--accent); }
@@ -234,8 +234,5 @@
   border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 .bills-page-error .retry-button {
-  margin-top: 16px; padding: 10px 18px; border-radius: var(--r-btn);
-  background: var(--accent); color: #fff; border: none; cursor: pointer;
-  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  margin-top: 16px;
 }
-.bills-page-error .retry-button:hover { background: var(--accent-hover); }

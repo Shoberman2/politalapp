@@ -75,7 +75,7 @@ describe('RollCallPage', { timeout: 30000 }, () => {
     fireEvent.change(search, { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Yea' }))
     expect(rowNames(container)).toEqual(['Robert Aderholt'])
-    expect(screen.getByRole('button', { name: 'Yea' }).className).toBe('is-active')
+    expect(screen.getByRole('button', { name: 'Yea' }).className).toBe('btn-toggle is-active')
 
     fireEvent.click(screen.getByRole('button', { name: 'Not Voting' }))
     expect(rowNames(container)).toEqual(['Aaron Bean'])

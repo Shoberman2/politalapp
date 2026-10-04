@@ -124,7 +124,7 @@ function UsageDashboard() {
             <option value="week">Last 7 days</option>
             <option value="month">This month</option>
           </select>
-          <button className="btn-tertiary" onClick={() => navigate('/developers/keys')}>
+          <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/keys')}>
             Manage Keys
           </button>
         </div>

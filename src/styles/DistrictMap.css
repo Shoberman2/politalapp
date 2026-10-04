@@ -117,8 +117,8 @@
   height: 36px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  font-family: var(--font-mono);
+  border-radius: var(--r-icon);
+  font-family: var(--font-body);
   font-size: 1.125rem;
   font-weight: 500;
   color: var(--text-primary);
@@ -126,21 +126,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .map-control-btn:hover {
-  background: var(--bg);
-  border-color: var(--text-primary);
+  background: var(--bg-tint);
+  color: var(--accent);
 }
 
 .map-control-reset {
-  font-size: 0.6rem;
-  font-family: var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 600;
   width: auto;
-  padding: 0 8px;
+  padding: 0 10px;
 }
 
 /* Tooltip */

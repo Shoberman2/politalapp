@@ -111,41 +111,14 @@
 }
 
 .api-docs-nav-cta {
-  display: block;
   width: 100%;
-  text-align: center;
-  padding: 10px;
-  font-family: 'General Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-subtle);
-  border: none;
-  border-radius: var(--r-btn);
-  cursor: pointer;
 }
 
 .api-docs-nav-secondary {
-  display: block;
   width: 100%;
-  text-align: center;
-  margin-top: 8px;
-  padding: 10px;
-  font-family: 'General Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  cursor: pointer;
+  margin-top: 4px;
 }
 
-.api-docs-nav-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-subtle);
-}
 
 /* Content */
 .api-docs-content {

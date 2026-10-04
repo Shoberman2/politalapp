@@ -318,7 +318,7 @@ export default function TellYourRep({ context, members }) {
                 onChange={(e) => setStreet(e.target.value)}
               />
             </div>
-            <button type="submit" className="tyr-btn" disabled={lookup.status === 'loading'}>Find my members</button>
+            <button type="submit" className="tyr-btn btn-primary btn-sm" disabled={lookup.status === 'loading'}>Find my members</button>
             <p className="tyr-fineprint">Used to look up your members. Saved on this device only.</p>
           </form>
         )}
@@ -342,25 +342,25 @@ export default function TellYourRep({ context, members }) {
       primary = <p className="tyr-muted">Looking up {possessive} office…</p>
     } else if (contact.kind === 'contact') {
       primary = (
-        <a className="tyr-btn tyr-btn-primary" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
+        <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
           Open {possessive} official contact page ↗
         </a>
       )
     } else if (contact.kind === 'website') {
       primary = (
-        <a className="tyr-btn tyr-btn-primary" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
+        <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
           Open {possessive} official website ↗
         </a>
       )
     } else if (contact.kind === 'phone') {
       primary = (
-        <a className="tyr-btn tyr-btn-primary" href={contact.url} onClick={onOpen}>
+        <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={contact.url} onClick={onOpen}>
           Call {possessive} office: <span className="tyr-mono">{contact.phone}</span>
         </a>
       )
     } else {
       primary = (
-        <a className="tyr-btn tyr-btn-primary" href={`https://www.congress.gov/member/${merged.bioguideId}`} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
+        <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={`https://www.congress.gov/member/${merged.bioguideId}`} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
           Find {possessive} office on Congress.gov ↗
         </a>
       )
@@ -368,7 +368,7 @@ export default function TellYourRep({ context, members }) {
     return (
       <>
         <div className="tyr-actions">
-          <button type="button" className="tyr-btn" onClick={handleCopy}>
+          <button type="button" className="tyr-btn btn-secondary btn-sm" onClick={handleCopy}>
             {copyState === 'copied' ? 'Copied' : 'Copy message'}
           </button>
           {primary}
@@ -447,7 +447,7 @@ export default function TellYourRep({ context, members }) {
       <button
         ref={toggleRef}
         type="button"
-        className="tyr-toggle"
+        className="tyr-toggle btn-secondary"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}

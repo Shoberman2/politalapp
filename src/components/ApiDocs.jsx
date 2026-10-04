@@ -201,10 +201,10 @@ function ApiDocs() {
             </button>
           ))}
           <div className="api-docs-nav-divider" />
-          <button className="api-docs-nav-cta" onClick={() => navigate('/developers/keys')}>
+          <button className="api-docs-nav-cta btn-primary btn-sm" onClick={() => navigate('/developers/keys')}>
             Get API Key
           </button>
-          <button className="api-docs-nav-secondary" onClick={() => navigate('/open')}>
+          <button className="api-docs-nav-secondary btn-secondary btn-sm btn-go" onClick={() => navigate('/open')}>
             Open Data
           </button>
         </nav>

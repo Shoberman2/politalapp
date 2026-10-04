@@ -206,7 +206,7 @@ function PoliticianDetail() {
     return (
       <div className="pol-error">
         <div className="error-message">{error || 'Politician not found'}</div>
-        <button className="pol-back-button" onClick={() => navigate('/all')}>
+        <button className="pol-back-button btn-primary" onClick={() => navigate('/all')}>
           Back to All Politicians
         </button>
       </div>
@@ -392,16 +392,16 @@ function PoliticianDetail() {
             )}
           </dl>
           <div className="pol-actions">
-            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn">
+            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn btn-secondary btn-sm btn-go">
               Record in 60 seconds
             </Link>
             {member.officialWebsiteUrl && (
-              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary">
+              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary btn-primary btn-sm">
                 Official website ↗
               </a>
             )}
             {member.url && (
-              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn">
+              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn btn-secondary btn-sm">
                 Congress.gov ↗
               </a>
             )}

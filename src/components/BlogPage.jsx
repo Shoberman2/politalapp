@@ -79,7 +79,7 @@ function BlogPage() {
       ) : (
         <div className="no-articles">
           <p>No articles found matching your search</p>
-          <button className="reset-search-button" onClick={() => setSearchTerm('')}>
+          <button className="reset-search-button btn-secondary" onClick={() => setSearchTerm('')}>
             Clear Search
           </button>
         </div>

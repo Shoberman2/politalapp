@@ -49,32 +49,31 @@
 
 .auth-tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   padding: 4px;
-  background: var(--bg-tint);
-  border-radius: 999px;
+  background: var(--fill-soft);
+  border-radius: var(--r-btn);
   margin-bottom: 22px;
 }
 
 .auth-tab {
   flex: 1;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 7px 12px;
   background: none;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--r-toggle);
   color: var(--ink-2);
   font-family: var(--sans);
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .auth-tab--active {
   color: var(--ink);
   background: var(--surface);
-  box-shadow: var(--shadow-sm);
 }
 
 .auth-tab:hover:not(.auth-tab--active) {
@@ -83,20 +82,20 @@
 
 .auth-google {
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   border: 1px solid var(--rule);
-  border-radius: var(--r-md);
+  border-radius: var(--r-btn);
   background: var(--surface);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 0.95rem;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .auth-google:hover:not(:disabled) {
@@ -202,28 +201,10 @@
 }
 
 .auth-submit {
-  min-height: 50px;
-  padding: 0 18px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-btn);
-  font-family: var(--sans);
-  font-size: 0.98rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.18s ease, transform 0.18s ease;
+  width: 100%;
 }
 
-.auth-submit:hover:not(:disabled) {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
 
-.auth-submit:disabled {
-  opacity: 0.62;
-  cursor: not-allowed;
-}
 
 .auth-footer {
   margin-top: 24px;

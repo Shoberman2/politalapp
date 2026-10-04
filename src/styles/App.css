@@ -17,6 +17,8 @@
   /* Surfaces */
   --bg: #FAFAF7;
   --bg-tint: #F4F2EC;
+  /* Selected toggle / icon-button hover fill: reads on paper and on cards. */
+  --fill-soft: rgba(26, 26, 24, 0.06);
   --surface: #FFFFFF;
   --surface-raised: #FFFFFF;
 
@@ -63,11 +65,14 @@
   --r-md: 7px;
   --r-lg: 12px;
   /* Buttons get their own radius so they read as soft, tactile controls
-     without going pill-shaped. On a ~45px-tall button a pill would be ~22px;
-     10px is unmistakably rounded and unmistakably not a pill. Tags, chips and
-     panels deliberately stay square-ish on --r-sm/--r-md — the roundness is
-     what marks a thing as pressable. */
-  --r-btn: 10px;
+     without going pill-shaped (a pill on a 44px button would be 22px).
+     12px on the 44px primary is clearly soft, clearly not a square.
+     Toggle/segmented items use --r-toggle; icon-only buttons --r-icon.
+     Tags, chips and panels stay square-ish on --r-sm/--r-md. See the
+     BUTTONS section below and DESIGN.md (2026-10-04). */
+  --r-btn: 12px;
+  --r-toggle: 8px;
+  --r-icon: 10px;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -107,6 +112,7 @@
 
   --bg: #111110;
   --bg-tint: #1A1A18;
+  --fill-soft: rgba(232, 230, 225, 0.09);
   --surface: #1C1C1A;
   --surface-raised: #242422;
 
@@ -293,6 +299,153 @@ select {
   box-shadow: var(--shadow-md);
   border-color: var(--accent);
 }
+
+/* ============ BUTTONS ============
+   One button system for the whole site (DESIGN.md, 2026-10-04).
+   - .btn-primary   solid civic blue, the one main action per view
+   - .btn-secondary quiet accent text action (no box); .btn-ghost and
+                    .btn-tertiary are legacy aliases of it
+   - .btn-text      the same text action, inline (no padding / min-height)
+   - .btn-go        adds a trailing arrow to a text action that navigates
+   - .btn-sm        14px / 36px variant of primary or secondary
+   - .btn-toggle    filters, chamber toggles, segmented controls
+                    (selected = .is-active / aria-pressed / aria-selected)
+   - .btn-icon      40px icon-only button (theme toggle, burger, close)
+   Sentence case only: no uppercase, letter-spacing or mono on buttons.
+   `.btn` is optional; each variant class stands on its own.
+   main.jsx imports App.css after App.jsx, so this file lands AFTER the page
+   stylesheets in the bundle: a page-level override (layout only) must be
+   scoped, e.g. `.form-actions .btn-primary { flex: 1; }`. */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-tertiary,
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 11px 18px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--r-btn);
+  background: none;
+  box-shadow: none;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.btn svg,
+.btn-primary svg,
+.btn-secondary svg,
+.btn-ghost svg,
+.btn-tertiary svg,
+.btn-text svg { width: 16px; height: 16px; flex-shrink: 0; transition: transform .15s ease; }
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); color: #fff; }
+.btn-primary:hover:not(:disabled) svg { transform: translateX(2px); }
+
+.btn-secondary,
+.btn-ghost,
+.btn-tertiary,
+.btn-text {
+  background: none;
+  color: var(--accent);
+  padding-left: 2px;
+  padding-right: 2px;
+  border-radius: var(--r-toggle);
+}
+.btn-secondary:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled),
+.btn-tertiary:hover:not(:disabled),
+.btn-text:hover:not(:disabled) {
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.btn-text { padding: 0; min-height: 0; }
+.btn-go::after { content: "\2192"; transition: transform .15s ease; }
+.btn-go:hover::after { transform: translateX(2px); }
+
+.btn-sm { font-size: 14px; min-height: 36px; padding-top: 8px; padding-bottom: 8px; }
+.btn-primary.btn-sm { padding-left: 14px; padding-right: 14px; }
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-ghost:disabled,
+.btn-tertiary:disabled,
+.btn-text:disabled,
+.btn-toggle:disabled,
+.btn-icon:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  padding: 7px 12px;
+  min-height: 34px;
+  border: none;
+  border-radius: var(--r-toggle);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.btn-toggle:hover:not(:disabled) { color: var(--text-primary); background: var(--fill-soft); }
+.btn-toggle.is-active,
+.btn-toggle.active,
+.btn-toggle[aria-pressed="true"],
+.btn-toggle[aria-selected="true"] {
+  background: var(--fill-soft);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.btn-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-icon);
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color .15s ease, color .15s ease;
+}
+.btn-icon:hover:not(:disabled) { background: var(--fill-soft); color: var(--text-primary); }
+
+.btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-ghost:focus-visible,
+.btn-tertiary:focus-visible,
+.btn-text:focus-visible,
+.btn-toggle:focus-visible,
+.btn-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Error and success messages */
 .error-message {

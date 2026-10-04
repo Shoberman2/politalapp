@@ -164,9 +164,9 @@ export default function BillAlertsPage() {
                       </div>
                     </div>
                     <div className="alerts-follow-actions">
-                      <button type="button" disabled={savingBillId === follow.bill_id} onClick={() => saveFollow(follow.bill_id)}>Save</button>
-                      <button type="button" disabled={savingBillId === follow.bill_id} onClick={() => saveFollow(follow.bill_id, { paused: !drafts[follow.bill_id]?.paused })}>{drafts[follow.bill_id]?.paused ? 'Resume' : 'Pause'}</button>
-                      <button className="alerts-stop" type="button" disabled={savingBillId === follow.bill_id} onClick={() => stopWatching(follow.bill_id)}>Stop</button>
+                      <button type="button" className="btn-secondary btn-sm" disabled={savingBillId === follow.bill_id} onClick={() => saveFollow(follow.bill_id)}>Save</button>
+                      <button type="button" className="btn-secondary btn-sm" disabled={savingBillId === follow.bill_id} onClick={() => saveFollow(follow.bill_id, { paused: !drafts[follow.bill_id]?.paused })}>{drafts[follow.bill_id]?.paused ? 'Resume' : 'Pause'}</button>
+                      <button className="alerts-stop btn-secondary btn-sm" type="button" disabled={savingBillId === follow.bill_id} onClick={() => stopWatching(follow.bill_id)}>Stop</button>
                     </div>
                   </article>
                 ))}

@@ -74,7 +74,7 @@ function AuthCallback() {
         {error ? (
           <>
             <div className="auth-error">{error}</div>
-            <button className="auth-submit" onClick={() => navigate('/auth')}>Back to sign in</button>
+            <button className="auth-submit btn-primary" onClick={() => navigate('/auth')}>Back to sign in</button>
           </>
         ) : (
           <div className="auth-message">Checking your Google session...</div>

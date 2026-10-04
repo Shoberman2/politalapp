@@ -132,8 +132,8 @@ function RollCallPage() {
         )}
 
         <div className="rc-actions">
-          {rc.sourceUrl && <a className="rc-action-btn" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record ↗</a>}
-          {rc.bill?.source_url && <a className="rc-action-btn" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>}
+          {rc.sourceUrl && <a className="rc-action-btn btn-secondary btn-sm" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record ↗</a>}
+          {rc.bill?.source_url && <a className="rc-action-btn btn-secondary btn-sm" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>}
         </div>
       </header>
 
@@ -154,7 +154,7 @@ function RollCallPage() {
               />
               <div className="rc-filter-positions" role="group" aria-label="Filter by vote">
                 {['all', 'Yea', 'Nay', 'Present', 'Not Voting'].map((p) => (
-                  <button key={p} type="button" className={position === p ? 'is-active' : ''} onClick={() => setPosition(p)}>{p === 'all' ? 'All' : p}</button>
+                  <button key={p} type="button" className={position === p ? 'btn-toggle is-active' : 'btn-toggle'} onClick={() => setPosition(p)}>{p === 'all' ? 'All' : p}</button>
                 ))}
               </div>
             </div>

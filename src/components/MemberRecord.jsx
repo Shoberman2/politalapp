@@ -221,9 +221,9 @@ export default function MemberRecord() {
       </section>
 
       <div className="rec-actions">
-        <Link className="rc-action-btn" to={`/politician/${r.id}`}>Full record →</Link>
-        {nativeShare && <button type="button" className="rc-action-btn" onClick={share}>Share</button>}
-        <button type="button" className="rc-action-btn" onClick={copy}>Copy link</button>
+        <Link className="rc-action-btn btn-secondary btn-sm" to={`/politician/${r.id}`}>Full record →</Link>
+        {nativeShare && <button type="button" className="rc-action-btn btn-secondary btn-sm" onClick={share}>Share</button>}
+        <button type="button" className="rc-action-btn btn-secondary btn-sm" onClick={copy}>Copy link</button>
         <span className="rec-copied" role="status" aria-live="polite">{copied || ''}</span>
       </div>
       <nav className="rec-share" aria-label="Share this record">

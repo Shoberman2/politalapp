@@ -282,7 +282,7 @@ function AllPoliticians() {
           <div className="mt-count">Showing <b>{visibleMembers.length}</b> of <b>{filteredMembers.length}</b> members and delegates / sorted by surname</div>
           <div className="mt-chips">
             {CHIPS.map((c) => (
-              <button key={c.key} className={`mt-chip ${chip === c.key ? 'active' : ''}`} onClick={() => setChip(c.key)}>{c.label}</button>
+              <button key={c.key} className={`mt-chip btn-toggle ${chip === c.key ? 'active' : ''}`} onClick={() => setChip(c.key)}>{c.label}</button>
             ))}
           </div>
         </div>
