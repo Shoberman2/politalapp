@@ -28,10 +28,9 @@ vi.mock('../../src/services/floorVotes', async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, getRecentFloorVotes: services.getRecentFloorVotes }
 })
-vi.mock('../../src/services/floorSchedule', async (importOriginal) => {
-  const actual = await importOriginal()
-  return { ...actual, getFloorSchedule: vi.fn().mockResolvedValue(null) }
-})
+vi.mock('../../src/services/memberRecord', () => ({
+  getMemberRecord: vi.fn().mockResolvedValue(null),
+}))
 vi.mock('../../src/services/congress', () => ({
   getRecentBills: services.getRecentBills,
   getFeaturedMembers: services.getFeaturedMembers,
@@ -210,12 +209,23 @@ describe('Landing — "See every vote" step', () => {
     expect(container.querySelector('.finale .lookup-result')).toBeNull()
   })
 
-  it('shows This week on the floor between the record and the AI section', () => {
+  it('shows one section per platform feature, each with a text link', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    const floor = container.querySelector('.floor')
-    expect(within(floor).getByText('Coming up, and just decided.')).toBeTruthy()
-    expect(floor.querySelector('a[href="/this-week"]')).not.toBeNull()
+    const features = container.querySelectorAll('.features .feature')
+    expect(features.length).toBe(6)
+    features.forEach((f) => {
+      expect(f.querySelector('h2')).not.toBeNull()
+      expect(f.querySelector('a.text-link')).not.toBeNull()
+    })
+    expect(container.querySelector('.features a[href="/this-week"]')).not.toBeNull()
+  })
+
+  it('answers common questions in an FAQ', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    expect(container.querySelectorAll('.faq details').length).toBeGreaterThanOrEqual(5)
+    expect(container.querySelector('.faq').textContent).toMatch(/Does BallotWatch send messages for me\?/)
   })
 })
 

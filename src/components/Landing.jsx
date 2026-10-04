@@ -3,17 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
+import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
 import SEO from './SEO'
-import ThisWeekOnFloor from './ThisWeekOnFloor'
 import { BRAND } from '../config/brand'
 import '../styles/Landing.css'
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
 )
-
-const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
 
 const BILL_TYPE_LABELS = {
   HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
@@ -25,26 +23,6 @@ const SOURCES = [
   { name: 'Congress.gov', detail: 'Votes & bills' },
   { name: 'U.S. Census', detail: 'Your district' },
   { name: 'FEC', detail: 'Campaign finance' },
-]
-
-// The record, in three steps. Every illustration renders from live data
-// (members, recorded votes, a current bill); skeletons only while loading.
-const STEPS = [
-  {
-    id: 'find',
-    title: 'Find who represents you.',
-    body: 'One ZIP code maps you to your two senators and your House member, drawn from U.S. Census district data. Not a guess.',
-  },
-  {
-    id: 'votes',
-    title: 'See how they voted, on every roll call.',
-    body: 'Each yea and nay is tied to the official roll call, this week’s and every one before it. The record, linked to its source.',
-  },
-  {
-    id: 'explain',
-    title: 'Read any bill, past or present, in plain English.',
-    body: 'An AI explanation built from the official summary sits in the margin of every bill, labeled as AI and linked to Congress.gov. Written to inform, not persuade.',
-  },
 ]
 
 // Where AI is used and where it never is. This is the substance behind the
@@ -60,13 +38,34 @@ const AI_NEVER = [
   'Choose a side for you, or rank and score constituents',
 ]
 
-const WRITE_STEPS = ['You write', 'You approve the exact text', 'You send it to the office', 'You see how they vote next']
-
-// The hero card and the step-two mock render only real recorded votes. While
-// the live fetch is in flight (or if it fails) they show neutral skeletons —
-// never invented bills. See `floorReady` below. `floor` keeps everything the
-// fetch returned so the mock can pick the best-illustrated rows; truncating on
-// fetch used to throw away the votes carrying tallies.
+// Plain answers to what a first-time visitor asks. Each must stay true to
+// what the code does; /how-it-works and /privacy carry the long versions.
+const FAQ = [
+  {
+    q: 'What is BallotWatch?',
+    a: 'An open-source record of Congress: who represents you, how they voted on every roll call, and what each bill does, with every fact linked to its official source. It also helps you write to your representatives about a specific vote.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Yes. Looking things up needs no account. An account is only for saving your address and following bills.',
+  },
+  {
+    q: 'Where does the data come from?',
+    a: 'Congress.gov, the House Clerk and the Senate for bills and votes, the U.S. Census Bureau for districts, and the FEC for campaign finance. It is refreshed daily.',
+  },
+  {
+    q: 'Does BallotWatch send messages for me?',
+    a: 'No. We start your message with the facts of the vote. You write the rest and send it through your representative’s official contact page. We don’t save what you write.',
+  },
+  {
+    q: 'Is it partisan?',
+    a: 'No. Every member gets the same pages and the same facts. We don’t score members, pick “key votes,” or tell you how to feel about a vote.',
+  },
+  {
+    q: 'How is AI used?',
+    a: 'Only to explain: bills from their official summaries and what procedural votes decided, always labeled as AI. It never writes as your representative or decides anything for you.',
+  },
+]
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
@@ -126,6 +125,7 @@ function Landing() {
   const [reduced, setReduced] = useState(false)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
+  const [featuredRecord, setFeaturedRecord] = useState(null)
 
   // Real members for the "Find who represents you" illustration — actual names
   // and headshots instead of blank placeholders. Best-effort; the mock falls
@@ -137,6 +137,18 @@ function Landing() {
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
+
+  // The "record in 60 seconds" illustration: the real card for the first
+  // featured member. Best-effort; the mock shows a skeleton until it resolves.
+  const recordMemberId = featuredMembers[0]?.bioguideId
+  useEffect(() => {
+    if (!recordMemberId) return undefined
+    let cancelled = false
+    getMemberRecord(recordMemberId)
+      .then((r) => { if (!cancelled) setFeaturedRecord(r) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [recordMemberId])
 
   // A real current bill (with a plain-English blurb from its CRS summary) for
   // the "Understand any bill" step and the "what are they voting on" closer.
@@ -400,6 +412,92 @@ function Landing() {
     ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null
 
+  // Feature five: the opening of a real Tell your rep draft, built from the
+  // same latest recorded vote the hero shows.
+  const writeVisual = (
+    <div className="mock mock-write" aria-hidden="true">
+      <span className="mk-label">Your message starts with the facts</span>
+      {headlineVote ? (
+        <p className="mk-letter">
+          On {recordedLabel || 'the latest vote'}, the {headlineVote.chamber || 'chamber'} voted on{' '}
+          {headlineVote.bill ? `${headlineVote.bill.display}: ` : ''}{truncate(headlineVote.text, 70)}
+          {headlineVote.tally ? ` The result was ${headlineVote.tally}.` : ''}
+          <br />
+          <span className="mk-yours">[Write your message here, in your own words.]</span>
+        </p>
+      ) : (
+        <p className="mk-letter">
+          <span className="mk-skel" style={{ width: '90%', maxWidth: 'none' }} />
+          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
+        </p>
+      )}
+      <span className="mk-src">You send it through their official contact page</span>
+    </div>
+  )
+
+  // Feature four: the real one-screen record card for a featured member.
+  const rs = featuredRecord?.stats
+  const recordVisual = (
+    <div className="mock mock-record" aria-hidden="true">
+      {featuredRecord ? (
+        <>
+          <div className="mk-rec-head">
+            <b>{featuredRecord.name}</b>
+            <small>{featuredRecord.chamber === 'senate' ? 'U.S. Senate' : 'U.S. House'} · {featuredRecord.state}</small>
+          </div>
+          {rs && (
+            <div className="mk-rec-stats">
+              <span><b>{rs.total}</b><small>Roll calls</small></span>
+              <span><b>{rs.cast}</b><small>Votes cast</small></span>
+              <span><b>{rs.notVoting}</b><small>Not voting</small></span>
+            </div>
+          )}
+          {(featuredRecord.recentVotes || []).slice(0, 3).map((v) => (
+            <div className="mk-rec-vote" key={v.roll_call_id}>
+              <span className="mk-desc">{truncate(v.bill?.label ? `${v.bill.label} · ${v.question || ''}` : v.question, 44)}</span>
+              {v.position && <span className={`mk-pos ${String(v.position).toLowerCase().replace(/\s+/g, '-')}`}>{v.position}</span>}
+            </div>
+          ))}
+        </>
+      ) : (
+        <>
+          <b className="mk-skel" style={{ width: 140, maxWidth: 'none', height: 14 }} />
+          <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', marginTop: 14 }} />
+          <span className="mk-skel" style={{ width: '64%', maxWidth: 'none', marginTop: 8 }} />
+        </>
+      )}
+    </div>
+  )
+
+  // Feature six: Bill Watch on a real current bill. The stages are what the
+  // alert covers, not invented events.
+  const alertsVisual = (
+    <div className="mock mock-alerts" aria-hidden="true">
+      <div className="mk-billhead">
+        <span className="mk-billnum">{featuredBill ? billLabel(featuredBill) : 'H.R. —'}</span>
+        <span className="mk-watch">Watching</span>
+      </div>
+      <p className="mk-alert-title">{featuredBill ? truncate(featuredBill.headline || featuredBill.title, 80) : 'Loading a current bill…'}</p>
+      <ul className="mk-stages">
+        <li>Reaches committee</li>
+        <li>Scheduled for the floor</li>
+        <li>Recorded vote</li>
+      </ul>
+    </div>
+  )
+
+  const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
+  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
+
+  const FEATURES = [
+    { id: 'find', kicker: 'Your representatives', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
+    { id: 'votes', kicker: 'Votes', title: 'Every vote, with the receipts.', body: 'How each member voted on every roll call, this week’s and every one before it, linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
+    { id: 'bills', kicker: 'Bills', title: 'Bills in plain English.', body: 'A short explanation of any bill, past or present, built from the official summary and labeled as AI.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
+    { id: 'record', kicker: 'Before November 3', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
+    { id: 'write', kicker: 'Tell your rep', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
+    { id: 'alerts', kicker: 'Bill alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
+  ]
+
   return (
     <div className="bw landing" ref={rootRef}>
       <SEO
@@ -428,7 +526,7 @@ function Landing() {
         }}
       />
 
-      {/* ===== HERO: the question, the mission, the lookup, and a real vote as proof ===== */}
+      {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
       <section className="hero">
         <div className="hero-inner">
           <span className="hero-kicker">
@@ -473,42 +571,27 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== THE RECORD: who represents you, how they voted, what the bills say ===== */}
-      <section className="steps">
-        <div className="steps-inner">
-          <header className="steps-head" data-reveal>
-            <h2>The whole record, in one place.</h2>
-          </header>
-
-          {STEPS.map((s) => (
-            <article className="step" key={s.id} data-reveal>
-              <div className="step-text">
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-              </div>
-              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'votes' ? votesVisual : billVisual}</div>
-            </article>
-          ))}
-        </div>
+      {/* ===== FEATURES: one idea per section, a simple real-data image each ===== */}
+      <section className="features">
+        {FEATURES.map((f) => (
+          <article className={`feature feature-${f.id}`} key={f.id} data-reveal>
+            <div className="feature-text">
+              <span className="section-kicker">{f.kicker}</span>
+              <h2>{f.title}</h2>
+              <p>{f.body}</p>
+              <Link className="text-link" to={f.link.to}>{f.link.label} <ArrowRight /></Link>
+            </div>
+            <div className="feature-visual">{f.visual}</div>
+          </article>
+        ))}
       </section>
 
-      {/* ===== THIS WEEK ON THE FLOOR: scheduled (House) beside just recorded ===== */}
-      <section className="floor">
-        <div className="floor-inner" data-reveal>
-          <ThisWeekOnFloor limit={5} />
-          <div className="floor-links">
-            <Link className="floor-more" to="/this-week">This week on the floor <ArrowRight /></Link>
-            <Link className="floor-more" to="/bills">Browse every bill, past and present <ArrowRight /></Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== AI, STATED PLAINLY: where it's used and where it never is ===== */}
+      {/* ===== AI, STATED PLAINLY ===== */}
       <section className="ai">
         <div className="ai-inner">
           <header className="ai-head" data-reveal>
             <span className="section-kicker">How we use AI</span>
-            <h2>More people reading the record. More people heard. Nobody speaking for anyone.</h2>
+            <h2>AI that explains. It never speaks for anyone.</h2>
           </header>
           <div className="ai-cols" data-reveal>
             <div className="ai-col">
@@ -520,37 +603,45 @@ function Landing() {
               <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
           </div>
-          <Link className="floor-more" to="/methodology/ai-explanations" data-reveal>How AI explanations are made <ArrowRight /></Link>
         </div>
       </section>
 
-      {/* ===== WRITE: read the vote, then write to the person who cast it ===== */}
-      <section className="write">
-        <div className="write-inner">
-          <header className="write-head" data-reveal>
-            <span className="section-kicker">Tell your rep</span>
-            <h2>Read the vote. Then write to the person who cast it.</h2>
-          </header>
-          <ol className="write-steps" data-reveal>
-            {WRITE_STEPS.map((t, i) => (
-              <li key={t}><span className="ws-num">{i + 1}</span>{t}</li>
-            ))}
-          </ol>
-          <p className="write-note" data-reveal>
-            Every roll call and bill page starts a message with the facts already in it: the vote, how your
-            member voted, and the official source. You add why it matters to you. {BRAND.name} doesn’t send it
-            for you; you send it through your representative’s official contact page, the way their office
-            already counts mail.
+      {/* ===== FOR OFFICES: one band, one link ===== */}
+      <section className="offices-band">
+        <div className="offices-inner" data-reveal>
+          <span className="section-kicker">If you work in a congressional office</span>
+          <h2>A better way for constituents to reach your office, and for your office to answer.</h2>
+          <p className="offices-lede">
+            Cited answers from sources your office approves, and messages written and approved by the person who
+            sent them, tagged to the vote they’re about. Nothing is ever said in the Member’s name.
           </p>
-          {headlineVote && (
-            <Link className="floor-more" to={`${headlineVote.voteHref}#tell-your-rep`} data-reveal>
-              Start with the latest vote <ArrowRight />
-            </Link>
-          )}
+          <p className="offices-status">
+            In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
+          </p>
+          <Link className="text-link" to="/offices">How it would work for your office <ArrowRight /></Link>
         </div>
       </section>
 
-      {/* ===== SOURCES: trust, scannable ===== */}
+      {/* ===== FAQ ===== */}
+      <section className="faq">
+        <div className="faq-inner">
+          <header data-reveal>
+            <span className="section-kicker">Questions</span>
+            <h2>Before you start.</h2>
+          </header>
+          <div className="faq-list">
+            {FAQ.map((item) => (
+              <details key={item.q} className="faq-item">
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+          <Link className="text-link" to="/how-it-works">How BallotWatch works <ArrowRight /></Link>
+        </div>
+      </section>
+
+      {/* ===== SOURCES ===== */}
       <section className="sources" aria-label="Data sources" data-reveal>
         <span className="sources-label">Built from public records</span>
         <div className="sources-list">
@@ -563,44 +654,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== FOR OFFICES: one band, one link; the page belongs to constituents ===== */}
-      <section className="offices-band">
-        <div className="offices-inner">
-          <span className="section-kicker" data-reveal>If you work in a congressional office</span>
-          <h2 data-reveal>A better way for constituents to reach your office, and for your office to answer.</h2>
-          <div className="offices-points" data-reveal>
-            <p><b>Answer before it becomes mail.</b> “How did the Member vote on this bill?” answered from the official record and your office’s own published statements, cited every time.</p>
-            <p><b>Mail you can use.</b> One message per person, written and approved by that person, tagged to the exact bill or roll call it’s about.</p>
-            <p><b>Nothing in your name.</b> No generated statements, no automated replies, nothing sent without the constituent’s approval.</p>
-          </div>
-          <p className="offices-status" data-reveal>
-            In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
-          </p>
-          <Link className="floor-more" to="/offices" data-reveal>How it would work for your office <ArrowRight /></Link>
-        </div>
-      </section>
-
-      {/* ===== FOR DEVELOPERS AND AI ASSISTANTS ===== */}
-      <section className="devs">
-        <div className="devs-inner" data-reveal>
-          <div className="devs-text">
-            <span className="section-kicker">For developers and AI assistants</span>
-            <h2>The same record, open to anyone who builds.</h2>
-            <p>A keyless public API, an MCP server your assistant can call, and <code>/llms.txt</code>. Every answer carries its official source.</p>
-            <div className="devs-links">
-              <Link to="/developers/docs">API docs</Link>
-              <a href="/llms.txt">llms.txt</a>
-              <Link to="/open">Open data</Link>
-            </div>
-          </div>
-          <pre className="devs-code" aria-label="Example requests"><code>{`curl https://www.ballotwatch.io/api/v1/votes
-
-# MCP (Streamable HTTP), no key needed
-https://www.ballotwatch.io/mcp`}</code></pre>
-        </div>
-      </section>
-
-      {/* ===== FINALE: closing CTA ===== */}
+      {/* ===== FINALE ===== */}
       <section className="finale">
         <div className="finale-inner">
           <span className="finale-kicker" data-reveal>Start with your ZIP</span>
@@ -608,22 +662,6 @@ https://www.ballotwatch.io/mcp`}</code></pre>
           {renderLookup('finale')}
         </div>
       </section>
-
-      {/* ===== COLOPHON ===== */}
-      <footer className="colophon">
-        <div className="colophon-inner">
-          <span className="colophon-word">{BRAND.name}</span>
-          <span>© 2026 · Public data and public methods · Not affiliated with the U.S. Congress</span>
-          <div className="colophon-links">
-            <Link to="/methodology">Methodology</Link>
-            <Link to="/offices">For offices</Link>
-            <Link to="/developers">API</Link>
-            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
-            <Link to="/open">Corrections</Link>
-            <span>MIT</span>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
