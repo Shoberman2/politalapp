@@ -12,14 +12,14 @@
 }
 
 .usage-header h1 {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--serif);
   font-size: 28px;
   color: #1A1A18;
   margin: 0;
 }
 
 .usage-subtitle {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   color: #6B6861;
   margin-top: 4px;
@@ -32,7 +32,7 @@
 }
 
 .usage-period-select {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   padding: 8px 12px;
   border: 1px solid #E8E6E1;
@@ -68,7 +68,7 @@
 
 .usage-stat-label {
   display: block;
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 12px;
   color: #9C9789;
   margin-top: 8px;
@@ -82,7 +82,7 @@
 }
 
 .usage-chart-section h3 {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 600;
   color: #1A1A18;
@@ -170,14 +170,14 @@
 }
 
 .usage-empty h3 {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--serif);
   font-size: 22px;
   color: #1A1A18;
   margin: 0 0 8px;
 }
 
 .usage-empty p {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   color: #6B6861;
   margin-bottom: 24px;
 }
@@ -186,7 +186,7 @@
   text-align: center;
   padding: 60px;
   color: #9C9789;
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
 }
 
 @media (max-width: 768px) {

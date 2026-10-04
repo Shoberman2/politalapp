@@ -3,8 +3,8 @@
    A centered hero (question, mission, ZIP lookup, the latest real vote),
    then one section per platform feature, each a short headline, one line,
    a text link and a simple image rendered from live data (alternating
-   sides), then how AI is used, one band for congressional offices, an FAQ,
-   sources and a closing lookup. The shared site footer follows. Every
+   sides), then the concept (AI now / next / never), a band for congressional
+   offices, an FAQ and a closing lookup. The shared site footer follows. Every
    selector is scoped under `.landing`; tokens come from broadsheet/App.css.
    Buttons follow the site-wide system: sentence case, --r-btn corners,
    secondary actions as .btn-text .btn-go arrow links. No scroll reveals. */
@@ -41,10 +41,10 @@
 }
 .landing .hero-title {
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: clamp(36px, 5.6vw, 52px);
   line-height: 1.03;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   color: var(--ink);
   text-wrap: balance;
   margin: 0;
@@ -249,10 +249,10 @@
 .landing .feature-text { max-width: 28rem; }
 .landing .feature-text h2 {
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: clamp(30px, 3.8vw, 44px);
   line-height: 1.05;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-wrap: balance;
   margin: 0;
@@ -393,128 +393,119 @@
 .landing .fr-result.neutral { color: var(--ink-3); background: var(--accent-soft); }
 
 /* =====================================================
-   SOURCES — scannable trust band
+   THE CONCEPT — AI now / next / never. The one dark band on the page, so the
+   idea the company is built on is the thing you can't miss.
    ===================================================== */
-.landing .sources {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 30px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 14px 36px;
-}
-.landing .sources-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.landing .sources-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 28px;
-  align-items: baseline;
-}
-.landing .source { display: inline-flex; align-items: baseline; gap: 8px; }
-.landing .source b { font-family: var(--serif); font-size: 18px; font-weight: 400; color: var(--ink); }
-.landing .source-detail {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-
-/* =====================================================
-   AI — where it's used and where it never is
-   ===================================================== */
-.landing .ai { background: var(--bg-tint); border-top: 1px solid var(--rule); }
+.landing .ai { background: var(--ink); color: var(--bg); }
 .landing .ai-inner,
 .landing .offices-inner {
-  max-width: 880px;
+  max-width: var(--maxw);
   margin: 0 auto;
-  padding: clamp(64px, 10vh, 112px) 40px;
+  padding: clamp(72px, 12vh, 128px) 40px;
 }
-.landing .ai-head h2,
+.landing .ai-kicker,
+.landing .offices-kicker {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.landing .ai-kicker { color: color-mix(in srgb, var(--bg) 60%, transparent); }
+.landing .ai-head h2 {
+  max-width: 900px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(30px, 4.4vw, 54px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--bg);
+  text-wrap: balance;
+  margin: 0;
+}
+.landing .ai-head h2 em { display: block; margin-top: 14px; font-style: italic; color: #A9C4FF; }
+.landing .ai-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 3vw, 48px);
+  margin-top: clamp(40px, 6vh, 64px);
+}
+.landing .ai-col { padding-top: 18px; border-top: 2px solid color-mix(in srgb, var(--bg) 85%, transparent); }
+.landing .ai-col h3 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 14px;
+  color: var(--bg);
+}
+.landing .ai-col-next { border-top-color: #A9C4FF; }
+.landing .ai-col-next h3 { color: #A9C4FF; }
+.landing .ai-col-never { border-top-color: color-mix(in srgb, var(--bg) 35%, transparent); }
+.landing .ai-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.landing .ai-col li { font-size: 16px; line-height: 1.5; color: color-mix(in srgb, var(--bg) 82%, transparent); }
+.landing .ai-col-never li { color: color-mix(in srgb, var(--bg) 62%, transparent); }
+.landing .ai-link { margin-top: 40px; color: #A9C4FF; }
+
+/* =====================================================
+   OFFICES — a strong band: text left, one primary action right
+   ===================================================== */
+.landing .offices-band { background: var(--accent-subtle, #EEF3FD); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.landing .offices-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px 64px;
+}
+.landing .offices-text { flex: 1 1 520px; max-width: 760px; }
+.landing .offices-kicker { color: var(--accent); }
 .landing .offices-inner h2 {
   font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(26px, 3.6vw, 40px);
-  line-height: 1.08;
-  letter-spacing: -0.012em;
+  font-weight: 600;
+  font-size: clamp(28px, 3.8vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-wrap: balance;
   margin: 0;
 }
-.landing .ai-cols {
+.landing .offices-lede { margin: 18px 0 0; max-width: 40rem; font-size: 18px; line-height: 1.55; color: var(--ink-2); }
+.landing .offices-cta { flex: 0 0 auto; }
+
+/* =====================================================
+   FAQ — heading column + question list
+   ===================================================== */
+.landing .faq { background: var(--bg); }
+.landing .faq-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(72px, 12vh, 128px) 40px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-top: 36px;
-  border-top: 1px solid var(--rule);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
 }
-.landing .ai-col { padding-top: 20px; }
-.landing .ai-col h3 {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--info);
-  margin: 0 0 12px;
-}
-.landing .ai-col-never h3 { color: var(--ink-2); }
-.landing .ai-col ul { list-style: none; margin: 0; padding: 0; }
-.landing .ai-col li {
-  padding: 10px 0 10px 14px;
-  border-left: 2px solid var(--info);
-  margin-bottom: 8px;
-  font-size: 16px;
-  line-height: 1.45;
-  color: var(--ink);
-}
-.landing .ai-col-never li { border-left-color: var(--rule-strong, var(--rule)); }
-
-/* =====================================================
-   OFFICES — one band for congressional staff
-   ===================================================== */
-.landing .offices-band { background: var(--surface); border-top: 1px solid var(--rule); }
-.landing .offices-lede { margin: 16px 0 0; max-width: 40rem; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
-.landing .offices-status {
-  margin: 24px 0 20px;
-  padding: 10px 14px;
-  border-left: 2px solid var(--warning);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: var(--ink-2);
-}
-
-/* =====================================================
-   FAQ — native disclosure, one question per row
-   ===================================================== */
-.landing .faq { background: var(--bg); border-top: 1px solid var(--rule); }
-.landing .faq-inner { max-width: 880px; margin: 0 auto; padding: clamp(64px, 10vh, 112px) 40px; }
-.landing .faq-inner h2 {
+.landing .faq-head h2 {
   font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(28px, 3.6vw, 40px);
-  line-height: 1.08;
+  font-weight: 600;
+  font-size: clamp(32px, 4.4vw, 54px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
   margin: 0;
 }
-.landing .faq-list { margin: 28px 0 24px; border-top: 1px solid var(--rule); }
+.landing .faq-head p { margin: 16px 0 20px; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
+.landing .faq-list { border-top: 1px solid var(--ink); }
 .landing .faq-item { border-bottom: 1px solid var(--rule); }
 .landing .faq-item summary {
   list-style: none;
   cursor: pointer;
-  padding: 18px 32px 18px 0;
+  padding: 22px 40px 22px 0;
   position: relative;
-  font-size: 17px;
-  font-weight: 500;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(18px, 1.8vw, 22px);
+  line-height: 1.3;
   color: var(--ink);
 }
 .landing .faq-item summary::-webkit-details-marker { display: none; }
@@ -525,12 +516,12 @@
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--mono);
-  font-size: 18px;
-  color: var(--ink-3);
+  font-size: 22px;
+  color: var(--accent);
 }
 .landing .faq-item[open] summary::after { content: '–'; }
 .landing .faq-item summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
-.landing .faq-item p { margin: 0; padding: 0 32px 20px 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.landing .faq-item p { margin: 0; padding: 0 40px 24px 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
 
 /* =====================================================
    FINALE — closing lookup
@@ -558,10 +549,10 @@
 }
 .landing .finale-inner h2 {
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: clamp(30px, 4.2vw, 48px);
   line-height: 1.06;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   color: var(--ink);
   text-wrap: balance;
   margin: 0;
@@ -587,9 +578,20 @@
   color: var(--ink-2);
 }
 .landing .mk-yours { color: var(--accent); }
-.landing .mk-rec-head { display: flex; flex-direction: column; gap: 3px; }
-.landing .mk-rec-head b { font-family: var(--serif); font-size: 24px; font-weight: 400; color: var(--ink); }
-.landing .mk-rec-head small { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); }
+.landing .mk-rec-head { display: flex; align-items: center; gap: 14px; }
+.landing .mk-rec-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  background: var(--bg-tint);
+  flex-shrink: 0;
+  display: inline-block;
+}
+.landing .mk-rec-id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.landing .mk-rec-id b { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--ink); }
+.landing .mk-rec-id small { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); }
 .landing .mk-rec-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -650,11 +652,13 @@
   .landing .ai-inner,
   .landing .offices-inner,
   .landing .faq-inner,
-  .landing .sources,
   .landing .finale-inner { padding-left: 24px; padding-right: 24px; }
 }
+@media (max-width: 940px) {
+  .landing .ai-cols { grid-template-columns: 1fr; gap: 28px; }
+  .landing .faq-inner { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
-  .landing .ai-cols { grid-template-columns: 1fr; gap: 0; }
   .landing .hv-main { flex-direction: column; }
   .landing .hv-outcome { flex-direction: row; align-items: center; }
   .landing .lookup-form { padding-left: 6px; }

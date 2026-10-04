@@ -23,12 +23,6 @@ const BILL_TYPE_LABELS = {
   HJRES: 'H.J.Res.', SJRES: 'S.J.Res.', HCONRES: 'H.Con.Res.', SCONRES: 'S.Con.Res.',
 }
 
-// Sources shown as scannable trust credentials. Each line: what we pull, from where.
-const SOURCES = [
-  { name: 'Congress.gov', detail: 'Votes & bills' },
-  { name: 'U.S. Census', detail: 'Your district' },
-  { name: 'FEC', detail: 'Campaign finance' },
-]
 
 // Where AI is used and where it never is. This is the substance behind the
 // mission line, so it's stated as plain lists rather than a pitch.
@@ -36,6 +30,12 @@ const AI_USES = [
   'Explain bills from the official summary, with the source beside it',
   'Explain what a procedural vote actually decided',
   'Help you, or your AI assistant, find the right roll call',
+]
+// Where the product is headed. Stated as intent, not as shipped features.
+const AI_NEXT = [
+  'Offices answer common questions from their own published words, cited every time',
+  'Your AI assistant pulls the record and starts your message; you approve every word',
+  'You see how your representative voted on what you wrote about',
 ]
 const AI_NEVER = [
   'Write in your representative’s voice or guess their positions',
@@ -424,15 +424,33 @@ function Landing() {
     </div>
   )
 
-  // Feature four: the real one-screen record card for a featured member.
+  // Feature four: the real one-screen record card for a featured member,
+  // laid out like their profile (photo, seat, totals, latest votes).
   const rs = featuredRecord?.stats
+  const recordPhoto = featuredRecord ? (featuredMembers[0]?.imageUrl || featuredRecord.photo_url || featuredMembers[0]?.photoFallbackUrl) : null
   const recordVisual = (
     <div className="mock mock-record" aria-hidden="true">
       {featuredRecord ? (
         <>
           <div className="mk-rec-head">
-            <b>{featuredRecord.name}</b>
-            <small>{featuredRecord.chamber === 'senate' ? 'U.S. Senate' : 'U.S. House'} · {featuredRecord.state}</small>
+            {recordPhoto ? (
+              <img
+                className="mk-rec-photo"
+                src={recordPhoto}
+                alt=""
+                loading="lazy"
+                onError={(e) => {
+                  const el = e.currentTarget
+                  const fb = featuredMembers[0]?.photoFallbackUrl
+                  if (fb && el.dataset.fb !== '1') { el.dataset.fb = '1'; el.src = fb }
+                  else el.style.visibility = 'hidden'
+                }}
+              />
+            ) : <span className="mk-rec-photo" />}
+            <span className="mk-rec-id">
+              <b>{featuredRecord.name}</b>
+              <small>{featuredRecord.chamber === 'senate' ? 'U.S. Senate' : 'U.S. House'} · {featuredRecord.state}</small>
+            </span>
           </div>
           {rs && (
             <div className="mk-rec-stats">
@@ -450,7 +468,7 @@ function Landing() {
         </>
       ) : (
         <>
-          <b className="mk-skel" style={{ width: 140, maxWidth: 'none', height: 14 }} />
+          <div className="mk-rec-head"><span className="mk-rec-photo" /><b className="mk-skel" style={{ width: 140, maxWidth: 'none', height: 14 }} /></div>
           <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', marginTop: 14 }} />
           <span className="mk-skel" style={{ width: '64%', maxWidth: 'none', marginTop: 8 }} />
         </>
@@ -479,12 +497,12 @@ function Landing() {
   const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
 
   const FEATURES = [
-    { id: 'find', kicker: 'Your representatives', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
-    { id: 'votes', kicker: 'Votes', title: 'Every vote, with the receipts.', body: 'How each member voted on every roll call, this week’s and every one before it, linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
-    { id: 'bills', kicker: 'Bills', title: 'Bills in plain English.', body: 'A short explanation of any bill, past or present, built from the official summary. Anything written by AI says so.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
-    { id: 'record', kicker: 'Before November 3', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
-    { id: 'write', kicker: 'Tell your rep', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
-    { id: 'alerts', kicker: 'Bill alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
+    { id: 'find', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
+    { id: 'votes', title: 'See exactly how they voted.', body: 'Every roll call, this week’s and every one before it, with each member’s yea or nay linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
+    { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
+    { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
+    { id: 'write', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
+    { id: 'alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
   ]
 
   return (
@@ -565,7 +583,6 @@ function Landing() {
         {FEATURES.map((f) => (
           <article className={`feature feature-${f.id}`} key={f.id}>
             <div className="feature-text">
-              <span className="section-kicker">{f.kicker}</span>
               <h2>{f.title}</h2>
               <p>{f.body}</p>
               <Link className="btn-text btn-go feature-link" to={f.link.to}>{f.link.label}</Link>
@@ -575,48 +592,53 @@ function Landing() {
         ))}
       </section>
 
-      {/* ===== AI, STATED PLAINLY ===== */}
-      <section className="ai">
+      {/* ===== THE CONCEPT: how AI is used now, where it's headed, what it never does ===== */}
+      <section className="ai" aria-labelledby="ai-title">
         <div className="ai-inner">
           <header className="ai-head">
-            <span className="section-kicker">How we use AI</span>
-            <h2>AI that explains. It never speaks for anyone.</h2>
+            <span className="ai-kicker">Our concept · what we’re building toward</span>
+            <h2 id="ai-title">AI that makes Congress easier to read and easier to reach. <em>A person writes every message. A person answers it.</em></h2>
           </header>
           <div className="ai-cols">
             <div className="ai-col">
-              <h3>We use AI to</h3>
+              <h3>Now</h3>
               <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
+            <div className="ai-col ai-col-next">
+              <h3>Next</h3>
+              <ul>{AI_NEXT.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>
             <div className="ai-col ai-col-never">
-              <h3>We never use AI to</h3>
+              <h3>Never</h3>
               <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
           </div>
+          <Link className="btn-text btn-go ai-link" to="/how-it-works">How it works</Link>
         </div>
       </section>
 
-      {/* ===== FOR OFFICES: one band, one link ===== */}
-      <section className="offices-band">
+      {/* ===== FOR OFFICES ===== */}
+      <section className="offices-band" aria-labelledby="offices-title">
         <div className="offices-inner">
-          <span className="section-kicker">If you work in a congressional office</span>
-          <h2>A better way for constituents to reach your office, and for your office to answer.</h2>
-          <p className="offices-lede">
-            Cited answers from sources your office approves, and messages written and approved by the person who
-            sent them, tagged to the vote they’re about. Nothing is ever said in the Member’s name.
-          </p>
-          <p className="offices-status">
-            In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
-          </p>
-          <Link className="btn-text btn-go" to="/offices">How it would work for your office</Link>
+          <div className="offices-text">
+            <span className="offices-kicker">If you work in a congressional office</span>
+            <h2 id="offices-title">A better way for constituents to reach your office, and for your office to answer.</h2>
+            <p className="offices-lede">
+              Cited answers from sources your office approves. Messages written and approved by the person who sent
+              them, tagged to the vote they’re about. Nothing is ever said in the Member’s name.
+            </p>
+          </div>
+          <Link className="btn-primary offices-cta" to="/offices">See how it would work</Link>
         </div>
       </section>
 
       {/* ===== FAQ ===== */}
-      <section className="faq">
+      <section className="faq" aria-labelledby="faq-title">
         <div className="faq-inner">
-          <header>
-            <span className="section-kicker">Questions</span>
-            <h2>Before you start.</h2>
+          <header className="faq-head">
+            <h2 id="faq-title">Questions, answered.</h2>
+            <p>Everything people ask before they look up their first vote.</p>
+            <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
           </header>
           <div className="faq-list">
             {FAQ.map((item) => (
@@ -626,20 +648,6 @@ function Landing() {
               </details>
             ))}
           </div>
-          <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
-        </div>
-      </section>
-
-      {/* ===== SOURCES ===== */}
-      <section className="sources" aria-label="Data sources">
-        <span className="sources-label">Built from public records</span>
-        <div className="sources-list">
-          {SOURCES.map((s) => (
-            <span className="source" key={s.name}>
-              <b>{s.name}</b>
-              <span className="source-detail">{s.detail}</span>
-            </span>
-          ))}
         </div>
       </section>
 

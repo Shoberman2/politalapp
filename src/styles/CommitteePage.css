@@ -46,7 +46,7 @@
   color: var(--text-primary, #1A1A18);
   margin: 0 0 16px;
 }
-.committee-title em { font-style: italic; }
+.committee-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .committee-deck {
   font-family: var(--font-display, 'Instrument Serif', serif);
@@ -91,7 +91,7 @@
   color: var(--text-primary, #1A1A18);
   margin: 0 0 8px;
 }
-.committee-section-title em { font-style: italic; }
+.committee-section-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .committee-section-subtitle {
   font-family: var(--font-body, 'General Sans', sans-serif);
