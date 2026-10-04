@@ -287,12 +287,12 @@ function BillDetail() {
           <article className="bill-ai-card">
             <div className="bill-ai-label">
               <span className="bill-ai-pulse"></span>
-              <InfoTip text="This explanation uses the official Congress.gov summary. When that source is unavailable, BallotWatch does not infer provisions from the title.">The bill, in plain English</InfoTip>
+              <InfoTip text="This explanation is written with AI from the official Congress.gov summary. When that source is unavailable, BallotWatch does not infer provisions from the title.">The bill, in plain English</InfoTip>
             </div>
             <div className="bill-ai-byline">
               {aiExplanation?.sourceUnavailable
                 ? 'Official summary not yet available · no inferred provisions'
-                : 'From the official Congress.gov summary · no inferred provisions'}
+                : 'AI explanation from the official Congress.gov summary · no inferred provisions'}
             </div>
             <h2 className="bill-ai-headline">What this bill <em>would do</em></h2>
             {aiLoading && (
