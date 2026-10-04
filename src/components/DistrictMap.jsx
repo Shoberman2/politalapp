@@ -8,6 +8,7 @@ import {
 } from 'react-simple-maps'
 import { getAllCurrentMembers } from '../services/congress'
 import SEO from './SEO'
+import { normalizeCensusDistrict } from '../../shared/atLargeStates.js'
 import '../styles/DistrictMap.css'
 
 // Self-hosted 119th Congress district boundaries (from Census Bureau cb_2024_us_cd119_500k)
@@ -93,8 +94,8 @@ function DistrictMap() {
     const districtNum = props.CD119FP
     const stateAbbr = FIPS_TO_STATE[stateFips]
     if (!stateAbbr) return { stateAbbr: '', district: '', member: null }
-    // At-large districts show as "00" or "98"
-    const dist = (!districtNum || districtNum === '00' || districtNum === '98') ? '0' : String(parseInt(districtNum, 10))
+    // At-large districts show as "00", delegate seats as "98"/"99"
+    const dist = normalizeCensusDistrict(districtNum) ?? '0'
     const member = memberLookup[`${stateAbbr}-${dist}`]
     return { stateAbbr, district: dist, member }
   }

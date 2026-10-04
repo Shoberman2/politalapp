@@ -10,6 +10,7 @@ import { displayName } from '../utils/tellYourRepDraft'
 import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
+import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
 const ArrowRight = () => (
@@ -258,9 +259,10 @@ function Landing() {
     }
 
     const address = { street: '', city: info.city || '', state: info.state, zip: value }
-    // A ZIP names a House district only in at-large states; elsewhere it can
-    // straddle districts, so only the senators are named.
-    const houseKnown = info.district != null
+    // Only an at-large state's ZIP pins down the House seat. Montana and every
+    // other multi-district state need a street address (shared/atLargeStates.js),
+    // so there only the senators are named.
+    const houseKnown = info.district != null && isAtLargeState(info.state)
     const base = houseKnown
       ? {
         code: `${info.state}-AL`,

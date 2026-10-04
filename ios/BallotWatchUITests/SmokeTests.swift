@@ -41,9 +41,10 @@ final class SmokeTests: XCTestCase {
         let field = app.textFields["ZIP code or street address"]
         XCTAssertTrue(field.waitForExistence(timeout: 10))
         field.tap()
-        // An at-large state resolves to a district from the ZIP alone, which
-        // exercises the full lookup path without needing a street address.
-        field.typeText("59801")
+        // An at-large state (Cheyenne, WY) resolves to a district from the ZIP
+        // alone, which exercises the full lookup path without needing a street
+        // address.
+        field.typeText("82001")
         app.buttons["Find"].tap()
 
         // The delegation header replaces the hero once a place is saved.
@@ -54,7 +55,8 @@ final class SmokeTests: XCTestCase {
         )
         capture("02-myrep-delegation")
 
-        // Montana has two senators and one at-large representative.
+        // Wyoming has two senators and one at-large representative. (Montana
+        // is not at-large: it has had two districts since 2023.)
         // SectionHead renders its title uppercased.
         XCTAssertTrue(
             app.staticTexts["YOUR SENATORS"].waitForExistence(timeout: 20),
