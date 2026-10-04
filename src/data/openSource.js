@@ -65,7 +65,7 @@ export const OPEN_TRACKS = [
     text: 'Every computed or AI-assisted feature should explain its source, method, update cadence, caveat, and code reference.',
     links: [
       { label: 'Methodology', to: '/methodology' },
-      { label: 'Data sources', to: '/methodology/data-sources' },
+      { label: 'Data sources', to: '/data-sources' },
     ],
   },
   {
@@ -81,9 +81,10 @@ export const OPEN_TRACKS = [
 export const METHODOLOGY_PAGES = [
   {
     slug: 'data-sources',
-    title: 'Data Sources',
+    title: 'Data sources',
     dek: 'Where BallotWatch data comes from and what each source supports.',
-    source: 'Congress.gov, Census, FEC, LegiScan, and BallotWatch ETL metadata',
+    source: 'Congress.gov, the House Clerk, the U.S. Senate, docs.house.gov, the Census Bureau, the FEC, and BallotWatch ETL metadata',
+    related: { to: '/data-sources', label: 'Every source, and how often we read it' },
     cadence: 'Reviewed as source integrations change',
     caveat: 'Official records can be corrected after first publication, and source coverage varies by dataset.',
     codeRefs: ['etl/README.md', 'etl/run.ts', 'supabase/schema.sql'],
@@ -104,7 +105,7 @@ export const METHODOLOGY_PAGES = [
   },
   {
     slug: 'ai-explanations',
-    title: 'Source-Linked Explanations',
+    title: 'Source-linked explanations',
     dek: 'How BallotWatch explains congressional records with structured public data and AI assistance.',
     source: 'Structured bill, vote, routing, and deterministic statistics passed to server-side AI functions',
     cadence: 'Cached by prompt version and regenerated when prompts change',
@@ -131,7 +132,7 @@ export const METHODOLOGY_PAGES = [
   },
   {
     slug: 'committee-survival',
-    title: 'Committee Survival',
+    title: 'Committee survival',
     dek: 'How often bills assigned to a primary committee advance beyond that committee.',
     source: 'Bill committee routing, legislative stages, and BallotWatch committee survival computation',
     cadence: 'Recomputed when routing backfills or weekly jobs run',
@@ -154,7 +155,7 @@ export const METHODOLOGY_PAGES = [
   },
   {
     slug: 'sponsor-activity',
-    title: 'Sponsor Activity',
+    title: 'Sponsor activity',
     dek: 'What primary bill sponsorship can and cannot tell you about a member.',
     source: 'Congress.gov sponsor data and BallotWatch sponsor backfill',
     cadence: 'Updated as bill sponsor data is extracted',
@@ -177,7 +178,7 @@ export const METHODOLOGY_PAGES = [
   },
   {
     slug: 'campaign-finance-matching',
-    title: 'Campaign Finance Matching',
+    title: 'Campaign finance matching',
     dek: 'How donation context is matched to member profiles and policy areas.',
     source: 'Federal Election Commission data and BallotWatch industry mapping',
     cadence: 'Refreshed when finance data is queried or mappings change',

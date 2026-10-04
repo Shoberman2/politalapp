@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { HelmetProvider } from 'react-helmet-async'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 vi.mock('@vercel/analytics/react', () => ({ Analytics: () => null }))
 vi.mock('../../src/context/AuthContext', () => ({
@@ -16,6 +16,11 @@ import AboutPage from '../../src/components/AboutPage'
 import ContactPage from '../../src/components/ContactPage'
 import PrivacyPage from '../../src/components/PrivacyPage'
 import TermsPage from '../../src/components/TermsPage'
+import DataSourcesPage from '../../src/components/DataSourcesPage'
+import MethodologyPage from '../../src/components/MethodologyPage'
+import OfficesPage from '../../src/components/OfficesPage'
+import { DATA_SOURCES } from '../../src/data/infoPages'
+import { METHODOLOGY_PAGES } from '../../src/data/openSource'
 import { BRAND } from '../../src/config/brand'
 
 afterEach(cleanup)
@@ -36,7 +41,7 @@ describe('site-wide footer', () => {
     const hrefs = [...footers[0].querySelectorAll('a')].map((a) => a.getAttribute('href'))
     for (const href of [
       '/my-representative', '/all', '/bills', '/this-week', '/alerts',
-      '/how-it-works', '/methodology', '/methodology/ai-explanations', '/methodology/corrections',
+      '/how-it-works', '/data-sources', '/methodology', '/methodology/ai-explanations', '/methodology/corrections',
       '/developers', '/developers/docs', '/open', '/llms.txt', '/developers#mcp',
       '/about', '/offices', '/contact', '/privacy', '/terms',
       'https://github.com/Shoberman2/politalapp',
@@ -52,22 +57,83 @@ describe('site-wide footer', () => {
 
 describe('information pages', () => {
   const pages = [
-    ['/how-it-works', HowItWorksPage, /The public record/],
+    ['/how-it-works', HowItWorksPage, /Read the record/],
+    ['/data-sources', DataSourcesPage, /How we get our data/],
+    ['/methodology', MethodologyPage, /How each number is made/],
+    ['/methodology/corrections', MethodologyPage, /Corrections/],
     ['/about', AboutPage, /nonpartisan record of Congress/],
     ['/contact', ContactPage, /How to reach us/],
     ['/privacy', PrivacyPage, /Privacy notice/],
     ['/terms', TermsPage, /Terms of use/],
+    ['/offices', OfficesPage, /Answer constituents/],
   ]
 
+  // Methodology reads its slug from the route, so render it through Routes.
+  function renderPage(path, Page) {
+    return renderAt(path, (
+      <Routes>
+        <Route path="/methodology/:slug" element={<Page />} />
+        <Route path="*" element={<Page />} />
+      </Routes>
+    ))
+  }
+
   for (const [path, Page, heading] of pages) {
-    it(`${path} renders its H1 and never says "Plainfloor"`, () => {
-      const { container } = renderAt(path, <Page />)
+    it(`${path} uses the shared info-page layout, one .ip-title H1, and never says "Plainfloor"`, () => {
+      const { container } = renderPage(path, Page)
+      expect(container.querySelector('.info-page')).not.toBeNull()
       const h1s = container.querySelectorAll('h1')
       expect(h1s).toHaveLength(1)
+      expect(h1s[0].classList.contains('ip-title')).toBe(true)
       expect(h1s[0].textContent).toMatch(heading)
       expect(container.textContent).not.toMatch(/plainfloor/i)
     })
   }
+
+  it('how it works shows the four-step loop and labels the future step', () => {
+    const { container } = renderAt('/how-it-works', <HowItWorksPage />)
+    const steps = container.querySelectorAll('.ip-steps > li')
+    expect(steps).toHaveLength(4)
+    expect(steps[2].textContent).toMatch(/Where we’re headed/)
+    for (const step of steps) expect(step.querySelector('a.btn-text.btn-go')).not.toBeNull()
+    expect(container.querySelector('a[href="/data-sources"]')).not.toBeNull()
+  })
+
+  it('data sources lists every source with a cadence and an external link', () => {
+    const { container } = renderAt('/data-sources', <DataSourcesPage />)
+    const rows = container.querySelectorAll('.ip-sources > li')
+    expect(rows).toHaveLength(DATA_SOURCES.length)
+    const text = container.textContent
+    for (const name of ['Congress.gov API', 'Office of the Clerk', 'U.S. Senate', 'docs.house.gov', 'Census Bureau', 'Federal Election Commission']) {
+      expect(text).toContain(name)
+    }
+    for (const row of rows) {
+      expect(row.querySelector('.ip-cadence').textContent).toMatch(/^(Daily|Live|On request)$/)
+      expect(row.querySelector('a[href^="https://"]')).not.toBeNull()
+    }
+    expect(text).toMatch(/What we compute/)
+    expect(text).toMatch(/What AI does here/)
+    expect(container.querySelector('a[href="/methodology/corrections"]')).not.toBeNull()
+  })
+
+  it('the /data-sources route is registered in the app', () => {
+    const { container } = renderAt('/data-sources')
+    expect(container.querySelector('h1.ip-title').textContent).toMatch(/How we get our data/)
+  })
+
+  it('methodology index lists every topic and topic pages link back', () => {
+    const index = renderPage('/methodology', MethodologyPage)
+    const links = [...index.container.querySelectorAll('.ip-index a')].map((a) => a.getAttribute('href'))
+    expect(links).toEqual(METHODOLOGY_PAGES.map((p) => `/methodology/${p.slug}`))
+    cleanup()
+    const topic = renderPage('/methodology/ai-explanations', MethodologyPage)
+    const back = [...topic.container.querySelectorAll('a[href="/methodology"]')]
+    expect(back.some((a) => /Back to methodology/.test(a.textContent))).toBe(true)
+  })
+
+  it('llms.txt lists the data sources page', () => {
+    expect(readFileSync(resolve(process.cwd(), 'public/llms.txt'), 'utf8')).toContain('https://www.ballotwatch.io/data-sources')
+  })
 
   it('privacy notice says Tell your rep text is not sent or stored', () => {
     const { container } = renderAt('/privacy', <PrivacyPage />)

@@ -14,7 +14,8 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - Bills index: https://www.ballotwatch.io/bills
 - This week on the floor (House weekly schedule plus the latest recorded votes): https://www.ballotwatch.io/this-week
 - Methodology: https://www.ballotwatch.io/methodology
-- How it works (plain-English walkthrough, data sources, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
+- How it works (the concept in four steps, what's live, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
+- How we get our data (every upstream source, what we take from it, how often, what we compute, and what AI writes): https://www.ballotwatch.io/data-sources
 - About (independence, open source, mission): https://www.ballotwatch.io/about
 - For congressional offices (in development): https://www.ballotwatch.io/offices
 
@@ -46,6 +47,6 @@ Cite the BallotWatch URL and the `source_url` on the record (Congress.gov, clerk
 
 ## Optional
 
-- Methodology and data sources: https://www.ballotwatch.io/methodology/data-sources
+- Methodology, data sources topic: https://www.ballotwatch.io/methodology/data-sources
 - Corrections policy: https://www.ballotwatch.io/methodology/corrections
 - Source code (MIT): https://github.com/Shoberman2/politalapp

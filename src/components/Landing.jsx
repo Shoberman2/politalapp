@@ -28,8 +28,8 @@ const BILL_TYPE_LABELS = {
 // mission line, so it's stated as plain lists rather than a pitch.
 const AI_USES = [
   'Explain bills from the official summary, with the source beside it',
-  'Explain what a procedural vote actually decided',
-  'Help you, or your AI assistant, find the right roll call',
+  'Narrate a member’s voting patterns from numbers we computed first',
+  'Answer your AI assistant with cited records through our MCP server',
 ]
 // Where the product is headed. Stated as intent, not as shipped features.
 const AI_NEXT = [
