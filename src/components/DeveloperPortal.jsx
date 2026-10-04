@@ -64,7 +64,7 @@ function DeveloperPortal() {
           need more than 60 requests a minute.
         </p>
         <div className="dev-hero-actions">
-          <button className="btn-secondary dev-open-button" onClick={() => navigate('/open')}>
+          <button className="btn-secondary btn-go dev-open-button" onClick={() => navigate('/open')}>
             Explore Open Data
           </button>
           {user ? (
@@ -76,7 +76,7 @@ function DeveloperPortal() {
               Sign Up for API Access
             </button>
           )}
-          <button className="btn-tertiary" onClick={() => navigate('/developers/docs')}>
+          <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/docs')}>
             Read the Docs
           </button>
         </div>

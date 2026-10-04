@@ -43,17 +43,6 @@
   flex-wrap: wrap;
 }
 
-.dev-open-button {
-  color: var(--text-primary);
-  border-color: var(--border);
-}
-
-.dev-open-button:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-subtle);
-}
-
 /* Endpoints */
 .dev-endpoints {
   padding: 60px 0;

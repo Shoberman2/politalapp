@@ -135,71 +135,8 @@ select.form-input {
   margin-top: 0.5rem;
 }
 
-.btn-primary {
-  flex: 1;
-  padding: 1rem 2rem;
-  background: var(--accent);
-  color: var(--surface);
-  border: 1px solid var(--accent);
-  border-radius: var(--r-btn);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-  justify-content: center;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  color: var(--surface);
-  border-color: var(--accent-hover);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  padding: 1rem 1.5rem;
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-secondary:hover {
-  border-color: var(--text-primary);
-  background: var(--accent-subtle);
-}
-
-/* Tertiary: quietest action (e.g. "Read the Docs"). No fill, accent text. */
-.btn-tertiary {
-  padding: 1rem 1.5rem;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid transparent;
-  border-radius: var(--r-btn);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-tertiary:hover {
-  background: var(--accent-subtle);
-}
+/* Button visuals come from the shared system in App.css. */
+.form-actions .btn-primary { flex: 1; }
 
 /* Loading */
 .loading-container {
@@ -344,9 +281,10 @@ select.form-input {
 
   .form-actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .btn-secondary {
+  .form-actions .btn-secondary {
     order: 2;
   }
 

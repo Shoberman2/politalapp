@@ -177,25 +177,7 @@
   margin-bottom: 1.5rem;
 }
 
-.reset-search-button {
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: var(--font-body);
-}
 
-.reset-search-button:hover {
-  border-color: var(--accent);
-  background: var(--accent-subtle);
-}
 
 @media (max-width: 1024px) {
   .blog-grid {

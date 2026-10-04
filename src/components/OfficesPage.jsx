@@ -118,7 +118,7 @@ function OfficesPage() {
         <div className="op-inner">
           <h2>Interested in sponsoring a review?</h2>
           {BRAND.officesEmail ? (
-            <a className="op-btn" href={`mailto:${BRAND.officesEmail}?subject=${encodeURIComponent('Sponsoring a review')}`}>
+            <a className="op-btn btn-primary" href={`mailto:${BRAND.officesEmail}?subject=${encodeURIComponent('Sponsoring a review')}`}>
               Contact us
             </a>
           ) : (

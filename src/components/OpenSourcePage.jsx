@@ -24,10 +24,10 @@ function OpenSourcePage() {
             for people who want to inspect or improve the work.
           </p>
           <div className="open-actions">
-            <button className="open-primary" onClick={() => navigate('/methodology')}>
+            <button className="open-primary btn-primary" onClick={() => navigate('/methodology')}>
               Read Methodology
             </button>
-            <a className="open-secondary" href="https://github.com/Shoberman2/politalapp">
+            <a className="open-secondary btn-secondary" href="https://github.com/Shoberman2/politalapp">
               View GitHub
             </a>
           </div>
@@ -144,7 +144,7 @@ function OpenSourcePage() {
           Report it with the BallotWatch page or record, the field that appears
           wrong, the expected value, and a public source URL.
         </p>
-        <a href="https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml">
+        <a className="btn-primary" href="https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml">
           Report a source-linked correction
         </a>
       </section>

@@ -272,7 +272,7 @@ function BillsPage() {
     return (
       <div className="bills-page-error">
         <div className="error-message">{error}</div>
-        <button className="retry-button" onClick={() => fetchBills(true)}>Try Again</button>
+        <button className="retry-button btn-primary" onClick={() => fetchBills(true)}>Try Again</button>
       </div>
     )
   }

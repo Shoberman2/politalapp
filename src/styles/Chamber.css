@@ -121,39 +121,17 @@
 /* ----- Chamber toggle (Senate / House tabs) ----- */
 
 .chamber-toggle {
-  display: flex;
-  gap: 0;
+  display: inline-flex;
+  gap: 2px;
   margin: 24px 0 16px 0;
-  border-bottom: 1px solid #E8E6E1;
 }
 
-.chamber-toggle-btn {
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  font-family: 'General Sans', system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6B6861;
-  padding: 8px 24px;
-  cursor: pointer;
-  margin-bottom: -1px;
-  transition: color 150ms ease-out, border-color 150ms ease-out;
+.chamber-toggle .chamber-toggle-btn {
+  padding: 7px 16px;
 }
 
-.chamber-toggle-btn:hover {
-  color: #1A1A18;
-}
 
-.chamber-toggle-btn.is-active {
-  color: #1A1A18;
-  border-bottom-color: #1D4ED8;
-}
 
-.chamber-toggle-btn:focus-visible {
-  outline: 2px solid #1D4ED8;
-  outline-offset: 2px;
-}
 
 
 /* ----- Senate chamber map (SVG hemicycle) ----- */
@@ -575,24 +553,25 @@
 
 .chamber-drawer-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 14px;
+  right: 14px;
   background: transparent;
   border: 0;
   font-size: 28px;
   line-height: 1;
   color: #1A1A18;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--r-icon);
 }
 
 .chamber-drawer-close:hover {
   color: #1D4ED8;
+  background: var(--fill-soft);
 }
 
 .chamber-drawer-close:focus-visible {

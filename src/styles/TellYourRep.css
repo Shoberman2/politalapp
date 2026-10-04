@@ -20,39 +20,11 @@
   display: block;
 }
 
-.tyr-toggle,
-.tyr-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  background: var(--surface);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 150ms ease-out, color 150ms ease-out, background-color 150ms ease-out;
-}
-.tyr-toggle:hover,
-.tyr-btn:hover { border-color: var(--accent); color: var(--accent); }
-.tyr-toggle[aria-expanded='true'] { border-color: var(--text-primary); }
-.tyr-btn:disabled { opacity: 0.6; cursor: default; }
+/* Buttons use the shared system in App.css: the contact hand-off is
+   .btn-primary, the disclosure toggle and Copy are .btn-secondary text
+   actions. Only layout lives here. */
+.tyr .tyr-toggle { padding-left: 0; }
 
-.tyr-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-.tyr-btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
-
-.tyr-toggle:focus-visible,
-.tyr-btn:focus-visible,
 .tyr-link-btn:focus-visible,
 .tyr-textarea:focus-visible,
 .tyr-location input:focus-visible,
@@ -204,7 +176,6 @@
 @media (max-width: 640px) {
   .tyr-panel { padding: 16px; }
   .tyr-title { font-size: 1.375rem; }
-  .tyr-toggle,
   .tyr-actions .tyr-btn,
   .tyr-location .tyr-btn { width: 100%; }
   .tyr-field, .tyr-field-wide { flex: 1 1 100%; }

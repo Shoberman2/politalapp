@@ -162,7 +162,7 @@ function BillDetail() {
     return (
       <div className="bill-detail-error">
         <div className="error-message">{error || 'Bill not found'}</div>
-        <button className="bill-back-button" onClick={() => navigate('/bills')}>Back to Bills</button>
+        <button className="bill-back-button btn-primary" onClick={() => navigate('/bills')}>Back to Bills</button>
       </div>
     )
   }
@@ -267,12 +267,12 @@ function BillDetail() {
         </p>
         <div className="bill-masthead-actions">
           {textVersions[0]?.formats?.[0]?.url && (
-            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Read full text ↗</a>
+            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Read full text ↗</a>
           )}
           {bill.url && (
-            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Congress.gov ↗</a>
+            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Congress.gov ↗</a>
           )}
-          <button type="button" onClick={handleShare} className="bill-action-btn">{shareLabel}</button>
+          <button type="button" onClick={handleShare} className="bill-action-btn btn-secondary btn-sm">{shareLabel}</button>
         </div>
       </header>
 

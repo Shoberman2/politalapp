@@ -421,7 +421,7 @@ function VoteDashboard({ bioguideId }) {
         {/* Load more */}
         {votes.length > visibleCount && (
           <button
-            className="dash-load-more"
+            className="dash-load-more btn-secondary btn-sm"
             onClick={() => setVisibleCount(prev => prev + 20)}
           >
             Show more votes ({votes.length - visibleCount} remaining)

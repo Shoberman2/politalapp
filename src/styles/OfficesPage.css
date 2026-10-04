@@ -85,16 +85,8 @@
 .offices-page .op-contact { background: var(--bg-tint); border-bottom: 0; }
 .offices-page .op-contact .op-inner { text-align: center; }
 .offices-page .op-btn {
-  display: inline-block;
   margin-top: 20px;
-  padding: 12px 22px;
-  border-radius: var(--r-btn, 10px);
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
-  text-decoration: none;
 }
-.offices-page .op-btn:hover { background: var(--accent-hover); }
 .offices-page .op-muted { margin-top: 16px; font-size: 14px; color: var(--ink-3); }
 
 @media (max-width: 860px) {

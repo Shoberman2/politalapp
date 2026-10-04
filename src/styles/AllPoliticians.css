@@ -75,14 +75,11 @@
 }
 .members-register .mt-count { font-size: 14px; color: var(--ink-2); }
 .members-register .mt-count b { color: var(--ink); font-family: var(--mono); }
-.members-register .mt-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.members-register .mt-chip {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 5px 12px; border-radius: 9999px; border: 1px solid var(--rule); color: var(--ink-2);
-  background: none; cursor: pointer; transition: all .14s ease;
+.members-register .mt-chips {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
 }
-.members-register .mt-chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.members-register .mt-chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* ---- grid ---- */
 .members-register .members-grid {

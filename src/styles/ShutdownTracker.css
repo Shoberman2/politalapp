@@ -67,21 +67,7 @@
   to { transform: rotate(360deg); }
 }
 
-.retry-btn {
-  padding: 0.5rem 1.5rem;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-btn);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-family: var(--font-body);
-  transition: background 0.15s ease;
-}
 
-.retry-btn:hover {
-  background: var(--accent-hover);
-}
 
 /* Status Card */
 .shutdown-status-card {

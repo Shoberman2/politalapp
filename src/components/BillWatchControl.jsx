@@ -71,7 +71,7 @@ export default function BillWatchControl({ billId }) {
         <p>Sign in to add this bill to your watchlist and see official committee, floor, and recorded-vote updates.</p>
         <button
           type="button"
-          className="bill-watch-primary"
+          className="bill-watch-primary btn-primary btn-sm"
           onClick={() => navigate(`/auth?next=${encodeURIComponent(location.pathname)}`)}
         >
           Sign in to watch
@@ -88,7 +88,7 @@ export default function BillWatchControl({ billId }) {
         <p>BallotWatch will monitor official committee, floor, and recorded-vote updates for this bill.</p>
         <button
           type="button"
-          className="bill-watch-primary"
+          className="bill-watch-primary btn-primary btn-sm"
           disabled={loading}
           onClick={() => run(async () => {
             return startBillFollow(billId, { emailEnabled: BILL_ALERT_EMAIL_ENABLED })
@@ -119,13 +119,13 @@ export default function BillWatchControl({ billId }) {
       <div className="bill-watch-actions">
         <button
           type="button"
-          className="bill-watch-primary"
+          className="bill-watch-primary btn-primary btn-sm"
           disabled={loading || !hasEventType}
           onClick={() => run(() => updateBillFollow(billId, options))}
         >Save</button>
         <button
           type="button"
-          className="bill-watch-secondary"
+          className="bill-watch-secondary btn-secondary btn-sm"
           disabled={loading}
           onClick={() => run(() => updateBillFollow(billId, { ...options, paused: !options.paused }))}
         >{options.paused ? 'Resume' : 'Pause'}</button>
