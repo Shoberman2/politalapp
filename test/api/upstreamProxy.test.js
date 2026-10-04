@@ -289,9 +289,9 @@ describe('proxyRoute rate limiting', () => {
     vi.restoreAllMocks()
   })
 
-  it('defaults to 60 per minute and 2000 per day', () => {
-    if (!process.env.PROXY_PER_MINUTE) expect(PROXY_PER_MINUTE).toBe(60)
-    if (!process.env.PROXY_PER_DAY) expect(PROXY_PER_DAY).toBe(2000)
+  it('defaults to 120 per minute and 3000 per day', () => {
+    if (!process.env.PROXY_PER_MINUTE) expect(PROXY_PER_MINUTE).toBe(120)
+    if (!process.env.PROXY_PER_DAY) expect(PROXY_PER_DAY).toBe(3000)
   })
 
   it('limits per IP and returns 429 once the minute budget is spent', async () => {
