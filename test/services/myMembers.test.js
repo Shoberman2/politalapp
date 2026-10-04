@@ -48,6 +48,32 @@ describe('findMembersForAddress', () => {
     expect(district.getHouseRepForDistrict).toHaveBeenCalledWith('AK', '0')
   })
 
+  // REGRESSION: Montana (two districts since 2023) was treated as at-large.
+  it('a Wyoming ZIP returns the at-large House member plus both senators', async () => {
+    const wyHouse = { bioguideId: 'H2', name: 'Rep, WY', chamber: 'house', state: 'WY', district: '0' }
+    district.getDistrictFromAddress.mockResolvedValue({ state: 'WY', district: '0' })
+    district.getHouseRepForDistrict.mockResolvedValue(wyHouse)
+    const r = await findMembersForAddress({ zip: '82001' })
+    expect(district.getHouseRepForDistrict).toHaveBeenCalledWith('WY', '0')
+    expect(r).toEqual({ state: 'WY', district: '0', members: [wyHouse, ...sens] })
+  })
+
+  it('a Montana ZIP returns only the senators, even if a stale lookup claims district 0', async () => {
+    district.getDistrictFromAddress.mockResolvedValue({ state: 'MT', district: '0' })
+    const r = await findMembersForAddress({ zip: '59801' })
+    expect(district.getHouseRepForDistrict).not.toHaveBeenCalled()
+    expect(r).toEqual({ state: 'MT', district: null, members: sens })
+  })
+
+  it('a Montana street address resolves through the Census match to its district', async () => {
+    district.getDistrictFromAddress.mockResolvedValue({ state: 'MT', district: null, needsDistrict: true, city: 'Billings' })
+    district.getCongressionalDistrict.mockResolvedValue({ state: 'MT', district: '2' })
+    const r = await findMembersForAddress({ street: '315 N 24th St', city: 'Billings', zip: '59101' })
+    expect(district.getCongressionalDistrict).toHaveBeenCalledWith('315 N 24th St', 'Billings', 'MT', '59101')
+    expect(district.getHouseRepForDistrict).toHaveBeenCalledWith('MT', '2')
+    expect(r.district).toBe('2')
+  })
+
   it('returns null without a usable location', async () => {
     district.getDistrictFromAddress.mockResolvedValue(null)
     expect(await findMembersForAddress({ zip: '00000' })).toBeNull()

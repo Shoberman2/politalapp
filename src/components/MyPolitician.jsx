@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
 import SEO from './SEO'
+import { isAtLargeState } from '../../shared/atLargeStates.js'
 import {
   getHouseRepForDistrict,
   getSenatorsForState,
@@ -80,9 +81,8 @@ function MyPolitician() {
         resolvedState = districtInfo.state
         resolvedDistrict = districtInfo.district
       } else {
-        const atLargeStates = ['AK', 'DE', 'MT', 'ND', 'SD', 'VT', 'WY']
-
-        if (atLargeStates.includes(stateAbbr)) {
+        // Montana has two districts since 2023; see shared/atLargeStates.js.
+        if (isAtLargeState(stateAbbr)) {
           resolvedDistrict = '0'
         } else {
           const districts = await getDistrictsByState(stateAbbr)

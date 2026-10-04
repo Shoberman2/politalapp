@@ -7,6 +7,7 @@ import { saveUserAddress } from '../services/userService'
 import SEO from './SEO'
 import ThisWeekOnFloor from './ThisWeekOnFloor'
 import { BRAND } from '../config/brand'
+import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
 const ArrowRight = () => (
@@ -239,7 +240,9 @@ function Landing() {
     }
 
     const address = { street: '', city: info.city || '', state: info.state, zip: value }
-    if (info.district != null) {
+    // Only an at-large state's ZIP pins down the House seat. Montana and every
+    // other multi-district state need a street address (shared/atLargeStates.js).
+    if (info.district != null && isAtLargeState(info.state)) {
       setLookup({
         code: `${info.state}-AL`,
         body: '1 Representative and 2 Senators found.',

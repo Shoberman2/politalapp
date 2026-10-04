@@ -9,6 +9,7 @@ import {
   getSenatorsForState,
 } from './district'
 import { getMemberDetails } from './congress'
+import { isAtLargeState } from '../../shared/atLargeStates.js'
 
 /**
  * @param {{ street?: string, city?: string, state?: string, zip?: string }} address
@@ -25,7 +26,9 @@ export async function findMembersForAddress(address) {
   if (/^\d{5}$/.test(zip)) {
     const info = await getDistrictFromAddress(zip).catch(() => null)
     if (info?.state) state = info.state
-    if (info?.district != null) district = String(info.district)
+    // A ZIP fixes the House district only in an at-large state; Montana and the
+    // other multi-district states need the street address below.
+    if (info?.district != null && isAtLargeState(state)) district = String(info.district)
   }
 
   if (street && state && district == null) {
