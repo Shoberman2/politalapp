@@ -29,6 +29,12 @@ import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
 import OfficesPage from './components/OfficesPage'
+import HowItWorksPage from './components/HowItWorksPage'
+import AboutPage from './components/AboutPage'
+import ContactPage from './components/ContactPage'
+import PrivacyPage from './components/PrivacyPage'
+import TermsPage from './components/TermsPage'
+import Footer from './components/Footer'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
@@ -65,6 +71,11 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/offices" element={<OfficesPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
           {SHOW_BILL_ALERTS && (
@@ -139,6 +150,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
       <Analytics />
     </div>
   )

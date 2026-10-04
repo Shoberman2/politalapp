@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import Footer from './Footer'
 import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
@@ -306,7 +305,6 @@ function AllPoliticians() {
         <div className="members-empty">No members found matching your criteria</div>
       )}
 
-      <Footer />
     </div>
   )
 }

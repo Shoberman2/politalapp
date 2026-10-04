@@ -1,0 +1,87 @@
+/* Shared editorial layout for the information pages (/how-it-works, /about,
+   /contact, /privacy, /terms). Modeled on OfficesPage.css: single column,
+   mono kicker, Instrument Serif headings, thin rules between sections
+   (DESIGN.md). Each page adds its own file for page-specific rules. */
+
+.info-page { color: var(--ink); background: var(--bg); }
+.info-page section { border-bottom: 1px solid var(--rule); }
+.info-page section:last-child { border-bottom: 0; }
+.info-page .ip-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(40px, 7vh, 72px) 40px;
+}
+.info-page .ip-hero .ip-inner { padding-top: clamp(48px, 9vh, 96px); }
+.info-page .ip-kicker {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+.info-page h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(34px, 4.8vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0;
+}
+.info-page h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(22px, 2.6vw, 28px);
+  line-height: 1.15;
+  margin: 0 0 14px;
+}
+.info-page h3 {
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.info-page p,
+.info-page li { font-size: 16px; line-height: 1.65; color: var(--ink-2); }
+.info-page p { margin: 0; }
+.info-page p + p { margin-top: 12px; }
+.info-page .ip-lede { margin-top: 20px; font-size: clamp(16px, 1.6vw, 18px); max-width: 38rem; }
+.info-page .ip-updated {
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+.info-page a:not(.ip-plain) { color: var(--accent); }
+.info-page a:not(.ip-plain):hover { text-decoration: underline; }
+.info-page code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  padding: 1px 5px;
+  border-radius: var(--r-sm, 4px);
+  background: var(--bg-tint);
+}
+
+/* Plain list with thin rules between items, as on /offices. */
+.info-page .ip-list { list-style: none; margin: 0; padding: 0; }
+.info-page .ip-list li { padding: 12px 0; border-top: 1px solid var(--rule-light); }
+.info-page .ip-list li:first-child { border-top: 0; padding-top: 0; }
+
+/* Bulleted prose list for legal-style sections. */
+.info-page .ip-bullets { margin: 12px 0 0; padding-left: 20px; }
+.info-page .ip-bullets li + li { margin-top: 6px; }
+
+.info-page .ip-links { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 18px; }
+.info-page .ip-links a { font-size: 14px; font-weight: 600; }
+
+.info-page .ip-muted { font-size: 14px; color: var(--ink-3); }
+
+@media (max-width: 640px) {
+  .info-page .ip-inner { padding-left: 16px; padding-right: 16px; }
+}
