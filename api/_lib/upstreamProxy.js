@@ -51,6 +51,14 @@ export const PROXY_SERVICES = {
   },
 }
 
+// Congress.gov returns bill types uppercase ("HR", "S") and the app passes
+// them straight back; the upstream is case-insensitive, so lowercase the type
+// segment before matching the allow-list and forwarding.
+export function normalizeProxyPath(service, path) {
+  if (service !== 'congress' || typeof path !== 'string') return path
+  return path.replace(/^\/bill\/(\d{2,3})\/([A-Za-z]{1,8})(?=\/|$)/, (_, congress, type) => `/bill/${congress}/${type.toLowerCase()}`)
+}
+
 export function isAllowedPath(service, path) {
   const def = PROXY_SERVICES[service]
   if (!def || typeof path !== 'string') return false
@@ -126,7 +134,9 @@ export async function proxyUpstream({ service, method, url, env, fetchImpl = fet
     return result(405, jsonBody('Only GET is supported', 'METHOD_NOT_ALLOWED'), { Allow: 'GET' })
   }
 
-  const { path, params } = parseProxyUrl(service, url)
+  const parsed = parseProxyUrl(service, url)
+  const params = parsed.params
+  const path = normalizeProxyPath(service, parsed.path)
   if (!path || !isAllowedPath(service, path)) {
     return result(404, jsonBody('Path is not available through this proxy', 'PATH_NOT_ALLOWED'))
   }

@@ -83,7 +83,10 @@ export default function TellYourRep({ context, members }) {
   const tracked = useRef(new Set())
   const requested = useRef(new Set())
 
-  useEffect(() => () => { mounted.current = false }, [])
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
 
   // Re-read the device-only "I sent it" record when it changes elsewhere
   // (another tab, or "Forget this" in the notes on this page).

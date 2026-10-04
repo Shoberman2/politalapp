@@ -26,6 +26,7 @@
 
 import { parseRollCallId, rollCallPath, saneTally, tallyFromStats, deriveResult, resultKind } from '../api/_lib/rollCallResult.js'
 import { isPlaceholderTitle } from '../api/_lib/indexGate.js'
+import { isAtLargeState, isDelegateJurisdiction } from './atLargeStates.js'
 
 export const RECORD_VOTE_LIMIT = 10
 
@@ -151,7 +152,10 @@ export function shapeMemberRecord({ member, terms = [], stats = null, votes = []
     .map((v) => shapeRecordVote(v, rcById.get(v.roll_call_id), statsById.get(v.roll_call_id)))
 
   const count = voteCount ?? recentVotes.length
-  const district = member.chamber === 'house' ? (member.district ?? term?.district ?? null) : null
+  let district = member.chamber === 'house' ? (member.district ?? term?.district ?? null) : null
+  // At-large seats and delegates have no numbered district; the terms table
+  // stores them as "0", which must never render as "district 0".
+  if (district != null && (String(district) === '0' || String(district) === '00' || isAtLargeState(member.state) || isDelegateJurisdiction(member.state))) district = null
   const recordStats = shapeRecordStats(stats)
 
   return {
@@ -189,14 +193,23 @@ export function partyLetter(party) {
   return s.slice(0, 1).toUpperCase()
 }
 
+// The House title for a seat in `state`: delegates for DC and the territories
+// (Puerto Rico's is the Resident Commissioner), a Representative everywhere
+// else, at-large or not. Never inferred from a missing district number.
+export function houseSeatTitle(state) {
+  if (String(state || '').toUpperCase() === 'PR') return 'Resident Commissioner'
+  return isDelegateJurisdiction(state) ? 'Delegate' : 'Representative'
+}
+
 export function recordSeatTitle(r) {
   if (r.chamber === 'senate') return 'Senator'
-  return r.district ? 'Representative' : 'Delegate'
+  return houseSeatTitle(r.state)
 }
 
 // "D-CA-11", "R-TX"
 export function recordSeatCode(r) {
-  return `${partyLetter(r.party)}-${r.state || ''}${r.chamber === 'house' && r.district ? `-${r.district}` : ''}`
+  const seat = r.chamber === 'house' ? (r.district ? `-${r.district}` : isAtLargeState(r.state) ? '-AL' : '') : ''
+  return `${partyLetter(r.party)}-${r.state || ''}${seat}`
 }
 
 export function recordHeadline(r) {
@@ -222,7 +235,7 @@ export function recordDate(d) {
 export function recordSummary(r, stateName = (s) => s) {
   const seat = r.chamber === 'senate'
     ? `U.S. Senator from ${stateName(r.state)}`
-    : `U.S. ${recordSeatTitle(r)} for ${stateName(r.state)}${r.district ? ` district ${r.district}` : ''}`
+    : `U.S. ${recordSeatTitle(r)} for ${stateName(r.state)}${r.district ? ` district ${r.district}` : isAtLargeState(r.state) ? ' (at large)' : ''}`
   const s = r.stats
   const facts = s
     ? `${ordinalCongress(s.congress)} Congress: voted on ${s.cast} of ${s.total} roll calls, not voting on ${s.notVoting}.`

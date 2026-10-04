@@ -11,7 +11,7 @@ import { billPath, billLabel } from './pages.js'
 import { congressOrdinal } from './billCard.js'
 import { SITE_ORIGIN as SITE } from './site.js'
 import {
-  RECORD_VOTE_LIMIT, recordPath, recordHeadline, recordSeatCode, recordSeatTitle,
+  RECORD_VOTE_LIMIT, recordPath, recordHeadline, recordSeatCode, recordSeatTitle, houseSeatTitle,
   recordSummary, recordDate, recordOgImagePath,
 } from '../../shared/memberRecord.js'
 
@@ -67,7 +67,7 @@ export const stateName = (abbr) => STATE_NAMES[abbr] || abbr || ''
 
 export function memberTitle(m) {
   if (m.chamber === 'senate') return 'Senator'
-  return m.district ? 'Representative' : 'Delegate'
+  return houseSeatTitle(m.state)
 }
 
 function partyShort(p) {
