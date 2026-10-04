@@ -21,6 +21,7 @@ import VotingRecordSummary from './VotingRecordSummary'
 import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
 import TellYourRep from './TellYourRep'
+import { YouWroteNotes } from './YouWrote'
 import { memberRef } from '../utils/tellYourRepDraft'
 import '../styles/PoliticianDetail.css'
 
@@ -408,6 +409,7 @@ function PoliticianDetail() {
         </div>
       </header>
 
+      <YouWroteNotes member={bioguideId} />
       <TellYourRep
         context={{
           kind: 'member',

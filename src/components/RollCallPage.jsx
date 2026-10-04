@@ -76,6 +76,7 @@ function RollCallPage() {
   const tellContext = {
     kind: 'vote',
     ref: voteRef({ congress: rc.congress, chamber: rc.chamberKey, session: rc.session, roll: rc.number }),
+    billId: rc.bill?.id || undefined,
     label: `${rc.chamber} roll call ${rc.number} (${ORD(rc.congress)} Congress, session ${rc.session})`,
     title: `${rc.question || 'Recorded vote'}${subject ? ` on ${subject}` : ''}`,
     sourceUrl: rc.sourceUrl || rc.bill?.source_url || undefined,

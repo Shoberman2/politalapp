@@ -14,6 +14,7 @@ import {
 import { getUserAddress, saveUserAddress } from '../services/userService'
 import { findMembersForAddress, getMemberContact } from '../services/myMembers'
 import { BRAND } from '../config/brand'
+import { SENT_EVENT, findSend, forgetSend, recordSend } from '../utils/sentMessages'
 import '../styles/TellYourRep.css'
 
 // "Tell your rep": a hand-off, not a sender. We prefill a factual
@@ -70,6 +71,8 @@ export default function TellYourRep({ context, members }) {
   const [scaffold, setScaffold] = useState('')
   const [copyState, setCopyState] = useState('idle')
   const [status, setStatus] = useState('')
+  const [openedFor, setOpenedFor] = useState(() => new Set())
+  const [, setSentTick] = useState(0)
 
   const toggleRef = useRef(null)
   const headingRef = useRef(null)
@@ -81,6 +84,18 @@ export default function TellYourRep({ context, members }) {
   const requested = useRef(new Set())
 
   useEffect(() => () => { mounted.current = false }, [])
+
+  // Re-read the device-only "I sent it" record when it changes elsewhere
+  // (another tab, or "Forget this" in the notes on this page).
+  useEffect(() => {
+    const bump = () => setSentTick((n) => n + 1)
+    window.addEventListener(SENT_EVENT, bump)
+    window.addEventListener('storage', bump)
+    return () => {
+      window.removeEventListener(SENT_EVENT, bump)
+      window.removeEventListener('storage', bump)
+    }
+  }, [])
 
   const list = pageMembers ? pageMembers : found
   const selected = list.find((m) => m.bioguideId === selectedId) || null
@@ -318,7 +333,10 @@ export default function TellYourRep({ context, members }) {
 
   const renderSend = () => {
     if (!merged) return null
-    const onOpen = () => countEvent('contact_page_opened', context?.ref, merged.bioguideId)
+    const onOpen = () => {
+      countEvent('contact_page_opened', context?.ref, merged.bioguideId)
+      setOpenedFor((prev) => new Set(prev).add(merged.bioguideId))
+    }
     let primary
     if (contactLoading && !contact?.url) {
       primary = <p className="tyr-muted">Looking up {possessive} office…</p>
@@ -365,7 +383,61 @@ export default function TellYourRep({ context, members }) {
         {!constituent && (
           <p className="tyr-fineprint">Offices usually reply only to people who live in their state or district.</p>
         )}
+        {renderSent()}
       </>
+    )
+  }
+
+  // "I sent it": the person's own say-so, recorded on this device only so we
+  // can show what this member did on the bill afterwards. Counted as an
+  // anonymous event with the record reference and bioguide id only.
+  const renderSent = () => {
+    if (!merged || !context?.ref) return null
+    const saved = findSend(context.ref, merged.bioguideId)
+    if (saved) {
+      return (
+        <div className="tyr-sent">
+          <p className="tyr-sent-done">
+            Marked as sent to {name}. Saved on this device only.
+          </p>
+          <button
+            type="button"
+            className="tyr-link-btn"
+            onClick={() => {
+              forgetSend(context.ref, merged.bioguideId)
+              setSentTick((n) => n + 1)
+              setStatus('Forgotten. Nothing about this message is saved on this device.')
+            }}
+          >
+            Forget this
+          </button>
+        </div>
+      )
+    }
+    if (!openedFor.has(merged.bioguideId)) return null
+    const confirm = () => {
+      const entry = recordSend({
+        ref: context.ref,
+        kind: context.kind,
+        member: merged.bioguideId,
+        memberName: name,
+        billId: context.billId || undefined,
+      })
+      countEvent('message_sent_confirmed', context.ref, merged.bioguideId)
+      setSentTick((n) => n + 1)
+      setStatus(entry
+        ? `Marked as sent to ${name}. Saved on this device only.`
+        : 'Couldn’t save on this device. Your browser may be blocking site storage.')
+    }
+    return (
+      <div className="tyr-sent">
+        <button type="button" className="tyr-btn" onClick={confirm}>
+          I sent my message to {name}
+        </button>
+        <p className="tyr-fineprint">
+          Optional. We’ll note the date so we can show how {name} votes on this later. Saved on this device only, never your message.
+        </p>
+      </div>
     )
   }
 
