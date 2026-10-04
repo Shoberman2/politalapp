@@ -112,7 +112,7 @@ function DeveloperPortal() {
         </div>
       </section>
 
-      <section className="dev-agents">
+      <section className="dev-agents" id="mcp">
         <div className="dev-open-data-copy">
           <span className="dev-label">No key needed</span>
           <h2>For developers and AI agents</h2>

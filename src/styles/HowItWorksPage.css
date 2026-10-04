@@ -1,0 +1,46 @@
+/* /how-it-works — numbered steps, source list, and the AI marginalia.
+   Shared layout lives in InfoPage.css. */
+
+.how-page .how-steps { list-style: none; margin: 0; padding: 0; }
+.how-page .how-steps > li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  padding: 28px 0;
+  border-top: 1px solid var(--rule-light);
+}
+.how-page .how-steps > li:first-child { border-top: 0; padding-top: 0; }
+.how-page .how-steps > li:last-child { padding-bottom: 0; }
+.how-page .how-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  padding-top: 8px;
+}
+.how-page .how-steps h2 { margin-bottom: 8px; }
+
+.how-page .how-sources { margin: 8px 0 0; }
+.how-page .how-sources > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule-light);
+}
+.how-page .how-sources dt { font-weight: 600; font-size: 15px; color: var(--ink); }
+.how-page .how-sources dd { margin: 0; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-3); }
+.how-page .how-note { margin-top: 20px; }
+
+.how-page .how-ai { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.how-page .how-ai-col { padding-left: 16px; border-left: 2px solid var(--rule-strong); }
+.how-page .how-ai-use { border-left-color: var(--info); }
+.how-page .how-ai-col ul { margin: 0; padding: 0; list-style: none; }
+.how-page .how-ai-col li { padding: 6px 0; font-size: 15px; }
+
+@media (max-width: 640px) {
+  .how-page .how-steps > li { grid-template-columns: 1fr; gap: 4px; }
+  .how-page .how-num { padding-top: 0; }
+  .how-page .how-sources > div { grid-template-columns: 1fr; gap: 2px; }
+  .how-page .how-ai { grid-template-columns: 1fr; gap: 24px; }
+}

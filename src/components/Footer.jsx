@@ -1,57 +1,96 @@
 import { Link } from 'react-router-dom'
-import articles from '../data/articles'
+import { BRAND } from '../config/brand'
+import { SHOW_BILL_ALERTS } from '../config/features'
 
-// Shared broadsheet footer. Renders inside a `.bw` page root so the
-// .bw-scoped footer styles in broadsheet.css apply.
+// The one site-wide footer, rendered once by App after <Routes>. It wraps
+// itself in `.bw` so the .bw-scoped footer styles in broadsheet.css apply on
+// pages that don't use the broadsheet root.
+
+const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
+
+// `href` entries are static files or hash anchors that react-router's <Link>
+// won't serve or scroll to; everything else is a client-side route.
+const COLUMNS = [
+  {
+    title: 'Explore',
+    links: [
+      { label: 'My representatives', to: '/my-representative' },
+      { label: 'Members', to: '/all' },
+      { label: 'Bills', to: '/bills' },
+      { label: 'This week', to: '/this-week' },
+      SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },
+    ],
+  },
+  {
+    title: 'How it works',
+    links: [
+      { label: 'How it works', to: '/how-it-works' },
+      { label: 'Methodology', to: '/methodology' },
+      { label: 'AI explanations', to: '/methodology/ai-explanations' },
+      { label: 'Corrections', to: '/methodology/corrections' },
+    ],
+  },
+  {
+    title: 'Build',
+    links: [
+      { label: 'API', to: '/developers' },
+      { label: 'API docs', to: '/developers/docs' },
+      { label: 'Open data', to: '/open' },
+      { label: 'llms.txt', href: '/llms.txt' },
+      { label: 'MCP', href: '/developers#mcp' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About', to: '/about' },
+      { label: 'For offices', to: '/offices' },
+      { label: 'Contact', to: '/contact' },
+      { label: 'Privacy', to: '/privacy' },
+      { label: 'Terms', to: '/terms' },
+      { label: 'GitHub', href: GITHUB_URL, external: true },
+    ],
+  },
+]
+
+function FooterLink({ link }) {
+  if (link.to) return <Link to={link.to}>{link.label}</Link>
+  if (link.external) {
+    return <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
+  }
+  return <a href={link.href}>{link.label}</a>
+}
+
 function Footer() {
-  const deskArticles = articles.slice(0, 3)
-
   return (
-    <footer className="footer">
-      <div className="footer-inner">
-        <div className="footer-masthead">
-          <span className="footer-wordmark">BallotWatch</span>
-          <span className="footer-tag">Open-source congressional records, built from public sources and readable methodology.</span>
-        </div>
-        <div className="footer-cols">
-          <div className="footer-col">
-            <h4>Explore</h4>
-            <Link to="/my-representative">My Representatives</Link>
-            <Link to="/all">All Members</Link>
-            <Link to="/bills">Bills</Link>
-          </div>
-          <div className="footer-col">
-            <h4>Open</h4>
-            <Link to="/open">Open Source</Link>
-            <Link to="/methodology">Methodology</Link>
-            <Link to="/developers">API</Link>
-          </div>
-          <div className="footer-col">
-            <h4>Resources</h4>
-            <Link to="/shutdown-tracker">Shutdown Tracker</Link>
-            <Link to="/blog">Blog</Link>
-            <Link to="/map">District Map</Link>
-          </div>
-          <div className="footer-col">
-            <h4>From the Desk</h4>
-            {deskArticles.map((article) => (
-              <Link key={article.slug} to={`/blog/${article.slug}`}>{article.title}</Link>
+    <div className="bw bw-footer">
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-cols">
+            <div className="footer-brand">
+              <span className="footer-wordmark">{BRAND.name}</span>
+              <p className="footer-tag">
+                The congressional record, source-linked, and a direct line to the people who represent you.
+              </p>
+            </div>
+            {COLUMNS.map((col) => (
+              <nav className="footer-col" key={col.title} aria-label={col.title}>
+                <h4>{col.title}</h4>
+                <ul>
+                  {col.links.filter(Boolean).map((link) => (
+                    <li key={link.label}><FooterLink link={link} /></li>
+                  ))}
+                </ul>
+              </nav>
             ))}
           </div>
-          <div className="footer-col">
-            <h4>Data</h4>
-            <span>Congress.gov</span>
-            <span>U.S. Census Bureau</span>
-            <span>Federal Election Commission</span>
-            <span>OpenAPI + samples</span>
+          <div className="footer-bottom">
+            <p>&copy; 2026 {BRAND.name}. Code MIT licensed; source data terms vary by provider.</p>
+            <p>Not affiliated with the U.S. Congress.</p>
           </div>
         </div>
-        <div className="footer-bottom">
-          <p>&copy; 2026 BallotWatch. Code MIT licensed. Source data terms vary by upstream provider.</p>
-          <p>Not affiliated with the U.S. government.</p>
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
   )
 }
 

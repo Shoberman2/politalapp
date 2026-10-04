@@ -9,4 +9,9 @@ export const BRAND = {
   // Contact address for congressional offices. Left empty until the founder
   // picks one; /offices hides the contact action while it's empty.
   officesEmail: '',
+  // Public contact address for readers (corrections, privacy requests,
+  // general questions). Empty until the founder sets one up; /contact,
+  // /privacy and /terms show the email only when this is non-empty and
+  // otherwise point to GitHub issues.
+  contactEmail: '',
 }

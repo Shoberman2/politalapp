@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Footer from './Footer'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
 import { searchBillsInDb } from '../services/billsDb'
@@ -489,7 +488,6 @@ function BillsPage() {
         </main>
       </div>
 
-      <Footer />
     </div>
   )
 }
