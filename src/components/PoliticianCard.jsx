@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isFavorite, toggleFavorite } from '../services/userService'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
+import RecordLink from './RecordLink'
 import '../styles/PoliticianCard.css'
 
 function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) {
@@ -75,6 +76,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
           <h3 className="card-name">{displayName}</h3>
           <p className="card-role">{chamber}</p>
           <p className="card-location">{location}</p>
+          <RecordLink bioguideId={bioguideId} name={displayName} className="card-record-link" />
         </div>
 
         <div className="card-actions">

@@ -37,7 +37,17 @@ export async function findMembersForAddress(address) {
   }
 
   if (!state) return null
+  const members = await findMembersForDistrict(state, district)
+  return { state, district, members }
+}
 
+/**
+ * The members for a state and (optionally) a House district. With no
+ * district only the senators come back: a ZIP alone does not say which House
+ * district someone lives in, so we never guess one.
+ * @returns {Promise<object[]>} House member first, then senators, each with `chamber`.
+ */
+export async function findMembersForDistrict(state, district = null) {
   const [house, senators] = await Promise.allSettled([
     district != null ? getHouseRepForDistrict(state, district) : Promise.resolve(null),
     getSenatorsForState(state),
@@ -51,7 +61,7 @@ export async function findMembersForAddress(address) {
   if (!members.length && house.status === 'rejected' && senators.status === 'rejected') {
     throw senators.reason || house.reason
   }
-  return { state, district, members }
+  return members
 }
 
 /** Official website, office phone, and display name for one member, from Congress.gov. */

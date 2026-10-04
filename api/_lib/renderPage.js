@@ -444,7 +444,9 @@ export function injectIntoShell(shell, { title, description, canonical, robots, 
   html = put(html, /<meta name="twitter:description" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${d}" />`)
   if (ogImage) {
     const img = escapeHtml(ogImage)
-    html = put(html, /<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${img}" />`)
+    // A generated image: state its size so Facebook and LinkedIn can lay out
+    // the preview on the first share instead of waiting to fetch the image.
+    html = put(html, /<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${img}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta property="og:image:alt" content="${t}" />`)
     html = put(html, /<meta name="twitter:image" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${img}" />`)
   }
   html = put(html, /<meta name="robots" content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${escapeHtml(robots || 'index, follow')}" />`)

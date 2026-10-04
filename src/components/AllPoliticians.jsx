@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Footer from './Footer'
+import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
@@ -78,7 +79,11 @@ function CompositionBlock({ name, total, majority, counts, note }) {
   )
 }
 
-function MemberCard({ member, onClick }) {
+// The whole card opens the member page through a stretched link on the name
+// (a real <a>, so it can be opened in a new tab), which leaves room for the
+// separate "record in 60 seconds" link on top of it. A <button> card could not
+// hold a second link.
+function MemberCard({ member }) {
   const [imgFailed, setImgFailed] = useState(false)
   const name = displayName(member)
   const letter = partyLetter(member.party || member.partyName)
@@ -94,26 +99,28 @@ function MemberCard({ member, onClick }) {
   const leaderTitle = getLeadershipTitle(bioguideId)
 
   return (
-    <button type="button" className={`member-card ${letter.toLowerCase()}`} onClick={onClick}>
+    <article className={`member-card ${letter.toLowerCase()}`}>
       <div className="mc-photo">
         {imageUrl && <img src={imageUrl} alt="" onError={(e) => handleMemberPhotoError(e, bioguideId, () => setImgFailed(true))} />}
         <div className="mc-monogram">{initialsOf(name)}</div>
       </div>
       <div className="mc-body">
         <div className="mc-role">{role}</div>
-        <div className="mc-name">{name}</div>
+        <div className="mc-name">
+          {bioguideId ? <Link className="mc-link" to={`/politician/${bioguideId}`}>{name}</Link> : name}
+        </div>
         {leaderTitle && <div className="mc-leader">{leaderTitle}</div>}
         <div className="mc-foot">
           <span className="mc-loc">{locationOf(member)}</span>
           <span className={`ptag ${letter.toLowerCase()}`}>{letter}</span>
         </div>
+        <RecordLink bioguideId={bioguideId} name={name} className="mc-record" />
       </div>
-    </button>
+    </article>
   )
 }
 
 function AllPoliticians() {
-  const navigate = useNavigate()
   const [allMembers, setAllMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -286,14 +293,7 @@ function AllPoliticians() {
         <>
           <main className="members-grid">
             {visibleMembers.map((member) => (
-              <MemberCard
-                key={member.bioguideId || member.id}
-                member={member}
-                onClick={() => {
-                  const id = member.bioguideId || member.bioguide_id
-                  if (id) navigate(`/politician/${id}`)
-                }}
-              />
+              <MemberCard key={member.bioguideId || member.id} member={member} />
             ))}
           </main>
           {hasMore && (
