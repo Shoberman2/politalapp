@@ -12,6 +12,7 @@ import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
 import { AI_USES, AI_NEVER } from '../data/infoPages'
+import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
@@ -485,42 +486,22 @@ function Landing() {
   const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
   const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
 
-  const FEATURES = [
-    { id: 'find', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
-    { id: 'votes', title: 'See exactly how they voted.', body: 'Every roll call, this week’s and every one before it, with each member’s yea or nay linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
-    { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
-    { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
-    { id: 'write', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
-    { id: 'alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
-  ]
+  // Headlines and copy come from src/data/homeSeo.js, the same text the
+  // server-rendered homepage gives crawlers and AI answer engines.
+  const VISUALS = { find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual, alerts: alertsVisual }
+  const LINK_OVERRIDES = {
+    record: { to: recordHref, label: 'See a record' },
+    write: { to: writeHref, label: 'Write about the latest vote' },
+  }
+  const FEATURES = HOME_FEATURES.map((f) => ({
+    ...f,
+    link: LINK_OVERRIDES[f.id] || { to: f.href, label: f.label },
+    visual: VISUALS[f.id],
+  }))
 
   return (
     <div className="bw landing">
-      <SEO
-        title="How Did Your Representative Vote This Week?"
-        description={`${BRAND.mission} Every vote, bill, and member of Congress, linked to its official source.`}
-        path="/"
-        schema={{
-          '@graph': [
-            {
-              '@type': 'WebSite',
-              name: BRAND.name,
-              url: 'https://www.ballotwatch.io',
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: 'https://www.ballotwatch.io/bills?search={search_term_string}',
-                'query-input': 'required name=search_term_string',
-              },
-            },
-            {
-              '@type': 'Organization',
-              name: BRAND.name,
-              url: 'https://www.ballotwatch.io',
-              logo: 'https://www.ballotwatch.io/capitol-logo.svg',
-            },
-          ],
-        }}
-      />
+      <SEO fullTitle={HOME_TITLE} description={HOME_DESCRIPTION} path="/" schema={homeJsonLdGraph({ dateModified: null })} />
 
       {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
       <section className="hero">

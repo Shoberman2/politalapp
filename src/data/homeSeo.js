@@ -27,12 +27,12 @@ export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan rec
 // depends on live data (the record card and Tell your rep point at real
 // records); the renderer fills it in or falls back.
 export const HOME_FEATURES = [
-  { id: 'find', title: 'Find your representatives', body: 'One ZIP code or address finds your House member and both senators, from U.S. Census district data.', href: '/my-representative', label: 'Find my reps' },
-  { id: 'votes', title: 'Every vote, with the receipts', body: 'How each member voted on every roll call, this week’s and every one before it, linked to the official House Clerk or Senate record.', href: '/this-week', label: 'This week on the floor' },
-  { id: 'bills', title: 'Bills in plain English', body: 'A short explanation of any bill, built from the official Congressional Research Service summary. Anything written by AI says so.', href: '/bills', label: 'Browse bills' },
-  { id: 'record', title: 'Any member’s record in 60 seconds', body: 'The same one-screen card for every member of Congress: votes cast, votes missed, and the ten most recent votes. No scores.', href: '/all', label: 'Pick a member' },
-  { id: 'write', title: 'Tell your rep', body: 'Write to your representative about a specific vote. Your message starts with the facts of the vote; you add your words and send it yourself through their official contact page.', href: '/how-it-works', label: 'How Tell your rep works' },
-  { id: 'alerts', title: 'Bill alerts', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', href: '/alerts', label: 'Follow a bill' },
+  { id: 'find', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', href: '/my-representative', label: 'Find my reps' },
+  { id: 'votes', title: 'See exactly how they voted.', body: 'Every roll call, this week’s and every one before it, with each member’s yea or nay linked to the official record.', href: '/this-week', label: 'This week on the floor' },
+  { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', href: '/bills', label: 'Browse bills' },
+  { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
+  { id: 'write', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', href: '/how-it-works', label: 'How Tell your rep works' },
+  { id: 'alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', href: '/alerts', label: 'Follow a bill' },
 ]
 
 export const HOME_LINKS = [

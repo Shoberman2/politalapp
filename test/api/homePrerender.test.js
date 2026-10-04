@@ -198,7 +198,7 @@ describe('prerender kind=home', () => {
     expect(res.getHeader('cache-control')).toBe('public, s-maxage=3600, stale-while-revalidate=86400')
     expect(res.body).toContain('<title>How It Works | BallotWatch</title>')
     expect(res.body).toContain('<link rel="canonical" href="https://www.ballotwatch.io/how-it-works" />')
-    expect(res.body).toMatch(/<div id="root">[\s\S]*<h1>The public record, made easy to read and easy to act on\.<\/h1>/)
+    expect(res.body).toMatch(/<div id="root">[\s\S]*<h1>Read the record\. Reach the people in it\.<\/h1>/)
     expect(ldBlocks(res.body).map((b) => b['@type'])).toEqual(['WebPage'])
 
     const md = makeRes()
