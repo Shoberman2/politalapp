@@ -260,8 +260,11 @@ Agent surfaces:
 
 - `/llms.txt` is the machine-readable map of the site, URL patterns, and limits.
 - `/mcp` is a stateless Streamable HTTP MCP server with `find_representatives`,
-  `get_member`, `get_member_votes`, `get_roll_call`, `search_bills`, `get_bill`,
-  and `explain_bill` (cached explanations only).
+  `get_member`, `get_member_record` (the "record in 60 seconds" facts, no
+  campaign-finance data), `get_member_votes`, `get_roll_call`, `search_bills`,
+  `get_bill`, `explain_bill` (cached explanations only), and
+  `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
+  loader as `/api/v1/floor/schedule`).
 - Member, bill, and roll-call pages return full HTML without JavaScript and
   answer `Accept: text/markdown` with a compact Markdown record.
 - `/sitemap.xml` is generated from the database and lists every member with

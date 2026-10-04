@@ -13,7 +13,7 @@ import { clientIp, hashIp, ANON_PER_MINUTE, ANON_PER_DAY } from './_lib/auth.js'
 import { SITE_ORIGIN } from './_lib/site.js'
 import * as tools from './_lib/mcpTools.js'
 
-const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: members, roll-call votes, and bills, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.`
+const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.`
 
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
 
@@ -67,6 +67,20 @@ export const TOOLS = [
     description: 'The cached plain-English explanation of a bill, grounded in the official CRS summary. Returns the official summary when no explanation is cached. Never generates text on demand.',
     inputSchema: { id: z.string().max(40) },
     run: tools.explainBill,
+  },
+  {
+    name: 'get_floor_schedule',
+    title: 'Get House floor schedule',
+    description: 'What the House may take up this week and next (or the week containing a given date), read live from the Majority Leader\'s schedule on docs.house.gov: each item\'s label, title, procedure, and bill page. Use for "what is Congress voting on this week". House only; the Senate publishes no equivalent. Cite each week\'s source_url.',
+    inputSchema: { week: DATE.optional().describe('YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.') },
+    run: tools.getFloorSchedule,
+  },
+  {
+    name: 'get_member_record',
+    title: 'Get member record',
+    description: 'A member\'s record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote\'s source_url.',
+    inputSchema: { bioguide_id: z.string().max(7).describe('Bioguide ID, e.g. P000197') },
+    run: tools.getMemberRecord,
   },
 ]
 
