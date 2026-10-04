@@ -30,7 +30,8 @@ Every member, member-record, and roll-call URL, and every bill with a recorded v
 ## MCP server
 
 - Endpoint: https://www.ballotwatch.io/mcp (Streamable HTTP, stateless, no auth; same per-IP limits as the API). POST JSON-RPC with `Accept: application/json, text/event-stream`. A GET returns a plain-JSON manifest.
-- Tools: find_representatives(address | zip), get_member(bioguide_id), get_member_votes(bioguide_id, since?, limit?), get_roll_call(congress, chamber, session, roll), search_bills(query, limit?), get_bill(id), explain_bill(id)
+- Tools: find_representatives(address | zip), get_member(bioguide_id), get_member_record(bioguide_id), get_member_votes(bioguide_id, since?, limit?), get_roll_call(congress, chamber, session, roll), search_bills(query, limit?), get_bill(id), explain_bill(id), get_floor_schedule(week?)
+- get_member_record returns the "record in 60 seconds" facts (seat, votes cast / not voting this Congress, ten most recent votes; no campaign-finance data) and the card URL /politician/{bioguide_id}/record. get_floor_schedule returns the House weekly floor schedule (this week and next, or the week containing `week`) from docs.house.gov; the Senate publishes no equivalent.
 
 ## Sitemaps and bulk
 

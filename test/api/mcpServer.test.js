@@ -11,6 +11,8 @@ vi.mock('../../api/_lib/mcpTools.js', () => ({
   searchBills: vi.fn(async () => ({ results: [] })),
   getBill: vi.fn(async () => ({ id: '119-hr-1' })),
   explainBill: vi.fn(async () => ({ plain_english: null })),
+  getFloorSchedule: vi.fn(async ({ week } = {}) => ({ weeks: week ? [{ week }] : [] })),
+  getMemberRecord: vi.fn(async ({ bioguide_id }) => (bioguide_id === 'P000197' ? { name: 'Nancy Pelosi', canonical: 'https://www.ballotwatch.io/politician/P000197/record' } : { error: `No member with Bioguide ID ${bioguide_id}` })),
 }))
 
 import { buildServer, TOOL_NAMES } from '../../api/mcp.js'
@@ -30,11 +32,36 @@ function res() {
 }
 
 describe('MCP server', () => {
-  it('lists the seven documented tools through the public protocol', async () => {
+  it('lists the nine documented tools through the public protocol', async () => {
     const client = await connectedClient()
     const { tools } = await client.listTools()
     expect(tools.map((t) => t.name).sort()).toEqual([...TOOL_NAMES].sort())
-    expect(TOOL_NAMES).toHaveLength(7)
+    expect(TOOL_NAMES).toHaveLength(9)
+    expect(TOOL_NAMES).toEqual(expect.arrayContaining(['get_floor_schedule', 'get_member_record']))
+  })
+
+  it('documents every tool in llms.txt and the README', async () => {
+    const { readFileSync } = await import('fs')
+    const llms = readFileSync('public/llms.txt', 'utf8')
+    const readme = readFileSync('README.md', 'utf8')
+    for (const name of TOOL_NAMES) {
+      expect(llms).toContain(name)
+      expect(readme).toContain(`\`${name}\``)
+    }
+  })
+
+  it('serves the floor schedule and member record tools, flagging an unknown member', async () => {
+    const client = await connectedClient()
+    const sched = await client.callTool({ name: 'get_floor_schedule', arguments: { week: '2026-09-14' } })
+    expect(sched.isError).toBeFalsy()
+    expect(JSON.parse(sched.content[0].text).weeks).toEqual([{ week: '2026-09-14' }])
+    const badWeek = await client.callTool({ name: 'get_floor_schedule', arguments: { week: 'next' } })
+    expect(badWeek.isError).toBe(true)
+    const rec = await client.callTool({ name: 'get_member_record', arguments: { bioguide_id: 'P000197' } })
+    expect(JSON.parse(rec.content[0].text).canonical).toMatch(/\/politician\/P000197\/record$/)
+    const missing = await client.callTool({ name: 'get_member_record', arguments: { bioguide_id: 'Z999999' } })
+    expect(missing.isError).toBe(true)
+    expect(JSON.parse(missing.content[0].text).error).toContain('Z999999')
   })
 
   it('returns tool results as text and flags errors', async () => {

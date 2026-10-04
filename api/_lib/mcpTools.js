@@ -3,11 +3,13 @@
 // `canonical`, `source_url`, and `data_updated_at` so an agent can cite it.
 
 import { supabaseAdmin } from './supabase.js'
-import { getMemberPage, getRollCallPage, getBillPage, billPath, billLabel } from './pages.js'
+import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath, billLabel } from './pages.js'
 import { buildRollCallId, rollCallPath } from './rollCallResult.js'
 import { geocodeAddress, geocodeZip } from './geocode.js'
 import { getDataUpdatedAt } from './etlMeta.js'
 import { SITE_ORIGIN as SITE, congressGovMemberUrl } from './site.js'
+import { loadFloorSchedule, resolveFloorWeeks } from './floorSchedule.js'
+import { recordPath } from '../../shared/memberRecord.js'
 
 const lastRun = getDataUpdatedAt
 
@@ -223,5 +225,75 @@ export async function explainBill({ id }) {
     canonical: `${SITE}${billPath(b.id)}`,
     source_url: b.source_url,
     data_updated_at: b.updatedAt,
+  }
+}
+
+// House floor schedule, read live from docs.house.gov through the same loader
+// as GET /api/v1/floor/schedule (api/_lib/floorSchedule.js), so there is no
+// ETL timestamp; each week carries the source's own source_updated_at.
+export async function getFloorSchedule({ week } = {}) {
+  const weeks = resolveFloorWeeks(week)
+  if (!weeks) return { error: 'week must be a date in YYYY-MM-DD form (any day; the schedule week starts Monday).' }
+  const { allFailed, data } = await loadFloorSchedule(weeks)
+  if (allFailed) return { error: 'The House floor schedule could not be fetched from docs.house.gov; try again shortly.' }
+  return {
+    chamber: 'house',
+    senate_note: data.senate_note,
+    note: 'Items the Majority Leader says may be considered during the week, grouped by procedure; no day or time per item. Cite the week source_url and each bill canonical URL.',
+    weeks: data.weeks.map((w) => ({
+      week: w.week,
+      status: w.status,
+      congress: w.congress,
+      source_url: w.source_url,
+      source_updated_at: w.source_updated_at,
+      items: w.items.map((i) => ({
+        label: i.label,
+        title: i.title,
+        category: i.category,
+        bill_id: i.bill_id,
+        canonical: i.bill_path ? `${SITE}${i.bill_path}` : null,
+        source_url: w.source_url,
+      })),
+    })),
+    canonical: `${SITE}/this-week`,
+  }
+}
+
+// The "record in 60 seconds" card's facts (shared/memberRecord.js), from the
+// same loader as /politician/:id/record. Never any campaign-finance data.
+export async function getMemberRecord({ bioguide_id }) {
+  const id = String(bioguide_id || '').trim().toUpperCase()
+  if (!/^[A-Z]\d{6}$/.test(id)) return { error: `Bioguide ID "${bioguide_id}" looks wrong; expected a letter and six digits, e.g. P000197.` }
+  const r = await getRecordPage(id)
+  if (!r) return { error: `No member with Bioguide ID ${id}` }
+  const s = r.stats
+  return {
+    bioguide_id: r.id,
+    name: r.name,
+    party: r.party,
+    chamber: r.chamber,
+    state: r.state,
+    district: r.district,
+    serving_since: r.servingSince,
+    this_congress: s
+      ? { congress: s.congress, roll_calls: s.total, votes_cast: s.cast, not_voting: s.notVoting, not_voting_pct: s.notVotingPct }
+      : null,
+    recorded_votes: r.voteCount,
+    recent_votes: r.recentVotes.map((v) => ({
+      voted_at: v.voted_at,
+      question: v.question,
+      bill: v.bill ? { id: v.bill.id, label: v.bill.label, title: v.bill.title, canonical: `${SITE}${v.bill.path}` } : null,
+      position: v.position,
+      // Derived from the tally only when it passes the sanity check; else null.
+      result: v.result,
+      canonical: `${SITE}${v.path}`,
+      source_url: v.source_url,
+    })),
+    note: 'The same facts for every member: the ten most recent recorded votes, not a curated list. Cite canonical and each vote source_url.',
+    canonical: `${SITE}${recordPath(r.id)}`,
+    member_page: `${SITE}/politician/${r.id}`,
+    source_url: r.sources.congressGov,
+    sources: { congress_gov: r.sources.congressGov, bioguide: r.sources.bioguide, chamber_votes: r.sources.chamberVotes },
+    data_updated_at: r.updatedAt,
   }
 }
