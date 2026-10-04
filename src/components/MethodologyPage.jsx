@@ -17,7 +17,7 @@ function MethodologyIndex() {
   return (
     <div className="bw info-page methodology-page">
       <SEO
-        title={`${BRAND.name} Methodology`}
+        title="Methodology"
         description={`Source, cadence, caveat, and code-reference notes for every ${BRAND.name} feature that computes or explains something.`}
         path="/methodology"
       />

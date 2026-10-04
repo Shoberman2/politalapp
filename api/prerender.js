@@ -1,4 +1,7 @@
-// Server-rendered record pages for members, bills, and roll calls.
+// Server-rendered record pages for members, bills, and roll calls, plus the
+// homepage (kind=home, reached through middleware.js because the static
+// index.html wins over a vercel.json rewrite for `/`) and the static info
+// pages (kind=static&page=about, ...).
 //
 // vercel.json rewrites /politician/:id, /politician/:id/record,
 // /bill/:congress/:type/:number, and /vote/:congress/:chamber/:session/:roll
@@ -13,9 +16,12 @@
 // this function existed. Never a text error page.
 
 import { readFile } from 'fs/promises'
-import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath } from './_lib/pages.js'
+import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, getHomeVotes, billPath } from './_lib/pages.js'
 import { renderPage } from './_lib/renderPage.js'
 import { renderMarkdown } from './_lib/markdown.js'
+import { renderHomePage, homeMarkdown, renderStaticPage, staticMarkdown } from './_lib/renderHome.js'
+import { STATIC_PAGES } from './_lib/staticPages.js'
+import { getDataUpdatedAt } from './_lib/etlMeta.js'
 import { buildRollCallId, rollCallPath } from './_lib/rollCallResult.js'
 import { originFrom } from './_lib/request.js'
 import { SITE_ORIGIN as SITE } from './_lib/site.js'
@@ -28,6 +34,11 @@ const SHELL_TTL_MS = 5 * 60 * 1000
 const PAGE_CACHE = 'public, s-maxage=900, stale-while-revalidate=86400'
 // Not-found and skipped bills change rarely; cache them as long as pages.
 const SKIP_CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
+// The homepage leads with the latest vote: refresh it sooner than records.
+const HOME_CACHE = 'public, s-maxage=300, stale-while-revalidate=86400'
+// Homepage rendered without its votes section (the read failed): retry soon.
+const HOME_DEGRADED_CACHE = 'public, s-maxage=60, stale-while-revalidate=600'
+const STATIC_CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
 
 let shellCache = { origin: null, html: null, fetchedAt: 0 }
 
@@ -92,6 +103,12 @@ export async function getShell(origin, fetchImpl = fetch) {
 
 export function resolveTarget(query) {
   const q = query || {}
+  if (q.kind === 'home') return { kind: 'home', id: 'home', path: '/' }
+  if (q.kind === 'static' && q.page) {
+    const path = `/${String(q.page).toLowerCase()}`
+    if (Object.hasOwn(STATIC_PAGES, path)) return { kind: 'static', id: path, path }
+    return null
+  }
   if (q.kind === 'member' && q.id) return { kind: 'member', id: String(q.id).toUpperCase(), path: `/politician/${String(q.id).toUpperCase()}` }
   if (q.kind === 'record' && q.id) return { kind: 'record', id: String(q.id).toUpperCase(), path: recordPath(q.id) }
   if (q.kind === 'bill' && q.congress && q.type && q.number) {
@@ -105,7 +122,19 @@ export function resolveTarget(query) {
   return null
 }
 
+// The homepage always renders: a failed vote read drops that section (and
+// shortens the cache) instead of failing the page.
+async function loadHome() {
+  const [votes, updatedAt] = await Promise.all([
+    getHomeVotes().catch((err) => { console.error('[prerender] home votes unavailable:', err.message); return null }),
+    getDataUpdatedAt().catch(() => null),
+  ])
+  return { kind: 'home', votes, updatedAt, indexable: true }
+}
+
 async function loadData(target) {
+  if (target.kind === 'home') return loadHome()
+  if (target.kind === 'static') return { kind: 'static', path: target.path, page: STATIC_PAGES[target.path], indexable: true }
   if (target.kind === 'member') return getMemberPage(target.id)
   if (target.kind === 'record') return getRecordPage(target.id)
   if (target.kind === 'bill') return getBillPage(target.id)
@@ -157,17 +186,27 @@ export default async function handler(req, res) {
       return sendHtml(res, shell, 404, SKIP_CACHE, { 'X-Robots-Tag': 'noindex' })
     }
 
+    const cache = data.kind === 'home'
+      ? (data.votes ? HOME_CACHE : HOME_DEGRADED_CACHE)
+      : data.kind === 'static' ? STATIC_CACHE : PAGE_CACHE
+
     if (markdown) {
       res.statusCode = 200
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
-      res.setHeader('Cache-Control', PAGE_CACHE)
+      res.setHeader('Cache-Control', cache)
       res.setHeader('Vary', 'Accept')
       res.setHeader('Link', `<${SITE}${target.path}>; rel="canonical"`)
       if (!data.indexable) res.setHeader('X-Robots-Tag', 'noindex')
-      return res.end(renderMarkdown(data))
+      const md = data.kind === 'home' ? homeMarkdown(data) : data.kind === 'static' ? staticMarkdown(data) : renderMarkdown(data)
+      return res.end(md)
     }
 
     if (!shell) throw new Error('no shell')
+
+    if (data.kind === 'home' || data.kind === 'static') {
+      const html = data.kind === 'home' ? renderHomePage(shell, data) : renderStaticPage(shell, data)
+      return sendHtml(res, html, 200, cache, { 'X-BallotWatch-Prerender': data.kind === 'home' && !data.votes ? 'index:no-votes' : 'index' })
+    }
 
     // Bills without a vote or a summary are not worth a rendered page yet:
     // hand back the app shell with a short cache so crawlers following links
