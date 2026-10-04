@@ -11,6 +11,7 @@ import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
+import { AI_USES, AI_NEVER } from '../data/infoPages'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
@@ -24,23 +25,11 @@ const BILL_TYPE_LABELS = {
 }
 
 
-// Where AI is used and where it never is. This is the substance behind the
-// mission line, so it's stated as plain lists rather than a pitch.
-const AI_USES = [
-  'Explain bills from the official summary, with the source beside it',
-  'Narrate a member’s voting patterns from numbers we computed first',
-  'Answer your AI assistant with cited records through our MCP server',
-]
 // Where the product is headed. Stated as intent, not as shipped features.
 const AI_NEXT = [
   'Offices answer common questions from their own published words, cited every time',
   'Your AI assistant pulls the record and starts your message; you approve every word',
   'You see how your representative voted on what you wrote about',
-]
-const AI_NEVER = [
-  'Write in your representative’s voice or guess their positions',
-  'Send anything you haven’t read and approved',
-  'Choose a side for you, or rank and score constituents',
 ]
 
 
