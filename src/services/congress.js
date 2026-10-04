@@ -3,7 +3,7 @@ import { resolveMemberImageUrl, normalizeMemberImageUrl } from '../utils/memberI
 import { CONGRESS_MAX } from '../utils/congressUtil'
 import { supabase } from '../lib/supabase'
 
-import { CONGRESS_PROXY_BASE, CONGRESS_UPSTREAM_BASE } from './apiProxy'
+import { CONGRESS_PROXY_BASE, CONGRESS_UPSTREAM_BASE, installProxyPaths } from './apiProxy'
 
 // Requests go through the same-origin proxy, which adds the API key server-side.
 const BASE_URL = CONGRESS_PROXY_BASE
@@ -16,6 +16,7 @@ const congressApi = axios.create({
     format: 'json'
   }
 })
+installProxyPaths(congressApi)
 
 // Add request interceptor for logging
 congressApi.interceptors.request.use(

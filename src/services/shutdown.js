@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { CONGRESS_PROXY_BASE } from './apiProxy'
+import { CONGRESS_PROXY_BASE, installProxyPaths } from './apiProxy'
 
 // Same-origin proxy; the Congress.gov key is added server-side.
 const shutdownApi = axios.create({
@@ -8,6 +8,7 @@ const shutdownApi = axios.create({
     format: 'json'
   }
 })
+installProxyPaths(shutdownApi)
 
 // Historical government shutdowns
 export const SHUTDOWN_HISTORY = [

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { FEC_PROXY_BASE } from './apiProxy'
+import { FEC_PROXY_BASE, installProxyPaths } from './apiProxy'
 
 // OpenFEC is public data, but programmatic requests require an API key. The
 // same-origin proxy adds it server-side; the browser never holds it.
@@ -31,6 +31,7 @@ const MAJOR_COMPANIES = [
 const fecApi = axios.create({
   baseURL: FEC_BASE_URL,
 })
+installProxyPaths(fecApi)
 
 /** FEC cycles cover two calendar years and are named for the even year. */
 export const getCurrentFecCycle = (date = new Date()) => {

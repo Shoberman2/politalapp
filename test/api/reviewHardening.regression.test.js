@@ -74,3 +74,16 @@ describe('houseDistrict', () => {
     expect(houseDistrict('CA', null)).toBeNull()
   })
 })
+
+import { stripTrailingSlash } from '../../src/services/apiProxy.js'
+
+// Found verifying the Vercel preview: the /api/proxy/<service>/:path* rewrite
+// 404s a path ending in "/", which every FEC call used.
+describe('stripTrailingSlash', () => {
+  it('drops the trailing slash and keeps the query', () => {
+    expect(stripTrailingSlash('/candidates/search/')).toBe('/candidates/search')
+    expect(stripTrailingSlash('/schedules/schedule_a/?per_page=5')).toBe('/schedules/schedule_a?per_page=5')
+    expect(stripTrailingSlash('/member')).toBe('/member')
+    expect(stripTrailingSlash('/')).toBe('/')
+  })
+})

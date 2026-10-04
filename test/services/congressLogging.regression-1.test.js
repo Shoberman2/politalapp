@@ -38,7 +38,7 @@ describe('Congress API request logging regression', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await import('../../src/services/congress.js')
-    const onRequest = mocks.requestUse.mock.calls[0][0]
+    const onRequest = mocks.requestUse.mock.calls.at(-1)[0] // the logging interceptor; the trailing-slash one is registered first
     onRequest({
       method: 'get',
       baseURL: '/api/proxy/congress',

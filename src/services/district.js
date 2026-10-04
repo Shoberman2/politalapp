@@ -2,7 +2,7 @@ import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
 import { isAtLargeState, normalizeCensusDistrict } from '../../shared/atLargeStates.js'
 
-import { CONGRESS_PROXY_BASE } from './apiProxy'
+import { CONGRESS_PROXY_BASE, installProxyPaths } from './apiProxy'
 
 // Congress.gov API, via the same-origin proxy (key added server-side)
 const CONGRESS_BASE_URL = CONGRESS_PROXY_BASE
@@ -17,6 +17,7 @@ const congressApi = axios.create({
     format: 'json'
   }
 })
+installProxyPaths(congressApi)
 
 // US States with their abbreviations
 export const US_STATES = [
