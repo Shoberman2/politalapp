@@ -59,7 +59,7 @@
 
 .usage-stat-value {
   display: block;
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 28px;
   font-weight: 700;
   color: #1A1A18;
@@ -118,7 +118,7 @@
 }
 
 .usage-bar-label {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   color: #9C9789;
   margin-top: 8px;
@@ -127,7 +127,7 @@
 }
 
 .usage-bar-count {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: #6B6861;
   margin-bottom: 4px;
@@ -152,13 +152,13 @@
 }
 
 .usage-endpoint-row code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: #1A1A18;
 }
 
 .usage-endpoint-count {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: #6B6861;
 }

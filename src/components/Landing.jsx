@@ -624,7 +624,6 @@ function Landing() {
       {/* ===== FINALE ===== */}
       <section className="finale">
         <div className="finale-inner">
-          <span className="finale-kicker">Start with your ZIP</span>
           <h2>Find out who’s speaking for you.</h2>
           {renderLookup('finale')}
         </div>

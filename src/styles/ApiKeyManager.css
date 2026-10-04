@@ -50,17 +50,18 @@
 .api-keys-create input {
   flex: 1;
   font-family: var(--sans);
-  font-size: 14px;
-  padding: 10px 14px;
-  border: 1px solid #E8E6E1;
-  border-radius: 8px;
-  background: #fff;
-  color: #1A1A18;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
 }
 
-.api-keys-create input:focus {
-  outline: none;
-  border-color: #1D4ED8;
+.api-keys-create input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
 }
 
 /* Key list */
@@ -111,7 +112,7 @@
 }
 
 .api-key-prefix {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: #6B6861;
 }
@@ -190,7 +191,7 @@
 }
 
 .api-keys-modal-key code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: #1A1A18;
   flex: 1;
@@ -208,7 +209,7 @@
 }
 
 .api-keys-modal-usage code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 12px;
   color: #1A1A18;
   display: block;

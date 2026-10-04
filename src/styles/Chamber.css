@@ -71,7 +71,7 @@
 }
 
 .chamber-caption {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: #6B6861;
 }
@@ -176,7 +176,7 @@
 }
 
 .desk-number {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 9px;
   font-weight: 400;
 }
@@ -189,12 +189,12 @@
 }
 
 .desk-number-mobile {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 8px;
 }
 
 .desk-vacant {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 11px;
 }
 
@@ -297,7 +297,7 @@
 }
 
 .composition-count {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   color: #6B6861;
   margin-left: 8px;
 }
@@ -322,7 +322,7 @@
 }
 
 .house-composition-totals {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 14px;
   color: #6B6861;
   margin-bottom: 24px;
@@ -454,7 +454,7 @@
 
 .chamber-scrubber-tick {
   position: absolute;
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 10px;
   color: #6B6861;
   transform: translateX(-50%);
@@ -475,7 +475,7 @@
   top: -18px;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;
   color: #1D4ED8;
@@ -642,7 +642,7 @@
 .chamber-drawer-row-meta,
 .chamber-drawer-row-years,
 .chamber-drawer-row-party {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 12px;
   color: #6B6861;
   margin-top: 2px;
@@ -712,7 +712,7 @@
 }
 
 .chamber-mobile-reveal-meta {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 12px;
   color: #6B6861;
 }
@@ -796,7 +796,7 @@
 
 .historic-moment-item-meta {
   display: block;
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: #6B6861;
   margin-top: 4px;
@@ -817,7 +817,7 @@
 }
 
 .historic-moment-detail-tally {
-  font-family: 'Geist Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 14px;
   color: #6B6861;
   margin-bottom: 12px;

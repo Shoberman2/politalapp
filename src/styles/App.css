@@ -527,3 +527,8 @@ select:focus {
   font-weight: 400;
   letter-spacing: 0;
 }
+
+/* Dark mode: the accent fill is light (#5B8DEF), so a white label fails AA;
+   use a dark label there. */
+:root[data-theme="dark"] .btn-primary,
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled) { color: #0B1220; }

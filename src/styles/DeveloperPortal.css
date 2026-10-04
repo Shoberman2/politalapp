@@ -70,7 +70,7 @@
 }
 
 .dev-endpoint-card code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 14px;
   color: var(--accent);
   background: var(--accent-subtle);
@@ -121,7 +121,7 @@
 }
 
 .dev-open-data-links a {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: var(--accent);
   text-decoration: none;
@@ -210,7 +210,7 @@
 }
 
 .dev-tier-amount {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 36px;
   font-weight: 700;
   color: var(--text-primary);
@@ -223,7 +223,7 @@
 }
 
 .dev-tier-limit {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   color: var(--text-muted);
   margin: 0 0 24px;
