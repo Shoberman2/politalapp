@@ -3,6 +3,31 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.7.0.0] - 2026-10-04
+
+### Added
+
+- A new front page that answers "How did your representative vote this week?" with the latest real roll call, a ZIP lookup, and one short section per feature (your representatives, votes, bills in plain English, a member's record in 60 seconds, Tell your rep, bill alerts), each with a small image built from live records, plus how AI is and isn't used, an FAQ, and a band for congressional offices.
+- A member's record in 60 seconds at `/politician/{id}/record`: the same one-screen card for every member (votes cast, votes missed, the latest recorded votes), server-rendered for search and link previews, with a share image and copy/X/Bluesky/Facebook/email sharing. Linked from the ZIP lookup, member pages, and member cards.
+- This week on the floor at `/this-week` and on the front page: the House weekly floor schedule beside the latest recorded votes, also available as `GET /api/v1/floor/schedule` (no key needed).
+- Tell your rep on every roll-call, bill, and member page: a message that starts with the facts of the vote and the official source, which you edit, copy, and send through your representative's official contact page. BallotWatch never sends it and never stores the text.
+- "You wrote; they voted": mark a message as sent and later see, on the bill and member pages and on My Representatives, every vote that member cast on that bill from the day you wrote. Saved on your device only.
+- Two MCP tools for AI assistants: `get_floor_schedule` and `get_member_record`.
+- A shared site footer on every page, and new How it works, About, Contact, Privacy, Terms, and For offices pages.
+
+### Changed
+
+- The front page no longer opens with a video; all landing videos are removed.
+- One button style across the site: sentence case, softer corners, and arrow text links instead of boxed secondary buttons.
+- Congress.gov and FEC requests now go through BallotWatch's server, so the API keys are no longer shipped in the website's code. The proxy accepts only the paths and parameters the site uses and is rate-limited per visitor.
+- Bill explanations say plainly that they are written with AI from the official summary.
+
+### Fixed
+
+- Montana is treated as two districts everywhere, including My Representatives, which still had it as at-large; at-large states are defined in one place.
+- At-large House members are no longer labeled "Delegate", and no page shows "district 0".
+- A temporary database error no longer renders a real member as having no recorded votes; the page falls back instead of caching the wrong record.
+
 ## [0.6.1.0] - 2026-09-06
 
 ### Fixed
