@@ -276,3 +276,57 @@ export async function getBillPage(billId) {
     updatedAt,
   }
 }
+
+// Latest recorded roll calls for the server-rendered homepage. `latest` is the
+// newest roll call whose tally passes the chamber-size sanity check (so the
+// headline never shows a corrupt count); `recent` is the newest five, each
+// with a tally and result only when the tally is sane. Throws on a failed
+// read: the homepage then drops the section rather than render an empty or
+// partial record as if it were complete.
+const HOME_SCAN = 12
+const HOME_RECENT = 5
+
+export async function getHomeVotes() {
+  const rcs = must(
+    await supabaseAdmin.from('roll_calls')
+      .select('id, bill_id, question, description, voted_at')
+      .not('voted_at', 'is', null)
+      .order('voted_at', { ascending: false })
+      .limit(HOME_SCAN),
+    'roll_calls',
+  ) || []
+  const rows = rcs.filter((r) => parseRollCallId(r.id))
+  if (!rows.length) return { latest: null, recent: [] }
+
+  const ids = rows.map((r) => r.id)
+  const billIds = [...new Set(rows.map((r) => r.bill_id).filter(Boolean))]
+  const [statsRes, billsRes] = await Promise.all([
+    supabaseAdmin.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', ids),
+    billIds.length ? supabaseAdmin.from('bills').select('id, title').in('id', billIds) : Promise.resolve({ data: [] }),
+  ])
+  const statsById = new Map((must(statsRes, 'roll_call_stats') || []).map((s) => [s.roll_call_id, s]))
+  const billsById = new Map((must(billsRes, 'bills') || []).map((b) => [b.id, b]))
+
+  const shaped = rows.map((r) => {
+    const meta = parseRollCallId(r.id)
+    const t = tallyFromStats(statsById.get(r.id))
+    const sane = saneTally(t.yea, t.nay, meta.chamber)
+    const result = sane ? deriveResult(r.question, t.yea, t.nay, meta.chamber, r.description) : null
+    const b = r.bill_id ? billsById.get(r.bill_id) : null
+    return {
+      id: r.id,
+      chamber: meta.chamber,
+      congress: meta.congress,
+      session: meta.session,
+      roll: meta.roll,
+      question: r.question || null,
+      description: r.description || null,
+      voted_at: r.voted_at,
+      bill: r.bill_id ? { id: r.bill_id, label: billLabel(r.bill_id), path: billPath(r.bill_id), title: realTitle(b?.title) } : null,
+      tally: sane ? { yea: t.yea, nay: t.nay } : null,
+      result,
+      resultKind: resultKind(result),
+    }
+  })
+  return { latest: shaped.find((r) => r.tally) || null, recent: shaped.slice(0, HOME_RECENT) }
+}

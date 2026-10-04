@@ -7,7 +7,7 @@ function MethodologyIndex() {
   return (
     <div className="open-page methodology-page">
       <SEO
-        title="BallotWatch Methodology"
+        title="Methodology"
         description="Source, caveat, cadence, and code-reference notes for BallotWatch congressional data features."
         path="/methodology"
       />

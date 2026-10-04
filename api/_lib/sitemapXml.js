@@ -12,7 +12,7 @@ export function buildSitemapIndex(origin, parts) {
 }
 
 export function buildUrlset(origin, entries) {
-  const items = entries.map((e) => `  <url><loc>${esc(`${origin}${e.path}`)}</loc>${e.lastmod ? `<lastmod>${esc(e.lastmod)}</lastmod>` : ''}${e.changefreq ? `<changefreq>${esc(e.changefreq)}</changefreq>` : ''}</url>`).join('\n')
+  const items = entries.map((e) => `  <url><loc>${esc(`${origin}${e.path}`)}</loc>${e.lastmod ? `<lastmod>${esc(e.lastmod)}</lastmod>` : ''}${e.changefreq ? `<changefreq>${esc(e.changefreq)}</changefreq>` : ''}${e.priority != null ? `<priority>${esc(Number(e.priority).toFixed(1))}</priority>` : ''}</url>`).join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${items}\n</urlset>\n`
 }
 

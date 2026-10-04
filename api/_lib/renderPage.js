@@ -96,7 +96,7 @@ export function stageStatus(stage) {
 const COLOPHON_RC = 'Data from Congress.gov, the House Clerk, and the Senate. The result is derived from the tally and the question.'
 
 // Mirrors Navigation.jsx so broadsheet.css styles the masthead before React mounts.
-function chrome(inner) {
+export function chrome(inner) {
   return `<div class="app"><div class="bw bw-masthead"><div class="topbar-wrap"><div class="topbar"><a class="brand" href="/" aria-label="BallotWatch home"><span class="brand-mark"><img src="/capitol-logo.svg" alt="" /></span><span class="brand-name">BallotWatch</span></a><nav class="topnav"><a href="/all">Members</a><a href="/bills">Bills</a><a href="/map">Map</a><a href="/blog">Blog</a></nav><div class="topbar-right"><a class="btn btn-primary btn-sm" href="/my-representative"><span class="nav-cta-full">Find My Rep</span><span class="nav-cta-short">My Rep</span></a></div></div></div></div><main class="main-content">${inner}</main></div>`
 }
 
@@ -428,6 +428,10 @@ function jsonScript(obj) {
   return JSON.stringify(obj).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
 }
 
+function pathOf(url) {
+  try { return new URL(url).pathname } catch { return '/' }
+}
+
 export function injectIntoShell(shell, { title, description, canonical, robots, ogType = 'article', ogImage = null, jsonLd = [], body, pageData = null }) {
   let html = String(shell)
   const t = escapeHtml(title)
@@ -443,6 +447,8 @@ export function injectIntoShell(shell, { title, description, canonical, robots, 
   html = put(html, /<meta name="twitter:title" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${t}" />`)
   html = put(html, /<meta name="twitter:description" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${d}" />`)
   if (ogImage) {
+    // The shell states the default image's size and alt; drop them first.
+    html = html.replace(/\s*<meta property="og:image:(?:width|height|alt)" content="[^"]*"\s*\/?>/gi, '')
     const img = escapeHtml(ogImage)
     // A generated image: state its size so Facebook and LinkedIn can lay out
     // the preview on the first share instead of waiting to fetch the image.
@@ -452,7 +458,10 @@ export function injectIntoShell(shell, { title, description, canonical, robots, 
   html = put(html, /<meta name="robots" content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${escapeHtml(robots || 'index, follow')}" />`)
   // Replace the generic WebApplication block with page-specific JSON-LD.
   html = put(html, /<script type="application\/ld\+json">[\s\S]*?<\/script>/i, '')
-  const ld = jsonLd.map((obj) => `<script type="application/ld+json">${jsonScript(obj)}</script>`).join('\n')
+  // data-bw-ssr names the path these blocks describe, so SEO.jsx can skip
+  // duplicating them on first mount and drop them after client navigation.
+  const ssrPath = escapeHtml(pathOf(canonical))
+  const ld = jsonLd.map((obj) => `<script type="application/ld+json" data-bw-ssr="${ssrPath}">${jsonScript(obj)}</script>`).join('\n')
   const data = pageData ? `<script type="application/json" id="__bw_page">${jsonScript(pageData)}</script>\n` : ''
   html = put(html, /<\/head>/i, `${ld}\n${data}</head>`)
   html = put(html, /<div id="root"><\/div>/i, `<div id="root">${body}</div>`)

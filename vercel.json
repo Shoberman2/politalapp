@@ -48,6 +48,14 @@
       "destination": "/api/prerender?kind=vote&congress=:congress&chamber=:chamber&session=:session&roll=:roll"
     },
     {
+      "source": "/",
+      "destination": "/api/prerender?kind=home"
+    },
+    {
+      "source": "/:page(how-it-works|methodology|data-sources|about|this-week|offices|contact|privacy|terms)",
+      "destination": "/api/prerender?kind=static&page=:page"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },

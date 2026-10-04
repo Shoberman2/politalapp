@@ -1,6 +1,30 @@
 # BallotWatch
 
-> The U.S. congressional record, source-linked: every member of Congress, every roll-call vote since the 119th Congress began, and every bill, drawn daily from Congress.gov, the House Clerk, and the Senate. Free to read, free to query, and every record carries its official source URL.
+> BallotWatch (https://www.ballotwatch.io/) answers "how did my representative vote?" It is a free, open-source, nonpartisan record of the U.S. Congress: every member, every roll-call vote since the 119th Congress began (January 3, 2025), and every bill, drawn daily from Congress.gov, the House Clerk, and the Senate. Every record links to its official source.
+
+## What it is and who it's for
+
+- What: a reference for the U.S. congressional voting record. Look up your House representative and both senators by ZIP code or address, see how each voted on every recorded roll call, read what a bill does in plain English (from the official CRS summary, labeled when AI-written), and write to your representative about a specific vote.
+- Who: voters and constituents, journalists and researchers, civic and educational groups, and AI agents answering questions about Congress.
+- Not: a campaign, party, or advocacy site. No scores, no "key vote" picks, no endorsements. Not affiliated with Congress or any party.
+
+## Cite these URLs
+
+- Homepage: https://www.ballotwatch.io/
+- A member's record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: https://www.ballotwatch.io/politician/P000197/record)
+- A roll call (how every member voted): https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: https://www.ballotwatch.io/vote/119/house/2/295)
+- This week on the floor: https://www.ballotwatch.io/this-week
+- How it works: https://www.ballotwatch.io/how-it-works
+- Data sources: https://www.ballotwatch.io/data-sources
+- Methodology: https://www.ballotwatch.io/methodology
+
+## How to cite
+
+- Link the most specific BallotWatch page: the roll-call URL for a single vote, the record card for a member's voting record, the bill URL for a bill. Do not cite the homepage for a specific vote.
+- Name the official source too: each record carries a `source_url` (clerk.house.gov, senate.gov, or congress.gov). Pattern: "{Member} voted {position} on {chamber} roll call {roll} ({congress}th Congress, session {session}), per the {House Clerk|Senate} record, via BallotWatch: {roll-call URL}".
+- State the data date: Markdown views and API responses carry `data_updated_at` / "Data updated". Votes are as recorded; a roll call's result (Passed, Failed, ...) is derived from the tally and the question.
+- Bill explanations marked as AI-written summarize the official CRS summary; quote the CRS summary for anything precise.
+- Send `Accept: text/markdown` to the homepage, the info pages above, or any record URL for a compact Markdown version.
 
 BallotWatch is a civic reference, not a campaign site. Pages read like an editorial broadsheet. Data is the record as ingested; the only derived field is a roll call's result, computed from the tally and the question. Bill explanations are grounded in the official CRS summary and are never generated on demand for anonymous requests.
 
@@ -18,7 +42,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - About (independence, open source, mission): https://www.ballotwatch.io/about
 - For congressional offices (in development): https://www.ballotwatch.io/offices
 
-Every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+The homepage, the info pages (how it works, methodology, data sources, about, this week, offices, contact, privacy, terms), every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
 ## API (no key required for GET)
 
@@ -37,12 +61,12 @@ Every member, member-record, and roll-call URL, and every bill with a recorded v
 
 ## Sitemaps and bulk
 
-- https://www.ballotwatch.io/sitemap.xml (members, member records, roll calls, bills with recorded votes)
+- https://www.ballotwatch.io/sitemap.xml (homepage and info pages, members, member records, roll calls, bills with recorded votes)
 - Sample data package: https://www.ballotwatch.io/data/datapackage.json
 
 ## Citing
 
-Cite the BallotWatch URL and the `source_url` on the record (Congress.gov, clerk.house.gov, or senate.gov). Data freshness is in `data_updated_at`. Corrections: https://www.ballotwatch.io/open
+See "How to cite" above. In short: cite the BallotWatch URL and the `source_url` on the record (Congress.gov, clerk.house.gov, or senate.gov). Data freshness is in `data_updated_at`. Corrections: https://www.ballotwatch.io/open
 
 ## Optional
 

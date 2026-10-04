@@ -1,5 +1,6 @@
 // Generated sitemaps on the canonical domain.
 //   /sitemap.xml           -> index pointing at the parts below
+//   /sitemap-pages.xml     -> the homepage and the static info pages
 //   /sitemap-members.xml   -> every member with at least one recorded vote
 //   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members
 //   /sitemap-votes.xml     -> every roll call with a sane, non-empty tally
@@ -18,6 +19,7 @@ import { SITE_ORIGIN } from './_lib/site.js'
 import { checkRateLimit } from './_lib/rateLimit.js'
 import { recordPath } from '../shared/memberRecord.js'
 import { clientIp, hashIp } from './_lib/auth.js'
+import { STATIC_PAGES } from './_lib/staticPages.js'
 
 const PAGE = 1000
 const CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
@@ -42,6 +44,20 @@ async function fetchAll(table, columns, modify, orderBy = 'id') {
 async function latestVoteDate() {
   const { data } = await supabaseAdmin.from('roll_calls').select('voted_at').not('voted_at', 'is', null).order('voted_at', { ascending: false }).limit(1)
   return toDateOnly(data?.[0]?.voted_at)
+}
+
+// The homepage changes with every recorded vote; the info pages rarely.
+export async function pageEntries() {
+  const lastmod = await latestVoteDate()
+  return [
+    { path: '/', lastmod, changefreq: 'daily', priority: 1.0 },
+    ...Object.entries(STATIC_PAGES).map(([path, p]) => ({
+      path,
+      lastmod: path === '/this-week' ? lastmod : null,
+      changefreq: p.changefreq,
+      priority: p.priority,
+    })),
+  ]
 }
 
 export async function memberEntries() {
@@ -116,11 +132,12 @@ async function billPartCount() {
 export async function buildPart(part) {
   if (!part) {
     const [lastmod, billParts] = await Promise.all([latestVoteDate(), billPartCount()])
-    const parts = [{ name: 'members', lastmod }, { name: 'records', lastmod }, { name: 'votes', lastmod }]
+    const parts = [{ name: 'pages', lastmod }, { name: 'members', lastmod }, { name: 'records', lastmod }, { name: 'votes', lastmod }]
     if (billParts === 1) parts.push({ name: 'bills', lastmod })
     else for (let i = 1; i <= billParts; i += 1) parts.push({ name: `bills-${i}`, lastmod })
     return buildSitemapIndex(SITE_ORIGIN, parts)
   }
+  if (part === 'pages') return buildUrlset(SITE_ORIGIN, await pageEntries())
   if (part === 'members') return buildUrlset(SITE_ORIGIN, await memberEntries())
   if (part === 'records') return buildUrlset(SITE_ORIGIN, await recordEntries())
   if (part === 'votes') return buildUrlset(SITE_ORIGIN, await voteEntries())
