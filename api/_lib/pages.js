@@ -8,7 +8,7 @@ import { parseRollCallId, deriveResult, resultKind, saneTally, tallyFromStats } 
 import { memberGate, rollCallGate, billGate, explanationMatchesBill, isPlaceholderTitle } from './indexGate.js'
 import { getDataUpdatedAt } from './etlMeta.js'
 import { MAX_ROLL_CALL_ROWS, EXPLANATION_MODEL, EXPLANATION_PROMPT_VERSION, congressGovMemberUrl, bioguideUrl } from './site.js'
-import { shapeMemberRecord, RECORD_VOTE_LIMIT } from '../../shared/memberRecord.js'
+import { shapeMemberRecord, houseDistrict, RECORD_VOTE_LIMIT } from '../../shared/memberRecord.js'
 
 // Bill titles are sometimes stubs ("HR 4795"); treat those as unknown.
 function realTitle(title) {
@@ -66,7 +66,7 @@ export async function getMemberPage(bioguideId) {
   const termList = terms || []
   const currentTerm = termList.find((t) => !t.term_end) || termList[0] || null
   const district = member.chamber === 'house'
-    ? (member.district ?? currentTerm?.district ?? null)
+    ? houseDistrict(member.state, member.district ?? currentTerm?.district ?? null)
     : null
 
   return {

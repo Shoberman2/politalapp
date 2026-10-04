@@ -60,3 +60,17 @@ describe('House seat titles never come from a missing district number', () => {
     expect(recordSeatCode(r)).toBe('R-WY-AL')
   })
 })
+
+import { houseDistrict } from '../../shared/memberRecord.js'
+
+describe('houseDistrict', () => {
+  it('drops "0" and at-large/delegate districts, keeps real numbers', () => {
+    expect(houseDistrict('AK', '0')).toBeNull()
+    expect(houseDistrict('DC', '0')).toBeNull()
+    expect(houseDistrict('WY', '1')).toBeNull()
+    expect(houseDistrict('CA', '0')).toBeNull()
+    expect(houseDistrict('MT', '2')).toBe('2')
+    expect(houseDistrict('CA', 11)).toBe('11')
+    expect(houseDistrict('CA', null)).toBeNull()
+  })
+})

@@ -233,7 +233,7 @@ export async function explainBill({ id }) {
 // ETL timestamp; each week carries the source's own source_updated_at.
 export async function getFloorSchedule({ week } = {}) {
   const weeks = resolveFloorWeeks(week)
-  if (!weeks) return { error: 'week must be a date in YYYY-MM-DD form (any day; the schedule week starts Monday).' }
+  if (!weeks) return { error: 'week must be a real date in YYYY-MM-DD form, from 2010 to 60 days ahead (any day; the schedule week starts Monday).' }
   const { allFailed, data } = await loadFloorSchedule(weeks)
   if (allFailed) return { error: 'The House floor schedule could not be fetched from docs.house.gov; try again shortly.' }
   return {

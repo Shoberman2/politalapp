@@ -152,10 +152,7 @@ export function shapeMemberRecord({ member, terms = [], stats = null, votes = []
     .map((v) => shapeRecordVote(v, rcById.get(v.roll_call_id), statsById.get(v.roll_call_id)))
 
   const count = voteCount ?? recentVotes.length
-  let district = member.chamber === 'house' ? (member.district ?? term?.district ?? null) : null
-  // At-large seats and delegates have no numbered district; the terms table
-  // stores them as "0", which must never render as "district 0".
-  if (district != null && (String(district) === '0' || String(district) === '00' || isAtLargeState(member.state) || isDelegateJurisdiction(member.state))) district = null
+  const district = member.chamber === 'house' ? houseDistrict(member.state, member.district ?? term?.district ?? null) : null
   const recordStats = shapeRecordStats(stats)
 
   return {
@@ -191,6 +188,15 @@ export function partyLetter(party) {
   if (/^rep/i.test(s) || s === 'R') return 'R'
   if (/^ind/i.test(s) || s === 'I') return 'I'
   return s.slice(0, 1).toUpperCase()
+}
+
+// A House seat's district number, or null for at-large seats and delegates:
+// the terms table stores those as "0", which must never render as "district 0".
+export function houseDistrict(state, district) {
+  if (district == null || district === '') return null
+  const d = String(district)
+  if (d === '0' || d === '00' || isAtLargeState(state) || isDelegateJurisdiction(state)) return null
+  return d
 }
 
 // The House title for a seat in `state`: delegates for DC and the territories

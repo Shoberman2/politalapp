@@ -117,7 +117,6 @@ function fromBill(b) {
 
 function Landing() {
   const navigate = useNavigate()
-  const rootRef = useRef(null)
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
   // Which of the two lookup forms was submitted, so the result renders next to
@@ -128,7 +127,6 @@ function Landing() {
   const [floor, setFloor] = useState([])
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
-  const [reduced, setReduced] = useState(false)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
   const [featuredRecord, setFeaturedRecord] = useState(null)
@@ -166,14 +164,6 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // Honor prefers-reduced-motion: no entrance reveals.
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const apply = () => setReduced(mq.matches)
-    apply()
-    mq.addEventListener?.('change', apply)
-    return () => mq.removeEventListener?.('change', apply)
-  }, [])
 
   // "On the floor" feed: prefer real recorded votes (with tallies), then fall
   // back to the latest legislative actions, then to static copy.
@@ -207,29 +197,6 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // Staggered entrance reveals for anything tagged [data-reveal].
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const items = root.querySelectorAll('[data-reveal]')
-    if (reduced || !('IntersectionObserver' in window)) {
-      items.forEach((n) => n.classList.add('is-in'))
-      return
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-in')
-          io.unobserve(e.target)
-        }
-      })
-    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' })
-    items.forEach((n) => io.observe(n))
-    return () => io.disconnect()
-    // Re-run when the feed swaps skeletons for live votes: those rows are
-    // brand-new DOM nodes the original observer never saw, so without this they
-    // would stay stuck at opacity:0.
-  }, [reduced, floor, floorReady])
 
   const handleLookup = async (e, place) => {
     e.preventDefault()
@@ -311,7 +278,7 @@ function Landing() {
   // reader back up to the top — a CTA that only scrolls is a dead end.
   const renderLookup = (place) => (
     <>
-      <form className="lookup-form" data-reveal onSubmit={(e) => handleLookup(e, place)}>
+      <form className="lookup-form" onSubmit={(e) => handleLookup(e, place)}>
         <label htmlFor={`zipInput-${place}`} className="visually-hidden">ZIP code</label>
         <input
           id={`zipInput-${place}`}
@@ -328,7 +295,7 @@ function Landing() {
           <ArrowRight />
         </button>
       </form>
-      <p className="lookup-hint" data-reveal>Free · No account · Source-linked records</p>
+      <p className="lookup-hint">Free · No account · Source-linked records</p>
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -548,7 +515,7 @@ function Landing() {
   ]
 
   return (
-    <div className="bw landing" ref={rootRef}>
+    <div className="bw landing">
       <SEO
         title="How Did Your Representative Vote This Week?"
         description={`${BRAND.mission} Every vote, bill, and member of Congress, linked to its official source.`}
@@ -623,7 +590,7 @@ function Landing() {
       {/* ===== FEATURES: one idea per section, a simple real-data image each ===== */}
       <section className="features">
         {FEATURES.map((f) => (
-          <article className={`feature feature-${f.id}`} key={f.id} data-reveal>
+          <article className={`feature feature-${f.id}`} key={f.id}>
             <div className="feature-text">
               <span className="section-kicker">{f.kicker}</span>
               <h2>{f.title}</h2>
@@ -638,11 +605,11 @@ function Landing() {
       {/* ===== AI, STATED PLAINLY ===== */}
       <section className="ai">
         <div className="ai-inner">
-          <header className="ai-head" data-reveal>
+          <header className="ai-head">
             <span className="section-kicker">How we use AI</span>
             <h2>AI that explains. It never speaks for anyone.</h2>
           </header>
-          <div className="ai-cols" data-reveal>
+          <div className="ai-cols">
             <div className="ai-col">
               <h3>We use AI to</h3>
               <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
@@ -657,7 +624,7 @@ function Landing() {
 
       {/* ===== FOR OFFICES: one band, one link ===== */}
       <section className="offices-band">
-        <div className="offices-inner" data-reveal>
+        <div className="offices-inner">
           <span className="section-kicker">If you work in a congressional office</span>
           <h2>A better way for constituents to reach your office, and for your office to answer.</h2>
           <p className="offices-lede">
@@ -674,7 +641,7 @@ function Landing() {
       {/* ===== FAQ ===== */}
       <section className="faq">
         <div className="faq-inner">
-          <header data-reveal>
+          <header>
             <span className="section-kicker">Questions</span>
             <h2>Before you start.</h2>
           </header>
@@ -691,7 +658,7 @@ function Landing() {
       </section>
 
       {/* ===== SOURCES ===== */}
-      <section className="sources" aria-label="Data sources" data-reveal>
+      <section className="sources" aria-label="Data sources">
         <span className="sources-label">Built from public records</span>
         <div className="sources-list">
           {SOURCES.map((s) => (
@@ -706,8 +673,8 @@ function Landing() {
       {/* ===== FINALE ===== */}
       <section className="finale">
         <div className="finale-inner">
-          <span className="finale-kicker" data-reveal>Start with your ZIP</span>
-          <h2 data-reveal>Find out who’s speaking for you.</h2>
+          <span className="finale-kicker">Start with your ZIP</span>
+          <h2>Find out who’s speaking for you.</h2>
           {renderLookup('finale')}
         </div>
       </section>

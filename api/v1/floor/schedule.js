@@ -30,7 +30,7 @@ async function route(req) {
   const weeks = resolveFloorWeeks(url.searchParams.get('week'))
   if (!weeks) {
     logUsage(auth.key, ENDPOINT, 'GET', 400, Date.now() - start)
-    return errorResponse('Invalid week: use YYYY-MM-DD (any day of the week)', 400, 'INVALID_PARAMETER')
+    return errorResponse('Invalid week: use a real date (YYYY-MM-DD) from 2010 to 60 days ahead; any day of the week', 400, 'INVALID_PARAMETER')
   }
 
   const { allFailed, data } = await loadFloorSchedule(weeks)
@@ -45,7 +45,7 @@ async function route(req) {
   return jsonResponse({
     data,
     meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
-  }, 200, partial ? { 'Cache-Control': 'public, s-maxage=30' } : {})
+  }, 200, partial ? { 'Cache-Control': req.headers?.authorization ? 'no-store' : 'public, s-maxage=30', Vary: 'Authorization' } : {})
 }
 
 export default nodeHandler(route)

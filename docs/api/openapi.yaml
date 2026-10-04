@@ -336,7 +336,7 @@ paths:
       parameters:
         - name: week
           in: query
-          description: Any date (YYYY-MM-DD) in the week to fetch; returns only that week. Defaults to this week and next.
+          description: Any real date (YYYY-MM-DD) from 2010 to 60 days ahead, in the week to fetch; returns only that week. Defaults to this week and next.
           schema:
             type: string
             format: date
