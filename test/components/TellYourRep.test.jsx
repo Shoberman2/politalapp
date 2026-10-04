@@ -9,6 +9,7 @@ vi.mock('@vercel/analytics', () => ({ track: analytics.track }))
 vi.mock('../../src/services/myMembers', () => lookups)
 
 import TellYourRep from '../../src/components/TellYourRep'
+import { BRAND } from '../../src/config/brand'
 
 const voteContext = {
   kind: 'vote',
@@ -93,7 +94,7 @@ describe('TellYourRep', { timeout: 20000 }, () => {
     expect(document.activeElement).toBe(heading)
 
     // Required disclosures.
-    expect(screen.getByText("Plainfloor doesn't send this for you. Copy your message and send it through your representative's official contact page.")).toBeTruthy()
+    expect(screen.getByText(`${BRAND.name} doesn't send this for you. Copy your message and send it through your representative's official contact page.`)).toBeTruthy()
     expect(screen.getByText(/Not affiliated with Congress\./)).toBeTruthy()
 
     // Factual scaffold, no position.
