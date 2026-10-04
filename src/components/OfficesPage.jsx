@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
-import '../styles/OfficesPage.css'
+import '../styles/InfoPage.css'
 
 // The page for congressional staff. Compliance research (2026-10) shapes the
 // copy: House rules require a technology vendor to be authorized before
@@ -37,22 +37,22 @@ const NEVER = [
 
 function OfficesPage() {
   return (
-    <div className="bw offices-page">
+    <div className="bw info-page offices-page">
       <SEO
         title="For Congressional Offices"
         description="A channel between constituents, their AI assistants, and congressional offices that answers from sources the office approves and never speaks for the Member. In development."
         path="/offices"
       />
 
-      <section className="op-hero">
-        <div className="op-inner">
-          <span className="op-kicker">For congressional offices</span>
-          <h1>Answer constituents from your own record. Receive mail your staff can use.</h1>
-          <p className="op-lede">
+      <section className="ip-hero">
+        <div className="ip-inner">
+          <span className="ip-kicker">For congressional offices</span>
+          <h1 className="ip-title">Answer constituents from your own record. Receive mail your staff can use.</h1>
+          <p className="ip-lede">
             We’re building a channel between constituents, the AI assistants they already use, and your office.
             It answers from sources your office approves, and it never speaks for the Member.
           </p>
-          <div className="op-status" role="note">
+          <div className="ip-note" role="note">
             <b>Status: in development.</b> Not yet authorized for use by House or Senate offices. We are not
             selling it or offering trials. We’re looking for an office willing to sponsor a security review
             through the House’s authorization process.
@@ -60,17 +60,17 @@ function OfficesPage() {
         </div>
       </section>
 
-      <section className="op-why">
-        <div className="op-inner">
-          <span className="op-kicker">Why now</span>
-          <blockquote>
+      <section>
+        <div className="ip-inner">
+          <h2>Why now</h2>
+          <blockquote className="ip-quote">
             <p>“…all Members’ constituent data resides within the proprietary platforms controlled by a very small pool of vendors. … This limits innovation.”</p>
             <footer>
               House Chief Administrative Officer, written testimony, Committee on House Administration,
               Dec. 17, 2025. <a href={CAO_TESTIMONY_URL} target="_blank" rel="noopener noreferrer">Source</a>
             </footer>
           </blockquote>
-          <p>
+          <p className="ip-after">
             The House is working toward a model where offices control their own constituent data and approved
             applications plug into it. We’re building for that model: a narrow tool that works alongside your
             constituent management system, not a replacement for it.
@@ -78,53 +78,53 @@ function OfficesPage() {
         </div>
       </section>
 
-      <section className="op-parts">
-        <div className="op-inner">
-          <span className="op-kicker">How it would work</span>
-          <div className="op-grid">
+      <section>
+        <div className="ip-inner">
+          <h2>How it would work</h2>
+          <ul className="ip-list">
             {PARTS.map((p) => (
-              <article key={p.title}>
-                <h2>{p.title}</h2>
+              <li key={p.title}>
+                <h3>{p.title}</h3>
                 <p>{p.body}</p>
-              </article>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
-      <section className="op-never">
-        <div className="op-inner">
-          <span className="op-kicker">What it never does</span>
-          <ul>{NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
+      <section>
+        <div className="ip-inner">
+          <h2>What it never does</h2>
+          <ul className="ip-list">{NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
         </div>
       </section>
 
-      <section className="op-record">
-        <div className="op-inner">
-          <span className="op-kicker">Built on the public record</span>
+      <section>
+        <div className="ip-inner">
+          <h2>Built on the public record</h2>
           <p>
             Constituents already use {BRAND.name} to see how members voted, what’s on the floor this week, and
             what past bills did, every fact linked to its official source. That record is what lets a message
             to your office point to the exact vote it’s about.
           </p>
-          <div className="op-links">
-            <Link to="/">See the public record</Link>
-            <Link to="/methodology">Methodology</Link>
+          <div className="ip-links">
+            <Link className="btn-text btn-go" to="/">See the public record</Link>
+            <Link className="btn-text btn-go" to="/data-sources">How we get our data</Link>
           </div>
         </div>
       </section>
 
-      <section className="op-contact">
-        <div className="op-inner">
+      <section className="ip-band">
+        <div className="ip-inner">
           <h2>Interested in sponsoring a review?</h2>
           {BRAND.officesEmail ? (
-            <a className="op-btn btn-primary" href={`mailto:${BRAND.officesEmail}?subject=${encodeURIComponent('Sponsoring a review')}`}>
+            <a className="btn-primary" href={`mailto:${BRAND.officesEmail}?subject=${encodeURIComponent('Sponsoring a review')}`}>
               Contact us
             </a>
           ) : (
-            <p className="op-muted">Contact details are coming shortly.</p>
+            <p className="ip-muted">Contact details are coming shortly.</p>
           )}
-          <p className="op-muted">
+          <p className="ip-muted">
             {BRAND.name} is independent and nonpartisan. It is not affiliated with the U.S. Congress.
           </p>
         </div>

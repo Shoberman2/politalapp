@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import '../styles/InfoPage.css'
-import '../styles/LegalPage.css'
 
 // NOTE FOR MAINTAINERS: plain-language terms drafted 2026-10-04. They have NOT
 // been reviewed by counsel. Have counsel review them before relying on them.
@@ -20,7 +19,7 @@ function ContactLine() {
 
 function TermsPage() {
   return (
-    <div className="bw info-page legal-page">
+    <div className="bw info-page ip-compact legal-page">
       <SEO
         title="Terms of Use"
         description={`Plain-language terms for using ${BRAND.name}, its API, and its data.`}
@@ -30,7 +29,7 @@ function TermsPage() {
       <section className="ip-hero">
         <div className="ip-inner">
           <span className="ip-kicker">Terms</span>
-          <h1>Terms of use</h1>
+          <h1 className="ip-title">Terms of use</h1>
           <p className="ip-lede">
             By using {BRAND.name}, its API, or its MCP server, you agree to these terms. We’ve kept them short and
             plain.
@@ -162,8 +161,8 @@ function TermsPage() {
             means you accept the updated terms. Questions: <ContactLine />.
           </p>
           <div className="ip-links">
-            <Link to="/privacy">Privacy notice</Link>
-            <Link to="/contact">Contact</Link>
+            <Link className="btn-text btn-go" to="/privacy">Privacy notice</Link>
+            <Link className="btn-text btn-go" to="/contact">Contact</Link>
           </div>
         </div>
       </section>
