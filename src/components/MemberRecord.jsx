@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { track } from '@vercel/analytics'
 import { getMemberRecord, recordFromPrerender } from '../services/memberRecord'
 import {
   RECORD_VOTE_LIMIT,
@@ -15,6 +16,7 @@ import {
 } from '../../shared/memberRecord.js'
 import { congressImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import { copyTextToClipboard } from '../utils/clipboard'
+import { canNativeShare, recordShareLinks } from '../utils/recordShare'
 import { toStateName } from '../utils/states'
 import SEO from './SEO'
 import '../styles/RollCall.css'
@@ -23,6 +25,16 @@ import '../styles/MemberRecord.css'
 const SITE = 'https://www.ballotwatch.io'
 
 const longDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''
+// Counted anonymously: the member's public bioguide id and the channel name.
+// Nothing about the reader, and never the share text.
+function countShare(member, channel) {
+  try {
+    track('record_shared', { member: String(member || ''), channel })
+  } catch {
+    // Analytics must never break the page.
+  }
+}
+
 const positionClass = (p) => `rc-position rc-position-${String(p || '').toLowerCase().replace(/\s+/g, '-')}`
 
 // The server-rendered page embeds the record; when it is this member's, the
@@ -100,10 +112,25 @@ export default function MemberRecord() {
   const title = `${recordHeadline(r)} (${recordSeatCode(r)})`
   const description = recordSummary(r, toStateName).slice(0, 200)
 
+  const shareTitle = recordHeadline(r)
+  const shareLinks = recordShareLinks({ url, title: shareTitle, text: description })
+  const nativeShare = canNativeShare()
+
   const copy = async () => {
     const ok = await copyTextToClipboard(url)
+    if (ok) countShare(r.id, 'copy')
     setCopied(ok ? 'Link copied' : 'Copy failed; the link is in the address bar')
     setTimeout(() => setCopied(null), 2500)
+  }
+
+  const share = async () => {
+    try {
+      await navigator.share({ title: shareTitle, url })
+      countShare(r.id, 'native')
+    } catch (err) {
+      // Closing the share sheet is not an error; anything else falls back to copying.
+      if (err?.name !== 'AbortError') copy()
+    }
   }
 
   return (
@@ -195,9 +222,26 @@ export default function MemberRecord() {
 
       <div className="rec-actions">
         <Link className="rc-action-btn" to={`/politician/${r.id}`}>Full record →</Link>
+        {nativeShare && <button type="button" className="rc-action-btn" onClick={share}>Share</button>}
         <button type="button" className="rc-action-btn" onClick={copy}>Copy link</button>
         <span className="rec-copied" role="status" aria-live="polite">{copied || ''}</span>
       </div>
+      <nav className="rec-share" aria-label="Share this record">
+        <span className="rec-share-label">Share on</span>
+        <ul>
+          {shareLinks.map((l) => (
+            <li key={l.channel}>
+              <a
+                href={l.href}
+                {...(l.channel === 'email' ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                onClick={() => countShare(r.id, l.channel)}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <footer className="rec-colophon">
         <p>

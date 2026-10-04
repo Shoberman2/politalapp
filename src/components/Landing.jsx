@@ -5,6 +5,9 @@ import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../service
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
 import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
+import { findMembersForDistrict } from '../services/myMembers'
+import { displayName } from '../utils/tellYourRepDraft'
+import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import '../styles/Landing.css'
@@ -119,6 +122,8 @@ function Landing() {
   // Which of the two lookup forms was submitted, so the result renders next to
   // the field the reader actually used instead of somewhere off-screen.
   const [lookupPlace, setLookupPlace] = useState('hero')
+  // Guards the member fetch against a newer lookup finishing first.
+  const lookupSeq = useRef(0)
   const [floor, setFloor] = useState([])
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
@@ -228,6 +233,7 @@ function Landing() {
   const handleLookup = async (e, place) => {
     e.preventDefault()
     setLookupPlace(place)
+    const seq = ++lookupSeq.current
     const value = zip.trim()
     if (!/^\d{5}$/.test(value)) {
       setLookup({
@@ -240,6 +246,7 @@ function Landing() {
 
     setLookup({ code: value, body: 'Matching your ZIP to a district…', sub: '' })
     const info = await getDistrictFromAddress(value)
+    if (seq !== lookupSeq.current) return
 
     if (!info?.state) {
       setLookup({
@@ -251,21 +258,45 @@ function Landing() {
     }
 
     const address = { street: '', city: info.city || '', state: info.state, zip: value }
-    if (info.district != null) {
-      setLookup({
+    // A ZIP names a House district only in at-large states; elsewhere it can
+    // straddle districts, so only the senators are named.
+    const houseKnown = info.district != null
+    const base = houseKnown
+      ? {
         code: `${info.state}-AL`,
         body: '1 Representative and 2 Senators found.',
         sub: `${stateName(info.state)} at-large district. Voting records and finance with sources.`,
-        address,
-      })
-    } else {
-      setLookup({
+      }
+      : {
         code: info.state,
         body: '2 Senators found.',
         sub: `${stateName(info.state)} elects its House members by district. Add your street address for an exact match.`,
-        address,
-      })
+      }
+    setLookup({ ...base, address, houseKnown, members: null, membersStatus: 'loading' })
+
+    let members = []
+    let membersStatus = 'done'
+    try {
+      members = await findMembersForDistrict(info.state, houseKnown ? info.district : null)
+    } catch {
+      membersStatus = 'error'
     }
+    if (seq !== lookupSeq.current) return
+    const house = members.filter((m) => m.chamber === 'house').length
+    const senators = members.filter((m) => m.chamber === 'senate').length
+    const parts = [
+      house ? `${house} Representative${house === 1 ? '' : 's'}` : null,
+      senators ? `${senators} Senator${senators === 1 ? '' : 's'}` : null,
+    ].filter(Boolean)
+    setLookup({
+      ...base,
+      // Say what was actually found, not what a state usually has.
+      body: membersStatus === 'done' ? (parts.length ? `${parts.join(' and ')} found.` : `No ${houseKnown ? 'members' : 'senators'} found for ${stateName(info.state)}.`) : base.body,
+      address,
+      houseKnown,
+      members,
+      membersStatus,
+    })
   }
 
   const handleViewProfiles = () => {
@@ -305,7 +336,22 @@ function Landing() {
             {lookup.sub && <small>{lookup.sub}</small>}
           </span>
           {lookup.address && (
-            <button type="button" className="lr-go" onClick={handleViewProfiles}>View profiles →</button>
+            <button type="button" className="lr-go" onClick={handleViewProfiles}>
+              {lookup.houseKnown ? 'View profiles →' : 'Add your address →'}
+            </button>
+          )}
+          {lookup.membersStatus === 'loading' && <p className="lr-note">Finding the members by name…</p>}
+          {lookup.membersStatus === 'error' && <p className="lr-note">Member names could not be loaded right now.</p>}
+          {lookup.members?.length > 0 && (
+            <ul className="lr-members">
+              {lookup.members.map((m) => (
+                <li key={m.bioguideId}>
+                  <span className="lr-m-name">{displayName(m.name)}</span>
+                  <span className="lr-m-seat">{m.chamber === 'senate' ? 'Senator' : 'Representative'}</span>
+                  <RecordLink bioguideId={m.bioguideId} name={displayName(m.name)} className="lr-m-record" />
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}
