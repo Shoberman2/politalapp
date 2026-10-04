@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import PoliticianCard from './PoliticianCard'
 import SEO from './SEO'
+import { YourMessages } from './YouWrote'
 import {
   getHouseRepForDistrict,
   getSenatorsForState,
@@ -305,6 +306,8 @@ function MyPolitician() {
           <p>Loading senators — this can take a minute...</p>
         </div>
       )}
+
+      <YourMessages />
     </div>
   )
 }

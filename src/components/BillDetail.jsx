@@ -9,6 +9,8 @@ import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
 import BillWatchControl from './BillWatchControl'
 import TellYourRep from './TellYourRep'
+import { YouWroteNotes } from './YouWrote'
+import { billIdFrom } from '../utils/sentMessages'
 import { billRef, congressGovBillUrl, formatDate as formatLongDate } from '../utils/tellYourRepDraft'
 import { SHOW_BILL_ALERTS } from '../config/features'
 import '../styles/BillDetail.css'
@@ -181,6 +183,7 @@ function BillDetail() {
   const tellContext = {
     kind: 'bill',
     ref: billRef({ congress, billType, number }),
+    billId: billIdFrom(congress, billType, number) || undefined,
     label: `${formatBillId(bill, billType, number)} (${congress}th Congress)`,
     title: displayTitle,
     sourceUrl: congressGovBillUrl(congress, billType, number) || undefined,
@@ -370,6 +373,7 @@ function BillDetail() {
             </section>
           )}
 
+          <YouWroteNotes billId={tellContext.billId} />
           <TellYourRep context={tellContext} />
 
           {/* TIMELINE OF ACTIONS */}
