@@ -16,7 +16,7 @@ The API response has a different format:
 ### Problem 3: Missing API Key
 If you see errors, the most common cause is:
 1. **No API key** - You need to register at https://api.congress.gov/sign-up/
-2. **Wrong environment variable name** - Must be `VITE_CONGRESS_API_KEY`
+2. **Wrong environment variable name** - Must be `CONGRESS_API_KEY` (server-side; no `VITE_` prefix)
 3. **Server not restarted** - Restart `npm run dev` after adding the API key
 
 ## How to Get Your API Key
@@ -38,7 +38,7 @@ If you see errors, the most common cause is:
    cp .env.example .env
 
    # Edit .env and add your key
-   VITE_CONGRESS_API_KEY=your_actual_api_key_here
+   CONGRESS_API_KEY=your_actual_api_key_here
    ```
 
 4. **Restart Server**:
@@ -52,7 +52,7 @@ If you see errors, the most common cause is:
 
 ### Test in Browser Console
 Once logged in, open your browser console and check the network tab:
-- Look for requests to `api.congress.gov`
+- Look for requests to `/api/proxy/congress/`
 - Status should be 200 (not 401 or 403)
 - Response should have `members` array
 
@@ -116,7 +116,7 @@ GET https://api.congress.gov/v3/member/BIOGUIDE_ID/sponsored-legislation?limit=2
 
 **Solution**:
 1. Check your `.env` file exists
-2. Verify the key starts with `VITE_CONGRESS_API_KEY=`
+2. Verify the line starts with `CONGRESS_API_KEY=`
 3. Copy the entire key (no extra spaces)
 4. Restart the server
 
@@ -179,7 +179,7 @@ Error fetching current members: [details here]
 In Chrome DevTools (F12):
 1. Go to Network tab
 2. Filter by "Fetch/XHR"
-3. Look for `api.congress.gov` requests
+3. Look for `/api/proxy/congress/` requests
 4. Click to see Request/Response details
 
 ### Verify API Response
@@ -204,8 +204,8 @@ When deploying to production (Vercel, Netlify, etc.):
 
 1. **Add Environment Variable**:
    - In your hosting platform's dashboard
-   - Add: `VITE_CONGRESS_API_KEY=your_key`
-   - Rebuild the app
+   - Add: `CONGRESS_API_KEY=your_key` (and `FEC_API_KEY` for campaign finance)
+   - Redeploy
 
 2. **Verify Build**:
    - Run `npm run build` locally first
@@ -213,10 +213,11 @@ When deploying to production (Vercel, Netlify, etc.):
    - Test the built version with `npm run preview`
 
 3. **Security Note**:
-   - The API key will be visible in client-side code
-   - This is OK - it's meant for client-side use
-   - Congress.gov keys don't have sensitive access
-   - For production, consider using a backend proxy
+   - The browser never sees the key. The app calls `/api/proxy/congress/*`
+     (`api/_lib/upstreamProxy.js`), which adds the key on the server, allows
+     only the paths and parameters the app uses, and rate limits per IP.
+   - `npm run dev` serves the same proxy from Vite dev middleware (localhost only).
+   - Never add a `VITE_` prefix to this key: Vite would embed it in the bundle.
 
 ## Support
 

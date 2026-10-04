@@ -35,13 +35,19 @@ Key routing rules:
 - `docs/api/openapi.yaml` is the OpenAPI source. `public/openapi.yaml` is a
   generated copy (`scripts/sync-openapi.mjs`, run on `prebuild`); never edit it
   by hand. `test/api/openapiParity.test.js` fails when they differ.
-- `/politician/:id`, `/bill/:congress/:type/:number`, and
-  `/vote/:congress/:chamber/:session/:roll` are server-rendered by
+- `/politician/:id`, `/politician/:id/record`, `/bill/:congress/:type/:number`,
+  and `/vote/:congress/:chamber/:session/:roll` are server-rendered by
   `api/prerender.js` through `vercel.json` rewrites. A new record route needs
   the React route, the rewrite, the sitemap (`api/sitemap.js`), and
   `public/llms.txt`.
 - `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in
   `api/_lib/auth.js` and `api/_lib/rateLimit.js`.
+- The browser never holds the Congress.gov or OpenFEC key. It calls
+  `/api/proxy/congress/*` and `/api/proxy/fec/*` (`api/proxy/`,
+  `api/_lib/upstreamProxy.js`), which allow-list the upstream paths and
+  parameters the app uses and rate limit per IP (`api/_lib/proxyRoute.js`).
+  A new upstream call needs an allow-list entry. Never give these keys a
+  `VITE_` prefix.
 - `PLACEHOLDER_TITLE_RE` in `api/_lib/indexGate.js` and `etl/utils.ts` must
   stay identical: the index gate, the sitemap, the ETL loader, and
   `etl/repairPlaceholderTitles.ts` all decide "stub or real title" with it.

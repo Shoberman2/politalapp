@@ -25,7 +25,9 @@ For most UI and docs work, placeholder environment values are enough. ETL and
 Supabase-backed pages need real keys; the API tests in `test/api` mock Supabase
 and run without them. The server-rendered record pages, `/mcp`, `/sitemap.xml`,
 and the API routes only run under `npm run dev:fullstack` (Vercel dev);
-`npm run dev` serves the SPA alone.
+`npm run dev` serves the SPA plus the Congress.gov and OpenFEC proxies
+(`/api/proxy/*`, localhost only), which read `CONGRESS_API_KEY` and
+`FEC_API_KEY` from `.env`.
 
 ## Useful Commands
 

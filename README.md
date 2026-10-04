@@ -22,6 +22,9 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | Bill tracker | What does this bill do and where is it now? | Congress.gov bill records | Search, filter, cite, share |
 | Bill Watch alerts | When does a followed bill reach committee, the floor, or a recorded vote? | Congress.gov actions and committee meetings; House weekly floor schedule | Sign in, watch a bill, manage alerts at `/alerts` |
 | Vote records | How did a member vote? | House and Senate roll call data | Filter by member, bill, date, issue |
+| Record in 60 seconds | What is this member's record, on one screen? | House and Senate roll call data | Open `/politician/:id/record`, share the card |
+| This week on the floor | What is the House voting on this week? | House weekly floor schedule (docs.house.gov) and recent roll calls | Open `/this-week` or `GET /api/v1/floor/schedule` |
+| Tell your rep | How do I tell my representative what I think of a vote? | The vote record and the member's official contact page | Edit the drafted message, send it yourself; mark it sent to see later votes on that bill (saved on your device only) |
 | Legislative path | Where does this bill go next? | Committee routing and BallotWatch methodology | Read route and caveats |
 | Campaign finance context | What money context is visible? | FEC data and local industry mapping | Inspect donors and caveats |
 | API and sample data | How can I build with this? | BallotWatch API, OpenAPI, sample exports | Use `/open` and `/developers/docs` |
@@ -105,7 +108,9 @@ http://localhost:3000
 `npm run dev:fullstack` runs the Vite SPA and Vercel API routes on one origin.
 For frontend-only UI work, use `npm run dev` at `http://localhost:5173`;
 serverless routes such as `/api/briefings/*`, the server-rendered record
-pages, `/mcp`, and `/sitemap.xml` are not available in that mode.
+pages, `/mcp`, and `/sitemap.xml` are not available in that mode. The
+Congress.gov and OpenFEC proxies (`/api/proxy/*`) do work under `npm run dev`:
+Vite dev middleware serves them to localhost only, using the keys in `.env`.
 
 Most UI and docs work can be done without production credentials. Features that
 read or write Supabase need configured environment variables.
@@ -274,10 +279,11 @@ Agent surfaces:
   `get_bill`, `explain_bill` (cached explanations only), and
   `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
   loader as `/api/v1/floor/schedule`).
-- Member, bill, and roll-call pages return full HTML without JavaScript and
-  answer `Accept: text/markdown` with a compact Markdown record.
+- Member, member-record (`/politician/:id/record`), bill, and roll-call pages
+  return full HTML without JavaScript and answer `Accept: text/markdown` with a
+  compact Markdown record.
 - `/sitemap.xml` is generated from the database and lists every member with
-  votes, every roll call with a sane tally, and every bill with a recorded vote.
+  votes (and their record card), every roll call with a sane tally, and every bill with a recorded vote.
 
 Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per
@@ -295,6 +301,7 @@ Main routes:
 - `GET /api/v1/votes/:rollCallId`
 - `GET /api/v1/stats`
 - `GET /api/v1/search`
+- `GET /api/v1/floor/schedule`
 
 Public sample data is available under `public/data`.
 
