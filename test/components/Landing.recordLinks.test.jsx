@@ -68,7 +68,7 @@ describe('Landing lookup: record links', () => {
     expect(within(list).getByRole('link', { name: 'Record in 60 seconds: Becca Balint' }).getAttribute('href')).toBe('/politician/B001318/record')
     expect(within(list).getByRole('link', { name: 'Record in 60 seconds: Peter Welch' }).getAttribute('href')).toBe('/politician/W000800/record')
     expect(screen.getByText('1 Representative and 2 Senators found.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'View profiles →' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'View profiles' })).toBeTruthy()
   })
 
   it('districted state: shows only the senators and the add-your-address path, never a guessed House member', async () => {
@@ -84,7 +84,7 @@ describe('Landing lookup: record links', () => {
     expect(within(list).getAllByRole('link')).toHaveLength(2)
     expect(list.textContent).not.toMatch(/Representative/)
     expect(screen.getByText('2 Senators found.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Add your address →' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Add your address' })).toBeTruthy()
   })
 
   it('says so when member names cannot be loaded, and never invents rows', async () => {
@@ -94,7 +94,7 @@ describe('Landing lookup: record links', () => {
 
     await screen.findByText('Member names could not be loaded right now.')
     noMemberList()
-    expect(screen.getByRole('button', { name: 'Add your address →' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Add your address' })).toBeTruthy()
   })
 
   it('reports the count actually found (DC has no senators)', async () => {

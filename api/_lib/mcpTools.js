@@ -286,7 +286,7 @@ export async function getMemberRecord({ bioguide_id }) {
       position: v.position,
       // Derived from the tally only when it passes the sanity check; else null.
       result: v.result,
-      canonical: `${SITE}${v.path}`,
+      canonical: v.path ? `${SITE}${v.path}` : null,
       source_url: v.source_url,
     })),
     note: 'The same facts for every member: the ten most recent recorded votes, not a curated list. Cite canonical and each vote source_url.',

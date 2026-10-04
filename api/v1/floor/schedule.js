@@ -40,10 +40,12 @@ async function route(req) {
   }
 
   logUsage(auth.key, ENDPOINT, 'GET', 200, Date.now() - start)
+  // A week that failed upstream must not be cached for an hour as "unavailable".
+  const partial = data.weeks.some((w) => w.status === 'unavailable')
   return jsonResponse({
     data,
     meta: { api_version: 'v1', data_updated_at: await getDataUpdatedAt() },
-  })
+  }, 200, partial ? { 'Cache-Control': 'public, s-maxage=30' } : {})
 }
 
 export default nodeHandler(route)

@@ -17,6 +17,7 @@ export const SENATE_NOTE =
 const MEMO_TTL_MS = 5 * 60 * 1000
 const UPSTREAM_TIMEOUT_MS = 8000
 const memo = new Map()
+const MEMO_MAX = 64
 
 export function _resetFloorScheduleMemo() {
   memo.clear()
@@ -29,6 +30,8 @@ async function loadWeek(week, now) {
     fetch(url, { ...init, signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) }))
   const value = xml ? parseHouseFloorXml(xml, week) : null
   memo.set(week, { at: now, value })
+  // Bounded: drop the oldest entries once the memo outgrows a few months of weeks.
+  while (memo.size > MEMO_MAX) memo.delete(memo.keys().next().value)
   return value
 }
 
@@ -70,6 +73,11 @@ export function resolveFloorWeeks(weekParam, today = new Date()) {
   if (weekParam != null && weekParam !== '') {
     const date = /^\d{4}-\d{2}-\d{2}$/.test(String(weekParam)) ? new Date(`${weekParam}T12:00:00Z`) : null
     if (!date || Number.isNaN(date.getTime())) return null
+    // Reject impossible dates (2026-02-30 would roll over into March) and weeks
+    // the House never published or can't have published yet.
+    if (date.toISOString().slice(0, 10) !== String(weekParam)) return null
+    const year = date.getUTCFullYear()
+    if (year < 2010 || date.getTime() > today.getTime() + 60 * 86400000) return null
     return [mondayIso(date)]
   }
   return [mondayIso(today), mondayIso(today, 1)]

@@ -120,7 +120,7 @@
   background: var(--bg, var(--surface));
   color: var(--text-primary);
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
 }
 .tyr-location .tyr-fineprint { flex-basis: 100%; margin: 0; }
 
@@ -135,25 +135,14 @@
   background: var(--bg, var(--surface));
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   resize: vertical;
 }
 
 .tyr-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
-.tyr-link-btn {
-  background: none;
-  border: none;
-  padding: 4px 0;
-  margin-top: 8px;
-  color: var(--accent);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
+.tyr-link-btn { padding: 4px 0; }
 .tyr-panel-head .tyr-link-btn { margin-top: 0; }
 
 .tyr-muted { color: var(--text-muted); font-size: 14px; margin: 8px 0 0; }

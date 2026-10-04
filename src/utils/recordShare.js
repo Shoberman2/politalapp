@@ -2,7 +2,6 @@
 // no third-party SDKs or scripts load on the page, and nothing is sent anywhere
 // until the reader follows a link.
 
-export const SHARE_CHANNELS = ['native', 'copy', 'x', 'bluesky', 'facebook', 'email']
 
 /**
  * @param {{ url: string, title: string, text?: string }} share

@@ -323,7 +323,7 @@ function Landing() {
           value={zip}
           onChange={(e) => setZip(e.target.value)}
         />
-        <button type="submit" aria-label="Find my representatives">
+        <button type="submit" className="btn-primary" aria-label="Find my representatives">
           <span className="btn-word">Find my reps</span>
           <ArrowRight />
         </button>
@@ -338,8 +338,8 @@ function Landing() {
             {lookup.sub && <small>{lookup.sub}</small>}
           </span>
           {lookup.address && (
-            <button type="button" className="lr-go" onClick={handleViewProfiles}>
-              {lookup.houseKnown ? 'View profiles →' : 'Add your address →'}
+            <button type="button" className="lr-go btn-text btn-go" onClick={handleViewProfiles}>
+              {lookup.houseKnown ? 'View profiles' : 'Add your address'}
             </button>
           )}
           {lookup.membersStatus === 'loading' && <p className="lr-note">Finding the members by name…</p>}
@@ -412,6 +412,7 @@ function Landing() {
       </div>
       <p className="mk-billtitle">{featuredBill ? (featuredBill.headline || featuredBill.title) : 'Loading a current bill…'}</p>
       <div className="mk-annot">
+        <span className="mk-annot-tag">From the official summary</span>
         <p>{featuredBill ? truncate(featuredBill.whyItMatters || featuredBill.summary || featuredBill.latestAction?.text || '', 175) : ''}</p>
       </div>
       {featuredBill && <span className="mk-src">Source · Congress.gov <ArrowRight /></span>}
@@ -540,7 +541,7 @@ function Landing() {
   const FEATURES = [
     { id: 'find', kicker: 'Your representatives', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
     { id: 'votes', kicker: 'Votes', title: 'Every vote, with the receipts.', body: 'How each member voted on every roll call, this week’s and every one before it, linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
-    { id: 'bills', kicker: 'Bills', title: 'Bills in plain English.', body: 'A short explanation of any bill, past or present, built from the official summary and labeled as AI.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
+    { id: 'bills', kicker: 'Bills', title: 'Bills in plain English.', body: 'A short explanation of any bill, past or present, built from the official summary. Anything written by AI says so.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
     { id: 'record', kicker: 'Before November 3', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
     { id: 'write', kicker: 'Tell your rep', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
     { id: 'alerts', kicker: 'Bill alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
@@ -610,8 +611,8 @@ function Landing() {
                   </div>
                 </div>
                 <div className="hv-links">
-                  <Link to={headlineVote.voteHref}>How each member voted <ArrowRight /></Link>
-                  <Link to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about this vote <ArrowRight /></Link>
+                  <Link className="btn-text btn-go" to={headlineVote.voteHref}>How each member voted</Link>
+                  <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about this vote</Link>
                 </div>
               </div>
             )}
@@ -627,7 +628,7 @@ function Landing() {
               <span className="section-kicker">{f.kicker}</span>
               <h2>{f.title}</h2>
               <p>{f.body}</p>
-              <Link className="text-link" to={f.link.to}>{f.link.label} <ArrowRight /></Link>
+              <Link className="btn-text btn-go feature-link" to={f.link.to}>{f.link.label}</Link>
             </div>
             <div className="feature-visual">{f.visual}</div>
           </article>
@@ -666,7 +667,7 @@ function Landing() {
           <p className="offices-status">
             In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
           </p>
-          <Link className="text-link" to="/offices">How it would work for your office <ArrowRight /></Link>
+          <Link className="btn-text btn-go" to="/offices">How it would work for your office</Link>
         </div>
       </section>
 
@@ -685,7 +686,7 @@ function Landing() {
               </details>
             ))}
           </div>
-          <Link className="text-link" to="/how-it-works">How BallotWatch works <ArrowRight /></Link>
+          <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
         </div>
       </section>
 

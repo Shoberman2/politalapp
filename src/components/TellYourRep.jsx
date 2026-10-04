@@ -323,7 +323,7 @@ export default function TellYourRep({ context, members }) {
           </form>
         )}
         {!pageMembers && !showLocationForm && lookup.status === 'ready' && (
-          <button type="button" className="tyr-link-btn" onClick={() => setShowLocationForm(true)}>Change location</button>
+          <button type="button" className="tyr-link-btn btn-text btn-sm" onClick={() => setShowLocationForm(true)}>Change location</button>
         )}
       </>
     )
@@ -402,7 +402,7 @@ export default function TellYourRep({ context, members }) {
           </p>
           <button
             type="button"
-            className="tyr-link-btn"
+            className="tyr-link-btn btn-text btn-sm"
             onClick={() => {
               forgetSend(context.ref, merged.bioguideId)
               setSentTick((n) => n + 1)
@@ -431,7 +431,7 @@ export default function TellYourRep({ context, members }) {
     }
     return (
       <div className="tyr-sent">
-        <button type="button" className="tyr-btn" onClick={confirm}>
+        <button type="button" className="tyr-btn btn-secondary btn-sm" onClick={confirm}>
           I sent my message to {name}
         </button>
         <p className="tyr-fineprint">
@@ -460,7 +460,7 @@ export default function TellYourRep({ context, members }) {
           <h2 id={headingId} ref={headingRef} tabIndex={-1} className="tyr-title">
             Write it <em>yourself</em>, send it <em>yourself</em>
           </h2>
-          <button type="button" className="tyr-link-btn" onClick={() => setOpen(false)}>Close</button>
+          <button type="button" className="tyr-link-btn btn-text btn-sm" onClick={() => setOpen(false)}>Close</button>
         </div>
         <p className="tyr-disclaimer">
           <strong>{BRAND.name} doesn't send this for you. Copy your message and send it through your representative's official contact page.</strong>{' '}
@@ -490,7 +490,7 @@ export default function TellYourRep({ context, members }) {
                 spellCheck
               />
               {text !== scaffold && (
-                <button type="button" className="tyr-link-btn" onClick={handleReset}>Reset to the factual outline</button>
+                <button type="button" className="tyr-link-btn btn-text btn-sm" onClick={handleReset}>Reset to the factual outline</button>
               )}
             </li>
           )}

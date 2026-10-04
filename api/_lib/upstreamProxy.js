@@ -160,8 +160,13 @@ export async function proxyUpstream({ service, method, url, env, fetchImpl = fet
   const ok = upstream.status >= 200 && upstream.status < 300
   if (!ok) console.warn(`[Proxy:${service}] upstream ${upstream.status} for ${path}`)
 
+  // Only JSON (or XML, which the APIs offer) is passed through, always with
+  // nosniff: an upstream HTML error page must never render on our origin.
+  const upstreamType = upstream.headers.get('content-type') || ''
+  const safeType = /^(application\/(json|xml)|text\/xml)\b/i.test(upstreamType) ? upstreamType : 'application/json; charset=utf-8'
   const headers = {
-    'Content-Type': upstream.headers.get('content-type') || 'application/json; charset=utf-8',
+    'Content-Type': safeType,
+    'X-Content-Type-Options': 'nosniff',
     'Cache-Control': ok ? PROXY_CACHE_CONTROL : 'no-store',
   }
   const retryAfter = upstream.headers.get('retry-after')

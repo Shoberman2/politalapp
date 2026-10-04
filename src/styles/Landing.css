@@ -7,7 +7,7 @@
    sources and a closing lookup. The shared site footer follows. Every
    selector is scoped under `.landing`; tokens come from broadsheet/App.css.
    Buttons follow the site-wide system: sentence case, --r-btn corners,
-   secondary actions as arrow text links (.text-link). */
+   secondary actions as .btn-text .btn-go arrow links. No scroll reveals. */
 
 .landing { color: var(--ink); }
 
@@ -22,19 +22,6 @@
 .landing [data-reveal] {
   opacity: 1;
   transform: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .landing [data-reveal] {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: opacity, transform;
-  }
-  .landing [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* =====================================================
@@ -60,7 +47,7 @@
 .landing .hero-title {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: clamp(36px, 5.6vw, 64px);
+  font-size: clamp(36px, 5.6vw, 52px);
   line-height: 1.03;
   letter-spacing: -0.015em;
   color: var(--ink);
@@ -131,18 +118,6 @@
   padding-top: 12px;
   border-top: 1px solid var(--rule-light);
 }
-.landing .hv-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-}
-.landing .hv-links a:hover { text-decoration: underline; }
-.landing .hv-links svg { width: 14px; height: 14px; }
 
 /* the single primary action, styled for warm paper */
 .landing .lookup-form {
@@ -177,25 +152,7 @@
   caret-color: var(--accent);
 }
 .landing .lookup-form input::placeholder { color: var(--ink-3); }
-.landing .lookup-form button {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-btn);
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 13px 20px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.18s ease;
-}
-.landing .lookup-form button:hover { background: var(--accent-hover); }
-.landing .lookup-form button svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
-.landing .lookup-form button:hover svg { transform: translateX(3px); }
+.landing .lookup-form button { flex-shrink: 0; white-space: nowrap; }
 .landing .lookup-hint {
   font-family: var(--mono);
   font-size: 11px;
@@ -217,7 +174,6 @@
   padding: 14px 16px;
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-left: 3px solid var(--accent);
   border-radius: var(--r-sm);
   box-shadow: var(--shadow-sm);
 }
@@ -237,19 +193,7 @@
 }
 .landing .lookup-result .lr-body { font-size: 14.5px; line-height: 1.45; color: var(--ink); }
 .landing .lookup-result .lr-body small { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 2px; }
-.landing .lookup-result .lr-go {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--accent);
-  white-space: nowrap;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
+.landing .lookup-result .lr-go { white-space: nowrap; }
 
 /* members named by the lookup, each with a link to their record card */
 .landing .lookup-result .lr-note {
@@ -325,27 +269,13 @@
   color: var(--ink-2);
   text-wrap: pretty;
 }
-.landing .feature-text .text-link { margin-top: 20px; }
+.landing .feature-text .feature-link { margin-top: 20px; }
 .landing .feature-visual { min-width: 0; }
 
-/* the site's secondary action: an arrow text link, never a bordered box */
-.landing .text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--sans);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-}
-.landing .text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-.landing .text-link svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
-.landing .text-link:hover svg { transform: translateX(3px); }
 
 .landing .mock {
   background: var(--surface);
-  border-radius: 22px;
+  border-radius: var(--r-lg, 12px);
   box-shadow: var(--shadow-broad-lg);
   padding: 22px;
   display: flex;
@@ -365,7 +295,7 @@
   width: 40px; height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: linear-gradient(140deg, var(--bg-tint), var(--rule));
+  background: var(--bg-tint);
   border: 1px solid var(--rule);
 }
 .landing img.mk-avatar { object-fit: cover; object-position: center top; }
@@ -418,13 +348,6 @@
 .landing .mk-src svg { width: 12px; height: 12px; }
 
 /* bill explanation / marginalia */
-.landing .mock-explain .mk-doc { display: flex; flex-direction: column; gap: 10px; padding: 6px; }
-.landing .mk-doc-line { height: 9px; border-radius: 3px; background: var(--rule); }
-.landing .mk-doc-line.w95 { width: 95%; }
-.landing .mk-doc-line.w88 { width: 88%; }
-.landing .mk-doc-line.w70 { width: 70%; }
-.landing .mk-doc-line.w60 { width: 60%; }
-.landing .mk-doc-line.w52 { width: 52%; }
 .landing .mk-annot {
   border-left: 3px solid var(--info);
   background: var(--info-subtle);
@@ -451,21 +374,6 @@
 .landing .mk-billtitle { font-family: var(--serif); font-size: clamp(18px, 2.2vw, 25px); line-height: 1.15; color: var(--ink); margin: 12px 0 12px; text-wrap: balance; }
 
 /* money bars */
-.landing .mock-money { gap: 16px; padding: 22px; }
-.landing .mk-bar { display: flex; flex-direction: column; gap: 7px; }
-.landing .mk-bar-label { font-family: var(--sans); font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
-.landing .mk-bar-track { height: 8px; border-radius: 999px; background: var(--bg-tint); overflow: hidden; }
-.landing .mk-bar-track i {
-  display: block;
-  height: 100%;
-  width: 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #7BA3F3));
-  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-  .landing .mk-bar-track i { width: var(--w); transition: none; }
-}
 
 /* =====================================================
    RESULT CHIPS — reused by the hero vote card
@@ -570,7 +478,7 @@
   padding: 10px 0 10px 14px;
   border-left: 2px solid var(--info);
   margin-bottom: 8px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.45;
   color: var(--ink);
 }
@@ -627,7 +535,7 @@
 }
 .landing .faq-item[open] summary::after { content: '–'; }
 .landing .faq-item summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
-.landing .faq-item p { margin: 0; padding: 0 32px 20px 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
+.landing .faq-item p { margin: 0; padding: 0 32px 20px 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
 
 /* =====================================================
    FINALE — closing lookup
@@ -678,8 +586,8 @@
 }
 .landing .mk-letter {
   margin: 12px 0 14px;
-  font-family: var(--mono);
-  font-size: 12.5px;
+  font-family: var(--sans);
+  font-size: 14px;
   line-height: 1.75;
   color: var(--ink-2);
 }

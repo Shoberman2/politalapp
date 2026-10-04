@@ -32,7 +32,7 @@ export async function getMemberPage(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [{ data: member }, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
+  const [memberRes, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
     supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url, updated_at').eq('id', id).maybeSingle(),
     supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count, party_loyalty_pct').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
@@ -43,7 +43,12 @@ export async function getMemberPage(bioguideId) {
       .limit(MEMBER_VOTE_LIMIT),
     lastRun(),
   ])
+  // A failed read must not render a real member as "no recorded votes" (and
+  // noindex them): throw, and prerender serves the uncached app shell instead.
+  if (memberRes.error) throw new Error(memberRes.error.message)
+  const member = memberRes.data
   if (!member) return null
+  if (votesRes.error) throw new Error(votesRes.error.message)
 
   const votes = votesRes.data || []
   const rollCallIds = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]
@@ -98,7 +103,7 @@ export async function getRecordPage(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [{ data: member }, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
+  const [memberRes, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
     supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url').eq('id', id).maybeSingle(),
     supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
@@ -109,7 +114,12 @@ export async function getRecordPage(bioguideId) {
       .limit(RECORD_VOTE_LIMIT),
     lastRun(),
   ])
+  // A failed read must not render a real member as "no recorded votes" (and
+  // noindex them): throw, and prerender serves the uncached app shell instead.
+  if (memberRes.error) throw new Error(memberRes.error.message)
+  const member = memberRes.data
   if (!member) return null
+  if (votesRes.error) throw new Error(votesRes.error.message)
 
   const votes = votesRes.data || []
   const ids = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]

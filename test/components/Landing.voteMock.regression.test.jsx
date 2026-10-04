@@ -216,7 +216,7 @@ describe('Landing — "See every vote" step', () => {
     expect(features.length).toBe(6)
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
-      expect(f.querySelector('a.text-link')).not.toBeNull()
+      expect(f.querySelector('a.btn-text.btn-go')).not.toBeNull()
     })
     expect(container.querySelector('.features a[href="/this-week"]')).not.toBeNull()
   })

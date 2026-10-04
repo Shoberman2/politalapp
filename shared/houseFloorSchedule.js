@@ -95,7 +95,7 @@ export function parseHouseFloorXml(xml, fallbackWeek = null) {
 
   const congress = attribute(root, 'congress-num') ?? ''
   const week = attribute(root, 'week-date') || fallbackWeek
-  const updated = attribute(root, 'update-date') || attribute(root, 'create-date') || week
+  const updated = attribute(root, 'update-date') || attribute(root, 'create-date') || null
 
   const items = []
   const categoryPattern = /<category\b([^>]*)>([\s\S]*?)<\/category>/gi

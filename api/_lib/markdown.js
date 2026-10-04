@@ -54,7 +54,8 @@ export function recordMarkdown(r) {
   lines.push(`- Canonical: ${SITE}${recordPath(r.id)}`, `- Full record: ${SITE}/politician/${r.id}`)
   lines.push(`- Sources: ${r.sources.congressGov} · ${r.sources.bioguide} · ${r.sources.chamberVotes}`)
   if (r.updatedAt) lines.push(`- Data recorded through: ${r.updatedAt}`)
-  lines.push('', `## ${r.recentVotes.length} most recent recorded votes`, '')
+  const n = r.recentVotes.length
+  lines.push('', r.voteCount ? `## ${n} most recent recorded vote${n === 1 ? '' : 's'}` : '## Recorded votes', '')
   if (!r.voteCount) lines.push('No recorded votes yet.')
   else {
     if (r.thin) lines.push(`${r.voteCount} recorded vote${r.voteCount === 1 ? '' : 's'} so far; all are shown.`, '')
