@@ -28,8 +28,12 @@ read_env() {
 
 SUPABASE_URL="$(read_env VITE_SUPABASE_URL)"
 SUPABASE_ANON_KEY="$(read_env VITE_SUPABASE_ANON_KEY)"
-CONGRESS_API_KEY="$(read_env VITE_CONGRESS_API_KEY)"
-FEC_API_KEY="$(read_env VITE_FEC_API_KEY)"
+# Plain names first (the web app reads them server-side); the VITE_ names are
+# legacy fallbacks.
+CONGRESS_API_KEY="$(read_env CONGRESS_API_KEY)"
+[ -n "$CONGRESS_API_KEY" ] || CONGRESS_API_KEY="$(read_env VITE_CONGRESS_API_KEY)"
+FEC_API_KEY="$(read_env FEC_API_KEY)"
+[ -n "$FEC_API_KEY" ] || FEC_API_KEY="$(read_env VITE_FEC_API_KEY)"
 
 if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
   echo "error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in .env" >&2
@@ -37,13 +41,13 @@ if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
 fi
 
 if [ -z "$CONGRESS_API_KEY" ]; then
-  echo "warning: VITE_CONGRESS_API_KEY not set — House members will show their" >&2
+  echo "warning: CONGRESS_API_KEY not set — House members will show their" >&2
   echo "         state instead of a district number. Free key at" >&2
   echo "         https://api.congress.gov/sign-up/" >&2
 fi
 
 if [ -z "$FEC_API_KEY" ]; then
-  echo "warning: VITE_FEC_API_KEY not set — campaign finance will use the" >&2
+  echo "warning: FEC_API_KEY not set — campaign finance will use the" >&2
   echo "         lower-rate public FEC DEMO_KEY." >&2
 fi
 

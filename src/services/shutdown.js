@@ -1,12 +1,10 @@
 import axios from 'axios'
+import { CONGRESS_PROXY_BASE } from './apiProxy'
 
-const BASE_URL = 'https://api.congress.gov/v3'
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
-
+// Same-origin proxy; the Congress.gov key is added server-side.
 const shutdownApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: CONGRESS_PROXY_BASE,
   params: {
-    api_key: API_KEY,
     format: 'json'
   }
 })

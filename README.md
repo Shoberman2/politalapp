@@ -119,15 +119,24 @@ Required for full app data access:
 ```env
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
-VITE_CONGRESS_API_KEY=...
+CONGRESS_API_KEY=...
+FEC_API_KEY=...
 ```
 
-Vite embeds every `VITE_` value in the browser bundle. The Congress.gov key is
-therefore a public, quota-limited client credential in the current SPA
-architecture; never reuse it as a private server credential. A server proxy is
-required if that key must become private.
+Vite embeds every `VITE_` value in the browser bundle, so the Congress.gov and
+OpenFEC keys are server-side only. The SPA calls the same-origin proxies
+`/api/proxy/congress/*` and `/api/proxy/fec/*` (`api/proxy/`,
+`api/_lib/upstreamProxy.js`), which accept only GET on an allow-list of the
+upstream paths the app uses, add the key on the server, rate limit per IP, and
+let the CDN cache successful responses. `npm run dev` serves the same proxies
+from Vite dev-server middleware using your local `.env`; nothing is exposed to
+the client. Set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel. The proxies
+still fall back to the legacy `VITE_CONGRESS_API_KEY` / `VITE_FEC_API_KEY`
+names (read server-side only) so existing deployments keep working; remove those
+once the plain names are set. Without an FEC key the proxy uses OpenFEC's
+rate-limited `DEMO_KEY`.
 
-Required for ETL:
+Required for ETL (the same `CONGRESS_API_KEY`):
 
 ```env
 CONGRESS_API_KEY=...
