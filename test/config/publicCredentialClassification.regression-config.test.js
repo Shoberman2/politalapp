@@ -9,7 +9,11 @@ const baseEnv = {
   ...process.env,
   VITE_SUPABASE_URL: 'https://config-test.supabase.co',
   VITE_SUPABASE_ANON_KEY: 'public-anon-config-test',
-  VITE_CONGRESS_API_KEY: 'public-congress-config-test',
+  VITE_STRIPE_PUBLISHABLE_KEY: 'pk_test_public-stripe-config-test',
+  CONGRESS_API_KEY: 'private-congress-config-test',
+  FEC_API_KEY: 'private-fec-config-test',
+  VITE_CONGRESS_API_KEY: '',
+  VITE_FEC_API_KEY: '',
   SUPABASE_URL: 'https://config-test.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'private-service-role-config-test',
   VITE_PUBLIC_ORIGIN: 'http://localhost:3000',
@@ -30,8 +34,35 @@ describe('browser credential classification', () => {
 
     expect(result.status).toBe(0)
     expect(output).toContain('Browser client credentials: bundled by Vite and treated as public')
-    expect(output).toContain('VITE_CONGRESS_API_KEY')
-    expect(output).not.toContain(baseEnv.VITE_CONGRESS_API_KEY)
+    expect(output).toContain('VITE_STRIPE_PUBLISHABLE_KEY')
+    expect(output).not.toContain(baseEnv.VITE_STRIPE_PUBLISHABLE_KEY)
+    expect(output).not.toContain(baseEnv.CONGRESS_API_KEY)
+    expect(output).not.toContain(baseEnv.FEC_API_KEY)
+  })
+
+  it('requires the server-side proxy keys', () => {
+    const result = runConfig({ CONGRESS_API_KEY: '', FEC_API_KEY: '' })
+    const output = `${result.stdout}${result.stderr}`
+
+    expect(result.status).toBe(1)
+    expect(output).toContain('Server data-source proxy: missing CONGRESS_API_KEY, FEC_API_KEY')
+  })
+
+  it('accepts legacy VITE_ proxy key names with a warning, without printing values', () => {
+    const result = runConfig({
+      CONGRESS_API_KEY: '',
+      FEC_API_KEY: '',
+      VITE_CONGRESS_API_KEY: 'legacy-congress-config-test',
+      VITE_FEC_API_KEY: 'legacy-fec-config-test',
+    })
+    const output = `${result.stdout}${result.stderr}`
+
+    expect(result.status).toBe(0)
+    expect(output).toContain('rename it to CONGRESS_API_KEY')
+    expect(output).toContain('rename it to FEC_API_KEY')
+    expect(output).not.toContain('Private credentials use a public VITE_ prefix')
+    expect(output).not.toContain('legacy-congress-config-test')
+    expect(output).not.toContain('legacy-fec-config-test')
   })
 
   it('rejects an unknown Vite API key as a private credential', () => {
@@ -47,7 +78,6 @@ describe('browser credential classification', () => {
     const result = runConfig({
       VITE_SUPABASE_URL: '',
       VITE_SUPABASE_ANON_KEY: '',
-      VITE_CONGRESS_API_KEY: '',
       SUPABASE_URL: '',
       SUPABASE_SERVICE_ROLE_KEY: '',
       VITE_PUBLIC_ORIGIN: '',

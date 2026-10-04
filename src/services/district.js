@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
 
-// Congress.gov API
-const CONGRESS_API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
-const CONGRESS_BASE_URL = 'https://api.congress.gov/v3'
+import { CONGRESS_PROXY_BASE } from './apiProxy'
+
+// Congress.gov API, via the same-origin proxy (key added server-side)
+const CONGRESS_BASE_URL = CONGRESS_PROXY_BASE
 
 // Census Geocoder API (for address -> congressional district lookup)
 // Free, no API key, uses JSONP to bypass CORS restrictions
@@ -12,7 +13,6 @@ const CENSUS_GEOCODER_URL = 'https://geocoding.geo.census.gov/geocoder/geographi
 const congressApi = axios.create({
   baseURL: CONGRESS_BASE_URL,
   params: {
-    api_key: CONGRESS_API_KEY,
     format: 'json'
   }
 })

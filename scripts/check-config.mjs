@@ -57,14 +57,38 @@ function requireKeys(label, keys, target = errors) {
 const browserReady = requireKeys('Core browser data', [
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
-  'VITE_CONGRESS_API_KEY',
 ])
 const serverReady = requireKeys('Core server/API data', [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'VITE_PUBLIC_ORIGIN',
 ])
-const coreReady = browserReady && serverReady
+
+// Congress.gov and OpenFEC keys are read server-side by the /api/proxy/*
+// functions (and the Vite dev middleware). The proxy still accepts the legacy
+// VITE_-prefixed names as a fallback, so those only warn for now; once the
+// plain names are set everywhere, delete the VITE_ ones.
+const legacyProxyKeys = [
+  ['CONGRESS_API_KEY', 'VITE_CONGRESS_API_KEY'],
+  ['FEC_API_KEY', 'VITE_FEC_API_KEY'],
+]
+const missingProxyKeys = legacyProxyKeys
+  .filter(([key, legacy]) => !configured(config[key]) && !configured(config[legacy]))
+  .map(([key]) => key)
+if (missingProxyKeys.length > 0) {
+  errors.push(`Server data-source proxy: missing ${missingProxyKeys.join(', ')}`)
+} else {
+  checks.push('Server data-source proxy: configured')
+}
+for (const [key, legacy] of legacyProxyKeys) {
+  if (config[legacy] !== undefined && String(config[legacy]).trim() !== '') {
+    warnings.push(configured(config[key])
+      ? `${legacy} is set but no longer used; ${key} takes precedence. Remove ${legacy}.`
+      : `${legacy} is a legacy name read server-side only as a fallback; rename it to ${key}.`)
+  }
+}
+const proxyReady = missingProxyKeys.length === 0
+const coreReady = browserReady && serverReady && proxyReady
 
 if (configured(config.VITE_SUPABASE_URL) && configured(config.SUPABASE_URL)) {
   const browserUrl = config.VITE_SUPABASE_URL.replace(/\/$/, '')
@@ -73,9 +97,10 @@ if (configured(config.VITE_SUPABASE_URL) && configured(config.SUPABASE_URL)) {
   else errors.push('Supabase project URLs: VITE_SUPABASE_URL and SUPABASE_URL point to different projects')
 }
 
+// VITE_CONGRESS_API_KEY / VITE_FEC_API_KEY are not listed: no browser code
+// reads them any more (they are handled as legacy proxy names above).
+const legacyProxyKeyNames = new Set(legacyProxyKeys.map(([, legacy]) => legacy))
 const publicClientCredentialKeys = new Set([
-  'VITE_CONGRESS_API_KEY',
-  'VITE_FEC_API_KEY',
   'VITE_LEGISCAN_API_KEY',
   'VITE_OPENSECRETS_API_KEY',
   'VITE_STRIPE_PUBLISHABLE_KEY',
@@ -84,7 +109,8 @@ const publicClientCredentialKeys = new Set([
 const publicSecretKeys = Object.keys(config).filter((key) =>
   key.startsWith('VITE_') &&
   /(API_KEY|OPENAI|SECRET|SERVICE_ROLE|PRIVATE|TOKEN_ENCRYPTION|PASSWORD)/.test(key) &&
-  !publicClientCredentialKeys.has(key)
+  !publicClientCredentialKeys.has(key) &&
+  !legacyProxyKeyNames.has(key)
 )
 if (publicSecretKeys.length > 0) {
   errors.push(`Private credentials use a public VITE_ prefix: ${publicSecretKeys.join(', ')}`)

@@ -56,6 +56,14 @@
       "destination": "/api/sitemap?part=:part"
     },
     {
+      "source": "/api/proxy/congress/:path*",
+      "destination": "/api/proxy/congress?path=:path*"
+    },
+    {
+      "source": "/api/proxy/fec/:path*",
+      "destination": "/api/proxy/fec?path=:path*"
+    },
+    {
       "source": "/mcp",
       "destination": "/api/mcp"
     },
