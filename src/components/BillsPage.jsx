@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Footer from './Footer'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
 import { searchBillsInDb } from '../services/billsDb'
@@ -272,7 +271,7 @@ function BillsPage() {
     return (
       <div className="bills-page-error">
         <div className="error-message">{error}</div>
-        <button className="retry-button" onClick={() => fetchBills(true)}>Try Again</button>
+        <button className="retry-button btn-primary" onClick={() => fetchBills(true)}>Try Again</button>
       </div>
     )
   }
@@ -489,7 +488,6 @@ function BillsPage() {
         </main>
       </div>
 
-      <Footer />
     </div>
   )
 }

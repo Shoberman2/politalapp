@@ -106,7 +106,7 @@ function ShutdownTracker() {
       <div className="shutdown-tracker">
         <div className="shutdown-error">
           <p>{error}</p>
-          <button onClick={loadData} className="retry-btn">Retry</button>
+          <button onClick={loadData} className="retry-btn btn-primary">Retry</button>
         </div>
       </div>
     )

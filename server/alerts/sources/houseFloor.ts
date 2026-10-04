@@ -1,37 +1,11 @@
 import type { AlertSource, SourceObservation } from '../types.js';
 import { billIdFromLabel, contentHash } from '../canonical.js';
-
-function mondayIso(date: Date, addWeeks = 0): string {
-  const copy = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = copy.getUTCDay() || 7;
-  copy.setUTCDate(copy.getUTCDate() - day + 1 + addWeeks * 7);
-  return copy.toISOString().slice(0, 10);
-}
-
-function attribute(tag: string, name: string): string | null {
-  return tag.match(new RegExp(`${name}="([^"]*)"`, 'i'))?.[1] ?? null;
-}
-
-function element(xml: string, name: string): string {
-  return (xml.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`, 'i'))?.[1] ?? '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .trim();
-}
-
-async function fetchWeek(week: string) {
-  const compact = week.replaceAll('-', '');
-  const download = new URL('https://docs.house.gov/floor/Download.aspx');
-  download.searchParams.set('file', `/billsthisweek/${compact}/${compact}.xml`);
-  const response = await fetch(download, { headers: { accept: 'application/xml,text/xml' } });
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`House floor schedule request failed (${response.status})`);
-  return response.text();
-}
+import {
+  fetchHouseFloorWeek,
+  houseFloorPageUrl,
+  mondayIso,
+  parseHouseFloorXml,
+} from '../../../shared/houseFloorSchedule.js';
 
 export const houseFloorSource: AlertSource = {
   name: 'house_floor_schedule',
@@ -40,25 +14,21 @@ export const houseFloorSource: AlertSource = {
     let newestRevision = now.toISOString();
 
     for (const week of [mondayIso(now), mondayIso(now, 1)]) {
-      const xml = await fetchWeek(week);
+      const xml = await fetchHouseFloorWeek(week);
       if (!xml) continue;
-      const root = xml.match(/<floorschedule\b[^>]*>/i)?.[0] ?? '';
-      const congress = attribute(root, 'congress-num') ?? '';
-      const updated = attribute(root, 'update-date') ?? attribute(root, 'create-date') ?? week;
+      const parsed = parseHouseFloorXml(xml, week);
+      if (!parsed) continue;
+      const congress = parsed.congress;
+      const updated = parsed.updated ?? week;
       newestRevision = updated > newestRevision ? updated : newestRevision;
-      const sourceUrl = `https://docs.house.gov/floor/Default.aspx?date=${week}`;
-      const itemPattern = /<floor-item\b([^>]*)>([\s\S]*?)<\/floor-item>/gi;
-      let match: RegExpExecArray | null;
+      const sourceUrl = houseFloorPageUrl(week);
 
-      while ((match = itemPattern.exec(xml))) {
-        const attrs = match[1];
-        const body = match[2];
-        const label = element(body, 'legis-num');
+      for (const item of parsed.items) {
+        const { label, title, removedAt } = item;
+        const body = item.body;
         const billId = billIdFromLabel(congress, label);
-        const removedAt = attribute(attrs, 'remove-date');
-        const itemId = attribute(attrs, 'id') ?? contentHash({ label, body });
-        const title = element(body, 'floor-text');
-        const payload = { week, congress, itemId, label, title, removedAt, xml: match[0] };
+        const itemId = item.itemId ?? contentHash({ label, body });
+        const payload = { week, congress, itemId, label, title, removedAt, xml: item.xml };
 
         if (!billId) {
           observations.push({

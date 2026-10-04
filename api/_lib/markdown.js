@@ -5,6 +5,7 @@ import { rollCallPath } from './rollCallResult.js'
 import { billPath, billLabel } from './pages.js'
 import { congressOrdinal as ord } from './billCard.js'
 import { SITE_ORIGIN as SITE } from './site.js'
+import { recordHeadline, recordPath, recordSeatTitle } from '../../shared/memberRecord.js'
 
 function cell(s) {
   return String(s ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim()
@@ -34,6 +35,36 @@ export function memberMarkdown(m) {
     lines.push(`| ${cell(v.voted_at)} | ${vp ? `[${cell(v.roll_call_id)}](${SITE}${vp})` : cell(v.roll_call_id)} | ${cell(v.question)} | ${v.bill ? `[${cell(billLabel(v.bill.id))}](${SITE}${billPath(v.bill.id)})${v.bill.title ? ` ${cell(v.bill.title)}` : ''}` : ''} | ${cell(v.position)} | ${v.source_url ? `[record](${v.source_url})` : ''} |`)
   }
   lines.push('', `Full record and API: ${SITE}/llms.txt`)
+  return lines.join('\n') + '\n'
+}
+
+// Same facts as the record card, same template for every member.
+export function recordMarkdown(r) {
+  const seat = r.chamber === 'senate' ? `Senator, ${r.state}` : `${recordSeatTitle(r)}, ${r.state}${r.district ? `-${r.district}` : ''}`
+  const lines = [
+    `# ${recordHeadline(r)}`,
+    '',
+    `- Seat: ${seat}`,
+    `- Party: ${r.party}`,
+    `- Bioguide ID: ${r.id}`,
+  ]
+  if (r.servingSince && r.congress) lines.push(`- Serving in the ${ord(r.congress)} Congress since: ${r.servingSince}`)
+  if (r.stats) lines.push(`- ${ord(r.stats.congress)} Congress: ${r.stats.total} roll calls, ${r.stats.cast} votes cast (${r.stats.yea} yea, ${r.stats.nay} nay, ${r.stats.present} present), ${r.stats.notVoting} not voting (${r.stats.notVotingPct}%)`)
+  else lines.push('- Vote totals for the current Congress: not available yet')
+  lines.push(`- Canonical: ${SITE}${recordPath(r.id)}`, `- Full record: ${SITE}/politician/${r.id}`)
+  lines.push(`- Sources: ${r.sources.congressGov} · ${r.sources.bioguide} · ${r.sources.chamberVotes}`)
+  if (r.updatedAt) lines.push(`- Data recorded through: ${r.updatedAt}`)
+  const n = r.recentVotes.length
+  lines.push('', r.voteCount ? `## ${n} most recent recorded vote${n === 1 ? '' : 's'}` : '## Recorded votes', '')
+  if (!r.voteCount) lines.push('No recorded votes yet.')
+  else {
+    if (r.thin) lines.push(`${r.voteCount} recorded vote${r.voteCount === 1 ? '' : 's'} so far; all are shown.`, '')
+    lines.push('| Date | Roll call | Question | Bill | Vote | Result | Source |', '|---|---|---|---|---|---|---|')
+    for (const v of r.recentVotes) {
+      lines.push(`| ${cell(v.voted_at)} | ${v.path ? `[${cell(v.roll_call_id)}](${SITE}${v.path})` : cell(v.roll_call_id)} | ${cell(v.question)} | ${v.bill ? `[${cell(v.bill.label)}](${SITE}${v.bill.path})${v.bill.title ? ` ${cell(v.bill.title)}` : ''}` : ''} | ${cell(v.position)} | ${cell(v.result)} | ${v.source_url ? `[record](${v.source_url})` : ''} |`)
+    }
+  }
+  lines.push('', 'Every member gets this same template. The votes are the most recent on record, not a selection; results are derived from the tally and the question.', '', `Full record and API: ${SITE}/llms.txt`)
   return lines.join('\n') + '\n'
 }
 
@@ -87,6 +118,7 @@ export function billMarkdown(b) {
 
 export function renderMarkdown(data) {
   if (data.kind === 'member') return memberMarkdown(data)
+  if (data.kind === 'record') return recordMarkdown(data)
   if (data.kind === 'vote') return rollCallMarkdown(data)
   return billMarkdown(data)
 }

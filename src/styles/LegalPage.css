@@ -1,0 +1,7 @@
+/* /privacy and /terms — long-form legal sections. Tighter section rhythm than
+   the other info pages so a long notice stays scannable. Shared layout lives in
+   InfoPage.css. */
+
+.legal-page section:not(.ip-hero) .ip-inner { padding-top: 32px; padding-bottom: 32px; }
+.legal-page h2 { font-size: clamp(20px, 2.2vw, 24px); margin-bottom: 10px; }
+.legal-page strong { color: var(--ink); font-weight: 600; }

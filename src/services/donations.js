@@ -1,12 +1,12 @@
 import axios from 'axios'
+import { FEC_PROXY_BASE, installProxyPaths } from './apiProxy'
 
-// OpenFEC is public data, but programmatic requests require an API key.
-const FEC_BASE_URL = 'https://api.open.fec.gov/v1'
-const FEC_API_KEY = import.meta.env.VITE_FEC_API_KEY || 'DEMO_KEY'
+// OpenFEC is public data, but programmatic requests require an API key. The
+// same-origin proxy adds it server-side; the browser never holds it.
+const FEC_BASE_URL = FEC_PROXY_BASE
 const FEC_CACHE_VERSION = 'v2'
 
 console.log('[Donations API] Initializing...')
-console.log('[Donations API] FEC API Key present:', !!FEC_API_KEY)
 
 // List of major corporations/companies to track
 const MAJOR_COMPANIES = [
@@ -30,10 +30,8 @@ const MAJOR_COMPANIES = [
 // Create FEC API client
 const fecApi = axios.create({
   baseURL: FEC_BASE_URL,
-  params: {
-    api_key: FEC_API_KEY
-  }
 })
+installProxyPaths(fecApi)
 
 /** FEC cycles cover two calendar years and are named for the even year. */
 export const getCurrentFecCycle = (date = new Date()) => {

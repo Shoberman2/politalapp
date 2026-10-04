@@ -122,21 +122,9 @@
   color: #9C9789;
 }
 
-.btn-danger-sm {
-  font-family: 'General Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border: 1px solid #DC2626;
-  border-radius: var(--r-btn);
-  background: transparent;
-  color: #DC2626;
-  cursor: pointer;
-}
-
-.btn-danger-sm:hover {
-  background: rgba(220, 38, 38, 0.08);
-}
+/* Revoke: a quiet text action (shared .btn-secondary .btn-sm) in error red. */
+.btn-secondary.btn-danger-sm,
+.btn-secondary.btn-danger-sm:hover:not(:disabled) { color: var(--error); }
 
 .api-keys-empty {
   font-family: 'General Sans', sans-serif;
@@ -209,18 +197,8 @@
   word-break: break-all;
 }
 
-.btn-copy {
-  font-family: 'General Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border: 1px solid #E8E6E1;
-  border-radius: var(--r-btn);
-  background: #fff;
-  color: #1D4ED8;
-  cursor: pointer;
-  white-space: nowrap;
-}
+/* Copy: shared .btn-secondary .btn-sm (App.css). */
+.btn-copy { flex-shrink: 0; }
 
 .api-keys-modal-usage {
   font-family: 'General Sans', sans-serif;

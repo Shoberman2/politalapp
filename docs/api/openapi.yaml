@@ -323,6 +323,63 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/RateLimited"
+  /api/v1/floor/schedule:
+    get:
+      summary: Get the House weekly floor schedule
+      description: >
+        Items the House Majority Leader has listed for possible floor
+        consideration this week and next week (when published), parsed from the
+        "Bills This Week" XML on docs.house.gov. The schedule names a week, not
+        a day, and a listing is not a guarantee of a vote. Items later removed
+        from the schedule are omitted. The Senate does not publish a weekly
+        floor schedule in this format, so only the House is covered.
+      parameters:
+        - name: week
+          in: query
+          description: Any real date (YYYY-MM-DD) from 2010 to 60 days ahead, in the week to fetch; returns only that week. Defaults to this week and next.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Floor schedule by week
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      chamber:
+                        type: string
+                        enum: [house]
+                      senate_note:
+                        type: string
+                      weeks:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FloorScheduleWeek"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid week parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          description: docs.house.gov could not be reached for any requested week
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
@@ -566,6 +623,69 @@ components:
             used:
               type: integer
               description: Present on monthly paid-key limits
+    FloorScheduleWeek:
+      type: object
+      properties:
+        week:
+          type: string
+          format: date
+          description: Monday of the scheduled week
+          example: "2026-09-14"
+        chamber:
+          type: string
+          enum: [house]
+        status:
+          type: string
+          enum: [published, not_published, unavailable]
+          description: not_published when docs.house.gov has no schedule for the week (often a recess); unavailable when the upstream request failed
+        congress:
+          type: integer
+          nullable: true
+        source_updated_at:
+          type: string
+          nullable: true
+          description: The schedule's own update-date
+        source_url:
+          type: string
+          example: https://docs.house.gov/floor/Default.aspx?date=2026-09-14
+        xml_url:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_id:
+                type: string
+                nullable: true
+              label:
+                type: string
+                nullable: true
+                example: H.R. 4931
+              title:
+                type: string
+                nullable: true
+              category:
+                type: string
+                nullable: true
+                description: Short procedure name (Suspension, Under a rule, May be considered)
+                example: Suspension
+              category_type:
+                type: string
+                nullable: true
+                description: The category heading exactly as published
+                example: Items that may be considered under suspension of the rules
+              bill_id:
+                type: string
+                nullable: true
+                example: 119-hr-4931
+              bill_path:
+                type: string
+                nullable: true
+                example: /bill/119/hr/4931
+              added_at:
+                type: string
+                nullable: true
     RollCall:
       type: object
       properties:

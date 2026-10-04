@@ -191,7 +191,7 @@ export default function VotingPatternAnalysis({ member }) {
           </p>
           <button
             type="button"
-            className="vpa-analyze-btn"
+            className="vpa-analyze-btn btn-primary"
             onClick={runAnalysis}
             disabled={loading}
             aria-expanded={!!analysis}
@@ -211,7 +211,7 @@ export default function VotingPatternAnalysis({ member }) {
       {error && (
         <div className="vpa-error">
           <p>{error}</p>
-          <button type="button" className="vpa-analyze-btn" onClick={runAnalysis}>Retry</button>
+          <button type="button" className="vpa-analyze-btn btn-primary" onClick={runAnalysis}>Retry</button>
         </div>
       )}
 
@@ -428,7 +428,7 @@ function MethodologyModal({ onClose }) {
             generates or interprets these sentences.
           </p>
         </div>
-        <button type="button" className="vpa-modal-close" onClick={onClose}>Close</button>
+        <button type="button" className="vpa-modal-close btn-secondary" onClick={onClose}>Close</button>
       </div>
     </div>
   )

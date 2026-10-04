@@ -126,10 +126,6 @@
 .pricing-subscribe-btn,
 .pricing-card > .btn {
   width: 100%;
-  justify-content: center;
-  min-height: 54px;
-  border-radius: var(--r-btn);
-  font-size: 15px;
 }
 
 .pricing-note {
@@ -169,14 +165,15 @@
   background: none;
   border: none;
   color: var(--accent);
-  font-size: 0.88rem;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .pricing-signout:hover,
 .pricing-auth-link:hover {
-  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 540px) {

@@ -1,0 +1,179 @@
+/* "Tell your rep" hand-off. Editorial: a thin rule above, a mono kicker, a
+   serif headline, and the one civic-blue accent reserved for the single
+   primary action (opening the office's own contact page). */
+
+.tyr {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin: 32px 0 48px;
+  scroll-margin-top: 96px;
+}
+
+.tyr-kicker,
+.tyr-step-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* Buttons use the shared system in App.css: the contact hand-off is
+   .btn-primary, the disclosure toggle and Copy are .btn-secondary text
+   actions. Only layout lives here. */
+.tyr .tyr-toggle { padding-left: 0; }
+
+.tyr-link-btn:focus-visible,
+.tyr-textarea:focus-visible,
+.tyr-location input:focus-visible,
+.tyr-member input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tyr-panel {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  max-width: 760px;
+}
+.tyr-panel[hidden] { display: none; }
+
+.tyr-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.tyr-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text-primary);
+}
+.tyr-title:focus { outline: none; }
+.tyr-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.tyr-title em { font-style: italic; color: var(--accent); }
+
+.tyr-disclaimer {
+  margin: 12px 0 0;
+  padding: 12px 0 12px 16px;
+  border-left: 2px solid var(--rule-strong);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.tyr-disclaimer strong { color: var(--text-primary); font-weight: 600; }
+
+.tyr-steps { list-style: none; margin: 24px 0 0; padding: 0; }
+.tyr-step { padding: 20px 0; border-top: 1px solid var(--border-light); }
+.tyr-step:first-child { border-top: none; padding-top: 0; }
+
+.tyr-members { border: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tyr-member {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.tyr-member.is-selected { border-color: var(--accent); background: var(--accent-subtle); }
+.tyr-member input { margin: 0; accent-color: var(--accent); width: 18px; height: 18px; }
+.tyr-member-single { grid-template-columns: 1fr auto; cursor: default; }
+.tyr-member-name { font-weight: 500; color: var(--text-primary); }
+.tyr-member-seat,
+.tyr-member-vote,
+.tyr-mono { font-family: var(--font-mono); font-size: 12px; }
+.tyr-member-seat { color: var(--text-secondary); }
+.tyr-member-vote { grid-column: 2 / -1; color: var(--text-muted); }
+.tyr-member-single .tyr-member-vote { grid-column: 1 / -1; }
+.tyr-vote-yea { color: var(--success); }
+.tyr-vote-nay { color: var(--error); }
+
+.tyr-location {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-top: 12px;
+}
+.tyr-field { display: flex; flex-direction: column; gap: 6px; flex: 0 1 140px; }
+.tyr-field-wide { flex: 1 1 260px; }
+.tyr-field label { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.tyr-optional { font-weight: 400; color: var(--text-muted); }
+.tyr-location input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg, var(--surface));
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+.tyr-location .tyr-fineprint { flex-basis: 100%; margin: 0; }
+
+.tyr-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg, var(--surface));
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.tyr-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.tyr-link-btn { padding: 4px 0; }
+.tyr-panel-head .tyr-link-btn { margin-top: 0; }
+
+.tyr-muted { color: var(--text-muted); font-size: 14px; margin: 8px 0 0; }
+.tyr-error { color: var(--error); font-size: 14px; margin: 8px 0 0; }
+.tyr-fineprint { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.5; }
+.tyr-fineprint a { color: var(--text-secondary); }
+
+.tyr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .tyr-panel { padding: 16px; }
+  .tyr-title { font-size: 1.375rem; }
+  .tyr-actions .tyr-btn,
+  .tyr-location .tyr-btn { width: 100%; }
+  .tyr-field, .tyr-field-wide { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tyr-toggle, .tyr-btn { transition: none; }
+}
+
+/* "I sent it" confirmation (device-only record). */
+.tyr-sent { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
+.tyr-sent-done { margin: 0; font-size: 14px; color: var(--text-primary); }

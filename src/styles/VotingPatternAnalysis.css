@@ -49,34 +49,9 @@
   max-width: 640px;
 }
 
-.vpa-analyze-btn {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--bg);
-  background: var(--text-primary);
-  border: 1px solid var(--text-primary);
-  border-radius: var(--r-btn);
-  padding: 12px 20px;
-  min-height: 48px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
 
-.vpa-analyze-btn:hover:not(:disabled) {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
 
-.vpa-analyze-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 
-.vpa-analyze-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
 /* Loading */
 .vpa-loading {
@@ -423,27 +398,9 @@
 
 .vpa-modal-close {
   margin-top: var(--space-4);
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--bg);
-  background: var(--text-primary);
-  border: 1px solid var(--text-primary);
-  border-radius: var(--radius-sm);
-  padding: 10px 20px;
-  cursor: pointer;
-  min-height: 44px;
 }
 
-.vpa-modal-close:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
 
-.vpa-modal-close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 
 /* Visually hidden (a11y helper) */
 .visually-hidden {

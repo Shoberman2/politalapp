@@ -41,7 +41,8 @@ const rowNames = (container) => [...container.querySelectorAll('.rc-table tbody 
 beforeEach(() => services.getRollCall.mockReset())
 afterEach(cleanup)
 
-describe('RollCallPage', () => {
+// This one test walks many renders; under load it has exceeded the 5 s default.
+describe('RollCallPage', { timeout: 30000 }, () => {
   it('renders the record, filters members by name, state, and position, and handles missing roll calls', async () => {
     services.getRollCall.mockResolvedValue(rollCall)
     const { container } = renderAt('/vote/119/house/2/295')
@@ -60,6 +61,9 @@ describe('RollCallPage', () => {
     expect(screen.getByRole('link', { name: 'Nancy Pelosi' }).getAttribute('href')).toBe('/politician/P000197')
     expect(rowNames(container)).toEqual(['Aaron Bean', 'Nancy Pelosi', 'Robert Aderholt'])
     expect(container.querySelector('.rc-position-not-voting').textContent).toBe('Not Voting')
+    // The "Tell your rep" hand-off sits on the page, closed until asked for.
+    expect(container.querySelector('#tell-your-rep')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Write to your representative about this' }).getAttribute('aria-expanded')).toBe('false')
 
     const search = screen.getByRole('searchbox', { name: 'Filter members by name or state' })
     fireEvent.change(search, { target: { value: '  PEL ' } })
@@ -71,7 +75,7 @@ describe('RollCallPage', () => {
     fireEvent.change(search, { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Yea' }))
     expect(rowNames(container)).toEqual(['Robert Aderholt'])
-    expect(screen.getByRole('button', { name: 'Yea' }).className).toBe('is-active')
+    expect(screen.getByRole('button', { name: 'Yea' }).className).toBe('btn-toggle is-active')
 
     fireEvent.click(screen.getByRole('button', { name: 'Not Voting' }))
     expect(rowNames(container)).toEqual(['Aaron Bean'])

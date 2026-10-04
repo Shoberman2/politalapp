@@ -32,6 +32,10 @@
   ],
   "rewrites": [
     {
+      "source": "/politician/:bioguideId/record",
+      "destination": "/api/prerender?kind=record&id=:bioguideId"
+    },
+    {
       "source": "/politician/:bioguideId",
       "destination": "/api/prerender?kind=member&id=:bioguideId"
     },
@@ -50,6 +54,14 @@
     {
       "source": "/sitemap-:part.xml",
       "destination": "/api/sitemap?part=:part"
+    },
+    {
+      "source": "/api/proxy/congress/:path*",
+      "destination": "/api/proxy/congress?path=:path*"
+    },
+    {
+      "source": "/api/proxy/fec/:path*",
+      "destination": "/api/proxy/fec?path=:path*"
     },
     {
       "source": "/mcp",

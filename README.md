@@ -22,6 +22,9 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | Bill tracker | What does this bill do and where is it now? | Congress.gov bill records | Search, filter, cite, share |
 | Bill Watch alerts | When does a followed bill reach committee, the floor, or a recorded vote? | Congress.gov actions and committee meetings; House weekly floor schedule | Sign in, watch a bill, manage alerts at `/alerts` |
 | Vote records | How did a member vote? | House and Senate roll call data | Filter by member, bill, date, issue |
+| Record in 60 seconds | What is this member's record, on one screen? | House and Senate roll call data | Open `/politician/:id/record`, share the card |
+| This week on the floor | What is the House voting on this week? | House weekly floor schedule (docs.house.gov) and recent roll calls | Open `/this-week` or `GET /api/v1/floor/schedule` |
+| Tell your rep | How do I tell my representative what I think of a vote? | The vote record and the member's official contact page | Edit the drafted message, send it yourself; mark it sent to see later votes on that bill (saved on your device only) |
 | Legislative path | Where does this bill go next? | Committee routing and BallotWatch methodology | Read route and caveats |
 | Campaign finance context | What money context is visible? | FEC data and local industry mapping | Inspect donors and caveats |
 | API and sample data | How can I build with this? | BallotWatch API, OpenAPI, sample exports | Use `/open` and `/developers/docs` |
@@ -105,7 +108,9 @@ http://localhost:3000
 `npm run dev:fullstack` runs the Vite SPA and Vercel API routes on one origin.
 For frontend-only UI work, use `npm run dev` at `http://localhost:5173`;
 serverless routes such as `/api/briefings/*`, the server-rendered record
-pages, `/mcp`, and `/sitemap.xml` are not available in that mode.
+pages, `/mcp`, and `/sitemap.xml` are not available in that mode. The
+Congress.gov and OpenFEC proxies (`/api/proxy/*`) do work under `npm run dev`:
+Vite dev middleware serves them to localhost only, using the keys in `.env`.
 
 Most UI and docs work can be done without production credentials. Features that
 read or write Supabase need configured environment variables.
@@ -119,15 +124,24 @@ Required for full app data access:
 ```env
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
-VITE_CONGRESS_API_KEY=...
+CONGRESS_API_KEY=...
+FEC_API_KEY=...
 ```
 
-Vite embeds every `VITE_` value in the browser bundle. The Congress.gov key is
-therefore a public, quota-limited client credential in the current SPA
-architecture; never reuse it as a private server credential. A server proxy is
-required if that key must become private.
+Vite embeds every `VITE_` value in the browser bundle, so the Congress.gov and
+OpenFEC keys are server-side only. The SPA calls the same-origin proxies
+`/api/proxy/congress/*` and `/api/proxy/fec/*` (`api/proxy/`,
+`api/_lib/upstreamProxy.js`), which accept only GET on an allow-list of the
+upstream paths the app uses, add the key on the server, rate limit per IP, and
+let the CDN cache successful responses. `npm run dev` serves the same proxies
+from Vite dev-server middleware using your local `.env`; nothing is exposed to
+the client. Set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel. The proxies
+still fall back to the legacy `VITE_CONGRESS_API_KEY` / `VITE_FEC_API_KEY`
+names (read server-side only) so existing deployments keep working; remove those
+once the plain names are set. Without an FEC key the proxy uses OpenFEC's
+rate-limited `DEMO_KEY`.
 
-Required for ETL:
+Required for ETL (the same `CONGRESS_API_KEY`):
 
 ```env
 CONGRESS_API_KEY=...
@@ -260,12 +274,16 @@ Agent surfaces:
 
 - `/llms.txt` is the machine-readable map of the site, URL patterns, and limits.
 - `/mcp` is a stateless Streamable HTTP MCP server with `find_representatives`,
-  `get_member`, `get_member_votes`, `get_roll_call`, `search_bills`, `get_bill`,
-  and `explain_bill` (cached explanations only).
-- Member, bill, and roll-call pages return full HTML without JavaScript and
-  answer `Accept: text/markdown` with a compact Markdown record.
+  `get_member`, `get_member_record` (the "record in 60 seconds" facts, no
+  campaign-finance data), `get_member_votes`, `get_roll_call`, `search_bills`,
+  `get_bill`, `explain_bill` (cached explanations only), and
+  `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
+  loader as `/api/v1/floor/schedule`).
+- Member, member-record (`/politician/:id/record`), bill, and roll-call pages
+  return full HTML without JavaScript and answer `Accept: text/markdown` with a
+  compact Markdown record.
 - `/sitemap.xml` is generated from the database and lists every member with
-  votes, every roll call with a sane tally, and every bill with a recorded vote.
+  votes (and their record card), every roll call with a sane tally, and every bill with a recorded vote.
 
 Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per
@@ -283,6 +301,7 @@ Main routes:
 - `GET /api/v1/votes/:rollCallId`
 - `GET /api/v1/stats`
 - `GET /api/v1/search`
+- `GET /api/v1/floor/schedule`
 
 Public sample data is available under `public/data`.
 

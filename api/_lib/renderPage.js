@@ -10,6 +10,10 @@ import { rollCallPath } from './rollCallResult.js'
 import { billPath, billLabel } from './pages.js'
 import { congressOrdinal } from './billCard.js'
 import { SITE_ORIGIN as SITE } from './site.js'
+import {
+  RECORD_VOTE_LIMIT, recordPath, recordHeadline, recordSeatCode, recordSeatTitle, houseSeatTitle,
+  recordSummary, recordDate, recordOgImagePath,
+} from '../../shared/memberRecord.js'
 
 export const ordinal = congressOrdinal
 
@@ -63,7 +67,7 @@ export const stateName = (abbr) => STATE_NAMES[abbr] || abbr || ''
 
 export function memberTitle(m) {
   if (m.chamber === 'senate') return 'Senator'
-  return m.district ? 'Representative' : 'Delegate'
+  return houseSeatTitle(m.state)
 }
 
 function partyShort(p) {
@@ -171,7 +175,7 @@ export function renderMemberBody(m) {
       <h1 class="pol-name">${escapeHtml(m.name)}</h1>
       <p class="pol-standfirst">${escapeHtml(meta.description)}</p>
       ${stats ? `<dl class="pol-meta-grid"><dt>Recorded votes</dt><dd><span class="pol-meta-mono">${Number(stats.total_votes) || 0}</span></dd><dt>Yea</dt><dd><span class="pol-meta-mono">${Number(stats.yea_count) || 0}</span></dd><dt>Nay</dt><dd><span class="pol-meta-mono">${Number(stats.nay_count) || 0}</span></dd><dt>Not voting</dt><dd><span class="pol-meta-mono">${Number(stats.not_voting_count) || 0}</span></dd><dt>Votes with party</dt><dd><span class="pol-meta-mono">${Number(stats.party_loyalty_pct) || 0}%</span></dd></dl>` : ''}
-      <div class="pol-actions"><a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov ↗</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide ↗</a></div>
+      <div class="pol-actions"><a class="pol-action-btn" href="${escapeHtml(recordPath(m.id))}">Record in 60 seconds</a> <a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov ↗</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide ↗</a></div>
     </div>
   </header>
   ${terms ? `<section class="pol-editorial"><div class="pol-section-label">Terms of service</div><h2 class="pol-section-title">Congress history</h2><ul class="pol-terms">${terms}</ul></section>` : ''}
@@ -181,6 +185,99 @@ export function renderMemberBody(m) {
     <div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Date</th><th>Question</th><th>Bill</th><th>Vote</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>
   <footer class="rc-colophon">Data from Congress.gov, the House Clerk, and the Senate. ${m.updatedAt ? `Updated ${escapeHtml(fmtDate(m.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
+</article>`)
+}
+
+// ---------- record in 60 seconds ----------
+// One template for every member (shared/memberRecord.js). The class names
+// match MemberRecord.jsx so React's mount replaces the markup in place.
+
+export function recordMeta(r) {
+  return {
+    title: clampText(`${recordHeadline(r)} (${recordSeatCode(r)})`, 110),
+    description: clampText(recordSummary(r, stateName), 200),
+    canonical: `${SITE}${recordPath(r.id)}`,
+    ogImage: `${SITE}${recordOgImagePath(r.id)}`,
+  }
+}
+
+export function recordJsonLd(r) {
+  const meta = recordMeta(r)
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      name: meta.title,
+      url: meta.canonical,
+      dateModified: r.updatedAt || undefined,
+      mainEntity: {
+        '@type': 'Person',
+        name: r.name,
+        identifier: r.id,
+        jobTitle: r.chamber === 'senate' ? 'United States Senator' : 'United States Representative',
+        url: `${SITE}/politician/${r.id}`,
+        sameAs: [r.sources?.bioguide, r.sources?.congressGov].map(httpUrl).filter(Boolean),
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'BallotWatch', item: SITE },
+        { '@type': 'ListItem', position: 2, name: r.name, item: `${SITE}/politician/${r.id}` },
+        { '@type': 'ListItem', position: 3, name: 'Record in 60 seconds', item: meta.canonical },
+      ],
+    },
+  ]
+}
+
+function positionClass(p) {
+  return `rc-position rc-position-${String(p || '').toLowerCase().replace(/\s+/g, '-')}`
+}
+
+export function renderRecordBody(r) {
+  const s = r.stats
+  const photo = `https://unitedstates.github.io/images/congress/450x550/${encodeURIComponent(r.id)}.jpg`
+  const party = partyShort(r.party)
+  const seat = `${escapeHtml(recordSeatTitle(r))} · ${escapeHtml(stateName(r.state))}${r.district ? ` district ${escapeHtml(r.district)}` : ''}`
+
+  const facts = s
+    ? `<dl class="rec-facts"><div><dt>Roll calls, ${escapeHtml(ordinal(s.congress))} Congress</dt><dd>${s.total}</dd></div><div><dt>Votes cast</dt><dd>${s.cast}</dd></div><div><dt>Not voting</dt><dd>${s.notVoting} <span class="rec-facts-sub">(${s.notVotingPct}%)</span></dd></div></dl>`
+    : `<p class="rec-note">Vote totals for the current Congress are not available yet.</p>`
+
+  const rows = r.recentVotes.map((v) => {
+    const q = escapeHtml(v.question || 'Recorded vote')
+    const bill = v.bill ? ` <a class="rec-bill" href="${escapeHtml(v.bill.path)}">${escapeHtml(v.bill.label)}</a>` : ''
+    const title = v.bill?.title ? `<div class="rec-vote-title">${escapeHtml(clampText(v.bill.title, 110))}</div>` : ''
+    const question = v.path ? `<a href="${escapeHtml(v.path)}">${q}</a>` : q
+    return `<tr><td class="rc-mono">${escapeHtml(recordDate(v.voted_at))}</td><td>${question}${bill}${title}</td><td class="${escapeHtml(positionClass(v.position))}">${escapeHtml(v.position || '')}</td><td class="rec-result">${v.result ? `<span class="rc-result rc-result-${escapeHtml(v.resultKind || '')}">${escapeHtml(v.result)}</span>` : '<span class="rec-muted">Not derived</span>'}</td><td class="rec-src">${safeUrl(v.source_url) ? `<a href="${safeUrl(v.source_url)}" rel="noopener">${v.chamber === 'Senate' ? 'Senate' : 'Clerk'} ↗</a>` : ''}</td></tr>`
+  }).join('')
+
+  const votesBlock = r.voteCount === 0
+    ? `<p class="rec-note">No recorded votes for ${escapeHtml(r.name)} in BallotWatch data yet. A member who took office recently may not have voted on a roll call yet.</p>`
+    : `${r.thin ? `<p class="rec-note">${escapeHtml(r.name)} has ${r.voteCount} recorded vote${r.voteCount === 1 ? '' : 's'} so far. All are shown.</p>` : ''}<div class="rc-table-wrap"><table class="rc-table rec-table"><thead><tr><th>Date</th><th>Question</th><th>Vote</th><th>Result</th><th>Source</th></tr></thead><tbody>${rows}</tbody></table></div>`
+
+  return chrome(`<article class="rec">
+  <nav class="rc-crumb"><a href="/">BallotWatch</a><span class="rc-crumb-sep">/</span><a href="/politician/${escapeHtml(r.id)}">${escapeHtml(r.name)}</a><span class="rc-crumb-sep">/</span><span>Record in 60 seconds</span></nav>
+  <header class="rec-head">
+    <img class="rec-photo" src="${photo}" alt="${escapeHtml(r.name)}" width="96" height="117" />
+    <div class="rec-id">
+      <div class="rec-kicker">Record in 60 seconds${r.congress ? ` · ${escapeHtml(ordinal(r.congress))} Congress` : ''}</div>
+      <h1 class="rec-name">${escapeHtml(r.name)}</h1>
+      <div class="rec-seat"><span class="rec-party rec-party-${escapeHtml(party.toLowerCase())}">${escapeHtml(party)}</span>${seat} · ${r.chamber === 'senate' ? 'Senate' : 'House'}</div>
+      ${r.servingSince && r.congress ? `<div class="rec-since">Serving in the ${escapeHtml(ordinal(r.congress))} Congress since <span class="rc-mono">${escapeHtml(fmtDate(r.servingSince))}</span></div>` : ''}
+    </div>
+  </header>
+  ${facts}
+  <section class="rec-section">
+    <div class="rc-section-label">${r.voteCount ? `${r.recentVotes.length} most recent recorded vote${r.recentVotes.length === 1 ? '' : 's'}` : 'Recorded votes'}</div>
+    ${votesBlock}
+  </section>
+  <div class="rec-actions"><a class="rc-action-btn" href="/politician/${escapeHtml(r.id)}">Full record →</a><button type="button" class="rc-action-btn" disabled>Copy link</button></div>
+  <footer class="rec-colophon">
+    <p>Every member's card uses this same template and the same facts. The votes listed are the ${RECORD_VOTE_LIMIT} most recent on record, not a selection. Results are derived from the official tally and the question.</p>
+    <p>${r.updatedAt ? `Data recorded through ${escapeHtml(fmtDate(r.updatedAt))}. ` : ''}Sources: <a href="${safeUrl(r.sources.congressGov)}" rel="noopener">Congress.gov</a> · <a href="${safeUrl(r.sources.bioguide)}" rel="noopener">Bioguide</a> · <a href="${safeUrl(r.sources.chamberVotes)}" rel="noopener">${r.chamber === 'senate' ? 'Senate.gov roll call votes' : 'House Clerk roll call votes'}</a> · <a href="/methodology">Methodology</a></p>
+  </footer>
 </article>`)
 }
 
@@ -331,7 +428,7 @@ function jsonScript(obj) {
   return JSON.stringify(obj).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
 }
 
-export function injectIntoShell(shell, { title, description, canonical, robots, ogType = 'article', jsonLd = [], body, pageData = null }) {
+export function injectIntoShell(shell, { title, description, canonical, robots, ogType = 'article', ogImage = null, jsonLd = [], body, pageData = null }) {
   let html = String(shell)
   const t = escapeHtml(title)
   const d = escapeHtml(description)
@@ -345,6 +442,13 @@ export function injectIntoShell(shell, { title, description, canonical, robots, 
   html = put(html, /<meta property="og:description" content="[^"]*"\s*\/?>/i, `<meta property="og:description" content="${d}" />`)
   html = put(html, /<meta name="twitter:title" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" content="${t}" />`)
   html = put(html, /<meta name="twitter:description" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" content="${d}" />`)
+  if (ogImage) {
+    const img = escapeHtml(ogImage)
+    // A generated image: state its size so Facebook and LinkedIn can lay out
+    // the preview on the first share instead of waiting to fetch the image.
+    html = put(html, /<meta property="og:image" content="[^"]*"\s*\/?>/i, `<meta property="og:image" content="${img}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta property="og:image:alt" content="${t}" />`)
+    html = put(html, /<meta name="twitter:image" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" content="${img}" />`)
+  }
   html = put(html, /<meta name="robots" content="[^"]*"\s*\/?>/i, `<meta name="robots" content="${escapeHtml(robots || 'index, follow')}" />`)
   // Replace the generic WebApplication block with page-specific JSON-LD.
   html = put(html, /<script type="application\/ld\+json">[\s\S]*?<\/script>/i, '')
@@ -358,15 +462,16 @@ export function injectIntoShell(shell, { title, description, canonical, robots, 
 export function renderPage(shell, data) {
   let meta, jsonLd, body
   if (data.kind === 'member') { meta = memberMeta(data); jsonLd = memberJsonLd(data); body = renderMemberBody(data) }
+  else if (data.kind === 'record') { meta = recordMeta(data); jsonLd = recordJsonLd(data); body = renderRecordBody(data) }
   else if (data.kind === 'vote') { meta = rollCallMeta(data); jsonLd = rollCallJsonLd(data); body = renderRollCallBody(data) }
   else { meta = billMeta(data); jsonLd = billJsonLd(data); body = renderBillBody(data) }
   return injectIntoShell(shell, {
     ...meta,
-    ogType: data.kind === 'member' ? 'profile' : 'article',
+    ogType: data.kind === 'member' || data.kind === 'record' ? 'profile' : 'article',
     robots: data.indexable ? 'index, follow' : 'noindex, follow',
     jsonLd,
     body,
-    // The React roll-call page reads this and skips its own fetch.
-    pageData: data.kind === 'vote' ? data : null,
+    // The React roll-call and record pages read this and skip their own fetch.
+    pageData: data.kind === 'vote' || data.kind === 'record' ? data : null,
   })
 }

@@ -8,6 +8,10 @@ import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
 import BillWatchControl from './BillWatchControl'
+import TellYourRep from './TellYourRep'
+import { YouWroteNotes } from './YouWrote'
+import { billIdFrom } from '../utils/sentMessages'
+import { billRef, congressGovBillUrl, formatDate as formatLongDate } from '../utils/tellYourRepDraft'
 import { SHOW_BILL_ALERTS } from '../config/features'
 import '../styles/BillDetail.css'
 
@@ -160,7 +164,7 @@ function BillDetail() {
     return (
       <div className="bill-detail-error">
         <div className="error-message">{error || 'Bill not found'}</div>
-        <button className="bill-back-button" onClick={() => navigate('/bills')}>Back to Bills</button>
+        <button className="bill-back-button btn-primary" onClick={() => navigate('/bills')}>Back to Bills</button>
       </div>
     )
   }
@@ -172,6 +176,20 @@ function BillDetail() {
   const latestOfficialParagraphs = latestOfficialSummary
     ? officialSummaryParagraphs(latestOfficialSummary.text, displayTitle)
     : []
+
+  const latestActionText = bill.latestAction?.text
+    ? `${bill.latestAction.text}${bill.latestAction.actionDate ? ` (${formatLongDate(bill.latestAction.actionDate)})` : ''}`
+    : undefined
+  const tellContext = {
+    kind: 'bill',
+    ref: billRef({ congress, billType, number }),
+    billId: billIdFrom(congress, billType, number) || undefined,
+    label: `${formatBillId(bill, billType, number)} (${congress}th Congress)`,
+    title: displayTitle,
+    sourceUrl: congressGovBillUrl(congress, billType, number) || undefined,
+    href: `/bill/${congress}/${billType}/${number}`,
+    result: latestActionText,
+  }
 
   const cosponsorByParty = cosponsors.reduce((acc, c) => {
     const p = c.party?.toLowerCase()?.charAt(0) || 'i'
@@ -252,12 +270,12 @@ function BillDetail() {
         </p>
         <div className="bill-masthead-actions">
           {textVersions[0]?.formats?.[0]?.url && (
-            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Read full text ↗</a>
+            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Read full text ↗</a>
           )}
           {bill.url && (
-            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn">Congress.gov ↗</a>
+            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Congress.gov ↗</a>
           )}
-          <button type="button" onClick={handleShare} className="bill-action-btn">{shareLabel}</button>
+          <button type="button" onClick={handleShare} className="bill-action-btn btn-secondary btn-sm">{shareLabel}</button>
         </div>
       </header>
 
@@ -269,12 +287,12 @@ function BillDetail() {
           <article className="bill-ai-card">
             <div className="bill-ai-label">
               <span className="bill-ai-pulse"></span>
-              <InfoTip text="This explanation uses the official Congress.gov summary. When that source is unavailable, BallotWatch does not infer provisions from the title.">The bill, in plain English</InfoTip>
+              <InfoTip text="This explanation is written with AI from the official Congress.gov summary. When that source is unavailable, BallotWatch does not infer provisions from the title.">The bill, in plain English</InfoTip>
             </div>
             <div className="bill-ai-byline">
               {aiExplanation?.sourceUnavailable
                 ? 'Official summary not yet available · no inferred provisions'
-                : 'From the official Congress.gov summary · no inferred provisions'}
+                : 'AI explanation from the official Congress.gov summary · no inferred provisions'}
             </div>
             <h2 className="bill-ai-headline">What this bill <em>would do</em></h2>
             {aiLoading && (
@@ -354,6 +372,9 @@ function BillDetail() {
               </div>
             </section>
           )}
+
+          <YouWroteNotes billId={tellContext.billId} />
+          <TellYourRep context={tellContext} />
 
           {/* TIMELINE OF ACTIONS */}
           {actions.length > 0 && (

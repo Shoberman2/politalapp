@@ -29,7 +29,7 @@ function ArticlePage() {
       <div className="article-not-found">
         <h1>Article Not Found</h1>
         <p>The article you're looking for doesn't exist or may have been moved.</p>
-        <button className="back-button" onClick={() => navigate('/blog')}>
+        <button className="back-button btn-primary" onClick={() => navigate('/blog')}>
           Back to Blog
         </button>
       </div>

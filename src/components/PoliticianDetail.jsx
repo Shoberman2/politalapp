@@ -20,6 +20,9 @@ import VotingPatternAnalysis from './VotingPatternAnalysis'
 import VotingRecordSummary from './VotingRecordSummary'
 import SponsorActivityBadge from './SponsorActivityBadge'
 import SEO from './SEO'
+import TellYourRep from './TellYourRep'
+import { YouWroteNotes } from './YouWrote'
+import { memberRef } from '../utils/tellYourRepDraft'
 import '../styles/PoliticianDetail.css'
 
 // Same feature flag as the BillsPage filter pills — both surfaces depend on
@@ -203,7 +206,7 @@ function PoliticianDetail() {
     return (
       <div className="pol-error">
         <div className="error-message">{error || 'Politician not found'}</div>
-        <button className="pol-back-button" onClick={() => navigate('/all')}>
+        <button className="pol-back-button btn-primary" onClick={() => navigate('/all')}>
           Back to All Politicians
         </button>
       </div>
@@ -389,19 +392,42 @@ function PoliticianDetail() {
             )}
           </dl>
           <div className="pol-actions">
+            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn btn-secondary btn-sm btn-go">
+              Record in 60 seconds
+            </Link>
             {member.officialWebsiteUrl && (
-              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary">
+              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary btn-primary btn-sm">
                 Official website ↗
               </a>
             )}
             {member.url && (
-              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn">
+              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn btn-secondary btn-sm">
                 Congress.gov ↗
               </a>
             )}
           </div>
         </div>
       </header>
+
+      <YouWroteNotes member={bioguideId} />
+      <TellYourRep
+        context={{
+          kind: 'member',
+          ref: memberRef(bioguideId),
+          label: displayName,
+          href: `/politician/${bioguideId}`,
+        }}
+        members={[{
+          bioguideId,
+          name: displayName,
+          lastName: member.lastName,
+          chamber,
+          state: stateAbbr,
+          district,
+          officialWebsiteUrl: member.officialWebsiteUrl,
+          phone: member.addressInformation?.phoneNumber,
+        }]}
+      />
 
       <VotingRecordSummary
         bioguideId={bioguideId}

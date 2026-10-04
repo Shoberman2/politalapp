@@ -182,26 +182,9 @@
 }
 
 .expand-button {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  background: var(--surface);
-  color: var(--text-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
-.expand-button:hover {
-  background: var(--accent);
-  color: var(--surface);
-  border-color: var(--accent);
-  transform: scale(1.05);
-}
 
 .expand-button svg {
   transition: transform 0.15s ease;

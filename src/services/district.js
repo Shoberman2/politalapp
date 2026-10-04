@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
+import { isAtLargeState, normalizeCensusDistrict } from '../../shared/atLargeStates.js'
 
-// Congress.gov API
-const CONGRESS_API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
-const CONGRESS_BASE_URL = 'https://api.congress.gov/v3'
+import { CONGRESS_PROXY_BASE, installProxyPaths } from './apiProxy'
+
+// Congress.gov API, via the same-origin proxy (key added server-side)
+const CONGRESS_BASE_URL = CONGRESS_PROXY_BASE
 
 // Census Geocoder API (for address -> congressional district lookup)
 // Free, no API key, uses JSONP to bypass CORS restrictions
@@ -12,10 +14,10 @@ const CENSUS_GEOCODER_URL = 'https://geocoding.geo.census.gov/geocoder/geographi
 const congressApi = axios.create({
   baseURL: CONGRESS_BASE_URL,
   params: {
-    api_key: CONGRESS_API_KEY,
     format: 'json'
   }
 })
+installProxyPaths(congressApi)
 
 // US States with their abbreviations
 export const US_STATES = [
@@ -107,11 +109,9 @@ export const getDistrictFromAddress = async (address) => {
 
       if (stateAbbr) {
         // We have the state, but need to determine district
-        // For at-large states (1 district), we can auto-select
-        // Montana regained a second seat in 2023; it is not at-large.
-        const atLargeStates = ['AK', 'DE', 'ND', 'SD', 'VT', 'WY']
-
-        if (atLargeStates.includes(stateAbbr)) {
+        // For at-large states (1 district), we can auto-select. The list
+        // lives in shared/atLargeStates.js (Montana is not on it).
+        if (isAtLargeState(stateAbbr)) {
           return {
             state: stateAbbr,
             district: '0', // At-large
@@ -495,8 +495,7 @@ export const getDistrictsByState = async (stateAbbr) => {
     // Handle at-large states (single district represented as "0" or "00")
     if (districts.length === 0) {
       // Check if this state has any house members at all - might be at-large
-      const atLargeStates = ['AK', 'DE', 'ND', 'SD', 'VT', 'WY']
-      if (atLargeStates.includes(stateAbbr)) {
+      if (isAtLargeState(stateAbbr)) {
         console.log(`[District API] ${stateAbbr} is at-large state`)
         return ['0']
       }
@@ -569,7 +568,7 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
     // Find congressional district in geographies
     // Key looks like "119th Congressional Districts"
     const geographies = match.geographies || {}
-    const cdKey = Object.keys(geographies).find(k => k.includes('Congressional District'))
+    const cdKey = Object.keys(geographies).find(k => /Congressional District/i.test(k))
     const cd = geographies[cdKey]?.[0]
 
     if (!cd) {
@@ -577,10 +576,16 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
       return null
     }
 
-    // BASENAME is the district number (e.g. "4")
-    // At-large districts are "00" in Census data
-    let district = cd.BASENAME
-    if (district === '00') district = '0'
+    // The CDnnn field (e.g. CD119: "04") carries the district code; at-large
+    // seats are "00". BASENAME is display text — "4", but "Congressional
+    // District (at Large)" for an at-large seat — so it is only a fallback.
+    const cdField = Object.keys(cd).find(k => /^CD\d+$/i.test(k))
+    const rawCode = (cdField && cd[cdField]) || cd.GEOID?.substring(2) || cd.BASENAME
+    const district = normalizeCensusDistrict(rawCode)
+    if (district == null) {
+      console.log('[District API] Census Geocoder: empty congressional district code')
+      return null
+    }
 
     // Extract state FIPS from GEOID (first 2 digits) as fallback
     const stateFips = cd.GEOID?.substring(0, 2)

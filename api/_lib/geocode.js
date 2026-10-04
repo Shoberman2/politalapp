@@ -3,6 +3,8 @@
 // and any future API route can resolve a street address or a ZIP without the
 // client-side workarounds in src/services/district.js.
 
+import { isAtLargeState, normalizeCensusDistrict } from '../../shared/atLargeStates.js'
+
 const CENSUS = 'https://geocoding.geo.census.gov/geocoder/geographies'
 const BENCHMARK = 'Public_AR_Current'
 const VINTAGE = 'Current_Current'
@@ -29,7 +31,8 @@ export function districtFromGeographies(geographies) {
   const raw = cdKey ? String(row[cdKey]) : null
   if (!raw) return null
   // 00 = at-large; 98 and 99 = non-voting delegate or resident commissioner.
-  const district = /^(0+|98|99)$/.test(raw) ? '0' : String(parseInt(raw, 10))
+  const district = normalizeCensusDistrict(raw)
+  if (district == null) return null
   const state = FIPS_TO_STATE[String(row.STATE || '').padStart(2, '0')] || null
   return { state, district, congressLabel: key }
 }
@@ -69,10 +72,17 @@ export async function geocodeZip(zip) {
   const place = await getJson(`https://api.zippopotam.us/us/${z}`)
   const p = place?.places?.[0]
   if (!p) return null
+  const zipState = p['state abbreviation'] || null
+  // In an at-large state the ZIP fixes the district exactly, so there is no
+  // centroid guess to make. Everywhere else (Montana included, which has two
+  // districts) a ZIP centroid is only a best guess, and the note says so.
+  if (isAtLargeState(zipState)) {
+    return { state: zipState, district: '0', precision: 'zip', city: p['place name'], note: null }
+  }
   const params = new URLSearchParams({ x: p.longitude, y: p.latitude, benchmark: BENCHMARK, vintage: VINTAGE, format: 'json' })
   const data = await getJson(`${CENSUS}/coordinates?${params}`)
   const d = districtFromGeographies(data?.result?.geographies)
-  const state = p['state abbreviation'] || d?.state || null
+  const state = zipState || d?.state || null
   if (!d) return state ? { state, district: null, precision: 'zip', city: p['place name'] } : null
   return { ...d, state, precision: 'zip', city: p['place name'], note: 'ZIP centroid; ZIP codes can span more than one district' }
 }

@@ -4,7 +4,47 @@
 **Priority:** High
 **Blocked by:** A Vercel Marketplace (or Upstash) account action by the owner
 **Context:** Anonymous API access and free keys (shipped 2026-09-05) rate-limit per IP in `api/_lib/rateLimit.js`. Without `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` the counter is in-memory per function instance, so the limit is soft under Fluid Compute.
-**What to do:** Add the Upstash Redis integration in the Vercel dashboard (Marketplace), which sets both env vars, then redeploy. No code change needed; `hasSharedStore()` flips to true.
+**What to do:** Add the Upstash Redis integration in the Vercel dashboard (Marketplace), which sets both env vars, then redeploy. No code change needed; `hasSharedStore()` flips to true. Since v0.7.0.0 this also covers the Congress.gov/FEC proxy (`api/_lib/proxyRoute.js`), whose per-IP budget protects the shared `CONGRESS_API_KEY` that the ETL and bill alerts also use.
+
+## Rotate the Congress.gov and FEC API keys
+**Priority:** High
+**Blocked by:** Owner action at api.data.gov and in the Vercel dashboard
+**Context:** Until v0.7.0.0 both keys were inlined into the public JS bundle (`VITE_CONGRESS_API_KEY`, `VITE_FEC_API_KEY`), so the current values are public. The proxy now reads them server-side only, but moving a leaked key protects nothing until it is replaced. The iOS app also embeds `CONGRESS_API_KEY` via `ios/scripts/make-secrets.sh`.
+**What to do:** Issue new keys; set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel; delete the `VITE_` names; give iOS its own key (or route iOS through `/api/proxy`); remove the `VITE_` fallbacks in `api/_lib/upstreamProxy.js`.
+
+## Serve the dynamic share image (`/api/og`)
+**Priority:** P1
+**Context:** `api/og.jsx` (edge, `@vercel/og`) returns Vercel's NOT_FOUND in production and previews, for bills and member records alike: the `.jsx` function is not built in this non-Next project. `api/share.js` and, since v0.7.0.0, the record page's `og:image` (`recordOgImagePath` in `shared/memberRecord.js`) use the static `/congress.jpg` card instead.
+**What to do:** Rename to `api/og.js` without JSX (React.createElement or the object form), or move to a build that compiles it; verify on a preview with `vercel curl`; then point `recordOgImagePath` back at `/api/og?kind=record&id=…`.
+
+## Lazy-load routes and cut the main bundle under 250 KB gzip
+**Priority:** P1
+**Deferred from plan:** docs/designs/agent-front-door-and-tell-your-rep.md (Phase 3)
+**Context:** The main chunk is ~343 KB gzip; every route, including the static privacy/terms pages, is imported eagerly in `src/App.jsx`.
+**What to do:** Keep Landing and Footer eager; `React.lazy` the rest behind one `Suspense`; update App-level tests that render routes synchronously.
+
+## Measure mobile LCP on production
+**Priority:** P1
+**Deferred from plan:** docs/designs/agent-front-door-and-tell-your-rep.md (Phase 3 success criterion: mobile LCP under 2.5 s)
+**What to do:** Run a Lighthouse/field measurement on www.ballotwatch.io after the v0.7.0.0 deploy and record the number here.
+
+## DC and territory ZIP lookups name the delegate
+**Priority:** Medium
+**Context:** A ZIP in DC, PR, GU, VI, AS or MP resolves no House district (only at-large states take the ZIP shortcut), so the landing lookup and Tell your rep find nobody there. `isDelegateJurisdiction()` in `shared/atLargeStates.js` exists but the ZIP path doesn't use it.
+
+## Landing member lookup from Supabase, not the full Congress.gov roster
+**Priority:** Medium
+**Context:** The landing ZIP result and record links resolve names via `fetchAllMembersWithCache` (three serial proxy pages of ~540 members). A state-filtered `politicians` query would be one bounded request.
+
+## Verify official contact URLs for Tell your rep
+**Priority:** Medium
+**Context:** `src/utils/contactUrl.js` assumes `<official site>/contact`; `CONTACT_URL_OVERRIDES` is empty. Some offices' forms live elsewhere, so some hand-off links may 404.
+**What to do:** Check each current member's URL and fill the override map (or add a `politicians.contact_url` column populated by the ETL).
+
+## Counsel review before office outreach
+**Priority:** High
+**Blocked by:** A political-law / congressional-ethics lawyer
+**Context:** `/privacy` and `/terms` (v0.7.0.0) were written from the code, not reviewed by counsel. Office outreach must be a request to sponsor a House security review, never a free pilot (House Rule XXIV / Senate Rule XXXVIII). The House CWC vendor application is intentionally not filed until counsel reviews the plan.
 
 ## ~~Apply the anonymous-usage migration in production~~
 **Status:** Done 2026-09-05. `20260905170000_anonymous_api_usage.sql` (creates the B2B API tables that had never existed in production) and `20260905190000_api_grants_hardening.sql` (column-level grants so a signed-in user cannot set their own plan) are applied to the linked project.
@@ -208,6 +248,7 @@
 **Context:** QA removed checked-in Congress.gov fallback values from frontend and server code, and runtime configuration now requires environment-owned values. Because a key existed in repository history, removing the fallback does not revoke the historical credential. The current SPA calls Congress.gov directly, so `VITE_CONGRESS_API_KEY` is intentionally embedded in the browser and must be treated as public and quota-limited rather than as a server secret.
 **Repro:** Inspect repository history for the removed non-empty Congress.gov fallback; do not print or reuse the value.
 **What to do:** Revoke or rotate the key with Congress.gov, update the server and browser environment values, and confirm `npm run config:check`, build, and bill-loading smoke tests pass. Monitor the 5,000-request/hour quota. If the replacement must remain private, first proxy Congress.gov calls through a server route and remove `VITE_CONGRESS_API_KEY` from the frontend architecture.
+**Update (2026-10-04):** The SPA now reads Congress.gov and OpenFEC through the server-side `/api/proxy/*` routes, so new builds no longer embed either key. Both keys shipped in earlier public bundles, so rotate the Congress.gov and FEC keys anyway, set the new values as `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel, then delete `VITE_CONGRESS_API_KEY` and `VITE_FEC_API_KEY` (the proxy reads them only as a fallback). `ios/scripts/make-secrets.sh` still reads the `VITE_` names from `.env` and needs updating when they go.
 **Note (2026-08-06):** The iOS app deliberately does not commit this key. It reads `ios/BallotWatch/Secrets.plist`, which is gitignored and generated from `.env` by `ios/scripts/make-secrets.sh`; the app degrades to state-level display when the key is absent. Any rotation needs to reach that generator too, but nothing in `ios/` has to be scrubbed from history.
 
 ## Enable Supabase leaked-password protection

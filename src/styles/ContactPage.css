@@ -1,0 +1,7 @@
+/* /contact — three ways to reach us, separated by thin rules. Shared layout
+   lives in InfoPage.css. */
+
+.contact-page .contact-list > li { padding: 24px 0; }
+.contact-page .contact-list > li:first-child { padding-top: 0; }
+.contact-page .contact-list > li:last-child { padding-bottom: 0; }
+.contact-page .contact-list h2 { margin-bottom: 8px; }

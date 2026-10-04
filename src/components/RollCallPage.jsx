@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getRollCall, fromPrerender } from '../services/rollCall'
 import SEO from './SEO'
+import TellYourRep from './TellYourRep'
+import { voteRef } from '../utils/tellYourRepDraft'
 import '../styles/RollCall.css'
 
 const ORD = (n) => { const v = n % 100; const s = ['th', 'st', 'nd', 'rd']; return `${n}${s[(v - 20) % 10] || s[v] || s[0]}` }
@@ -71,6 +73,19 @@ function RollCallPage() {
   const description = `${rc.chamber} vote ${rc.number}, session ${rc.session} of the ${ORD(rc.congress)} Congress${rc.votedAt ? `, ${fmtDate(rc.votedAt)}` : ''}. ${rc.question || 'Recorded vote'}${subject ? ` on ${subject}` : ''}. ${rc.tally ? `${rc.tally.yea} yea, ${rc.tally.nay} nay${rc.result ? `, ${rc.result.toLowerCase()}` : ''}.` : ''}`
   const total = rc.tally ? rc.tally.yea + rc.tally.nay : 0
   const yeaPct = total ? (rc.tally.yea / total) * 100 : 0
+  const tellContext = {
+    kind: 'vote',
+    ref: voteRef({ congress: rc.congress, chamber: rc.chamberKey, session: rc.session, roll: rc.number }),
+    billId: rc.bill?.id || undefined,
+    label: `${rc.chamber} roll call ${rc.number} (${ORD(rc.congress)} Congress, session ${rc.session})`,
+    title: `${rc.question || 'Recorded vote'}${subject ? ` on ${subject}` : ''}`,
+    sourceUrl: rc.sourceUrl || rc.bill?.source_url || undefined,
+    href: path,
+    chamber: rc.chamberKey,
+    date: rc.votedAt || undefined,
+    result: rc.result || undefined,
+    memberVotes: Object.fromEntries(rc.votes.map((v) => [v.member.id, v.position])),
+  }
 
   return (
     <article className="rc">
@@ -117,10 +132,12 @@ function RollCallPage() {
         )}
 
         <div className="rc-actions">
-          {rc.sourceUrl && <a className="rc-action-btn" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record ↗</a>}
-          {rc.bill?.source_url && <a className="rc-action-btn" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>}
+          {rc.sourceUrl && <a className="rc-action-btn btn-secondary btn-sm" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record ↗</a>}
+          {rc.bill?.source_url && <a className="rc-action-btn btn-secondary btn-sm" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>}
         </div>
       </header>
+
+      <TellYourRep context={tellContext} />
 
       <section className="rc-section">
         <div className="rc-section-label">Every member · {rc.votes.length} recorded</div>
@@ -137,7 +154,7 @@ function RollCallPage() {
               />
               <div className="rc-filter-positions" role="group" aria-label="Filter by vote">
                 {['all', 'Yea', 'Nay', 'Present', 'Not Voting'].map((p) => (
-                  <button key={p} type="button" className={position === p ? 'is-active' : ''} onClick={() => setPosition(p)}>{p === 'all' ? 'All' : p}</button>
+                  <button key={p} type="button" className={position === p ? 'btn-toggle is-active' : 'btn-toggle'} onClick={() => setPosition(p)}>{p === 'all' ? 'All' : p}</button>
                 ))}
               </div>
             </div>

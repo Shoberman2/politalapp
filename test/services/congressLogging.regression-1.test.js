@@ -35,20 +35,19 @@ afterEach(() => {
 describe('Congress API request logging regression', () => {
   it('logs the endpoint without serializing credential-bearing parameters', async () => {
     vi.resetModules()
-    vi.stubEnv('VITE_CONGRESS_API_KEY', 'test-secret-should-not-log')
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await import('../../src/services/congress.js')
-    const onRequest = mocks.requestUse.mock.calls[0][0]
+    const onRequest = mocks.requestUse.mock.calls.at(-1)[0] // the logging interceptor; the trailing-slash one is registered first
     onRequest({
       method: 'get',
-      baseURL: 'https://api.congress.gov/v3',
+      baseURL: '/api/proxy/congress',
       url: '/member/O000172',
       params: { api_key: 'test-secret-should-not-log', format: 'json' },
     })
 
     const output = JSON.stringify(log.mock.calls)
-    expect(output).toContain('GET https://api.congress.gov/v3/member/O000172')
+    expect(output).toContain('GET /api/proxy/congress/member/O000172')
     expect(output).not.toContain('test-secret-should-not-log')
     expect(output).not.toContain('Params')
   })

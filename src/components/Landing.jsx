@@ -1,17 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
+import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
+import { findMembersForDistrict } from '../services/myMembers'
+import { displayName } from '../utils/tellYourRepDraft'
+import RecordLink from './RecordLink'
 import SEO from './SEO'
+import { BRAND } from '../config/brand'
+import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
 )
-
-const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
 
 const BILL_TYPE_LABELS = {
   HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
@@ -25,72 +29,47 @@ const SOURCES = [
   { name: 'FEC', detail: 'Campaign finance' },
 ]
 
-// The "how it works" walkthrough. Each step pairs a plain-language promise with
-// a small illustrative UI mock so the abstract concept lands visually. The mocks
-// are representative, not live data; they're set dressing for the narrative.
-const STEPS = [
-  {
-    id: 'find',
-    title: 'Find who represents you.',
-    body: 'One ZIP code maps you to your two senators and your House member, drawn from U.S. Census district data. Not a guess.',
-    // visual is rendered from live member data in the component (see repsVisual).
-    visual: null,
-  },
-  {
-    id: 'votes',
-    title: 'See every vote, with the receipts.',
-    body: 'Each yea and nay is tied to the official roll call. No spin, no summary of a summary. The record, linked to its source.',
-    // visual is rendered from live recorded votes in the component (votesVisual).
-    visual: null,
-  },
-  {
-    id: 'explain',
-    title: 'Understand any bill in plain English.',
-    body: 'A source-linked explanation sits in the margin of every bill: what it does, who it affects, why it matters. Written to inform, not persuade.',
-    // visual is rendered from a real current bill in the component (billVisual).
-    visual: null,
-  },
-  {
-    id: 'money',
-    title: 'Follow the money.',
-    body: 'Line up a member’s votes against who funds their campaigns, straight from FEC filings. Judge the pattern for yourself.',
-    visual: (
-      <div className="mock mock-money" aria-hidden="true">
-        <div className="mk-bar"><span className="mk-bar-label">Energy &amp; Natural Resources</span><span className="mk-bar-track"><i style={{ '--w': '94%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Finance &amp; Insurance</span><span className="mk-bar-track"><i style={{ '--w': '71%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Health Professionals</span><span className="mk-bar-track"><i style={{ '--w': '48%' }} /></span></div>
-        <div className="mk-bar"><span className="mk-bar-label">Labor Organizations</span><span className="mk-bar-track"><i style={{ '--w': '33%' }} /></span></div>
-        <div className="mk-src">Source · FEC campaign filings <ArrowRight /></div>
-      </div>
-    ),
-  },
+// Where AI is used and where it never is. This is the substance behind the
+// mission line, so it's stated as plain lists rather than a pitch.
+const AI_USES = [
+  'Explain bills from the official summary, with the source beside it',
+  'Explain what a procedural vote actually decided',
+  'Help you, or your AI assistant, find the right roll call',
+]
+const AI_NEVER = [
+  'Write in your representative’s voice or guess their positions',
+  'Send anything you haven’t read and approved',
+  'Choose a side for you, or rank and score constituents',
 ]
 
-// The opening film is a silent, calm move through the REAL U.S. Capitol,
-// built entirely from real, freely-licensed footage/photography (no AI):
-//   1. the actual Capitol dome from the west lawn, gentle push-in
-//      (real video, Pexels, free license),
-//   2. up into the Rotunda dome — the Apotheosis of Washington fresco
-//      (real photo, Carol Highsmith / Library of Congress, public domain).
-// Deliberately short: two ~2s shots (~4s total). A landing film that outstays
-// its welcome is a bounce, and every extra megabyte delays first frame — the
-// clips are 1440px/CRF28 so the first one starts playing on load, not after a
-// buffer. (A third shot, the Brumidi Corridors, was cut for length.)
-// Clips play once and hand off; the last loops. See public/hero-*.{mp4,jpg}.
-const FILM_CLIPS = [
-  { src: '/hero-run.mp4', poster: '/hero-run.jpg', line: 'title' },
-  { src: '/hero-topdown.mp4', poster: '/hero-topdown.jpg', line: 'question' },
+// Plain answers to what a first-time visitor asks. Each must stay true to
+// what the code does; /how-it-works and /privacy carry the long versions.
+const FAQ = [
+  {
+    q: 'What is BallotWatch?',
+    a: 'An open-source record of Congress: who represents you, how they voted on every roll call, and what each bill does, with every fact linked to its official source. It also helps you write to your representatives about a specific vote.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Yes. Looking things up needs no account. An account is only for saving your address and following bills.',
+  },
+  {
+    q: 'Where does the data come from?',
+    a: 'Congress.gov, the House Clerk and the Senate for bills and votes, the U.S. Census Bureau for districts, and the FEC for campaign finance. It is refreshed daily.',
+  },
+  {
+    q: 'Does BallotWatch send messages for me?',
+    a: 'No. We start your message with the facts of the vote. You write the rest and send it through your representative’s official contact page. We don’t save what you write.',
+  },
+  {
+    q: 'Is it partisan?',
+    a: 'No. Every member gets the same pages and the same facts. We don’t score members, pick “key votes,” or tell you how to feel about a vote.',
+  },
+  {
+    q: 'How is AI used?',
+    a: 'Only to explain: bills from their official summaries and what procedural votes decided, always labeled as AI. It never writes as your representative or decides anything for you.',
+  },
 ]
-const FILM_STATIC_INDEX = FILM_CLIPS.length - 1 // Rotunda frame shown under reduced motion
-
-// The "On the floor" feed and the step-two mock render only real recorded
-// votes. While the live fetch is in flight (or if it fails) we show neutral
-// skeleton rows — never invented bills. See `floorReady` below.
-const FLOOR_SKELETON = [0, 1, 2, 3]
-// `floor` holds everything the fetch returned; the feed shows the most recent
-// slice of it while the step-two mock picks the best-illustrated rows from the
-// whole set. Truncating on fetch used to throw away the votes carrying tallies.
-const FLOOR_FEED_ROWS = 5
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
@@ -138,28 +117,19 @@ function fromBill(b) {
 
 function Landing() {
   const navigate = useNavigate()
-  const rootRef = useRef(null)
-  const videoRefs = useRef([])
-  const votingVidRef = useRef(null)
-  // The <video> ref callback below is an inline arrow, so React re-invokes it
-  // on every render, not just on mount. Without this latch the opening shot
-  // would be re-played each time state changed — invisibly, since by then the
-  // film has crossfaded to the next clip — burning CPU behind the scenes.
-  const openingKicked = useRef(false)
-
   const [zip, setZip] = useState('')
   const [lookup, setLookup] = useState(null)
   // Which of the two lookup forms was submitted, so the result renders next to
   // the field the reader actually used instead of somewhere off-screen.
-  const [lookupPlace, setLookupPlace] = useState('turn')
+  const [lookupPlace, setLookupPlace] = useState('hero')
+  // Guards the member fetch against a newer lookup finishing first.
+  const lookupSeq = useRef(0)
   const [floor, setFloor] = useState([])
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
-  const [reduced, setReduced] = useState(false)
-  const [current, setCurrent] = useState(0)
-  const [playBlocked, setPlayBlocked] = useState(false)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
+  const [featuredRecord, setFeaturedRecord] = useState(null)
 
   // Real members for the "Find who represents you" illustration — actual names
   // and headshots instead of blank placeholders. Best-effort; the mock falls
@@ -172,6 +142,18 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
+  // The "record in 60 seconds" illustration: the real card for the first
+  // featured member. Best-effort; the mock shows a skeleton until it resolves.
+  const recordMemberId = featuredMembers[0]?.bioguideId
+  useEffect(() => {
+    if (!recordMemberId) return undefined
+    let cancelled = false
+    getMemberRecord(recordMemberId)
+      .then((r) => { if (!cancelled) setFeaturedRecord(r) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [recordMemberId])
+
   // A real current bill (with a plain-English blurb from its CRS summary) for
   // the "Understand any bill" step and the "what are they voting on" closer.
   useEffect(() => {
@@ -182,14 +164,6 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // Honor prefers-reduced-motion: no scroll-scored film, no video autoplay.
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const apply = () => setReduced(mq.matches)
-    apply()
-    mq.addEventListener?.('change', apply)
-    return () => mq.removeEventListener?.('change', apply)
-  }, [])
 
   // "On the floor" feed: prefer real recorded votes (with tallies), then fall
   // back to the latest legislative actions, then to static copy.
@@ -223,95 +197,11 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // Start a clip muted, and surface a Play button only if the browser refuses.
-  // `rewind` is for hand-offs (a clip we're returning to should start over);
-  // the opening shot is never rewound, so kicking it twice can't stutter it.
-  const playClip = useCallback((v, { rewind = false } = {}) => {
-    if (!v) return
-    v.muted = true
-    if (rewind && v.currentTime > 0.05) {
-      try { v.currentTime = 0 } catch { /* not seekable yet */ }
-    }
-    const p = v.play()
-    if (p && p.then) p.then(() => setPlayBlocked(false)).catch(() => setPlayBlocked(true))
-  }, [])
-
-  // Drive the clip sequence: play the current (muted) shot and pause the rest.
-  // The videos advance themselves via `onEnded`.
-  useEffect(() => {
-    if (reduced) return
-    videoRefs.current.forEach((v, i) => {
-      if (!v) return
-      if (i === current) playClip(v, { rewind: true })
-      else v.pause()
-    })
-  }, [current, reduced, playClip])
-
-  // Bulletproof autoplay: muted clips should start on load, but a few browsers
-  // still hold until a user gesture. The moment the user does anything (scroll,
-  // tap, key), kick the active clip once — so the film is never a frozen poster.
-  useEffect(() => {
-    if (reduced) return
-    const kick = () => {
-      const v = document.querySelector('.film-vid.is-current')
-      if (v) { v.muted = true; v.play().then(() => setPlayBlocked(false)).catch(() => {}) }
-    }
-    const events = ['pointerdown', 'touchstart', 'keydown', 'scroll']
-    events.forEach((e) => window.addEventListener(e, kick, { once: true, passive: true }))
-    return () => events.forEach((e) => window.removeEventListener(e, kick))
-  }, [reduced])
-
-  // Under reduced motion, hold on the chamber still with the question shown.
-  useEffect(() => {
-    if (reduced) setCurrent(FILM_STATIC_INDEX)
-  }, [reduced])
-
-  // The closing bill shot sits far below the fold. Autoplaying it at mount
-  // steals bandwidth from the hero and leaves it mid-loop by the time anyone
-  // scrolls to it — start it when it actually comes into view instead.
-  useEffect(() => {
-    const v = votingVidRef.current
-    if (!v || reduced) return
-    if (!('IntersectionObserver' in window)) {
-      v.muted = true
-      v.play().catch(() => {})
-      return
-    }
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { v.muted = true; v.play().catch(() => {}) }
-      else v.pause()
-    }, { threshold: 0.2 })
-    io.observe(v)
-    return () => io.disconnect()
-  }, [reduced])
-
-  // Staggered entrance reveals for anything tagged [data-reveal].
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const items = root.querySelectorAll('[data-reveal]')
-    if (reduced || !('IntersectionObserver' in window)) {
-      items.forEach((n) => n.classList.add('is-in'))
-      return
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-in')
-          io.unobserve(e.target)
-        }
-      })
-    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' })
-    items.forEach((n) => io.observe(n))
-    return () => io.disconnect()
-    // Re-run when the feed swaps skeletons for live votes: those rows are
-    // brand-new DOM nodes the original observer never saw, so without this they
-    // would stay stuck at opacity:0.
-  }, [reduced, floor, floorReady])
 
   const handleLookup = async (e, place) => {
     e.preventDefault()
     setLookupPlace(place)
+    const seq = ++lookupSeq.current
     const value = zip.trim()
     if (!/^\d{5}$/.test(value)) {
       setLookup({
@@ -324,6 +214,7 @@ function Landing() {
 
     setLookup({ code: value, body: 'Matching your ZIP to a district…', sub: '' })
     const info = await getDistrictFromAddress(value)
+    if (seq !== lookupSeq.current) return
 
     if (!info?.state) {
       setLookup({
@@ -335,21 +226,46 @@ function Landing() {
     }
 
     const address = { street: '', city: info.city || '', state: info.state, zip: value }
-    if (info.district != null) {
-      setLookup({
+    // Only an at-large state's ZIP pins down the House seat. Montana and every
+    // other multi-district state need a street address (shared/atLargeStates.js),
+    // so there only the senators are named.
+    const houseKnown = info.district != null && isAtLargeState(info.state)
+    const base = houseKnown
+      ? {
         code: `${info.state}-AL`,
         body: '1 Representative and 2 Senators found.',
         sub: `${stateName(info.state)} at-large district. Voting records and finance with sources.`,
-        address,
-      })
-    } else {
-      setLookup({
+      }
+      : {
         code: info.state,
         body: '2 Senators found.',
         sub: `${stateName(info.state)} elects its House members by district. Add your street address for an exact match.`,
-        address,
-      })
+      }
+    setLookup({ ...base, address, houseKnown, members: null, membersStatus: 'loading' })
+
+    let members = []
+    let membersStatus = 'done'
+    try {
+      members = await findMembersForDistrict(info.state, houseKnown ? info.district : null)
+    } catch {
+      membersStatus = 'error'
     }
+    if (seq !== lookupSeq.current) return
+    const house = members.filter((m) => m.chamber === 'house').length
+    const senators = members.filter((m) => m.chamber === 'senate').length
+    const parts = [
+      house ? `${house} Representative${house === 1 ? '' : 's'}` : null,
+      senators ? `${senators} Senator${senators === 1 ? '' : 's'}` : null,
+    ].filter(Boolean)
+    setLookup({
+      ...base,
+      // Say what was actually found, not what a state usually has.
+      body: membersStatus === 'done' ? (parts.length ? `${parts.join(' and ')} found.` : `No ${houseKnown ? 'members' : 'senators'} found for ${stateName(info.state)}.`) : base.body,
+      address,
+      houseKnown,
+      members,
+      membersStatus,
+    })
   }
 
   const handleViewProfiles = () => {
@@ -357,14 +273,12 @@ function Landing() {
     navigate('/my-representative')
   }
 
-  const advanceClip = () => setCurrent((c) => (c < FILM_CLIPS.length - 1 ? c + 1 : c))
-
   // The one primary action, rendered at both the top of the page and the
   // bottom. The closing section runs the real lookup rather than bouncing the
   // reader back up to the top — a CTA that only scrolls is a dead end.
   const renderLookup = (place) => (
     <>
-      <form className="lookup-form" data-reveal onSubmit={(e) => handleLookup(e, place)}>
+      <form className="lookup-form" onSubmit={(e) => handleLookup(e, place)}>
         <label htmlFor={`zipInput-${place}`} className="visually-hidden">ZIP code</label>
         <input
           id={`zipInput-${place}`}
@@ -376,12 +290,12 @@ function Landing() {
           value={zip}
           onChange={(e) => setZip(e.target.value)}
         />
-        <button type="submit" aria-label="Find my representatives">
+        <button type="submit" className="btn-primary" aria-label="Find my representatives">
           <span className="btn-word">Find my reps</span>
           <ArrowRight />
         </button>
       </form>
-      <p className="lookup-hint" data-reveal>Free · No account · Source-linked records</p>
+      <p className="lookup-hint">Free · No account · Source-linked records</p>
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -391,15 +305,27 @@ function Landing() {
             {lookup.sub && <small>{lookup.sub}</small>}
           </span>
           {lookup.address && (
-            <button type="button" className="lr-go" onClick={handleViewProfiles}>View profiles →</button>
+            <button type="button" className="lr-go btn-text btn-go" onClick={handleViewProfiles}>
+              {lookup.houseKnown ? 'View profiles' : 'Add your address'}
+            </button>
+          )}
+          {lookup.membersStatus === 'loading' && <p className="lr-note">Finding the members by name…</p>}
+          {lookup.membersStatus === 'error' && <p className="lr-note">Member names could not be loaded right now.</p>}
+          {lookup.members?.length > 0 && (
+            <ul className="lr-members">
+              {lookup.members.map((m) => (
+                <li key={m.bioguideId}>
+                  <span className="lr-m-name">{displayName(m.name)}</span>
+                  <span className="lr-m-seat">{m.chamber === 'senate' ? 'Senator' : 'Representative'}</span>
+                  <RecordLink bioguideId={m.bioguideId} name={displayName(m.name)} className="lr-m-record" />
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}
     </>
   )
-
-  // Kick off playback from a real user gesture when the browser blocked autoplay.
-  const startPlayback = () => playClip(videoRefs.current[current])
 
   // Step-one illustration built from real members, with a skeleton fallback.
   const repsRows = featuredMembers.length ? featuredMembers : [null, null, null]
@@ -453,6 +379,7 @@ function Landing() {
       </div>
       <p className="mk-billtitle">{featuredBill ? (featuredBill.headline || featuredBill.title) : 'Loading a current bill…'}</p>
       <div className="mk-annot">
+        <span className="mk-annot-tag">From the official summary</span>
         <p>{featuredBill ? truncate(featuredBill.whyItMatters || featuredBill.summary || featuredBill.latestAction?.text || '', 175) : ''}</p>
       </div>
       {featuredBill && <span className="mk-src">Source · Congress.gov <ArrowRight /></span>}
@@ -494,17 +421,110 @@ function Landing() {
     </div>
   )
 
+  // The hero's proof: the most recent recorded vote with a bill and a real
+  // tally, else the most recent recorded vote of any kind. Never invented.
+  const headlineVote = floor.find((v) => v.voteHref && v.bill && v.tally) || floor.find((v) => v.voteHref) || null
+  const recordedLabel = recordedThrough
+    ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : null
+
+  // Feature five: the opening of a real Tell your rep draft, built from the
+  // same latest recorded vote the hero shows.
+  const writeVisual = (
+    <div className="mock mock-write" aria-hidden="true">
+      <span className="mk-label">Your message starts with the facts</span>
+      {headlineVote ? (
+        <p className="mk-letter">
+          On {recordedLabel || 'the latest vote'}, the {headlineVote.chamber || 'chamber'} voted on{' '}
+          {headlineVote.bill ? `${headlineVote.bill.display}: ` : ''}{truncate(headlineVote.text, 70)}
+          {headlineVote.tally ? ` The result was ${headlineVote.tally}.` : ''}
+          <br />
+          <span className="mk-yours">[Write your message here, in your own words.]</span>
+        </p>
+      ) : (
+        <p className="mk-letter">
+          <span className="mk-skel" style={{ width: '90%', maxWidth: 'none' }} />
+          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
+        </p>
+      )}
+      <span className="mk-src">You send it through their official contact page</span>
+    </div>
+  )
+
+  // Feature four: the real one-screen record card for a featured member.
+  const rs = featuredRecord?.stats
+  const recordVisual = (
+    <div className="mock mock-record" aria-hidden="true">
+      {featuredRecord ? (
+        <>
+          <div className="mk-rec-head">
+            <b>{featuredRecord.name}</b>
+            <small>{featuredRecord.chamber === 'senate' ? 'U.S. Senate' : 'U.S. House'} · {featuredRecord.state}</small>
+          </div>
+          {rs && (
+            <div className="mk-rec-stats">
+              <span><b>{rs.total}</b><small>Roll calls</small></span>
+              <span><b>{rs.cast}</b><small>Votes cast</small></span>
+              <span><b>{rs.notVoting}</b><small>Not voting</small></span>
+            </div>
+          )}
+          {(featuredRecord.recentVotes || []).slice(0, 3).map((v) => (
+            <div className="mk-rec-vote" key={v.roll_call_id}>
+              <span className="mk-desc">{truncate(v.bill?.label ? `${v.bill.label} · ${v.question || ''}` : v.question, 44)}</span>
+              {v.position && <span className={`mk-pos ${String(v.position).toLowerCase().replace(/\s+/g, '-')}`}>{v.position}</span>}
+            </div>
+          ))}
+        </>
+      ) : (
+        <>
+          <b className="mk-skel" style={{ width: 140, maxWidth: 'none', height: 14 }} />
+          <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', marginTop: 14 }} />
+          <span className="mk-skel" style={{ width: '64%', maxWidth: 'none', marginTop: 8 }} />
+        </>
+      )}
+    </div>
+  )
+
+  // Feature six: Bill Watch on a real current bill. The stages are what the
+  // alert covers, not invented events.
+  const alertsVisual = (
+    <div className="mock mock-alerts" aria-hidden="true">
+      <div className="mk-billhead">
+        <span className="mk-billnum">{featuredBill ? billLabel(featuredBill) : 'H.R. —'}</span>
+        <span className="mk-watch">Watching</span>
+      </div>
+      <p className="mk-alert-title">{featuredBill ? truncate(featuredBill.headline || featuredBill.title, 80) : 'Loading a current bill…'}</p>
+      <ul className="mk-stages">
+        <li>Reaches committee</li>
+        <li>Scheduled for the floor</li>
+        <li>Recorded vote</li>
+      </ul>
+    </div>
+  )
+
+  const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
+  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
+
+  const FEATURES = [
+    { id: 'find', kicker: 'Your representatives', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', link: { to: '/my-representative', label: 'Find my reps' }, visual: repsVisual },
+    { id: 'votes', kicker: 'Votes', title: 'Every vote, with the receipts.', body: 'How each member voted on every roll call, this week’s and every one before it, linked to the official record.', link: { to: '/this-week', label: 'This week on the floor' }, visual: votesVisual },
+    { id: 'bills', kicker: 'Bills', title: 'Bills in plain English.', body: 'A short explanation of any bill, past or present, built from the official summary. Anything written by AI says so.', link: { to: '/bills', label: 'Browse bills' }, visual: billVisual },
+    { id: 'record', kicker: 'Before November 3', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores.', link: { to: recordHref, label: 'See a record' }, visual: recordVisual },
+    { id: 'write', kicker: 'Tell your rep', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', link: { to: writeHref, label: 'Write about the latest vote' }, visual: writeVisual },
+    { id: 'alerts', kicker: 'Bill alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', link: { to: '/alerts', label: 'Follow a bill' }, visual: alertsVisual },
+  ]
+
   return (
-    <div className="bw landing" ref={rootRef}>
+    <div className="bw landing">
       <SEO
-        title="See How Congress Votes: Source-Linked Records"
-        description="BallotWatch is an open-source civic reference for reviewing representatives, bills, votes, methodology, and public legislative data."
+        title="How Did Your Representative Vote This Week?"
+        description={`${BRAND.mission} Every vote, bill, and member of Congress, linked to its official source.`}
         path="/"
         schema={{
           '@graph': [
             {
               '@type': 'WebSite',
-              name: 'BallotWatch',
+              name: BRAND.name,
               url: 'https://www.ballotwatch.io',
               potentialAction: {
                 '@type': 'SearchAction',
@@ -514,7 +534,7 @@ function Landing() {
             },
             {
               '@type': 'Organization',
-              name: 'BallotWatch',
+              name: BRAND.name,
               url: 'https://www.ballotwatch.io',
               logo: 'https://www.ballotwatch.io/capitol-logo.svg',
             },
@@ -522,145 +542,123 @@ function Landing() {
         }}
       />
 
-      {/* ===== CINEMATIC OPENER: approach the real Capitol → through the halls → up into the Rotunda ===== */}
-      <section className={`film${reduced ? ' film--static' : ''}`}>
-        <div className="film-stage">
-          {FILM_CLIPS.map((clip, i) => (
-            <video
-              key={clip.src}
-              // Set muted on the element itself: React's `muted` prop is not
-              // always reflected to the DOM, and unmuted = blocked autoplay.
-              ref={(el) => {
-                videoRefs.current[i] = el
-                if (!el) return
-                el.muted = true; el.defaultMuted = true; el.playsInline = true
-                // Don't wait for an effect (which runs after paint): kick the
-                // opening shot the instant the element exists, so arriving on
-                // the page shows motion, not a frozen poster. Once only —
-                // see `openingKicked`.
-                if (i === 0 && !reduced && !openingKicked.current) {
-                  openingKicked.current = true
-                  playClip(el)
-                }
-              }}
-              className={`film-vid${i === current ? ' is-current' : ''}`}
-              src={clip.src}
-              poster={clip.poster}
-              autoPlay={i === 0 && !reduced}
-              muted
-              playsInline
-              preload="auto"
-              loop={i === FILM_CLIPS.length - 1}
-              // The element may exist before it has enough data to start; try
-              // again the moment it does.
-              onCanPlay={() => { if (i === current && !reduced) playClip(videoRefs.current[i]) }}
-              onEnded={i === FILM_CLIPS.length - 1 ? undefined : advanceClip}
-            />
-          ))}
-          <div className="film-grade" />
+      {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
+      <section className="hero">
+        <div className="hero-inner">
+          <span className="hero-kicker">
+            {recordedLabel ? `Recorded through ${recordedLabel} · 119th Congress` : '119th Congress'}
+          </span>
+          <h1 className="hero-title">How did your representative vote <em>this week?</em></h1>
+          <p className="hero-mission">{BRAND.mission}</p>
 
-          {!reduced && playBlocked && (
-            <button type="button" className="film-play" onClick={startPlayback} aria-label="Play the film">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
-            </button>
-          )}
+          {renderLookup('hero')}
 
-          <div className="film-copy">
-            <div className="film-lines">
-              <h1 className={`film-line film-title-a${FILM_CLIPS[current].line === 'title' ? ' show' : ''}`}>See how Congress <em>votes.</em></h1>
-              <div className={`film-line film-questions${FILM_CLIPS[current].line === 'question' ? ' show' : ''}`}>
-                <span className="film-q">Do you know what happens <em>under this dome?</em></span>
+          <div className="headline-vote" aria-live="polite">
+            {!floorReady ? (
+              <div className="hv-card" aria-hidden="true">
+                <span className="mk-skel" style={{ width: 160, maxWidth: 'none' }} />
+                <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', height: 18, marginTop: 10 }} />
+                <span className="mk-skel" style={{ width: 120, maxWidth: 'none', marginTop: 12 }} />
               </div>
+            ) : headlineVote && (
+              <div className="hv-card">
+                <div className="hv-meta">
+                  <span>Latest recorded vote</span>
+                  {headlineVote.chamber && <span>{headlineVote.chamber}</span>}
+                  {headlineVote.rollLabel && <span>{headlineVote.rollLabel}</span>}
+                </div>
+                <div className="hv-main">
+                  <p className="hv-text">
+                    {headlineVote.bill && <span className="hv-bill">{headlineVote.bill.display}</span>}
+                    {headlineVote.text}
+                  </p>
+                  <div className="hv-outcome">
+                    {headlineVote.tally && <span className="fr-tally">{headlineVote.tally}</span>}
+                    {headlineVote.result && <span className={`fr-result ${headlineVote.resultKind}`}>{headlineVote.result}</span>}
+                  </div>
+                </div>
+                <div className="hv-links">
+                  <Link className="btn-text btn-go" to={headlineVote.voteHref}>How each member voted</Link>
+                  <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about this vote</Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FEATURES: one idea per section, a simple real-data image each ===== */}
+      <section className="features">
+        {FEATURES.map((f) => (
+          <article className={`feature feature-${f.id}`} key={f.id}>
+            <div className="feature-text">
+              <span className="section-kicker">{f.kicker}</span>
+              <h2>{f.title}</h2>
+              <p>{f.body}</p>
+              <Link className="btn-text btn-go feature-link" to={f.link.to}>{f.link.label}</Link>
+            </div>
+            <div className="feature-visual">{f.visual}</div>
+          </article>
+        ))}
+      </section>
+
+      {/* ===== AI, STATED PLAINLY ===== */}
+      <section className="ai">
+        <div className="ai-inner">
+          <header className="ai-head">
+            <span className="section-kicker">How we use AI</span>
+            <h2>AI that explains. It never speaks for anyone.</h2>
+          </header>
+          <div className="ai-cols">
+            <div className="ai-col">
+              <h3>We use AI to</h3>
+              <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>
+            <div className="ai-col ai-col-never">
+              <h3>We never use AI to</h3>
+              <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== THE TURN: the answer + the one primary action (ZIP lookup) ===== */}
-      <section className="turn">
-        <div className="turn-inner">
-          <h2 className="turn-head" data-reveal>
-            Your representatives cast hundreds of votes a year in that room.
-            BallotWatch shows you every one, <em>with the receipts.</em>
-          </h2>
-
-          {renderLookup('turn')}
+      {/* ===== FOR OFFICES: one band, one link ===== */}
+      <section className="offices-band">
+        <div className="offices-inner">
+          <span className="section-kicker">If you work in a congressional office</span>
+          <h2>A better way for constituents to reach your office, and for your office to answer.</h2>
+          <p className="offices-lede">
+            Cited answers from sources your office approves, and messages written and approved by the person who
+            sent them, tagged to the vote they’re about. Nothing is ever said in the Member’s name.
+          </p>
+          <p className="offices-status">
+            In development. Not yet authorized for use by House or Senate offices, and not offered for sale or trial.
+          </p>
+          <Link className="btn-text btn-go" to="/offices">How it would work for your office</Link>
         </div>
       </section>
 
-      {/* ===== STEP BY STEP: how the platform changes that ===== */}
-      <section className="steps">
-        <div className="steps-inner">
-          <header className="steps-head" data-reveal>
-            <h2>From an empty chamber to a clear record.</h2>
+      {/* ===== FAQ ===== */}
+      <section className="faq">
+        <div className="faq-inner">
+          <header>
+            <span className="section-kicker">Questions</span>
+            <h2>Before you start.</h2>
           </header>
-
-          {STEPS.map((s, i) => (
-            <article className="step" key={s.id} data-reveal>
-              <div className="step-text">
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-              </div>
-              <div className="step-visual">{s.id === 'find' ? repsVisual : s.id === 'votes' ? votesVisual : s.id === 'explain' ? billVisual : s.visual}</div>
-            </article>
-          ))}
+          <div className="faq-list">
+            {FAQ.map((item) => (
+              <details key={item.q} className="faq-item">
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+          <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
         </div>
       </section>
 
-      {/* ===== ON THE FLOOR: live feed of recorded votes ===== */}
-      <section className="floor">
-        <div className="floor-inner">
-          <header className="floor-head" data-reveal>
-            <span className="floor-title"><span className="floor-dot" />On the floor</span>
-            <span className="floor-sub">
-              {recordedThrough
-                ? `Recorded through ${new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                : 'Latest recorded votes'}
-            </span>
-          </header>
-
-          <ul className="floor-feed">
-            {floorReady
-              ? floor.slice(0, FLOOR_FEED_ROWS).map((v) => (
-                <li className="floor-row" key={v.key} data-reveal>
-                  <div className="fr-meta">
-                    {v.chamber && <span className="fr-chamber">{v.chamber}</span>}
-                    {v.rollLabel && (v.voteHref
-                      ? <Link className="fr-roll" to={v.voteHref}>{v.rollLabel}</Link>
-                      : <span className="fr-roll">{v.rollLabel}</span>)}
-                  </div>
-                  <div className="fr-body">
-                    {v.bill && (
-                      v.bill.href
-                        ? <Link className="fr-bill" to={v.bill.href}>{v.bill.display}</Link>
-                        : <span className="fr-bill">{v.bill.display}</span>
-                    )}
-                    <span className="fr-text">{v.text}</span>
-                  </div>
-                  <div className="fr-outcome">
-                    {v.tally && <span className="fr-tally">{v.tally}</span>}
-                    {v.result && <span className={`fr-result ${v.resultKind}`}>{v.result}</span>}
-                  </div>
-                </li>
-              ))
-              : FLOOR_SKELETON.map((i) => (
-                <li className="floor-row" key={`sk-${i}`} aria-hidden="true">
-                  <div className="fr-meta"><span className="mk-skel" style={{ width: 58, maxWidth: 'none' }} /></div>
-                  <div className="fr-body">
-                    <span className="mk-skel" style={{ width: 78, maxWidth: 'none' }} />
-                    <span className="mk-skel" style={{ width: '68%', maxWidth: 'none', marginTop: 6 }} />
-                  </div>
-                  <div className="fr-outcome"><span className="mk-skel" style={{ width: 54, maxWidth: 'none', height: 14 }} /></div>
-                </li>
-              ))}
-          </ul>
-
-          <Link className="floor-more" to="/bills">Browse bills and sources <ArrowRight /></Link>
-        </div>
-      </section>
-
-      {/* ===== SOURCES: trust, scannable ===== */}
-      <section className="sources" aria-label="Data sources" data-reveal>
+      {/* ===== SOURCES ===== */}
+      <section className="sources" aria-label="Data sources">
         <span className="sources-label">Built from public records</span>
         <div className="sources-list">
           {SOURCES.map((s) => (
@@ -672,59 +670,14 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== VOTING: the second question, over a bill ===== */}
-      <section className="voting">
-        <video
-          ref={votingVidRef}
-          className="voting-vid"
-          src="/hero-bill.mp4"
-          poster="/hero-bill.jpg"
-          muted
-          loop
-          playsInline
-          preload="metadata"
-        />
-        <div className="voting-grade" />
-        <div className="voting-inner">
-          <h2 className="voting-q" data-reveal>Do you know what they're actually <em>voting on?</em></h2>
-          {featuredBill && (
-            <Link
-              to={`/bill/${featuredBill.congress || 119}/${(featuredBill.type || '').toLowerCase()}/${featuredBill.number}`}
-              className="voting-bill"
-              data-reveal
-            >
-              <span className="vb-num">{billLabel(featuredBill)}</span>
-              <span className="vb-title">{featuredBill.headline || featuredBill.title}</span>
-              <span className="vb-go">Read it in plain English <ArrowRight /></span>
-            </Link>
-          )}
-          <Link to="/bills" className="voting-cta" data-reveal>Browse every bill <ArrowRight /></Link>
-        </div>
-      </section>
-
-      {/* ===== FINALE: closing CTA ===== */}
+      {/* ===== FINALE ===== */}
       <section className="finale">
         <div className="finale-inner">
-          <span className="finale-kicker" data-reveal>Start with your ZIP</span>
-          <h2 data-reveal>Find out who’s speaking for you.</h2>
+          <span className="finale-kicker">Start with your ZIP</span>
+          <h2>Find out who’s speaking for you.</h2>
           {renderLookup('finale')}
         </div>
       </section>
-
-      {/* ===== COLOPHON ===== */}
-      <footer className="colophon">
-        <div className="colophon-inner">
-          <span className="colophon-word">BallotWatch</span>
-          <span>© 2026 · Public data and public methods</span>
-          <div className="colophon-links">
-            <Link to="/methodology">Methodology</Link>
-            <Link to="/developers">API</Link>
-            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
-            <Link to="/open">Corrections</Link>
-            <span>MIT</span>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

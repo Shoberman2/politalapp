@@ -174,7 +174,7 @@ function ApiKeyManager() {
             }
           </p>
         </div>
-        <button className="btn-tertiary" onClick={() => navigate('/developers/usage')}>
+        <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/usage')}>
           View Usage
         </button>
       </div>
@@ -189,7 +189,7 @@ function ApiKeyManager() {
             </p>
             <div className="api-keys-modal-key">
               <code>{showNewKey}</code>
-              <button onClick={copyKey} className="btn-copy">
+              <button onClick={copyKey} className="btn-copy btn-secondary btn-sm">
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -244,7 +244,7 @@ function ApiKeyManager() {
                 </div>
               </div>
               {key.active && (
-                <button className="btn-danger-sm" onClick={() => revokeKey(key.id)}>
+                <button className="btn-danger-sm btn-secondary btn-sm" onClick={() => revokeKey(key.id)}>
                   Revoke
                 </button>
               )}
@@ -264,7 +264,7 @@ function ApiKeyManager() {
             <button className="btn-primary" onClick={claimFreeKey} disabled={claiming}>
               {claiming ? 'Activating…' : 'Get a free key'}
             </button>
-            <button className="btn-tertiary" onClick={() => navigate('/developers#pricing')}>
+            <button className="btn-tertiary btn-go" onClick={() => navigate('/developers#pricing')}>
               View paid plans
             </button>
           </div>

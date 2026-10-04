@@ -1,0 +1,81 @@
+/* "You wrote; they voted". Marginalia, not a card: a thin left rule, a mono
+   kicker, body text for the facts, and civic blue only on links. */
+
+.yw {
+  margin: 24px 0 32px;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--rule-strong, var(--border));
+  max-width: 760px;
+}
+.yw-page { margin: 48px 0; }
+
+.yw-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.yw-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+.yw-title em { font-style: italic; }
+
+.yw-list { list-style: none; margin: 0; padding: 0; }
+.yw-item { padding: 12px 0; border-top: 1px solid var(--border-light); }
+.yw-item:first-child { border-top: none; padding-top: 0; }
+
+.yw-wrote { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-primary); }
+.yw-wrote a { color: var(--accent); }
+
+.yw-since { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+.yw-since-label { display: block; }
+.yw-votes { list-style: none; margin: 2px 0 0; padding: 0; }
+.yw-votes li { margin: 2px 0; }
+.yw-vote { color: var(--accent); text-underline-offset: 3px; }
+a.yw-vote:hover { color: var(--accent-hover); }
+
+.yw-muted { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+.yw-fineprint { margin: 8px 0 0; font-size: 13px; color: var(--text-muted); }
+
+.yw-skeleton { margin-top: 6px; }
+.yw-skeleton-line { display: block; height: 14px; width: min(420px, 90%); border-radius: var(--r-sm); }
+
+.yw-forget {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.yw-forget:hover { color: var(--accent); }
+.yw-forget:focus-visible,
+.yw a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.yw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yw .skeleton { animation: none; }
+}

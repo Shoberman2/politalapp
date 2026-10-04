@@ -28,9 +28,18 @@ import ChamberPage from './components/ChamberPage'
 import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
+import OfficesPage from './components/OfficesPage'
+import HowItWorksPage from './components/HowItWorksPage'
+import AboutPage from './components/AboutPage'
+import ContactPage from './components/ContactPage'
+import PrivacyPage from './components/PrivacyPage'
+import TermsPage from './components/TermsPage'
+import Footer from './components/Footer'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
+import ThisWeekPage from './components/ThisWeekPage'
+import MemberRecord from './components/MemberRecord'
 import RequireAuth from './components/RequireAuth'
 import { SHOW_BILL_ALERTS } from './config/features'
 
@@ -61,6 +70,12 @@ function App() {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/open" element={<OpenSourcePage />} />
+          <Route path="/offices" element={<OfficesPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
           {SHOW_BILL_ALERTS && (
@@ -92,9 +107,12 @@ function App() {
           <Route path="/politician/:bioguideId" element={
             <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
           } />
+          {/* "Record in 60 seconds" card, server-rendered by api/prerender.js. */}
+          <Route path="/politician/:bioguideId/record" element={<MemberRecord />} />
           {/* One roll call: the tally, the derived result, every member's vote.
               Server-rendered first by api/prerender.js; React takes over here. */}
           <Route path="/vote/:congress/:chamber/:session/:roll" element={<RollCallPage />} />
+          <Route path="/this-week" element={<ThisWeekPage />} />
           {SHOW_ROUTING_PANEL && (
             <Route path="/committee/:code" element={
               <ProtectedRoute><CommitteePage /></ProtectedRoute>
@@ -132,6 +150,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
       <Analytics />
     </div>
   )

@@ -60,7 +60,7 @@ enum Config {
 
     /// Optional because OpenFEC supports its public DEMO_KEY for development.
     /// A project key raises the rate limit and is generated into Secrets.plist
-    /// from VITE_FEC_API_KEY by `ios/scripts/make-secrets.sh`.
+    /// from FEC_API_KEY (or legacy VITE_FEC_API_KEY) by `ios/scripts/make-secrets.sh`.
     static var fecAPIKey: String {
         let value = values["FEC_API_KEY"]
         guard let value, !value.isEmpty, !value.hasPrefix("YOUR_") else {

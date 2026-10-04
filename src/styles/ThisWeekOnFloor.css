@@ -1,0 +1,235 @@
+/* ThisWeekOnFloor: "Coming up, and just decided."
+   Broadsheet treatment per DESIGN.md: Instrument Serif heading, General Sans
+   body, Geist Mono for bill numbers / dates / tallies, thin rules, one accent.
+   Amber (#D97706) marks upcoming items; text uses the --warning token, which
+   App.css darkens for contrast on paper. Tokens come from App.css. */
+
+.twof {
+  --twof-amber: #D97706;
+  font-family: var(--sans);
+  color: var(--ink);
+  border-top: 1px solid var(--rule-strong);
+  padding-top: var(--space-5);
+}
+
+.twof-header { margin-bottom: var(--space-5); }
+
+.twof-kicker {
+  margin: 0 0 var(--space-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.twof-heading {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.25rem;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.twof-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-6);
+}
+.twof--single .twof-grid { grid-template-columns: minmax(0, 1fr); }
+
+.twof-col { min-width: 0; }
+
+.twof-col-title {
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.twof-col--scheduled .twof-col-title { color: var(--warning); }
+
+.twof-dateline {
+  margin: var(--space-3) 0 var(--space-1);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.twof-mono { font-family: var(--mono); }
+
+.twof-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.twof-row {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--rule-light);
+}
+.twof-row:last-child { border-bottom: 0; }
+
+.twof-row--scheduled {
+  border-left: 2px solid var(--twof-amber);
+  padding-left: var(--space-3);
+}
+
+.twof-row-head,
+.twof-row-foot {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+
+.twof-num,
+.twof-bill {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.twof-bill { color: var(--ink-2); }
+.twof-num--plain { color: var(--ink); }
+a.twof-num:hover,
+a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.twof-cat {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--warning);
+}
+
+.twof-title {
+  margin: var(--space-1) 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.twof-row-foot { font-size: 0.8125rem; }
+
+.twof-tell {
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+.twof-tell:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.twof-src {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.twof-src:hover { color: var(--ink-2); text-decoration: underline; }
+
+.twof-tally {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.twof-result {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.twof-result--pass { color: var(--success); }
+.twof-result--fail { color: var(--error); }
+
+.twof-empty,
+.twof-note {
+  margin: var(--space-3) 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.twof-empty a,
+.twof-note a { color: var(--accent); }
+
+.twof-more {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.twof-more:hover { text-decoration: underline; }
+
+.twof-footnote {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--rule-light);
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+
+/* Skeleton rows: calm pulse, no shimmer sweep. */
+.twof-row--skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+.twof-skel {
+  display: block;
+  height: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--rule-light);
+  animation: twof-pulse 1.4s ease-in-out infinite;
+}
+.twof-skel--num { width: 72px; }
+.twof-skel--text { width: 88%; height: 12px; }
+.twof-skel--meta { width: 40%; }
+
+@keyframes twof-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .twof-skel { animation: none; }
+}
+
+@media (max-width: 760px) {
+  .twof-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+  .twof-heading { font-size: 1.75rem; }
+}
+
+/* Page wrapper for /this-week */
+.twof-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-6) 16px var(--space-8);
+}
+.twof-page-title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.25rem;
+  line-height: 1.05;
+}
+.twof-page-intro {
+  max-width: 62ch;
+  margin: 0 0 var(--space-6);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}

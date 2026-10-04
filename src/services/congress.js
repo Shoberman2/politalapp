@@ -3,19 +3,20 @@ import { resolveMemberImageUrl, normalizeMemberImageUrl } from '../utils/memberI
 import { CONGRESS_MAX } from '../utils/congressUtil'
 import { supabase } from '../lib/supabase'
 
-const BASE_URL = 'https://api.congress.gov/v3'
-const API_KEY = import.meta.env.VITE_CONGRESS_API_KEY || ''
+import { CONGRESS_PROXY_BASE, CONGRESS_UPSTREAM_BASE, installProxyPaths } from './apiProxy'
+
+// Requests go through the same-origin proxy, which adds the API key server-side.
+const BASE_URL = CONGRESS_PROXY_BASE
 
 console.log('[Congress API] Initializing with base URL:', BASE_URL)
-console.log('[Congress API] API Key present:', !!API_KEY)
 
 const congressApi = axios.create({
   baseURL: BASE_URL,
   params: {
-    api_key: API_KEY,
     format: 'json'
   }
 })
+installProxyPaths(congressApi)
 
 // Add request interceptor for logging
 congressApi.interceptors.request.use(
@@ -32,7 +33,7 @@ congressApi.interceptors.request.use(
 function congressApiPathFromVoteUrl(voteUrl) {
   if (!voteUrl) return null
   if (voteUrl.startsWith('/')) return voteUrl
-  if (voteUrl.startsWith(BASE_URL)) return voteUrl.slice(BASE_URL.length) || '/'
+  if (voteUrl.startsWith(CONGRESS_UPSTREAM_BASE)) return voteUrl.slice(CONGRESS_UPSTREAM_BASE.length) || '/'
   return null
 }
 
@@ -728,7 +729,7 @@ export const getVoteTalliesFromActions = async (actions) => {
           const relativePath = congressApiPathFromVoteUrl(voteUrl)
           if (!relativePath) continue
 
-          // Fetch via our congressApi instance (adds api_key and format params).
+          // Fetch via our congressApi instance (proxy adds the key; client adds format).
           const response = await congressApi.get(relativePath)
           const voteDetail = response.data?.vote
 

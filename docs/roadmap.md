@@ -13,6 +13,14 @@ BallotWatch more useful, more citeable, and easier to contribute to.
   member, bill, and roll-call pages (v0.6.0.0).
 - Server-rendered member, bill, and roll-call pages and a sitemap generated
   from the database (v0.6.0.0).
+- A member's record in 60 seconds at `/politician/{id}/record`, server-rendered
+  and shareable (v0.7.0.0).
+- This week on the floor at `/this-week` and `GET /api/v1/floor/schedule`, plus
+  the `get_floor_schedule` and `get_member_record` MCP tools (v0.7.0.0).
+- Tell your rep: a drafted, editable message with the vote's facts and source,
+  sent by you through the member's official contact page (v0.7.0.0).
+- Congress.gov and FEC keys moved server-side behind an allow-listed proxy
+  (v0.7.0.0).
 
 ## Now
 

@@ -1,7 +1,8 @@
 // Server-rendered record pages for members, bills, and roll calls.
 //
-// vercel.json rewrites /politician/:id, /bill/:congress/:type/:number, and
-// /vote/:congress/:chamber/:session/:roll here. The function injects the
+// vercel.json rewrites /politician/:id, /politician/:id/record,
+// /bill/:congress/:type/:number, and /vote/:congress/:chamber/:session/:roll
+// here. The function injects the
 // record into the real SPA shell (index.html, fetched at runtime because asset
 // names are hashed per deploy), so bots and humans both get content and React
 // still takes over on the client. With `Accept: text/markdown` the same record
@@ -12,12 +13,13 @@
 // this function existed. Never a text error page.
 
 import { readFile } from 'fs/promises'
-import { getMemberPage, getRollCallPage, getBillPage, billPath } from './_lib/pages.js'
+import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath } from './_lib/pages.js'
 import { renderPage } from './_lib/renderPage.js'
 import { renderMarkdown } from './_lib/markdown.js'
 import { buildRollCallId, rollCallPath } from './_lib/rollCallResult.js'
 import { originFrom } from './_lib/request.js'
 import { SITE_ORIGIN as SITE } from './_lib/site.js'
+import { recordPath } from '../shared/memberRecord.js'
 
 export { originFrom }
 
@@ -91,6 +93,7 @@ export async function getShell(origin, fetchImpl = fetch) {
 export function resolveTarget(query) {
   const q = query || {}
   if (q.kind === 'member' && q.id) return { kind: 'member', id: String(q.id).toUpperCase(), path: `/politician/${String(q.id).toUpperCase()}` }
+  if (q.kind === 'record' && q.id) return { kind: 'record', id: String(q.id).toUpperCase(), path: recordPath(q.id) }
   if (q.kind === 'bill' && q.congress && q.type && q.number) {
     const id = `${q.congress}-${String(q.type).toLowerCase()}-${q.number}`
     return { kind: 'bill', id, path: billPath(id) }
@@ -104,6 +107,7 @@ export function resolveTarget(query) {
 
 async function loadData(target) {
   if (target.kind === 'member') return getMemberPage(target.id)
+  if (target.kind === 'record') return getRecordPage(target.id)
   if (target.kind === 'bill') return getBillPage(target.id)
   return getRollCallPage(target.id)
 }

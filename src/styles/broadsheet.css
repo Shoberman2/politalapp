@@ -132,63 +132,29 @@
   gap: 14px;
 }
 .bw .theme-toggle {
-  width: 36px; height: 36px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
+  width: 40px; height: 40px;
+  border: none;
+  border-radius: var(--r-icon);
   display: grid; place-items: center;
   color: var(--ink-2);
   background: none;
   cursor: pointer;
-  transition: all .2s ease;
+  transition: background-color .15s ease, color .15s ease;
   flex-shrink: 0;
 }
-.bw .theme-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+.bw .theme-toggle:hover { color: var(--ink); background: var(--fill-soft); }
 .bw .theme-toggle svg { width: 17px; height: 17px; }
 .bw .theme-toggle .sun { display: none; }
 [data-theme="dark"] .bw .theme-toggle .sun { display: block; }
 [data-theme="dark"] .bw .theme-toggle .moon { display: none; }
 .bw .nav-cta-short { display: none; }
 
-/* ============ BUTTONS ============ */
-.bw .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--sans);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0;
-  padding: 12px 20px;
-  border-radius: var(--r-btn);
-  transition: all .18s ease;
-  white-space: nowrap;
-  cursor: pointer;
-  border: none;
-  background: none;
-}
-.bw .btn svg { width: 18px; height: 18px; }
-.bw .btn-primary { background: var(--accent); color: #fff; }
-.bw .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-.bw .btn-primary:hover svg { transform: translateX(3px); }
-.bw .btn-primary svg { transition: transform .2s ease; }
-.bw .btn-ghost { color: var(--ink); border: 1px solid var(--rule-strong); }
-.bw .btn-ghost:hover { background: var(--ink); color: var(--bg); }
-.bw .btn-sm { padding: 8px 14px; font-size: 13px; }
-.bw .btn-text {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--accent);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-.bw .btn-text:hover { gap: 9px; }
+/* ============ BUTTONS ============
+   The button system (.btn, .btn-primary, .btn-secondary, .btn-text,
+   .btn-sm, .btn-toggle, .btn-icon) lives unscoped in App.css so every
+   page, broadsheet or not, gets the same buttons. Only the masthead CTA's
+   icon size stays here. */
+.bw .topbar-right .btn-primary svg { width: 15px; height: 15px; }
 
 /* ============ PARTY TAGS ============ */
 .bw .ptag {
@@ -211,28 +177,20 @@
 
 /* ============ FOOTER ============ */
 .bw .footer {
-  border-top: 3px solid var(--rule-strong);
+  border-top: 1px solid var(--rule);
   margin-top: 0;
   background: var(--bg);
 }
-.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 48px 32px 36px; }
-.bw .footer-masthead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--rule);
-}
-.bw .footer-wordmark { font-family: var(--serif); font-size: 40px; line-height: 1; letter-spacing: 0; color: var(--ink); }
-.bw .footer-tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); max-width: 320px; text-align: right; }
+.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 48px 32px 28px; }
 .bw .footer-cols {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 28px;
-  padding: 32px 0;
+  grid-template-columns: minmax(200px, 1.6fr) repeat(4, minmax(0, 1fr));
+  gap: 32px;
+  padding-bottom: 36px;
 }
+.bw .footer-brand { padding-right: 16px; }
+.bw .footer-wordmark { font-family: var(--serif); font-size: 24px; line-height: 1; color: var(--ink); }
+.bw .footer-tag { margin-top: 12px; font-size: 13.5px; line-height: 1.55; color: var(--ink-3); max-width: 260px; }
 .bw .footer-col h4 {
   font-family: var(--mono);
   font-size: 11px;
@@ -240,31 +198,27 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-bottom: 14px;
+  margin: 0 0 12px;
 }
-.bw .footer-col a, .bw .footer-col span {
-  display: block;
+.bw .footer-col ul { list-style: none; margin: 0; padding: 0; }
+.bw .footer-col a {
+  display: inline-block;
   font-family: var(--sans);
   font-size: 14px;
   color: var(--ink-2);
   padding: 4px 0;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
   transition: color .15s ease;
 }
-.bw .footer-col span { cursor: default; }
 .bw .footer-col a:hover { color: var(--accent); }
 .bw .footer-bottom {
   border-top: 1px solid var(--rule);
-  padding-top: 20px;
+  padding-top: 18px;
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
   flex-wrap: wrap;
 }
-.bw .footer-bottom p { font-size: 12.5px; color: var(--ink-3); }
+.bw .footer-bottom p { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-3); }
 
 /* ============ MOBILE NAV ============ */
 .bw .nav-burger { display: none; }
@@ -287,14 +241,16 @@
   .bw .topnav a.active::after { display: none; }
   .bw .nav-burger {
     display: grid; place-items: center;
-    width: 36px; height: 36px;
-    border: 1px solid var(--rule);
-    border-radius: var(--r-sm);
+    width: 40px; height: 40px;
+    border: none;
+    border-radius: var(--r-icon);
     color: var(--ink-2);
     background: none;
     cursor: pointer;
   }
-  .bw .footer-cols { grid-template-columns: repeat(2, 1fr); }
+  .bw .nav-burger:hover { color: var(--ink); background: var(--fill-soft); }
+  .bw .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
+  .bw .footer-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 560px) {
   .bw .topbar, .bw .footer-inner { padding-left: 18px; padding-right: 18px; }
@@ -304,4 +260,5 @@
   .bw .nav-cta-full { display: none; }
   .bw .nav-cta-short { display: inline; }
   .bw .footer-cols { grid-template-columns: 1fr; }
+  .bw .footer-bottom { flex-direction: column; }
 }

@@ -255,7 +255,7 @@ function ChamberPage() {
           type="button"
           role="tab"
           aria-selected={chamberView === 'senate'}
-          className={`chamber-toggle-btn ${chamberView === 'senate' ? 'is-active' : ''}`}
+          className={`chamber-toggle-btn btn-toggle ${chamberView === 'senate' ? 'is-active' : ''}`}
           onClick={() => {
             setChamberView('senate')
             navigate(`/chamber/${congress}`, { replace: true })
@@ -267,7 +267,7 @@ function ChamberPage() {
           type="button"
           role="tab"
           aria-selected={chamberView === 'house'}
-          className={`chamber-toggle-btn ${chamberView === 'house' ? 'is-active' : ''}`}
+          className={`chamber-toggle-btn btn-toggle ${chamberView === 'house' ? 'is-active' : ''}`}
           onClick={() => {
             setChamberView('house')
             navigate(`/chamber/${congress}/house`, { replace: true })
