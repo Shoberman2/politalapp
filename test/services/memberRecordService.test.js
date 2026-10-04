@@ -35,6 +35,18 @@ describe('services/memberRecord getMemberRecord', () => {
     await expect(getMemberRecord('P000197')).rejects.toThrow('timeout')
   })
 
+  it.each([
+    ['member_congress_terms', 'terms timeout'],
+    ['member_stats', 'stats timeout'],
+    ['roll_calls', 'rc timeout'],
+    ['roll_call_stats', 'rcs timeout'],
+  ])('throws when %s fails instead of rendering an empty record', async (table, message) => {
+    db.responses.politicians = { data: member, error: null }
+    db.responses.votes = { data: [{ roll_call_id: 'house-119-2-295', position: 'Nay', voted_at: '2026-09-03' }], error: null, count: 1 }
+    db.responses[table] = { data: null, error: { message } }
+    await expect(getMemberRecord('P000197')).rejects.toThrow(message)
+  })
+
   it('skips the roll-call queries when the member has no votes and reports a thin record', async () => {
     db.responses.politicians = { data: member, error: null }
     db.responses.votes = { data: [], error: null, count: 0 }

@@ -19,12 +19,21 @@ export async function fetchRecordCardData(bioguideId, supabase = db()) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [{ data: member }, { data: terms }, { data: stats }, { data: meta }] = await Promise.all([
+  const [memberRes, termsRes, statsRes, metaRes] = await Promise.all([
     supabase.from('politicians').select('id, name, chamber, state, district, party').eq('id', id).maybeSingle(),
     supabase.from('member_congress_terms').select('congress, district, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }).limit(4),
     supabase.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('etl_metadata').select('value').eq('key', 'last_successful_run').maybeSingle(),
   ])
+  // Any failed read throws, so og.jsx serves its short-lived fallback card
+  // instead of caching a real member's card as "0 votes" for a day.
+  for (const res of [memberRes, termsRes, statsRes, metaRes]) {
+    if (res?.error) throw new Error(res.error.message || 'record card query failed')
+  }
+  const member = memberRes.data
+  const terms = termsRes.data
+  const stats = statsRes.data
+  const meta = metaRes.data
   if (!member) return null
   return shapeMemberRecord({
     member,

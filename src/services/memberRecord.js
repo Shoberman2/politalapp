@@ -24,7 +24,11 @@ export async function getMemberRecord(bioguideId) {
   ])
   if (memberRes.error) throw new Error(memberRes.error.message)
   if (!memberRes.data) return null
-  if (votesRes.error) throw new Error(votesRes.error.message)
+  // Any failed read throws so the page falls back (retry / prerendered copy)
+  // instead of showing a real member with no terms, stats, or vote details.
+  for (const res of [termsRes, statsRes, votesRes]) {
+    if (res.error) throw new Error(res.error.message)
+  }
 
   const votes = votesRes.data || []
   const ids = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]
@@ -35,6 +39,8 @@ export async function getMemberRecord(bioguideId) {
       supabase.from('roll_calls').select('id, question, description, bill_id').in('id', ids),
       supabase.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', ids),
     ])
+    if (rcRes.error) throw new Error(rcRes.error.message)
+    if (rcsRes.error) throw new Error(rcsRes.error.message)
     rollCalls = rcRes.data || []
     rollCallStats = rcsRes.data || []
   }

@@ -174,5 +174,5 @@ export function voteLine(memberName, vote, { now } = {}) {
 }
 
 export function noVoteLine(memberName) {
-  return `No recorded vote by ${memberName} on this bill since you wrote.`
+  return `No recorded vote by ${memberName} on this bill on or after the day you wrote.`
 }

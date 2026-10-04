@@ -5,10 +5,14 @@ import { checkRateLimit } from './rateLimit.js'
 import { clientIp, hashIp } from './clientIp.js'
 import { getRequestUrl, sendResponse } from './request.js'
 
-// One page view can fan out into many upstream reads (member lists, vote
-// tallies), so the browser proxy allows more than the public API's 60/min.
-export const PROXY_PER_MINUTE = Number(process.env.PROXY_PER_MINUTE || 240)
-export const PROXY_PER_DAY = Number(process.env.PROXY_PER_DAY || 20000)
+// Budget per IP. A page view makes a handful of proxied reads (the member
+// directory is 3 pages, the landing 2, a bill page 5 plus its vote tallies, a
+// House member's recent-votes panel up to ~22), so 60/min leaves normal
+// browsing well clear while keeping one client from draining the shared
+// api.data.gov key. Production has no Upstash, so this is per instance.
+// Override with PROXY_PER_MINUTE / PROXY_PER_DAY.
+export const PROXY_PER_MINUTE = Number(process.env.PROXY_PER_MINUTE || 60)
+export const PROXY_PER_DAY = Number(process.env.PROXY_PER_DAY || 2000)
 
 export async function proxyRoute(service, req, { env = process.env, fetchImpl } = {}) {
   const method = String(req.method || '').toUpperCase()

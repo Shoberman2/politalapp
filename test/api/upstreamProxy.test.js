@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { proxyUpstream, isAllowedPath, PROXY_CACHE_CONTROL } from '../../api/_lib/upstreamProxy.js'
-import { proxyRoute } from '../../api/_lib/proxyRoute.js'
+import { proxyUpstream, isAllowedPath, PROXY_CACHE_CONTROL, PROXY_ERROR_CACHE_CONTROL, MAX_UPSTREAM_BYTES } from '../../api/_lib/upstreamProxy.js'
+import { proxyRoute, PROXY_PER_MINUTE, PROXY_PER_DAY } from '../../api/_lib/proxyRoute.js'
 import { _resetMemory } from '../../api/_lib/rateLimit.js'
 
 const CONGRESS_KEY = 'congress-secret-test-key'
@@ -164,6 +164,15 @@ describe('proxyUpstream key handling', () => {
     })
     expect(limited.status).toBe(429)
     expect(limited.headers['Retry-After']).toBe('30')
+    expect(limited.headers['Cache-Control']).toBe(PROXY_ERROR_CACHE_CONTROL)
+    expect(PROXY_ERROR_CACHE_CONTROL).toBe('public, s-maxage=30')
+
+    const down = await proxyUpstream({
+      service: 'congress', method: 'GET', url: '/api/proxy/congress/member', env,
+      fetchImpl: vi.fn(async () => new Response('{}', { status: 503, headers: { 'content-type': 'application/json' } })),
+    })
+    expect(down.status).toBe(503)
+    expect(down.headers['Cache-Control']).toBe('public, s-maxage=30')
 
     const ok = await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member', env, fetchImpl: okFetch() })
     expect(ok.status).toBe(200)
@@ -182,18 +191,126 @@ describe('proxyUpstream key handling', () => {
   })
 })
 
+describe('proxyUpstream query parameters', () => {
+  const target = (fetchImpl) => new URL(fetchImpl.mock.calls[0][0])
+
+  it('drops parameters the app never sends (no cache-busting junk upstream)', async () => {
+    const fetchImpl = okFetch()
+    await proxyUpstream({
+      service: 'congress', method: 'GET', env, fetchImpl,
+      url: '/api/proxy/congress/member?limit=20&currentMember=true&offset=0&sort=updateDate%2Bdesc&cb=123&_=999&fromDateTime=x',
+    })
+    const t = target(fetchImpl)
+    expect([...t.searchParams.keys()].sort()).toEqual(['api_key', 'currentMember', 'format', 'limit', 'offset', 'sort'])
+  })
+
+  it('always forces format=json for Congress.gov, ignoring the client', async () => {
+    const fetchImpl = okFetch()
+    await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member?format=xml', env, fetchImpl })
+    expect(target(fetchImpl).searchParams.getAll('format')).toEqual(['json'])
+  })
+
+  it('keeps only the first value of a repeated parameter', async () => {
+    const fetchImpl = okFetch()
+    await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member?limit=5&limit=6', env, fetchImpl })
+    expect(target(fetchImpl).searchParams.getAll('limit')).toEqual(['5'])
+  })
+
+  it.each([
+    ['congress', '/api/proxy/congress/member?limit=100000&offset=-5', { limit: '250', offset: '0' }],
+    ['congress', '/api/proxy/congress/member?limit=abc&offset=1e9', { limit: null, offset: '1' }],
+    ['congress', '/api/proxy/congress/member?limit=0', { limit: '1' }],
+    ['fec', '/api/proxy/fec/schedules/schedule_a/?per_page=5000&committee_id=C1&cycle=2026', { per_page: '100', committee_id: 'C1' }],
+  ])('clamps page sizes for %s %s', async (service, url, expected) => {
+    const fetchImpl = okFetch()
+    await proxyUpstream({ service, method: 'GET', url, env, fetchImpl })
+    const t = target(fetchImpl)
+    for (const [name, value] of Object.entries(expected)) expect(t.searchParams.get(name)).toBe(value)
+  })
+
+  it('passes through every FEC parameter donations.js sends', async () => {
+    const fetchImpl = okFetch()
+    await proxyUpstream({
+      service: 'fec', method: 'GET', env, fetchImpl,
+      url: '/api/proxy/fec/schedules/schedule_a/?committee_id=C1&per_page=100&sort=-contribution_receipt_amount&two_year_transaction_period=2026&is_individual=true&contributor_type=committee&q=x&cycle=2026&page=9',
+    })
+    const t = target(fetchImpl)
+    expect(t.searchParams.get('is_individual')).toBe('true')
+    expect(t.searchParams.get('contributor_type')).toBe('committee')
+    expect(t.searchParams.get('two_year_transaction_period')).toBe('2026')
+    expect(t.searchParams.get('sort')).toBe('-contribution_receipt_amount')
+    expect(t.searchParams.has('page')).toBe(false)
+    expect(t.searchParams.has('format')).toBe(false)
+  })
+})
+
+describe('proxyUpstream response hardening', () => {
+  it('relays only JSON content types and sends a sandboxing CSP', async () => {
+    const fetchImpl = vi.fn(async () => new Response('<x/>', { status: 200, headers: { 'content-type': 'application/xml' } }))
+    const out = await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member', env, fetchImpl })
+    expect(out.headers['Content-Type']).toBe('application/json; charset=utf-8')
+    expect(out.headers['Content-Security-Policy']).toBe("default-src 'none'; sandbox")
+    expect(out.headers['X-Content-Type-Options']).toBe('nosniff')
+  })
+
+  it('returns 502 UPSTREAM_TOO_LARGE when content-length exceeds the cap', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const fetchImpl = vi.fn(async () => new Response('{}', {
+      status: 200, headers: { 'content-type': 'application/json', 'content-length': String(MAX_UPSTREAM_BYTES + 1) },
+    }))
+    const out = await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member', env, fetchImpl })
+    expect(out.status).toBe(502)
+    expect(JSON.parse(out.body).error.code).toBe('UPSTREAM_TOO_LARGE')
+    expect(out.headers['Cache-Control']).toBe('no-store')
+  })
+
+  it('returns 502 UPSTREAM_TOO_LARGE when the streamed body exceeds the cap', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const big = 'x'.repeat(MAX_UPSTREAM_BYTES + 10)
+    const fetchImpl = vi.fn(async () => new Response(big, { status: 200, headers: { 'content-type': 'application/json' } }))
+    const out = await proxyUpstream({ service: 'congress', method: 'GET', url: '/api/proxy/congress/member', env, fetchImpl })
+    expect(out.status).toBe(502)
+    expect(JSON.parse(out.body).error.code).toBe('UPSTREAM_TOO_LARGE')
+  })
+})
+
 describe('proxyRoute rate limiting', () => {
-  beforeEach(() => _resetMemory())
-  afterEach(() => vi.restoreAllMocks())
+  beforeEach(() => {
+    _resetMemory()
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '')
+    vi.stubEnv('UPSTASH_REDIS_REST_TOKEN', '')
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // Start of a minute, so the whole loop lands in one fixed window.
+    vi.setSystemTime(new Date('2026-10-05T14:00:00.000Z'))
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  it('defaults to 60 per minute and 2000 per day', () => {
+    if (!process.env.PROXY_PER_MINUTE) expect(PROXY_PER_MINUTE).toBe(60)
+    if (!process.env.PROXY_PER_DAY) expect(PROXY_PER_DAY).toBe(2000)
+  })
 
   it('limits per IP and returns 429 once the minute budget is spent', async () => {
     const fetchImpl = okFetch()
     const req = { method: 'GET', url: '/api/proxy/congress/member', headers: { 'x-real-ip': '203.0.113.9', host: 'localhost' } }
     let last
-    for (let i = 0; i < 241; i++) last = await proxyRoute('congress', req, { env, fetchImpl })
+    for (let i = 0; i < PROXY_PER_MINUTE + 1; i++) last = await proxyRoute('congress', req, { env, fetchImpl })
     expect(last.status).toBe(429)
-    expect(fetchImpl).toHaveBeenCalledTimes(240)
+    expect(fetchImpl).toHaveBeenCalledTimes(PROXY_PER_MINUTE)
     expect(last.body).not.toContain(CONGRESS_KEY)
+  })
+
+  it('leaves room for several page views a minute (member directory is 3 requests)', async () => {
+    const fetchImpl = okFetch()
+    const req = { method: 'GET', url: '/api/proxy/congress/member?limit=250&offset=0&currentMember=true', headers: { 'x-real-ip': '203.0.113.10', host: 'localhost' } }
+    for (let i = 0; i < 15; i++) {
+      const out = await proxyRoute('congress', req, { env, fetchImpl })
+      expect(out.status).toBe(200)
+    }
   })
 
   it('rejects non-GET before consulting the key', async () => {

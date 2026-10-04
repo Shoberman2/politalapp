@@ -2,13 +2,22 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { copyFileSync, mkdirSync, existsSync } from 'fs'
 import { proxyUpstream } from './api/_lib/upstreamProxy.js'
+import { checkRateLimit } from './api/_lib/rateLimit.js'
+import { PROXY_PER_MINUTE, PROXY_PER_DAY } from './api/_lib/proxyRoute.js'
+
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
 // `npm run dev` is plain Vite with no /api functions. Serve /api/proxy/* from
 // the dev server so Congress.gov and OpenFEC work locally. The keys come from
 // .env via loadEnv and stay in this Node process: they are passed to the proxy
 // only, never to `define`, so nothing reaches the client bundle. Production
 // uses api/proxy/*.js (with rate limiting) instead.
-function devApiProxy(serverEnv) {
+//
+// The proxy spends the real keys from .env, so it only answers loopback
+// clients: `vite --host` exposes the dev server to the LAN (or a tunnel), and
+// without this anyone who can reach it could drain the Congress.gov / OpenFEC
+// quota. It also applies the same per-IP limiter as production as a backstop.
+export function devApiProxy(serverEnv) {
   return {
     name: 'ballotwatch-dev-api-proxy',
     apply: 'serve',
@@ -16,6 +25,25 @@ function devApiProxy(serverEnv) {
       server.middlewares.use(async (req, res, next) => {
         const match = /^\/api\/proxy\/(congress|fec)(?:[/?]|$)/.exec(req.url || '')
         if (!match) return next()
+        const remote = req.socket?.remoteAddress || ''
+        if (!LOOPBACK.has(remote)) {
+          res.statusCode = 403
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: { message: 'The dev data proxy only serves localhost', code: 'FORBIDDEN' } }))
+          return
+        }
+        const rl = await checkRateLimit({
+          id: `dev-proxy:${remote}`,
+          perMinute: Number(serverEnv.PROXY_PER_MINUTE || PROXY_PER_MINUTE),
+          perDay: Number(serverEnv.PROXY_PER_DAY || PROXY_PER_DAY),
+        })
+        if (!rl.allowed) {
+          res.statusCode = 429
+          res.setHeader('Content-Type', 'application/json')
+          res.setHeader('Retry-After', String(rl.retryAfter || 60))
+          res.end(JSON.stringify({ error: { message: `Rate limit reached (${rl.limit} per ${rl.window}).`, code: 'RATE_LIMIT_EXCEEDED' } }))
+          return
+        }
         try {
           const out = await proxyUpstream({ service: match[1], method: req.method, url: req.url, env: serverEnv })
           res.statusCode = out.status

@@ -80,7 +80,7 @@ export function SentFollowUp({ send, linkBill = false }) {
       {status === 'ready' && votes.length === 0 && <p className="yw-since">{noVoteLine(send.memberName)}</p>}
       {status === 'ready' && votes.length > 0 && (
         <div className="yw-since">
-          <span className="yw-since-label">Since then:</span>
+          <span className="yw-since-label">Since the day you wrote:</span>
           <ul className="yw-votes">
             {votes.map((v) => (
               <li key={v.rollCallId || `${v.votedAt}-${v.position}`}>
@@ -120,14 +120,19 @@ export function YouWroteNotes({ billId, member }) {
       <ul className="yw-list">
         {mine.map((s) => <SentFollowUp key={sendId(s)} send={s} linkBill={!billId} />)}
       </ul>
-      <p className="yw-fineprint">Saved on this device only. Counts votes recorded after the day you wrote.</p>
+      <p className="yw-fineprint">Saved on this device only. Counts votes recorded on or after the day you wrote.</p>
     </section>
   )
 }
 
+// Each send costs a votes query (and maybe a roll_calls one), so the page
+// shows only the most recent sends instead of fanning out over all 200 kept.
+export const MESSAGES_SHOWN = 20
+
 /** The full list, for /my-representative. */
 export function YourMessages() {
-  const sends = useSentMessages()
+  const all = useSentMessages()
+  const sends = all.slice(0, MESSAGES_SHOWN)
   return (
     <section className="yw yw-page" aria-labelledby="yw-heading">
       <div className="yw-kicker">You wrote; they voted</div>
@@ -141,7 +146,10 @@ export function YourMessages() {
           When you write to a member of Congress from a bill, vote, or member page and mark it sent, it shows up here with any votes they cast on that bill afterwards.
         </p>
       )}
-      <p className="yw-fineprint">Saved on this device only. We never see these, or what you wrote. Counts votes recorded after the day you wrote.</p>
+      {all.length > MESSAGES_SHOWN && (
+        <p className="yw-muted" data-testid="yw-truncated">Showing your {MESSAGES_SHOWN} most recent messages.</p>
+      )}
+      <p className="yw-fineprint">Saved on this device only. We never see these, or what you wrote. Counts votes recorded on or after the day you wrote.</p>
     </section>
   )
 }

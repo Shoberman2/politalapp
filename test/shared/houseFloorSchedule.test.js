@@ -118,3 +118,41 @@ describe('fetchHouseFloorWeek', () => {
       .rejects.toThrow('House floor schedule request failed (503)')
   })
 })
+
+describe('parseHouseFloorXml: items outside or inside nested categories', () => {
+  const item = (id, label) =>
+    `<floor-item id="${id}" add-date="2026-09-08T10:00:00" remove-date=""><legis-num>${label}</legis-num><floor-text>Item ${id}</floor-text></floor-item>`
+
+  it('keeps a floor item that sits outside any <category> (the alert source used to scan the whole XML)', () => {
+    const xml = `<floorschedule congress-num="119" week-date="2026-09-14">
+      <category type="Items that may be considered under suspension of the rules">${item('1', 'H.R. 1')}</category>
+      ${item('2', 'H.R. 2')}
+    </floorschedule>`
+    const parsed = parseHouseFloorXml(xml)
+    expect(parsed.items.map((i) => [i.itemId, i.category])).toEqual([['1', 'Suspension'], ['2', null]])
+    expect(parsed.items[1]).toMatchObject({ categoryType: null, bill: { id: '119-hr-2' }, removedAt: '' })
+    expect(parsed.items[1].xml).toContain('<floor-item id="2"')
+  })
+
+  it('a nested category does not truncate its parent; each item takes its nearest heading', () => {
+    const xml = `<floorschedule congress-num="119">
+      <category type="Items that may be considered pursuant to a rule">
+        ${item('10', 'H.R. 10')}
+        <category type="Motion to suspend">${item('11', 'H.R. 11')}</category>
+        ${item('12', 'H.R. 12')}
+      </category>
+    </floorschedule>`
+    const parsed = parseHouseFloorXml(xml)
+    expect(parsed.items.map((i) => [i.itemId, i.categoryType])).toEqual([
+      ['10', 'Items that may be considered pursuant to a rule'],
+      ['11', 'Motion to suspend'],
+      ['12', 'Items that may be considered pursuant to a rule'],
+    ])
+  })
+
+  it('parses the real fixture into the same 78 items in document order', () => {
+    const parsed = parseHouseFloorXml(FIXTURE, '2026-09-14')
+    expect(parsed.items).toHaveLength(78)
+    expect(parsed.items.every((i) => i.categoryType)).toBe(true)
+  })
+})

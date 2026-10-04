@@ -136,7 +136,7 @@ describe('follow-up lines', () => {
   })
 
   it('states plainly when there is no later vote', () => {
-    expect(noVoteLine('Nancy Pelosi')).toBe('No recorded vote by Nancy Pelosi on this bill since you wrote.')
+    expect(noVoteLine('Nancy Pelosi')).toBe('No recorded vote by Nancy Pelosi on this bill on or after the day you wrote.')
   })
 
   it('never uses position or judgment language', () => {

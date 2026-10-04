@@ -45,7 +45,7 @@ describe('YouWroteNotes', { timeout: 20000 }, () => {
       resolve([{ position: 'Yea', votedAt: '2026-10-08', rollCallId: 'house-119-2-301', rollNumber: 301, chamber: 'House', href: '/vote/119/house/2/301', question: 'On Passage' }])
     })
     expect(container.querySelector('.yw-skeleton')).toBeNull()
-    expect(screen.getByText('Since then:')).toBeTruthy()
+    expect(screen.getByText('Since the day you wrote:')).toBeTruthy()
     const link = screen.getByRole('link', { name: /Nancy Pelosi voted Yea on On Passage \(Roll Call 301, Oct 8(, 2026)?\)\./ })
     expect(link.getAttribute('href')).toBe('/vote/119/house/2/301')
     expect(screen.getByText(/Saved on this device only\./)).toBeTruthy()
@@ -56,7 +56,7 @@ describe('YouWroteNotes', { timeout: 20000 }, () => {
     recordSend(billSend)
     later.getMemberVotesOnBillAfter.mockResolvedValue([])
     const { container } = renderIn(<YouWroteNotes billId="119-hr-1" />)
-    expect(await screen.findByText('No recorded vote by Nancy Pelosi on this bill since you wrote.')).toBeTruthy()
+    expect(await screen.findByText('No recorded vote by Nancy Pelosi on this bill on or after the day you wrote.')).toBeTruthy()
     expect(container.textContent).not.toMatch(POSITION_RE)
   })
 
@@ -106,10 +106,31 @@ describe('YourMessages', { timeout: 20000 }, () => {
     const { container } = renderIn(<YourMessages />)
 
     expect(await screen.findByText(/Robert Aderholt did not vote on On Motion to Recommit \(Roll Call 305/)).toBeTruthy()
-    expect(await screen.findByText('No recorded vote by Nancy Pelosi on this bill since you wrote.')).toBeTruthy()
+    expect(await screen.findByText('No recorded vote by Nancy Pelosi on this bill on or after the day you wrote.')).toBeTruthy()
     expect(screen.getByText(/You wrote to Alex Padilla on Oct 3\./)).toBeTruthy()
     expect(screen.getAllByTestId('yw-item')).toHaveLength(3)
     expect(later.getMemberVotesOnBillAfter).toHaveBeenCalledTimes(2)
     expect(container.textContent).not.toMatch(POSITION_RE)
+  })
+
+  it('shows only the 20 most recent sends, says so, and queries only those', async () => {
+    for (let i = 0; i < 25; i++) {
+      recordSend({ ...billSend, ref: `bill:119-hr-${i + 1}`, billId: `119-hr-${i + 1}`, at: new Date(2026, 8, 1 + i, 12).toISOString() })
+    }
+    later.getMemberVotesOnBillAfter.mockResolvedValue([])
+    renderIn(<YourMessages />)
+    expect(await screen.findByTestId('yw-truncated')).toHaveTextContent('Showing your 20 most recent messages')
+    expect(screen.getAllByTestId('yw-item')).toHaveLength(20)
+    // Newest first: H.R. 25 (Sep 25) is shown, H.R. 1-5 are not.
+    expect(screen.getByRole('link', { name: 'H.R. 25' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'H.R. 5' })).toBeNull()
+    await waitFor(() => expect(later.getMemberVotesOnBillAfter).toHaveBeenCalledTimes(20))
+  })
+
+  it('does not show the truncation note at 20 or fewer', () => {
+    recordSend(billSend)
+    later.getMemberVotesOnBillAfter.mockResolvedValue([])
+    renderIn(<YourMessages />)
+    expect(screen.queryByTestId('yw-truncated')).toBeNull()
   })
 })

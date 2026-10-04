@@ -15,24 +15,66 @@ export const SENATE_NOTE =
   'House schedule only. The Senate does not publish a weekly floor schedule in this format.'
 
 const MEMO_TTL_MS = 5 * 60 * 1000
+// A failed fetch is remembered for a minute, so an outage at docs.house.gov
+// costs one upstream request per week per minute per instance, not one per
+// API call.
+const FAILURE_TTL_MS = 60 * 1000
 const UPSTREAM_TIMEOUT_MS = 8000
 const memo = new Map()
+const inFlight = new Map()
 const MEMO_MAX = 64
 
 export function _resetFloorScheduleMemo() {
   memo.clear()
+  inFlight.clear()
 }
 
-async function loadWeek(week, now) {
-  const hit = memo.get(week)
-  if (hit && now - hit.at < MEMO_TTL_MS) return hit.value
+async function fetchWeek(week) {
   const xml = await fetchHouseFloorWeek(week, (url, init) =>
     fetch(url, { ...init, signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) }))
-  const value = xml ? parseHouseFloorXml(xml, week) : null
-  memo.set(week, { at: now, value })
+  return xml ? parseHouseFloorXml(xml, week) : null
+}
+
+function remember(week, entry) {
+  memo.delete(week)
+  memo.set(week, entry)
   // Bounded: drop the oldest entries once the memo outgrows a few months of weeks.
   while (memo.size > MEMO_MAX) memo.delete(memo.keys().next().value)
-  return value
+}
+
+function loadWeek(week, now) {
+  const hit = memo.get(week)
+  if (hit) {
+    if (hit.error && now - hit.at < FAILURE_TTL_MS) return Promise.reject(hit.error)
+    if (!hit.error && now - hit.at < MEMO_TTL_MS) return Promise.resolve(hit.value)
+  }
+  // Concurrent callers for the same week share one upstream request.
+  const pending = inFlight.get(week)
+  if (pending) return pending
+  const request = fetchWeek(week)
+    .then((value) => {
+      remember(week, { at: Date.now(), value })
+      return value
+    }, (error) => {
+      remember(week, { at: Date.now(), error })
+      throw error
+    })
+    .finally(() => { if (inFlight.get(week) === request) inFlight.delete(week) })
+  inFlight.set(week, request)
+  return request
+}
+
+/**
+ * Today's calendar date in Washington (America/New_York), as a Date at UTC
+ * noon so mondayIso (which reads UTC fields) sees that day. The House
+ * schedules in Eastern time: Sunday evening in ET is still the current week
+ * even though it is already Monday in UTC.
+ */
+export function easternDate(now = new Date()) {
+  const ymd = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(now)
+  return new Date(`${ymd}T12:00:00Z`)
 }
 
 export function presentWeek(week, parsed) {
@@ -80,7 +122,8 @@ export function resolveFloorWeeks(weekParam, today = new Date()) {
     if (year < 2010 || date.getTime() > today.getTime() + 60 * 86400000) return null
     return [mondayIso(date)]
   }
-  return [mondayIso(today), mondayIso(today, 1)]
+  const eastern = easternDate(today)
+  return [mondayIso(eastern), mondayIso(eastern, 1)]
 }
 
 /**

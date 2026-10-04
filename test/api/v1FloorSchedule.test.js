@@ -15,6 +15,7 @@ vi.mock('../../api/_lib/supabase.js', () => ({
 
 import handler, { _resetFloorScheduleMemo, SENATE_NOTE } from '../../api/v1/floor/schedule.js'
 import { _resetMemory } from '../../api/_lib/rateLimit.js'
+import { loadFloorSchedule, resolveFloorWeeks, easternDate } from '../../api/_lib/floorSchedule.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
 
 const FIXTURE = readFileSync(resolve(process.cwd(), 'test/fixtures/houseFloor/20260914.xml'), 'utf8')
@@ -96,11 +97,43 @@ describe('GET /api/v1/floor/schedule', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('returns 502 when docs.house.gov fails for every week', async () => {
+  it('returns 502 when docs.house.gov fails for every week, cached briefly', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
     const r = await get('/api/v1/floor/schedule')
     expect(r.statusCode).toBe(502)
     expect(JSON.parse(r.body).error.code).toBe('UPSTREAM_ERROR')
+    expect(r.h.get('cache-control')).toBe('public, s-maxage=30')
+  })
+
+  it('remembers a failed week for 60 seconds instead of refetching on every call', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
+    await get('/api/v1/floor/schedule?week=2026-09-16')
+    const afterFirst = fetch.mock.calls.length
+    expect(afterFirst).toBeGreaterThan(0)
+    vi.setSystemTime(new Date('2026-09-16T15:00:50Z'))
+    const again = await get('/api/v1/floor/schedule?week=2026-09-16')
+    expect(again.statusCode).toBe(502)
+    expect(fetch.mock.calls.length).toBe(afterFirst)
+    vi.setSystemTime(new Date('2026-09-16T15:01:05Z'))
+    await get('/api/v1/floor/schedule?week=2026-09-16')
+    expect(fetch.mock.calls.length).toBeGreaterThan(afterFirst)
+  })
+
+  it('coalesces concurrent fetches of the same week into one upstream request', async () => {
+    let release
+    const gate = new Promise((r) => { release = r })
+    vi.stubGlobal('fetch', vi.fn(async () => { await gate; return new Response(FIXTURE) }))
+    const pending = [loadFloorSchedule(['2026-09-14']), loadFloorSchedule(['2026-09-14']), loadFloorSchedule(['2026-09-14'])]
+    release()
+    const results = await Promise.all(pending)
+    const perWeekCalls = fetch.mock.calls.length
+    // fetchHouseFloorWeek may try more than one URL, but only once for all three callers.
+    const solo = vi.fn(async () => new Response(FIXTURE))
+    _resetFloorScheduleMemo()
+    vi.stubGlobal('fetch', solo)
+    await loadFloorSchedule(['2026-09-14'])
+    expect(perWeekCalls).toBe(solo.mock.calls.length)
+    for (const r of results) expect(r.data.weeks[0].status).toBe('published')
   })
 
   it('marks a single failed week unavailable rather than empty', async () => {
@@ -109,5 +142,24 @@ describe('GET /api/v1/floor/schedule', () => {
     )))
     const body = JSON.parse((await get('/api/v1/floor/schedule')).body)
     expect(body.data.weeks.map((w) => w.status)).toEqual(['published', 'unavailable'])
+  })
+})
+
+describe('floor schedule "this week" is computed in Eastern time', () => {
+  it('Sunday evening in Washington is still the current week (already Monday in UTC)', () => {
+    // 2026-09-21T02:00Z is Sunday Sep 20, 10pm EDT.
+    const now = new Date('2026-09-21T02:00:00Z')
+    expect(easternDate(now).toISOString().slice(0, 10)).toBe('2026-09-20')
+    expect(resolveFloorWeeks(undefined, now)).toEqual(['2026-09-14', '2026-09-21'])
+  })
+
+  it('rolls over at midnight Eastern, not midnight UTC', () => {
+    // Monday Sep 21, 00:30 EDT.
+    expect(resolveFloorWeeks('', new Date('2026-09-21T04:30:00Z'))).toEqual(['2026-09-21', '2026-09-28'])
+  })
+
+  it('uses EST in winter', () => {
+    // Sunday Jan 10 2027, 11pm EST = Monday 04:00Z.
+    expect(resolveFloorWeeks(null, new Date('2027-01-11T04:00:00Z'))).toEqual(['2027-01-04', '2027-01-11'])
   })
 })

@@ -97,36 +97,38 @@ export function parseHouseFloorXml(xml, fallbackWeek = null) {
   const week = attribute(root, 'week-date') || fallbackWeek
   const updated = attribute(root, 'update-date') || attribute(root, 'create-date') || null
 
+  // One pass over the whole document, in order. Each <floor-item> takes the
+  // type of the nearest enclosing <category> (null when it sits outside every
+  // category). Scanning the whole document, rather than slicing each category
+  // with a lazy regex, means an item outside any category is still found and
+  // a nested <category> cannot cut its parent short.
   const items = []
-  const categoryPattern = /<category\b([^>]*)>([\s\S]*?)<\/category>/gi
-  let cat
-  const sections = []
-  while ((cat = categoryPattern.exec(xml))) sections.push({ type: attribute(cat[1], 'type'), body: cat[2] })
-  // A schedule without category wrappers still has items; treat it as one section.
-  if (!sections.length) sections.push({ type: null, body: xml })
-
-  for (const section of sections) {
-    const itemPattern = /<floor-item\b([^>]*)>([\s\S]*?)<\/floor-item>/gi
-    let match
-    while ((match = itemPattern.exec(section.body))) {
-      const attrs = match[1]
-      const body = match[2]
-      const label = element(body, 'legis-num')
-      items.push({
-        itemId: attribute(attrs, 'id'),
-        label,
-        title: element(body, 'floor-text'),
-        categoryType: section.type,
-        category: floorCategoryLabel(section.type),
-        addedAt: attribute(attrs, 'add-date') || null,
-        // Raw attribute: '' when listed, a timestamp when pulled, null if absent.
-        // Kept verbatim because the alert pipeline fingerprints it.
-        removedAt: attribute(attrs, 'remove-date'),
-        bill: billFromFloorLabel(congress, label),
-        xml: match[0],
-        body,
-      })
+  const tokens = /<category\b([^>]*?)(\/?)>|<\/category\s*>|<floor-item\b([^>]*)>([\s\S]*?)<\/floor-item>/gi
+  const stack = []
+  let match
+  while ((match = tokens.exec(xml))) {
+    const [raw, categoryAttrs, selfClosing, attrs, body] = match
+    if (raw[1] === '/') { stack.pop(); continue }
+    if (categoryAttrs !== undefined) {
+      if (!selfClosing) stack.push(attribute(categoryAttrs, 'type'))
+      continue
     }
+    const categoryType = stack.length ? stack[stack.length - 1] : null
+    const label = element(body, 'legis-num')
+    items.push({
+      itemId: attribute(attrs, 'id'),
+      label,
+      title: element(body, 'floor-text'),
+      categoryType,
+      category: floorCategoryLabel(categoryType),
+      addedAt: attribute(attrs, 'add-date') || null,
+      // Raw attribute: '' when listed, a timestamp when pulled, null if absent.
+      // Kept verbatim because the alert pipeline fingerprints it.
+      removedAt: attribute(attrs, 'remove-date'),
+      bill: billFromFloorLabel(congress, label),
+      xml: raw,
+      body,
+    })
   }
 
   return { congress, week, updated, items }

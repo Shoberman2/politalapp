@@ -7,7 +7,7 @@ import { shell } from '../fixtures/pages.js'
 const db = makeSupabaseMock()
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
 
-import { getRecordPage } from '../../api/_lib/pages.js'
+import { getRecordPage, getMemberPage } from '../../api/_lib/pages.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
 import { renderPage, recordMeta } from '../../api/_lib/renderPage.js'
 import { renderMarkdown } from '../../api/_lib/markdown.js'
@@ -183,4 +183,44 @@ describe('record in 60 seconds: share image data', () => {
     expect(mock.tables().sort()).toEqual(['etl_metadata', 'member_congress_terms', 'member_stats', 'politicians'])
     expect(await fetchRecordCardData('bad id', mock)).toBeNull()
   })
+})
+
+// A failed read must never shape a real member as "no votes" (which the
+// prerender, sitemap, and share image would cache): every query error throws.
+describe('record loaders throw on any query error', () => {
+  beforeEach(reset)
+
+  it.each([
+    ['member_congress_terms', 'terms down'],
+    ['member_stats', 'stats down'],
+    ['roll_calls', 'rc down'],
+    ['roll_call_stats', 'rcs down'],
+  ])('getRecordPage throws when %s fails', async (table, message) => {
+    seedPelosi()
+    db.responses[table] = { data: null, error: { message } }
+    await expect(getRecordPage('P000197')).rejects.toThrow(message)
+  })
+
+  it.each([
+    ['member_congress_terms', 'terms down'],
+    ['member_stats', 'stats down'],
+    ['roll_calls', 'rc down'],
+  ])('getMemberPage throws when %s fails', async (table, message) => {
+    seedPelosi()
+    db.responses[table] = { data: null, error: { message } }
+    await expect(getMemberPage('P000197')).rejects.toThrow(message)
+  })
+
+  it.each(['politicians', 'member_congress_terms', 'member_stats', 'etl_metadata'])(
+    'fetchRecordCardData throws when %s fails (og.jsx then serves the short-cache fallback)',
+    async (table) => {
+      const mock = makeSupabaseMock()
+      mock.responses.politicians = { data: { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: null, party: 'Democratic' } }
+      mock.responses.member_congress_terms = { data: [] }
+      mock.responses.member_stats = { data: { congress: 119, total_votes: 676, yea_count: 256, nay_count: 355, present_count: 4, not_voting_count: 61 } }
+      mock.responses.etl_metadata = { data: { value: '2026-10-02T12:12:53Z' } }
+      mock.responses[table] = { data: null, error: { message: `${table} down` } }
+      await expect(fetchRecordCardData('P000197', mock)).rejects.toThrow(`${table} down`)
+    },
+  )
 })

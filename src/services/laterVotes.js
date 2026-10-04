@@ -1,8 +1,9 @@
 import { supabase } from '../lib/supabase'
 import { parseRollCallId, rollCallHref } from './floorVotes'
 
-// "You wrote; they voted": recorded votes by one member on one bill after a
-// given day. Only rows that exist in `votes` are returned; the question comes
+// "You wrote; they voted": recorded votes by one member on one bill on or
+// after the day the person wrote. The day is inclusive: a vote cast later the
+// same day must show up, and we only know the day, not the time, of the send. Only rows that exist in `votes` are returned; the question comes
 // from `roll_calls` when we hold it. Nothing is inferred or filled in.
 
 const MAX_ROWS = 50
@@ -11,7 +12,7 @@ const MAX_ROWS = 50
  * @param {object} args
  * @param {string} args.bioguideId  member (votes.politician_id)
  * @param {string} args.billId      e.g. "119-hr-1"
- * @param {string} args.afterDay    YYYY-MM-DD; votes strictly after this day
+ * @param {string} args.afterDay    YYYY-MM-DD (the send's local day); votes on or after it
  * @returns {Promise<Array<{position, votedAt, rollCallId, rollNumber, chamber, href, question}>|null>}
  *   oldest first; [] when there are none; null when the lookup failed.
  */
@@ -23,7 +24,7 @@ export async function getMemberVotesOnBillAfter({ bioguideId, billId, afterDay }
       .select('position, voted_at, roll_call_id')
       .eq('politician_id', String(bioguideId).toUpperCase())
       .eq('bill_id', String(billId).toLowerCase())
-      .gt('voted_at', afterDay)
+      .gte('voted_at', afterDay)
       .order('voted_at', { ascending: true })
       .limit(MAX_ROWS)
     if (error) return null

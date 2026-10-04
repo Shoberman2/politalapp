@@ -16,6 +16,13 @@ function realTitle(title) {
 }
 
 const MEMBER_VOTE_LIMIT = 50
+
+// A failed read must not render a real member as "no recorded votes" (and
+// noindex or cache them): throw, and prerender serves the uncached app shell.
+function must(res, what) {
+  if (res?.error) throw new Error(`${what}: ${res.error.message || 'query failed'}`)
+  return res?.data ?? null
+}
 const lastRun = getDataUpdatedAt
 
 export function billLabel(billId) {
@@ -32,7 +39,7 @@ export async function getMemberPage(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [memberRes, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
+  const [memberRes, termsRes, statsRes, votesRes, updatedAt] = await Promise.all([
     supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url, updated_at').eq('id', id).maybeSingle(),
     supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count, party_loyalty_pct').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
@@ -49,12 +56,14 @@ export async function getMemberPage(bioguideId) {
   const member = memberRes.data
   if (!member) return null
   if (votesRes.error) throw new Error(votesRes.error.message)
+  const terms = must(termsRes, 'member_congress_terms')
+  const stats = must(statsRes, 'member_stats')
 
   const votes = votesRes.data || []
   const rollCallIds = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]
   const questions = new Map()
   if (rollCallIds.length) {
-    const { data: rcs } = await supabaseAdmin.from('roll_calls').select('id, question').in('id', rollCallIds)
+    const rcs = must(await supabaseAdmin.from('roll_calls').select('id, question').in('id', rollCallIds), 'roll_calls')
     for (const rc of rcs || []) questions.set(rc.id, rc.question)
   }
 
@@ -103,7 +112,7 @@ export async function getRecordPage(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [memberRes, { data: terms }, { data: stats }, votesRes, updatedAt] = await Promise.all([
+  const [memberRes, termsRes, statsRes, votesRes, updatedAt] = await Promise.all([
     supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url').eq('id', id).maybeSingle(),
     supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
@@ -120,18 +129,20 @@ export async function getRecordPage(bioguideId) {
   const member = memberRes.data
   if (!member) return null
   if (votesRes.error) throw new Error(votesRes.error.message)
+  const terms = must(termsRes, 'member_congress_terms')
+  const stats = must(statsRes, 'member_stats')
 
   const votes = votesRes.data || []
   const ids = [...new Set(votes.map((v) => v.roll_call_id).filter(Boolean))]
   let rollCalls = []
   let rollCallStats = []
   if (ids.length) {
-    const [rcRes, statsRes] = await Promise.all([
+    const [rcRes, rcsRes] = await Promise.all([
       supabaseAdmin.from('roll_calls').select('id, question, description, bill_id').in('id', ids),
       supabaseAdmin.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', ids),
     ])
-    rollCalls = rcRes.data || []
-    rollCallStats = statsRes.data || []
+    rollCalls = must(rcRes, 'roll_calls') || []
+    rollCallStats = must(rcsRes, 'roll_call_stats') || []
   }
 
   const record = shapeMemberRecord({ member, terms: terms || [], stats: stats || null, votes, voteCount: votesRes.count ?? votes.length, rollCalls, rollCallStats, updatedAt })

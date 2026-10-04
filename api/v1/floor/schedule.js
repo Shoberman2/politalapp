@@ -36,7 +36,12 @@ async function route(req) {
   const { allFailed, data } = await loadFloorSchedule(weeks)
   if (allFailed) {
     logUsage(auth.key, ENDPOINT, 'GET', 502, Date.now() - start)
-    return errorResponse('The House floor schedule could not be fetched from docs.house.gov', 502, 'UPSTREAM_ERROR')
+    const failed = errorResponse('The House floor schedule could not be fetched from docs.house.gov', 502, 'UPSTREAM_ERROR')
+    // Cache the outage briefly at the CDN so retries don't hammer docs.house.gov
+    // (keyed callers stay uncached, like the partial case below).
+    failed.headers.set('Cache-Control', req.headers?.authorization ? 'no-store' : 'public, s-maxage=30')
+    failed.headers.set('Vary', 'Authorization')
+    return failed
   }
 
   logUsage(auth.key, ENDPOINT, 'GET', 200, Date.now() - start)

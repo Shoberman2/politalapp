@@ -77,9 +77,16 @@ function PrivacyPage() {
             we never receive it, store it, or send it anywhere.
           </p>
           <p>
-            To understand whether the feature is useful, we count two anonymous events, <code>draft_opened</code> and{' '}
-            <code>contact_page_opened</code>. Each carries only a reference to the vote or bill and the member’s
-            public Bioguide ID. They contain no message text, address, or account information.
+            To understand whether the feature is useful, we count three anonymous events: <code>draft_opened</code>,{' '}
+            <code>contact_page_opened</code>, and <code>message_sent_confirmed</code> (when you mark a message as
+            sent). Each carries only a reference to the vote or bill and the member’s public Bioguide ID. They
+            contain no message text, address, or account information.
+          </p>
+          <p>
+            When you mark a message as sent, your browser also keeps a short note of it in local storage so the
+            “You wrote; they voted” list can show what that member did on the bill afterwards: the member, the bill,
+            vote, or member page it was about, and when you marked it. It never includes what you wrote, and it is not
+            sent to our servers.
           </p>
         </div>
       </section>
@@ -130,9 +137,17 @@ function PrivacyPage() {
           <h2>Analytics</h2>
           <p>
             We use Vercel Web Analytics to count page views in aggregate. It is cookieless and does not build a
-            profile of you across sites. The only custom events are the two anonymous Tell your rep counts described
-            above.
+            profile of you across sites. These are the only custom events, with every field each one carries:
           </p>
+          <ul className="ip-bullets" data-testid="analytics-events">
+            <li><code>draft_opened</code>: the vote or bill reference and the member’s Bioguide ID.</li>
+            <li><code>contact_page_opened</code>: the vote or bill reference and the member’s Bioguide ID.</li>
+            <li><code>message_sent_confirmed</code>: the vote or bill reference and the member’s Bioguide ID.</li>
+            <li>
+              <code>record_shared</code>: the member’s Bioguide ID and how the record card was shared (copy, native
+              share, X, Bluesky, Facebook, or email). Never the share text.
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -157,9 +172,28 @@ function PrivacyPage() {
         <div className="ip-inner">
           <h2>Cookies and local storage</h2>
           <p>
-            We don’t set advertising or tracking cookies. The site uses your browser’s local storage for your saved
-            address, your signed-in session, preferences such as theme, and cached copies of public data so pages load
-            faster. Google and Stripe may set their own cookies on their pages when you sign in with Google or pay.
+            We don’t set advertising or tracking cookies. Everything below stays in your browser; you can remove it
+            at any time by clearing this site’s data. The site’s local storage holds:
+          </p>
+          <ul className="ip-bullets" data-testid="storage-keys">
+            <li><code>userData</code>: the address you entered to find your representatives, and any members you saved as favorites.</li>
+            <li>
+              <code>wrote:v1</code>: the messages you marked as sent: the member, the bill, vote, or member page it was
+              about, and when you marked it. Never the message text. Up to 200 entries.
+            </li>
+            <li><code>bw-theme</code>: your light or dark theme choice.</li>
+            <li><code>chamber_scrubber_taught_v1</code>: that you have seen the chamber chart hint.</li>
+            <li>Your signed-in session (Supabase’s <code>sb-…-auth-token</code>), only if you sign in.</li>
+            <li>
+              Cached copies of public data so pages load faster: campaign-finance lookups (<code>fec_…</code>),
+              voting-pattern analyses (<code>vpa_…</code>, <code>vpa_index</code>), and bill editorial summaries
+              (<code>nb_editorial_…</code>).
+            </li>
+          </ul>
+          <p>
+            Session storage (cleared when you close the tab) remembers whether you dismissed the shutdown banner
+            (<code>shutdownBannerDismissed</code>). Google and Stripe may set their own cookies on their pages when you
+            sign in with Google or pay.
           </p>
         </div>
       </section>
@@ -170,7 +204,7 @@ function PrivacyPage() {
           <p>
             Only the service providers that run the features above: Supabase (accounts and database), Vercel
             (hosting and analytics), Resend (alert email), Stripe (payments), Google (sign-in and Gmail delivery, if
-            you use them), and Upstash (rate-limit counters). Bill text and public summaries are sent to an AI
+            you use them), and Upstash (rate-limit counters, where enabled). Bill text and public summaries are sent to an AI
             provider to write explanations; no personal information is included. We may disclose information if the
             law requires it.
           </p>

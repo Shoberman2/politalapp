@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { HelmetProvider } from 'react-helmet-async'
@@ -84,5 +86,69 @@ describe('information pages', () => {
   it('about page carries the mission line', () => {
     const { container } = renderAt('/about', <AboutPage />)
     expect(container.textContent).toContain(BRAND.mission)
+  })
+})
+
+// The privacy notice must name every custom analytics event and every
+// localStorage key the app writes. The hardcoded lists are the reviewed
+// truth; the source scan fails when code adds one the notice doesn't mention.
+const TRACKED_EVENTS = ['draft_opened', 'contact_page_opened', 'message_sent_confirmed', 'record_shared']
+const STORAGE_KEYS = ['userData', 'wrote:v1', 'bw-theme', 'chamber_scrubber_taught_v1', 'fec_', 'vpa_', 'vpa_index', 'nb_editorial_', 'shutdownBannerDismissed']
+
+function sourceFiles(dir) {
+  const out = []
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name)
+    if (statSync(full).isDirectory()) out.push(...sourceFiles(full))
+    else if (/\.(jsx?|tsx?)$/.test(name)) out.push(full)
+  }
+  return out
+}
+
+describe('privacy notice matches what the code does', () => {
+  const srcRoot = resolve(process.cwd(), 'src')
+  const sources = sourceFiles(srcRoot).map((f) => [f, readFileSync(f, 'utf8')])
+
+  it('names every tracked event in the analytics section', () => {
+    const { getByTestId } = renderAt('/privacy', <PrivacyPage />)
+    const analytics = getByTestId('analytics-events').textContent
+    for (const name of TRACKED_EVENTS) expect(analytics).toContain(name)
+  })
+
+  it('every event name sent from src/ is in the reviewed list (and so on the page)', () => {
+    const found = new Set()
+    for (const [, text] of sources) {
+      // Direct calls, plus TellYourRep's countEvent wrapper around track().
+      for (const m of text.matchAll(/\b(?:track|countEvent|countShare)\(\s*['"]([a-z0-9_]+)['"]/g)) found.add(m[1])
+    }
+    expect(found.size).toBeGreaterThan(0)
+    for (const name of found) expect(TRACKED_EVENTS).toContain(name)
+    // Any track( call whose name is not a string literal must be a known wrapper.
+    for (const [file, text] of sources) {
+      for (const m of text.matchAll(/\btrack\(\s*([^'"\s)][^,)]*)/g)) {
+        expect([file.endsWith('TellYourRep.jsx') && m[1] === 'name', file.endsWith('MemberRecord.jsx')]).toContain(true)
+      }
+    }
+    const { container } = renderAt('/privacy', <PrivacyPage />)
+    for (const name of found) expect(container.textContent).toContain(name)
+  })
+
+  it('describes every localStorage key the app writes', () => {
+    const { getByTestId, container } = renderAt('/privacy', <PrivacyPage />)
+    const storage = getByTestId('storage-keys').textContent
+    for (const key of STORAGE_KEYS.filter((k) => k !== 'shutdownBannerDismissed')) expect(storage).toContain(key)
+    expect(container.textContent).toContain('shutdownBannerDismissed')
+    expect(storage).toMatch(/Never the message text/)
+  })
+
+  it('every literal storage key in src/ is in the reviewed list', () => {
+    const found = new Set()
+    for (const [, text] of sources) {
+      for (const m of text.matchAll(/(?:_KEY|_PREFIX|STORAGE_KEY)\s*=\s*['"]([^'"]+)['"]/g)) found.add(m[1])
+      for (const m of text.matchAll(/(?:local|session)Storage\.setItem\(\s*['"`]([A-Za-z_:-]+)/g)) found.add(m[1])
+    }
+    // SENT_EVENT-style names are not storage keys.
+    const keys = [...found].filter((k) => !/:changed$/.test(k))
+    for (const key of keys) expect(STORAGE_KEYS.some((k) => key === k || key.startsWith(k))).toBe(true)
   })
 })
