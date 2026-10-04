@@ -12,6 +12,11 @@
 **Context:** Until v0.7.0.0 both keys were inlined into the public JS bundle (`VITE_CONGRESS_API_KEY`, `VITE_FEC_API_KEY`), so the current values are public. The proxy now reads them server-side only, but moving a leaked key protects nothing until it is replaced. The iOS app also embeds `CONGRESS_API_KEY` via `ios/scripts/make-secrets.sh`.
 **What to do:** Issue new keys; set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel; delete the `VITE_` names; give iOS its own key (or route iOS through `/api/proxy`); remove the `VITE_` fallbacks in `api/_lib/upstreamProxy.js`.
 
+## Serve the dynamic share image (`/api/og`)
+**Priority:** P1
+**Context:** `api/og.jsx` (edge, `@vercel/og`) returns Vercel's NOT_FOUND in production and previews, for bills and member records alike: the `.jsx` function is not built in this non-Next project. `api/share.js` and, since v0.7.0.0, the record page's `og:image` (`recordOgImagePath` in `shared/memberRecord.js`) use the static `/congress.jpg` card instead.
+**What to do:** Rename to `api/og.js` without JSX (React.createElement or the object form), or move to a build that compiles it; verify on a preview with `vercel curl`; then point `recordOgImagePath` back at `/api/og?kind=record&id=…`.
+
 ## Lazy-load routes and cut the main bundle under 250 KB gzip
 **Priority:** P1
 **Deferred from plan:** docs/designs/agent-front-door-and-tell-your-rep.md (Phase 3)

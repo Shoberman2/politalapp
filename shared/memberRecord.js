@@ -250,6 +250,11 @@ export function recordSummary(r, stateName = (s) => s) {
   return `${r.name}, ${seat}. ${facts}${latest}`
 }
 
-export function recordOgImagePath(id) {
-  return `/api/og?kind=record&id=${encodeURIComponent(String(id || '').toUpperCase())}`
+// The per-member image (api/og.jsx, edge) is not served in production: Vercel
+// does not build that .jsx function in this non-Next project (/api/og 404s,
+// which is also why api/share.js uses the static card). Until it is fixed,
+// record pages point at the same static 1200x630 card so links still unfurl.
+// TODOS.md: "Serve the dynamic share image".
+export function recordOgImagePath(_id) {
+  return '/congress.jpg'
 }

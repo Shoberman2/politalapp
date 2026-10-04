@@ -71,7 +71,7 @@ describe('record card link preview (prerendered HTML)', () => {
     expect(res.statusCode).toBe(200)
     const html = res.body
     const canonical = 'https://www.ballotwatch.io/politician/P000197/record'
-    const image = 'https://www.ballotwatch.io/api/og?kind=record&id=P000197'
+    const image = 'https://www.ballotwatch.io/congress.jpg'
     const title = "Nancy Pelosi's record in 60 seconds (D-CA-11)"
 
     expect(metas(html, 'og:title')).toEqual([title])
@@ -90,8 +90,8 @@ describe('record card link preview (prerendered HTML)', () => {
     expect(metas(html, 'og:image:alt')).toEqual([title])
     expect(metas(html, 'twitter:card')).toEqual(['summary_large_image'])
     for (const u of [...metas(html, 'og:image'), ...metas(html, 'og:url')]) expect(u).toMatch(/^https:\/\//)
-    // The generic homepage image never leaks into a record preview.
-    expect(html).not.toContain('content="https://www.ballotwatch.io/congress.jpg"')
+    // Until /api/og is served in production (TODOS.md), record previews use the
+    // static 1200x630 card rather than a broken image URL.
   })
 })
 
