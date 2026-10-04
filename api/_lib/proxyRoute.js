@@ -11,8 +11,8 @@ import { getRequestUrl, sendResponse } from './request.js'
 // browsing well clear while keeping one client from draining the shared
 // api.data.gov key. Production has no Upstash, so this is per instance.
 // Override with PROXY_PER_MINUTE / PROXY_PER_DAY.
-export const PROXY_PER_MINUTE = Number(process.env.PROXY_PER_MINUTE || 60)
-export const PROXY_PER_DAY = Number(process.env.PROXY_PER_DAY || 2000)
+export const PROXY_PER_MINUTE = Number(process.env.PROXY_PER_MINUTE || 120)
+export const PROXY_PER_DAY = Number(process.env.PROXY_PER_DAY || 3000)
 
 export async function proxyRoute(service, req, { env = process.env, fetchImpl } = {}) {
   const method = String(req.method || '').toUpperCase()
