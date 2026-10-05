@@ -126,7 +126,8 @@ describe('get_member_record', () => {
       canonical: 'https://www.ballotwatch.io/vote/119/house/2/250',
       source_url: 'https://clerk.house.gov/Votes/2026250',
     })
-    expect(out.recent_votes[1]).toMatchObject({ position: 'Nay', result: null, bill: null, source_url: null })
+    // A stored javascript: URL never surfaces; the official record is derived from the roll-call id.
+    expect(out.recent_votes[1]).toMatchObject({ position: 'Nay', result: null, bill: null, source_url: 'https://clerk.house.gov/Votes/2026249' })
     // The card never reads campaign-finance tables.
     expect(db.tables().some((t) => /fec|donor|contribution|donation/i.test(t))).toBe(false)
     expect(db.ops('votes', 'limit')[0]).toEqual(['limit', 10])

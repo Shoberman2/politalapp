@@ -5,6 +5,10 @@
  */
 
 import type { VotePosition, ETLConfig } from './types.js';
+// One builder for official roll-call URLs, shared with the API and the
+// open-data exporter.
+// @ts-ignore -- untyped JS module
+import { officialRollCallUrl } from '../api/_lib/rollCallResult.js';
 
 // =============================================================================
 // LOGGING
@@ -412,19 +416,20 @@ export function loadConfig(): ETLConfig {
 }
 
 /**
- * Constructs the official Congress.gov URL for a vote.
+ * The official record URL for a roll call: the House Clerk page
+ * (clerk.house.gov/Votes/{session year}{roll}) or the Senate LIS page. The
+ * House year comes from congress + session (119th session 1 = 2025), never
+ * from the clock: before this fix a 2025 vote loaded in 2026 got a 2026 URL.
+ * Delegates to officialRollCallUrl in api/_lib/rollCallResult.js. Null when
+ * the parts are not a valid roll call (non-positive roll, session not 1 or 2).
  */
 export function getVoteSourceUrl(
   chamber: 'house' | 'senate',
   congress: number,
   session: number,
   rollNumber: number
-): string {
-  if (chamber === 'house') {
-    return `https://clerk.house.gov/Votes/${new Date().getFullYear()}${rollNumber}`;
-  } else {
-    return `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${congress}${session}/vote_${congress}_${session}_${String(rollNumber).padStart(5, '0')}.htm`;
-  }
+): string | null {
+  return officialRollCallUrl({ chamber, congress, session, roll: rollNumber });
 }
 
 /**

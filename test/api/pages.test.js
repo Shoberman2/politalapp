@@ -132,7 +132,8 @@ describe('pages loaders', () => {
     const empty = await getRollCallPage('senate-119-1-1')
     expect(empty.tally).toBeNull()
     expect(empty.result).toBeNull()
-    expect(empty).toMatchObject({ indexable: false, noindexReason: 'no_tally', votes: [], source_url: null, voted_at: '2025-01-03' })
+    // The official record URL comes from the roll-call id, not from member rows.
+    expect(empty).toMatchObject({ indexable: false, noindexReason: 'no_tally', votes: [], source_url: 'https://www.senate.gov/legislative/LIS/roll_call_votes/vote1191/vote_119_1_00001.htm', voted_at: '2025-01-03' })
 
     reset()
     expect(await getRollCallPage('house-119-295')).toBeNull()   // three-part id is not a roll call

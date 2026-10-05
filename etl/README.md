@@ -170,6 +170,37 @@ wherever the last one stopped. A bill that returns no title from Congress.gov
 is logged and left as is. Run against production on 2026-09-06: 476 bills
 restored.
 
+`etl/repairVoteSourceUrls.ts` fixes stored roll-call source URLs. Before
+October 2026, `getVoteSourceUrl` built House Clerk URLs
+(`clerk.house.gov/Votes/{year}{roll}`) from the year the ETL ran, so a 2025
+vote (119th Congress, session 1) loaded in 2026 linked to the 2026 roll call
+with the same number. The URL now comes from congress + session (session 1 of
+Congress N is the year `1789 + 2*(N-1)`, session 2 the year after) through one
+helper, `officialRollCallUrl` in `api/_lib/rollCallResult.js`, which the ETL,
+the open-data exporter, the API, and the app all call; never derive a record's
+year from the clock. Senate URLs already carried congress and session and were
+correct.
+
+The script scans `votes` (the only table that stores a roll-call URL;
+`roll_calls` and `roll_call_stats` have none) in id order, derives the correct
+URL from `roll_call_id`, and rewrites only rows that differ. Rows already
+correct and rows without a parseable `roll_call_id` are never touched.
+
+```bash
+npx tsx --env-file=.env etl/repairVoteSourceUrls.ts            # dry run (default): counts by chamber and session year, 5 samples
+npx tsx --env-file=.env etl/repairVoteSourceUrls.ts --apply    # write, 200 ids per UPDATE
+npx tsx --env-file=.env etl/repairVoteSourceUrls.ts --apply --batch-size 100 --after 123456  # smaller batches, resume after an id
+```
+
+Needs `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Each UPDATE is guarded
+with `source_url <> expected`, so re-running is a no-op once everything is
+fixed; progress lines print the last scanned id, and a failed batch names the
+`--after` value to resume from. Server pages, `/api/v1`, MCP and the app
+and the open-data export already derive the URL from the roll-call id, so the
+repair is for the raw table and anything reading Postgres directly (and for
+`persist_historical_roll_call`, which refuses to merge when a stored
+`source_url` differs from the one passed in).
+
 `etl/exportOpenData.ts` writes the open-data snapshot (CC0 1.0): members,
 member terms, bills, cosponsors, roll calls, and votes as gzip CSV and NDJSON,
 full archive plus the current Congress, with `manifest.json` and a

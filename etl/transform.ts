@@ -277,6 +277,10 @@ function transformVote(
     return null;
   }
   const sourceUrl = getVoteSourceUrl(chamber, voteDetail.congress, session, voteDetail.rollNumber);
+  if (!sourceUrl) {
+    logger.warn(`Skipping vote with invalid roll-call identity: ${chamber} ${voteDetail.congress}/${session}/${voteDetail.rollNumber}`);
+    return null;
+  }
   const rollCallId = formatRollCallId(chamber, voteDetail.congress, session, voteDetail.rollNumber);
 
   return {

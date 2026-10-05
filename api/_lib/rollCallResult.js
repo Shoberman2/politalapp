@@ -28,6 +28,44 @@ export function buildRollCallId({ congress, chamber, session, roll }) {
   return `${key}-${c}-${s}-${r}`
 }
 
+// Calendar year of a session of Congress. Since the 20th Amendment each
+// Congress meets for two sessions, the first in the odd year it convenes
+// (1789 + 2 * (congress - 1)) and the second in the following even year:
+// 119th Congress session 1 = 2025, session 2 = 2026. Returns null for anything
+// else (a rare pre-1990 third session predates the online Clerk record).
+export function sessionYear(congress, session) {
+  const c = Number(congress), s = Number(session)
+  if (!Number.isInteger(c) || c < 1 || (s !== 1 && s !== 2)) return null
+  return 1789 + 2 * (c - 1) + (s - 1)
+}
+
+// The official record of a roll call: the House Clerk page
+// (clerk.house.gov/Votes/{session year}{roll}) or the Senate LIS page
+// (vote{congress}{session}/vote_{congress}_{session}_{roll:05}.htm). Takes a
+// roll-call id ("house-119-1-123") or its parts. The one place these URLs are
+// built: the ETL, the open-data exporter, the API, and the repair script all
+// call it. Never derive the year from the clock: a 2025 vote loaded in 2026
+// is still the 2025 record.
+export function officialRollCallUrl(idOrParts) {
+  const p = typeof idOrParts === 'string'
+    ? parseRollCallId(idOrParts)
+    : parseRollCallId(buildRollCallId(idOrParts || {}))
+  if (!p) return null
+  if (p.chamberKey === 'house') {
+    const year = sessionYear(p.congress, p.session)
+    return year ? `https://clerk.house.gov/Votes/${year}${p.roll}` : null
+  }
+  if (p.session !== 1 && p.session !== 2) return null
+  return `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${p.congress}${p.session}/vote_${p.congress}_${p.session}_${String(p.roll).padStart(5, '0')}.htm`
+}
+
+// The source URL to show for a stored vote row: the official record derived
+// from its roll-call id, falling back to the stored value only when the id
+// cannot be parsed. Older rows carry a House Clerk URL with the wrong year.
+export function voteSourceUrl(rollCallId, storedUrl) {
+  return officialRollCallUrl(rollCallId) || storedUrl || null
+}
+
 export function rollCallPath(id) {
   const p = parseRollCallId(id)
   if (!p) return null

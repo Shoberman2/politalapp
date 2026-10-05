@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { voteSourceUrl } from '../../api/_lib/rollCallResult.js'
 
 /**
  * Fetch voting dashboard data for a member from Supabase.
@@ -119,7 +120,7 @@ export async function getMemberDashboardData(politicianId, limit = 500) {
         roll_call_id: v.roll_call_id,
         position: v.position,
         voted_at: v.voted_at,
-        source_url: v.source_url,
+        source_url: voteSourceUrl(v.roll_call_id, v.source_url),
         bill: v.bills || null,
         roll_call_stats: v.roll_call_id ? rollCallStatsMap.get(v.roll_call_id) ?? null : null,
         roll_call: v.roll_call_id ? rollCallsMap.get(v.roll_call_id) ?? null : null,

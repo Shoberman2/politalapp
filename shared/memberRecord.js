@@ -24,7 +24,7 @@
 // the prerendered HTML and Markdown, and the React page, so all of them show
 // exactly the same facts.
 
-import { parseRollCallId, rollCallPath, saneTally, tallyFromStats, deriveResult, resultKind } from '../api/_lib/rollCallResult.js'
+import { parseRollCallId, rollCallPath, saneTally, tallyFromStats, deriveResult, resultKind, voteSourceUrl } from '../api/_lib/rollCallResult.js'
 import { isPlaceholderTitle } from '../api/_lib/indexGate.js'
 import { isAtLargeState, isDelegateJurisdiction } from './atLargeStates.js'
 
@@ -93,6 +93,9 @@ export function shapeRecordVote(v, rollCall, rcStats) {
   const billId = v.bill_id || v.bills?.id || rollCall?.bill_id || null
   const bill = billId ? recordBill(billId) : null
   const rawTitle = v.bills?.title ?? null
+  // The official record derived from the roll-call id; a stored URL is only
+  // the fallback, and only http(s) links ever become hrefs.
+  const sourceUrl = voteSourceUrl(v.roll_call_id, v.source_url)
   return {
     roll_call_id: v.roll_call_id,
     path: rollCallPath(v.roll_call_id),
@@ -105,8 +108,7 @@ export function shapeRecordVote(v, rollCall, rcStats) {
     result,
     resultKind: resultKind(result),
     tally: trusted ? { yea: t.yea, nay: t.nay } : null,
-    // Only http(s) links ever become hrefs.
-    source_url: /^https?:\/\//i.test(String(v.source_url || '')) ? v.source_url : null,
+    source_url: /^https?:\/\//i.test(String(sourceUrl || '')) ? sourceUrl : null,
   }
 }
 
