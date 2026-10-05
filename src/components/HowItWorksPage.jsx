@@ -28,7 +28,7 @@ const LOOP = [
   },
   {
     title: 'See how they vote next',
-    body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.',
+    body: 'Follow a bill with a free account and hear when it reaches committee, the floor, or a recorded vote.',
     link: SHOW_BILL_ALERTS ? { to: '/alerts', label: 'Follow a bill' } : { to: '/this-week', label: 'This week' },
   },
 ]
@@ -40,7 +40,7 @@ const LIVE = [
   { label: 'This week on the floor', to: '/this-week' },
   { label: 'A record in 60 seconds', to: '/all' },
   { label: 'Tell your rep', to: '/this-week' },
-  SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },
+  SHOW_BILL_ALERTS && { label: 'Bill alerts (free account)', to: '/alerts' },
   { label: 'Free API and MCP server', to: '/developers' },
 ].filter(Boolean)
 

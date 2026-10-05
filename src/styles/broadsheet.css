@@ -37,19 +37,6 @@
 .bw em { font-style: italic; }
 
 /* ============ MASTHEAD / NAV ============ */
-.bw .announce {
-  background: var(--ink);
-  color: var(--bg);
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 7px 16px;
-}
-[data-theme="dark"] .bw .announce { background: var(--bg-tint); color: var(--ink-2); border-bottom: 1px solid var(--rule); }
-.bw .announce span { opacity: 0.92; }
-
 .bw .topbar-wrap {
   position: sticky;
   top: 0;
@@ -148,6 +135,16 @@
 [data-theme="dark"] .bw .theme-toggle .sun { display: block; }
 [data-theme="dark"] .bw .theme-toggle .moon { display: none; }
 .bw .nav-cta-short { display: none; }
+.bw .nav-account {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition: color .15s ease;
+}
+.bw .nav-account:hover, .bw .nav-account.active { color: var(--ink); }
+.bw .topnav .topnav-account-mobile { display: none; }
 
 /* ============ BUTTONS ============
    The button system (.btn, .btn-primary, .btn-secondary, .btn-text,
@@ -237,6 +234,8 @@
     background: var(--bg);
   }
   .bw .topnav.open-mobile { display: flex; }
+  .bw .topnav .topnav-account-mobile { display: block; }
+  .bw .nav-account { display: none; }
   .bw .topnav a { padding: 12px 32px; }
   .bw .topnav a.active::after { display: none; }
   .bw .nav-burger {

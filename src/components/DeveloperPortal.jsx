@@ -72,8 +72,8 @@ function DeveloperPortal() {
               Get Your API Key
             </button>
           ) : (
-            <button className="btn-primary" onClick={() => navigate('/auth')}>
-              Sign Up for API Access
+            <button className="btn-primary" onClick={() => navigate('/auth?next=/developers/keys')}>
+              Get a free key
             </button>
           )}
           <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/docs')}>
@@ -155,7 +155,7 @@ function DeveloperPortal() {
 
       <section className="dev-pricing" id="pricing">
         <h2>Hosted API plans</h2>
-        <p className="dev-pricing-subtitle">Public samples are open. Hosted plans add keys, freshness, request volume, usage tracking, and support.</p>
+        <p className="dev-pricing-subtitle">The live API is open without a key (60 requests a minute per IP). A free key raises that to 600 a minute. Paid plans add monthly volume and support.</p>
         <div className="dev-tier-grid">
           {TIERS.map(tier => (
             <div key={tier.name} className={`dev-tier-card ${tier.popular ? 'dev-tier-popular' : ''}`}>
@@ -172,7 +172,7 @@ function DeveloperPortal() {
               </ul>
               <button
                 className={tier.popular ? 'btn-primary' : 'btn-secondary'}
-                onClick={() => user ? navigate('/developers/keys') : navigate('/auth')}
+                onClick={() => user ? navigate('/developers/keys') : navigate('/auth?next=/developers/keys')}
               >
                 Get Started
               </button>
@@ -183,9 +183,9 @@ function DeveloperPortal() {
 
       <section className="dev-cta">
         <h2>Ready to build on the live API?</h2>
-        <p>Start from the samples, then sign up when your project needs fresh hosted data.</p>
-        <button className="btn-primary" onClick={() => user ? navigate('/developers/keys') : navigate('/auth')}>
-          {user ? 'Go to API Keys' : 'Create Account'}
+        <p>Use the open API today with no key. Sign in for a free key when you need more than 60 requests a minute.</p>
+        <button className="btn-primary" onClick={() => user ? navigate('/developers/keys') : navigate('/auth?next=/developers/keys')}>
+          {user ? 'Go to API Keys' : 'Get a free key'}
         </button>
       </section>
     </div>

@@ -191,6 +191,7 @@ export async function getRecentFloorVotes(fetchCount = 16) {
         // Nomination/procedural descriptions carry the real human substance.
         description: c.description || null,
         bill: parseBill(c.bill_id),
+        votedAt: c.voted_at || null,
         yea,
         nay,
         result: deriveResult(c.question, yea, nay, chamber, c.description),

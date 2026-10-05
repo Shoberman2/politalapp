@@ -2,41 +2,28 @@ import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import { SHOW_BILL_ALERTS } from '../config/features'
+import { useAuth } from '../context/AuthContext'
 import { BRAND } from '../config/brand'
 import '../styles/Navigation.css'
 
-// Per-route announcement copy for the strip above the masthead.
-function announceFor(pathname) {
-  if (pathname === '/') {
-    return 'Every vote, bill & member of Congress / Built from public Congress.gov, Census & FEC data'
-  }
-  if (pathname.startsWith('/all')) {
-    return 'Open-source congressional records / Current members and delegates of the 119th Congress'
-  }
-  if (pathname.startsWith('/bills') || pathname.startsWith('/bill/')) {
-    return 'Open-source congressional records / Updated daily from Congress.gov'
-  }
-  if (pathname.startsWith('/briefings')) {
-    return 'BallotWatch Pro / Neutral civic briefings delivered from public sources'
-  }
-  return 'Open-source congressional data, powered by public sources'
-}
-
+// Public pages only. Everything here works without an account; features that
+// need one (bill alerts, briefings) live behind Sign in, not in the main row.
 const NAV_LINKS = [
-  { to: '/my-representative', label: 'My Rep' },
-  { to: '/briefings', label: 'Briefings' },
-  { to: '/bills', label: 'Bills' },
-  ...(SHOW_BILL_ALERTS ? [{ to: '/alerts', label: 'Alerts' }] : []),
   { to: '/all', label: 'Members' },
-  { to: '/methodology', label: 'Methodology' },
-  { to: '/developers', label: 'API' },
-  { to: '/offices', label: 'For Offices' },
+  { to: '/bills', label: 'Bills' },
+  { to: '/this-week', label: 'This week' },
+  { to: '/how-it-works', label: 'How it works' },
+  { to: '/offices', label: 'For offices' },
 ]
 
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user } = useAuth()
+  const account = user
+    ? (SHOW_BILL_ALERTS ? { to: '/alerts', label: 'My alerts' } : null)
+    : { to: location.pathname.startsWith('/auth') ? '/auth' : `/auth?next=${encodeURIComponent(location.pathname)}`, label: 'Sign in' }
 
   useEffect(() => {
     setMenuOpen(false)
@@ -44,7 +31,6 @@ function Navigation() {
 
   return (
     <div className="bw bw-masthead">
-      <div className="announce"><span>{announceFor(location.pathname)}</span></div>
       <div className="topbar-wrap">
         <div className="topbar">
           <button className="brand" onClick={() => navigate('/')} aria-label={`${BRAND.name} home`}>
@@ -62,10 +48,14 @@ function Navigation() {
                 {link.label}
               </NavLink>
             ))}
+            {account && (
+              <NavLink to={account.to} className="topnav-account-mobile">{account.label}</NavLink>
+            )}
           </nav>
 
           <div className="topbar-right">
             <ThemeToggle />
+            {account && <NavLink to={account.to} className="nav-account">{account.label}</NavLink>}
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/my-representative')}>
               <span className="nav-cta-full">Find my reps</span>
               <span className="nav-cta-short">My reps</span>

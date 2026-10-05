@@ -3,6 +3,21 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.8.1.0] - 2026-10-05
+
+### Changed
+
+- The top navigation lists only pages anyone can use: Members, Bills, This week, How it works, and For offices. "Sign in" sits quietly on the right (it becomes "My alerts" once you're signed in), and the dark announcement strip is gone.
+- The latest-vote card on the front page leads with what the vote was about (the bill's own title), says in plain English which step was voted on ("Vote to end debate on taking up the bill"), and shows the yea/nay split as a bar. The "Recorded through" line above the headline is gone.
+- Every page now says the same thing about accounts: reading the record, Tell your rep, and the public API need no account; following a bill or getting an API key needs a free one. Links that need sign-in say so before you click.
+- Email briefings say plainly that they are not open yet.
+
+### Fixed
+
+- Bills keeps working when Congress.gov is slow or down: the list falls back to our own copy of the current Congress instead of showing an error.
+- Checkout for briefings no longer falls back to a payment link that could charge without turning anything on.
+- The latest vote's date no longer shows a day early for visitors in U.S. time zones.
+
 ## [0.8.0.0] - 2026-10-04
 
 ### Added
