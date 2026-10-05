@@ -56,7 +56,7 @@
 }
 
 .methodology-title {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 28px;
   color: var(--text-primary, #1A1A18);
@@ -101,7 +101,7 @@
 }
 
 .methodology-h3 {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-style: italic;
   font-weight: 400;
   font-size: 20px;
@@ -110,7 +110,7 @@
 }
 
 .methodology-section p {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-primary, #1A1A18);

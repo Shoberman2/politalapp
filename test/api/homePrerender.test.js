@@ -144,7 +144,7 @@ describe('prerender kind=home', () => {
     expect(byType.Dataset.isAccessibleForFree).toBe(true)
     expect(byType.Dataset.dateModified).toBe('2026-09-05T10:25:32.028Z')
     expect(byType.Dataset.temporalCoverage).toBe('2025-01-03/..')
-    expect(byType.Dataset.distribution.map((d) => d.contentUrl)).toEqual(['https://www.ballotwatch.io/api/v1', 'https://www.ballotwatch.io/openapi.yaml'])
+    expect(byType.Dataset.distribution.map((d) => d.contentUrl)).toEqual(['https://www.ballotwatch.io/api/v1/votes', 'https://www.ballotwatch.io/openapi.yaml'])
   })
 
   it('serves compact Markdown for Accept: text/markdown', async () => {

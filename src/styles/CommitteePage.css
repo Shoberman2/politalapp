@@ -8,7 +8,7 @@
 }
 
 .committee-crumb {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
   margin-bottom: 24px;
@@ -29,7 +29,7 @@
 }
 
 .committee-kicker {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 12px;
   color: var(--text-secondary, #6B6861);
@@ -39,7 +39,7 @@
 }
 
 .committee-title {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 36px;
   line-height: 1.15;
@@ -49,7 +49,7 @@
 .committee-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .committee-deck {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-weight: 400;
   font-style: normal;
   font-size: 18px;
@@ -85,7 +85,7 @@
 }
 
 .committee-section-title {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: 22px;
   color: var(--text-primary, #1A1A18);
@@ -94,7 +94,7 @@
 .committee-section-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .committee-section-subtitle {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
   margin: 0 0 24px;
@@ -102,7 +102,7 @@
 
 .committee-loading,
 .committee-empty {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   color: var(--text-secondary, #6B6861);
   padding: 16px 0;
@@ -158,7 +158,7 @@
 }
 
 .committee-bill-title {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary, #1A1A18);
@@ -166,7 +166,7 @@
 }
 
 .committee-bill-sponsor {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--text-secondary, #6B6861);
 }
@@ -203,7 +203,7 @@
 .committee-methodology-link {
   display: inline-block;
   margin-top: 16px;
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--accent, #1D4ED8);
   text-decoration: underline;

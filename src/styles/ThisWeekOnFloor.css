@@ -1,5 +1,5 @@
 /* ThisWeekOnFloor: "Coming up, and just decided."
-   Broadsheet treatment per DESIGN.md: Instrument Serif heading, General Sans
+   Broadsheet treatment per DESIGN.md: display-face heading, body face
    body, Geist Mono for bill numbers / dates / tallies, thin rules, one accent.
    Amber (#D97706) marks upcoming items; text uses the --warning token, which
    App.css darkens for contrast on paper. Tokens come from App.css. */

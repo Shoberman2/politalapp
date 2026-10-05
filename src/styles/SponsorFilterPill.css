@@ -77,7 +77,7 @@
   padding: 8px 12px;
   border: 0;
   border-bottom: 1px solid #E8E6E1;
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   color: var(--text-primary, #1A1A18);
   background: transparent;
@@ -115,7 +115,7 @@
 }
 
 .sponsor-pill-row-name {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary, #1A1A18);
@@ -133,7 +133,7 @@
 }
 
 .sponsor-pill-row-state {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--text-secondary, #6B6861);
 }
