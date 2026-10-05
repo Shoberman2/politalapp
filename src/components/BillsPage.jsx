@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SEO from './SEO'
 import { searchBills, getTrendingBills } from '../services/congress'
@@ -17,6 +17,9 @@ import '../styles/BillsPage.css'
 // VITE_BILLS_SHOW_SPONSOR_FILTER=true in Vercel to enable.
 const SHOW_SPONSOR_FILTER = import.meta.env.VITE_BILLS_SHOW_SPONSOR_FILTER === 'true'
 
+// After the live Congress.gov list fails, how long to read the database copy
+// before trying the live list again.
+const LIVE_RETRY_COOLDOWN_MS = 60_000
 const DEFAULT_CONGRESS_FILTER = String(CONGRESS_MAX)
 const BILL_CONGRESS_OPTIONS = Array.from(
   { length: CONGRESS_MAX - BILL_CONGRESS_MIN + 1 },
@@ -92,6 +95,12 @@ function BillsPage() {
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  // Set when the live Congress.gov list failed and the current-Congress view
+  // fell back to the database copy, so "Load more" pages through the same source.
+  const [liveListFailed, setLiveListFailed] = useState(false)
+  // When the live list last failed. Filter changes inside the cooldown go
+  // straight to the database instead of waiting out another upstream timeout.
+  const liveFailedAt = useRef(0)
 
   // Client-side facets over the loaded result set.
   const [statusFacet, setStatusFacet] = useState('all')   // 'all' | status key
@@ -160,20 +169,37 @@ function BillsPage() {
 
       const currentOffset = reset ? 0 : offset
 
-      const newBills = usesArchiveBrowse
-        ? await searchBillsInDb({
-            congress: selectedCongress,
-            introducedFrom: congressFilter === 'all' ? BILL_ARCHIVE_START_DATE : null,
-            billType: billTypeFilter !== 'all' ? billTypeFilter : null,
-            limit: LIMIT,
-            offset: currentOffset,
-          })
-        : (await searchBills({
+      const browseDb = () => searchBillsInDb({
+        congress: selectedCongress,
+        introducedFrom: congressFilter === 'all' ? BILL_ARCHIVE_START_DATE : null,
+        billType: billTypeFilter !== 'all' ? billTypeFilter : null,
+        limit: LIMIT,
+        offset: currentOffset,
+      })
+
+      let newBills
+      const liveCoolingDown = Date.now() - liveFailedAt.current < LIVE_RETRY_COOLDOWN_MS
+      if (usesArchiveBrowse || (!reset && liveListFailed) || (reset && liveCoolingDown)) {
+        newBills = await browseDb()
+      } else {
+        try {
+          newBills = (await searchBills({
             congress: selectedCongress,
             billType: billTypeFilter !== 'all' ? billTypeFilter : null,
             limit: LIMIT,
             offset: currentOffset,
           })).bills || []
+          setLiveListFailed(false)
+        } catch (liveErr) {
+          // Congress.gov is slow or down (the proxy answers 504 after its
+          // upstream timeout). The ETL keeps the current Congress in the
+          // database too, so show that copy instead of an error.
+          console.warn('[BillsPage] Congress.gov bill list failed; using the database copy:', liveErr.response?.status || liveErr.message)
+          liveFailedAt.current = Date.now()
+          newBills = await browseDb()
+          setLiveListFailed(true)
+        }
+      }
 
       if (reset) {
         setBills(newBills)
