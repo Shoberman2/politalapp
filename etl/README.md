@@ -170,11 +170,28 @@ wherever the last one stopped. A bill that returns no title from Congress.gov
 is logged and left as is. Run against production on 2026-09-06: 476 bills
 restored.
 
+`etl/exportOpenData.ts` writes the open-data snapshot (CC0 1.0): members,
+member terms, bills, cosponsors, roll calls, and votes as gzip CSV and NDJSON,
+full archive plus the current Congress, with `manifest.json` and a
+Frictionless `datapackage.json`. Read-only against Postgres; `--upload` writes
+to the public Storage bucket `open-data` (created if missing) under `latest/`
+and `YYYY-MM-DD/`, keeping 14 dated snapshots.
+
+```bash
+npx tsx etl/exportOpenData.ts                  # write ./dist-data only
+npx tsx etl/exportOpenData.ts --upload         # and publish to Storage
+npx tsx etl/exportOpenData.ts --out /tmp/od --congress 119
+```
+
+Needs `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` only.
+
 ### GitHub Actions (Automated)
 
 The pipeline runs automatically:
 - **Daily** at 6:00 AM UTC (7 days of history)
 - **Weekly** on Sundays (30 days of history)
+- **Open data** daily at 7:30 AM UTC (`open-data-export.yml`: export and publish
+  the bulk files)
 
 Manual trigger available in GitHub Actions with custom parameters.
 

@@ -21,6 +21,11 @@ BallotWatch more useful, more citeable, and easier to contribute to.
   sent by you through the member's official contact page (v0.7.0.0).
 - Congress.gov and FEC keys moved server-side behind an allow-listed proxy
   (v0.7.0.0).
+- Versioned public data snapshots, CC0 1.0: every member, term, bill,
+  cosponsorship, roll call, and vote as daily gzip CSV and NDJSON at
+  `/data/full/`, with a manifest, a Frictionless data package,
+  `GET /api/v1/datasets`, `/llms-full.txt`, and an MCP server card. Shipped,
+  pending the first run of `.github/workflows/open-data-export.yml`.
 
 ## Now
 
@@ -39,8 +44,6 @@ BallotWatch more useful, more citeable, and easier to contribute to.
 
 ## Later
 
-- Versioned public data snapshots (needs a license decision for
-  BallotWatch-derived fields first; see `docs/open-source.md`).
 - Journalist embeds and cite-this widgets.
 - Educator kit for tracing bills and votes.
 - "Built with BallotWatch" gallery.
@@ -48,6 +51,8 @@ BallotWatch more useful, more citeable, and easier to contribute to.
 
 ## Not Yet
 
-- Full public redistribution of every production table.
+- Redistribution of private or operational tables (accounts, API keys, usage,
+  alert subscribers, AI caches). The public congressional tables are
+  published daily.
 - Community moderation of factual records without maintainer review.
 - AI-generated claims without methodology, source grounding, and caveats.

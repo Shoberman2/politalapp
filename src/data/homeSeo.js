@@ -6,6 +6,7 @@
 
 import { BRAND } from '../config/brand.js'
 import { LANDING_FAQ } from './landingFaq.js'
+import { DATA_LICENSE, OPEN_DATA_TABLES, MANIFEST_URL, DATAPACKAGE_URL, openDataFiles, currentCongress } from '../../shared/openData.js'
 
 export const SITE_URL = 'https://www.ballotwatch.io'
 export const GITHUB_URL = 'https://github.com/Shoberman2/politalapp'
@@ -42,6 +43,19 @@ export const HOME_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/offices', label: 'For congressional offices' },
 ]
+
+// One DataDownload per bulk file (gzip CSV and NDJSON, full archive and the
+// current Congress), from the shared open-data catalog.
+export function openDataDistributions(congress = currentCongress()) {
+  const titles = Object.fromEntries(OPEN_DATA_TABLES.map((t) => [t.table, t.title]))
+  return openDataFiles(congress).map((f) => ({
+    '@type': 'DataDownload',
+    name: `${titles[f.table]}, ${f.scope === 'congress' ? `${congress}th Congress` : 'full archive'} (${f.format === 'csv' ? 'CSV' : 'NDJSON'}, gzip)`,
+    encodingFormat: f.format === 'csv' ? 'text/csv' : 'application/x-ndjson',
+    fileFormat: 'application/gzip',
+    contentUrl: f.url,
+  }))
+}
 
 const ORG_ID = `${SITE_URL}/#organization`
 const SITE_ID = `${SITE_URL}/#website`
@@ -93,11 +107,10 @@ export function homeJsonLd({ dateModified = null } = {}) {
     creator: { '@id': ORG_ID },
     publisher: { '@id': ORG_ID },
     isAccessibleForFree: true,
-    license: {
-      '@type': 'CreativeWork',
-      name: 'Source code: MIT License. Source records: U.S. government public records from Congress.gov, the House Clerk, the Senate, the U.S. Census Bureau and the FEC.',
-      url: `${GITHUB_URL}/blob/main/LICENSE`,
-    },
+    // BallotWatch-derived data is CC0 1.0 (DATA_LICENSE.md); the federal
+    // source records are public domain; the code is MIT (not the dataset).
+    license: DATA_LICENSE.path,
+    usageInfo: `${SITE_URL}/open#download`,
     isBasedOn: [
       'https://www.congress.gov/',
       'https://clerk.house.gov/Votes',
@@ -108,6 +121,9 @@ export function homeJsonLd({ dateModified = null } = {}) {
     temporalCoverage: '2025-01-03/..',
     spatialCoverage: { '@type': 'Place', name: 'United States' },
     distribution: [
+      ...openDataDistributions(),
+      { '@type': 'DataDownload', name: 'Open-data manifest: every bulk file with row count, size and SHA-256', encodingFormat: 'application/json', contentUrl: MANIFEST_URL },
+      { '@type': 'DataDownload', name: 'Frictionless Data Package: column types, primary and foreign keys', encodingFormat: 'application/json', contentUrl: DATAPACKAGE_URL },
       { '@type': 'DataDownload', name: 'BallotWatch public API: recent roll-call votes (JSON, no key required for GET)', encodingFormat: 'application/json', contentUrl: `${SITE_URL}/api/v1/votes` },
       { '@type': 'DataDownload', name: 'OpenAPI description of the public API', encodingFormat: 'application/yaml', contentUrl: `${SITE_URL}/openapi.yaml` },
     ],
