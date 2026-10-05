@@ -26,6 +26,19 @@
 - Bill explanations marked as AI-written summarize the official CRS summary; quote the CRS summary for anything precise.
 - Send `Accept: text/markdown` to the homepage, the info pages above, or any record URL for a compact Markdown version.
 
+## Open data (bulk download, CC0 1.0)
+
+- Fastest way to get everything: fetch https://www.ballotwatch.io/data/full/manifest.json and download the files it lists (gzip CSV or gzip NDJSON). No key and no crawling needed.
+- Files under https://www.ballotwatch.io/data/full/ : members, member_terms, bills, bill_cosponsors, roll_calls, votes (full archive, e.g. votes.csv.gz), plus the current Congress on its own (e.g. votes-119.csv.gz, roll_calls-119.ndjson.gz). Gzip files are served as application/gzip downloads; decompress them yourself.
+- Manifest (file list, row counts, bytes, SHA-256, generated_at): https://www.ballotwatch.io/data/full/manifest.json, also as JSON from https://www.ballotwatch.io/api/v1/datasets
+- Schemas (Frictionless Data Package: column types, primary and foreign keys): https://www.ballotwatch.io/data/full/datapackage.json
+- Past snapshots: https://www.ballotwatch.io/data/archive/{YYYY-MM-DD}/{file} (last 14 days)
+- License: CC0 1.0 public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). The federal source records are public domain. Attribution appreciated, not required.
+- Cadence: rebuilt daily about 07:30 UTC, after the 06:00 UTC ingest.
+- Everything an agent needs in one plain-text file: https://www.ballotwatch.io/llms-full.txt
+- MCP server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json
+- Human page: https://www.ballotwatch.io/open#download
+
 BallotWatch is a civic reference, not a campaign site. Pages read like an editorial broadsheet. Data is the record as ingested; the only derived field is a roll call's result, computed from the tally and the question. Bill explanations are grounded in the official CRS summary and are never generated on demand for anonymous requests.
 
 ## Canonical URLs
@@ -41,15 +54,16 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - How it works (the concept in four steps, what's live, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
 - How we get our data (every upstream source, what we take from it, how often, what we compute, and what AI writes): https://www.ballotwatch.io/data-sources
 - About (independence, open source, mission): https://www.ballotwatch.io/about
+- Open data and source (bulk downloads, license, API, MCP, methodology): https://www.ballotwatch.io/open
 - For congressional offices (in development): https://www.ballotwatch.io/offices
 
-The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, methodology, data sources, about, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, methodology, data sources, about, open data, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
 ## API (no key required for GET)
 
 - Base: https://www.ballotwatch.io/api/v1
 - OpenAPI: https://www.ballotwatch.io/openapi.yaml
-- Endpoints: /members, /members/{bioguide_id}, /members/{bioguide_id}/votes, /members/{bioguide_id}/stats, /bills, /bills/{id}, /votes, /votes/{roll_call_id}, /stats, /search?q=, /floor/schedule (House weekly floor schedule, this week and next, parsed from docs.house.gov; the Senate publishes no equivalent)
+- Endpoints: /members, /members/{bioguide_id}, /members/{bioguide_id}/votes, /members/{bioguide_id}/stats, /bills, /bills/{id}, /votes, /votes/{roll_call_id}, /stats, /search?q=, /datasets (the open-data manifest), /floor/schedule (House weekly floor schedule, this week and next, parsed from docs.house.gov; the Senate publishes no equivalent)
 - Ids: bioguide ids like P000197; bill ids like 119-hr-1; roll-call ids like house-119-2-295 (chamber-congress-session-roll)
 - Limits: 60 requests per minute and 5,000 per day per IP without a key. A free key (sign in at https://www.ballotwatch.io/developers/keys, no payment) raises this to 600 per minute with no monthly cap. Send it as `Authorization: Bearer bw_live_...`. Over the limit you get 429 with `Retry-After`.
 - Every response carries `meta.data_updated_at`; single records carry a `Link: <official source>; rel="canonical"` header.
@@ -63,7 +77,8 @@ The homepage, every member, member-record, and roll-call URL, and every bill wit
 ## Sitemaps and bulk
 
 - https://www.ballotwatch.io/sitemap.xml (homepage and info pages, members, member records, roll calls, bills with recorded votes)
-- Sample data package: https://www.ballotwatch.io/data/datapackage.json
+- Full bulk data (CC0 1.0, daily): https://www.ballotwatch.io/data/full/manifest.json (see "Open data" above)
+- Sample data package (small schema samples): https://www.ballotwatch.io/data/datapackage.json
 
 ## Citing
 
