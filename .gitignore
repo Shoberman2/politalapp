@@ -35,3 +35,6 @@ test-results/
 
 # Supabase CLI temp state
 supabase/.temp/
+
+# Open-data snapshot output (etl/exportOpenData.ts)
+dist-data/
