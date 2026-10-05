@@ -11,6 +11,7 @@ import {
   csvEscape,
   csvLine,
   rollCallRow,
+  officialRollCallUrl,
   billRow,
   pruneSnapshots,
   uploadSnapshot,
@@ -169,11 +170,19 @@ describe('row builders', () => {
     expect(billRow({ id: 'garbage', title: 'x' })).toBeNull()
   })
 
+  it('derives the official record URL from the roll-call id (House year = session year, not ingest year)', () => {
+    expect(officialRollCallUrl('house-119-1-1')).toBe('https://clerk.house.gov/Votes/20251')
+    expect(officialRollCallUrl('house-119-2-295')).toBe('https://clerk.house.gov/Votes/2026295')
+    expect(officialRollCallUrl('house-118-1-4')).toBe('https://clerk.house.gov/Votes/20234')
+    expect(officialRollCallUrl('senate-119-2-12')).toBe('https://www.senate.gov/legislative/LIS/roll_call_votes/vote1192/vote_119_2_00012.htm')
+    expect(officialRollCallUrl('nope')).toBeNull()
+  })
+
   it('nulls the tally and result for insane or missing tallies', () => {
     const insane = rollCallRow('house-118-1-4', { question: 'On Passage' }, { dem_yea: 400, rep_yea: 500 })!
     expect(insane).toMatchObject({ yea: null, nay: null, dem_yea: null, result: null })
     const none = rollCallRow('senate-119-1-3', undefined, undefined, { voted_at: '2025-01-10', source_url: 's' })!
-    expect(none).toMatchObject({ yea: null, result: null, voted_at: '2025-01-10', source_url: 's', chamber: 'senate', congress: 119, session: 1, roll: 3 })
+    expect(none).toMatchObject({ yea: null, result: null, voted_at: '2025-01-10', source_url: 'https://www.senate.gov/legislative/LIS/roll_call_votes/vote1191/vote_119_1_00003.htm', chamber: 'senate', congress: 119, session: 1, roll: 3 })
     const ok = rollCallRow('house-119-1-10', { question: 'On Passage' }, { dem_nay: 212, rep_yea: 215, rep_nay: 2 })!
     expect(ok).toMatchObject({ yea: 215, nay: 214, result: 'Passed', page_url: 'https://www.ballotwatch.io/vote/119/house/1/10' })
   })
@@ -218,7 +227,7 @@ describe('exportOpenData', () => {
     expect(rcs.map((r) => r.id)).toEqual(['house-118-1-4', 'house-119-1-10', 'senate-119-1-2', 'senate-119-1-3'])
     expect(rcs[0]).toMatchObject({ yea: null, result: null })
     expect(rcs[1]).toMatchObject({ yea: 215, nay: 214, result: 'Passed', source_url: 'https://clerk.house.gov/Votes/202510' })
-    expect(rcs[3]).toMatchObject({ voted_at: '2025-01-10', source_url: 'https://www.senate.gov/v3' })
+    expect(rcs[3]).toMatchObject({ voted_at: '2025-01-10', source_url: 'https://www.senate.gov/legislative/LIS/roll_call_votes/vote1191/vote_119_1_00003.htm' })
 
     // Members carry the current term.
     const members = readGz(join(dir, 'members.ndjson.gz')).trim().split('\n').map((l) => JSON.parse(l))
