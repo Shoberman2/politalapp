@@ -13,7 +13,6 @@ import {
 } from '../services/civicBriefing'
 import '../styles/CivicBriefing.css'
 
-const CHECKOUT_FALLBACK = 'https://buy.stripe.com/5kQ3cwgEsglY8GXccmcjS08'
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -213,8 +212,11 @@ function CivicBriefing() {
       const data = await startConsumerCheckout(session, `${window.location.origin}/briefings`)
       window.location.href = data.url
     } catch (err) {
-      console.warn('[CivicBriefing] Checkout API failed, using hosted link:', err)
-      window.location.href = CHECKOUT_FALLBACK
+      // No hosted-link fallback: a Payment Link checkout carries no user id, so
+      // the webhook could never activate the subscription it charged for.
+      console.warn('[CivicBriefing] Checkout API failed:', err)
+      setError('Briefing subscriptions are not open yet. The sample below shows what they will look like.')
+      setBusy('')
     }
   }
 
@@ -349,6 +351,7 @@ function CivicBriefing() {
             <span className="kicker">BallotWatch Pro</span>
             <h1>Civic Briefing Agent</h1>
             <p>Enter a district or member of Congress and receive a neutral, source-linked briefing on recent votes, bills, and observed positions.</p>
+            <p className="briefing-status-note">Email briefings are not open yet. You can generate the free sample below; sending and subscriptions will need a free account and BallotWatch Pro.</p>
             <div className="briefing-hero-actions">
               <button className="btn btn-primary" onClick={handlePreview} disabled={busy === 'preview'}>
                 {busy === 'preview' ? 'Generating...' : 'Generate briefing'} <ArrowRight />
@@ -365,7 +368,7 @@ function CivicBriefing() {
               <strong>{statusText}</strong>
             </div>
             <div className="briefing-status-row">
-              <StatusPill tone={user ? 'ok' : 'muted'}>{user ? 'Signed in' : 'No account'}</StatusPill>
+              <StatusPill tone={user ? 'ok' : 'muted'}>{user ? 'Signed in' : 'Not signed in'}</StatusPill>
               <StatusPill tone={isSubscribed ? 'ok' : 'locked'}>{isSubscribed ? 'Pro active' : 'Paid feature'}</StatusPill>
               <StatusPill tone={gmail.connected ? 'ok' : 'muted'}>{gmail.connected ? 'Gmail connected' : 'Gmail pending'}</StatusPill>
             </div>

@@ -22,8 +22,9 @@ function Pricing() {
       const data = await startConsumerCheckout(session, `${window.location.origin}/briefings`)
       window.location.href = data.url
     } catch (err) {
-      console.warn('[Pricing] Checkout API failed, using hosted link:', err)
-      window.location.href = 'https://buy.stripe.com/5kQ3cwgEsglY8GXccmcjS08'
+      // No hosted-link fallback: it would charge without activating anything.
+      console.warn('[Pricing] Checkout API failed:', err)
+      setError('Subscriptions are not open yet. Everything else on BallotWatch is free.')
     } finally {
       setLoading(false)
     }
@@ -55,16 +56,13 @@ function Pricing() {
             <span className="pricing-number">2</span>
             <span className="pricing-period">/month</span>
           </div>
-          <p className="pricing-tagline">Civic records, source links, and email briefings for people who want to keep up without the noise.</p>
+          <p className="pricing-tagline">Neutral, source-linked email briefings on a district or member. The record itself stays free.</p>
         </div>
 
         <ul className="pricing-features">
           <li>Civic Briefing Agent for districts or candidates</li>
           <li>Gmail delivery for modern source-linked updates</li>
-          <li>Track your representatives' voting records</li>
-          <li>Browse current members and delegates of Congress</li>
-          <li>Search and review congressional bills</li>
-          <li>Source-linked bill explanations</li>
+          <li>Everything else on BallotWatch stays free, no account needed</li>
         </ul>
 
         <button
