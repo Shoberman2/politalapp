@@ -58,6 +58,14 @@ export const STATIC_PAGES = {
     changefreq: 'monthly',
     priority: 0.5,
   },
+  '/open': {
+    title: 'Open Data',
+    description: `Download the full ${name} congressional record: every member, bill, roll call and vote as daily CSV and NDJSON files, CC0 public domain. Plus the API, MCP server, methodology and source code.`,
+    h1: 'Congressional records you can download, inspect and reuse.',
+    lede: `Every member, bill, roll call and vote ${name} has, as daily bulk files under /data/full/ (manifest at /data/full/manifest.json), dedicated to the public domain under CC0 1.0. The API, MCP server, methodology and code are open too.`,
+    changefreq: 'daily',
+    priority: 0.7,
+  },
   '/contact': {
     title: 'Contact',
     description: `How to reach ${name}: data corrections, security reports, and general questions.`,

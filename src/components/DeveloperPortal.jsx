@@ -134,15 +134,18 @@ function DeveloperPortal() {
       <section className="dev-open-data">
         <div className="dev-open-data-copy">
           <span className="dev-label">Open first</span>
-          <h2>Use the samples before you need a key</h2>
+          <h2>Download the record before you need a key</h2>
           <p>
-            BallotWatch publishes schema samples and an OpenAPI spec so civic
-            hackers, classrooms, and newsrooms can prototype without a paid plan.
-            Hosted API plans cover freshness, uptime, volume, and support.
+            BallotWatch publishes every member, bill, roll call and vote as
+            daily CC0 bulk files, plus schema samples and an OpenAPI spec, so
+            civic hackers, classrooms, and newsrooms can build without a plan.
+            Hosted API plans cover live queries, volume, and support.
           </p>
         </div>
         <div className="dev-open-data-links">
-          <a href="/data/datapackage.json">Data Package metadata</a>
+          <a href="/open#download">Full record downloads (CC0)</a>
+          <a href="/data/full/manifest.json">Open-data manifest</a>
+          <a href="/data/datapackage.json">Sample Data Package metadata</a>
           <a href="/data/members-current.sample.csv">Members CSV sample</a>
           <a href="/data/bills-current-congress.sample.csv">Bills CSV sample</a>
           <a href="/data/sample-votes.json">Votes JSON sample</a>

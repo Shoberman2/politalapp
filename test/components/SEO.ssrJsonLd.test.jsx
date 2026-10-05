@@ -22,6 +22,7 @@ import OfficesPage from '../../src/components/OfficesPage'
 import ContactPage from '../../src/components/ContactPage'
 import PrivacyPage from '../../src/components/PrivacyPage'
 import TermsPage from '../../src/components/TermsPage'
+import OpenSourcePage from '../../src/components/OpenSourcePage'
 import { STATIC_PAGES, staticPageTitle } from '../../api/_lib/staticPages.js'
 
 afterEach(() => {
@@ -73,6 +74,7 @@ describe('SEO and server-rendered JSON-LD', () => {
       '/contact': ContactPage,
       '/privacy': PrivacyPage,
       '/terms': TermsPage,
+      '/open': OpenSourcePage,
     }
     for (const [path, Page] of Object.entries(pages)) {
       window.history.pushState({}, '', path)
