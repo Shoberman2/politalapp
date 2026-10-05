@@ -21,13 +21,13 @@ export const HOME_H1 = 'How did your representative vote this week?'
 
 // One plain-language paragraph: what BallotWatch is, for people and for
 // answer engines quoting a definition.
-export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan record of the U.S. Congress. Enter a ZIP code or address to find your House representative and both senators, then see how each of them voted on every recorded roll call in the 119th Congress, read what each bill does in plain English, and write to them about a specific vote. Every vote, bill and member comes from Congress.gov, the House Clerk and the Senate, is refreshed daily, and links to its official source.`
+export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan record of the U.S. Congress. Enter your address to find your House representative and both senators (a ZIP code alone finds your senators), then see how each of them voted on every recorded roll call in the 119th Congress, read what each bill does in plain English, and write to them about a specific vote. Every vote, bill and member comes from Congress.gov, the House Clerk and the Senate, is refreshed daily, and links to its official source.`
 
 // Feature blurbs for the server-rendered homepage. `href` null means the link
 // depends on live data (the record card and Tell your rep point at real
 // records); the renderer fills it in or falls back.
 export const HOME_FEATURES = [
-  { id: 'find', title: 'Know who speaks for you.', body: 'One ZIP code finds your House member and both senators, from U.S. Census district data.', href: '/my-representative', label: 'Find my reps' },
+  { id: 'find', title: 'Know who speaks for you.', body: 'Your address finds your House member and both senators, from U.S. Census district data. A ZIP code alone finds your senators.', href: '/my-representative', label: 'Find my reps' },
   { id: 'votes', title: 'See exactly how they voted.', body: 'Every roll call, this week’s and every one before it, with each member’s yea or nay linked to the official record.', href: '/this-week', label: 'This week on the floor' },
   { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', href: '/bills', label: 'Browse bills' },
   { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
@@ -108,7 +108,7 @@ export function homeJsonLd({ dateModified = null } = {}) {
     temporalCoverage: '2025-01-03/..',
     spatialCoverage: { '@type': 'Place', name: 'United States' },
     distribution: [
-      { '@type': 'DataDownload', name: 'BallotWatch public API (JSON, no key required for GET)', encodingFormat: 'application/json', contentUrl: `${SITE_URL}/api/v1` },
+      { '@type': 'DataDownload', name: 'BallotWatch public API: recent roll-call votes (JSON, no key required for GET)', encodingFormat: 'application/json', contentUrl: `${SITE_URL}/api/v1/votes` },
       { '@type': 'DataDownload', name: 'OpenAPI description of the public API', encodingFormat: 'application/yaml', contentUrl: `${SITE_URL}/openapi.yaml` },
     ],
   }

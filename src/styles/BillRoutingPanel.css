@@ -6,7 +6,7 @@
 }
 
 .bill-routing-empty {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-style: italic;
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
@@ -41,7 +41,7 @@
 }
 
 .bill-routing-committee-name {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary, #1A1A18);
@@ -53,7 +53,7 @@
 }
 
 .bill-routing-subcommittee {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
   margin-left: 12px;
@@ -61,7 +61,7 @@
 }
 
 .bill-routing-gloss {
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-style: italic;
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
@@ -99,7 +99,7 @@
   border-left: 3px solid var(--accent, #1D4ED8);
   padding: 0 0 0 16px;
   margin: 24px 0 0;
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-style: italic;
   font-size: 13px;
   line-height: 1.55;
@@ -108,7 +108,7 @@
 
 .bill-routing-marginalia-label {
   display: block;
-  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-family: var(--font-display);
   font-style: italic;
   font-size: 14px;
   color: var(--text-secondary, #6B6861);
@@ -170,7 +170,7 @@
 }
 
 .bill-status-popover-committee {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary, #1A1A18);
@@ -187,13 +187,13 @@
 }
 
 .bill-status-popover-caption {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--text-secondary, #6B6861);
 }
 
 .bill-status-popover-insufficient {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-style: italic;
   font-size: 13px;
   color: var(--text-secondary, #6B6861);
@@ -206,7 +206,7 @@
 }
 
 .bill-status-popover-method {
-  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--accent, #1D4ED8);
   text-decoration: underline;
