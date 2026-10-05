@@ -4,7 +4,7 @@
 
 import { supabaseAdmin } from './supabase.js'
 import { parseBillId, formatBillNumber } from './billCard.js'
-import { parseRollCallId, deriveResult, resultKind, saneTally, tallyFromStats } from './rollCallResult.js'
+import { parseRollCallId, deriveResult, resultKind, saneTally, tallyFromStats, voteSourceUrl } from './rollCallResult.js'
 import { memberGate, rollCallGate, billGate, explanationMatchesBill, isPlaceholderTitle } from './indexGate.js'
 import { getDataUpdatedAt } from './etlMeta.js'
 import { MAX_ROLL_CALL_ROWS, EXPLANATION_MODEL, EXPLANATION_PROMPT_VERSION, congressGovMemberUrl, bioguideUrl } from './site.js'
@@ -94,7 +94,7 @@ export async function getMemberPage(bioguideId) {
       roll_call_id: v.roll_call_id,
       position: v.position,
       voted_at: v.voted_at,
-      source_url: v.source_url,
+      source_url: voteSourceUrl(v.roll_call_id, v.source_url),
       bill: v.bills ? { id: v.bills.id, title: realTitle(v.bills.title) } : (v.bill_id ? { id: v.bill_id, title: null } : null),
       question: questions.get(v.roll_call_id) || null,
     })),
@@ -212,7 +212,7 @@ export async function getRollCallPage(rollCallId) {
     result,
     resultKind: resultKind(result),
     votes,
-    source_url: rows[0]?.source_url || null,
+    source_url: voteSourceUrl(id, rows[0]?.source_url),
     indexable: gate.indexable,
     noindexReason: gate.reason,
     updatedAt,

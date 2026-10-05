@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../../_lib/supabase.js'
 import { handleCors, paginatedResponse, errorResponse, parsePagination, nodeHandler } from '../../../_lib/response.js'
 import { logUsage } from '../../../_lib/usage.js'
 import { getDataUpdatedAt } from '../../../_lib/etlMeta.js'
+import { voteSourceUrl } from '../../../_lib/rollCallResult.js'
 
 async function route(req) {
   const cors = handleCors(req)
@@ -54,7 +55,7 @@ async function route(req) {
     roll_call_id: v.roll_call_id,
     position: v.position,
     voted_at: v.voted_at,
-    source_url: v.source_url,
+    source_url: voteSourceUrl(v.roll_call_id, v.source_url),
     bill: v.bills || null,
   }))
 

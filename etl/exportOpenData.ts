@@ -37,7 +37,7 @@ import { PLACEHOLDER_TITLE_RE } from './utils.js';
 // Plain-JS helpers shared with the API, so the files and the site agree on
 // which tallies are trusted and what each result word is.
 // @ts-ignore -- untyped JS module
-import { parseRollCallId, saneTally, tallyFromStats, deriveResult, rollCallPath } from '../api/_lib/rollCallResult.js';
+import { parseRollCallId, saneTally, tallyFromStats, deriveResult, rollCallPath, officialRollCallUrl as sharedOfficialRollCallUrl } from '../api/_lib/rollCallResult.js';
 import {
   OPEN_DATA_TABLES,
   OPEN_DATA_FORMATS,
@@ -211,20 +211,14 @@ export function rollCallRow(id: string, rc: Row | undefined, stats: StatsRow | u
 }
 
 /**
- * Official record URL for a roll call, derived from its id. House Clerk URLs
- * are {year}{roll}, where the year is the session's calendar year (a
- * Congress's first session starts in 1789 + 2*(congress-1)). Derived rather
- * than copied from votes.source_url: the ETL has stamped House votes with the
- * year of ingest, which is wrong for any vote from an earlier year.
+ * Official record URL for a roll call, derived from its id (House Clerk year =
+ * the session's calendar year). Derived rather than copied from
+ * votes.source_url, which older ETL runs stamped with the year of ingest; see
+ * etl/repairVoteSourceUrls.ts. Re-exported from api/_lib/rollCallResult.js so
+ * the ETL, the exporter and the API share one builder.
  */
 export function officialRollCallUrl(id: string): string | null {
-  const p = parseRollCallId(id);
-  if (!p) return null;
-  if (p.chamberKey === 'house') {
-    const year = 1789 + 2 * (p.congress - 1) + (p.session - 1);
-    return `https://clerk.house.gov/Votes/${year}${p.roll}`;
-  }
-  return `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${p.congress}${p.session}/vote_${p.congress}_${p.session}_${String(p.roll).padStart(5, '0')}.htm`;
+  return sharedOfficialRollCallUrl(id);
 }
 
 /** Natural order: chamber, congress, session, roll. */

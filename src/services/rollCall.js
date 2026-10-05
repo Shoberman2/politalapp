@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { deriveResult, parseRollCallId, parseBill, sane } from './floorVotes'
+import { voteSourceUrl } from '../../api/_lib/rollCallResult.js'
 
 // Matches api/_lib/site.js MAX_ROLL_CALL_ROWS: 435 + 100 plus slack.
 const MAX_ROLL_CALL_ROWS = 600
@@ -95,7 +96,7 @@ export async function getRollCall({ congress, chamber, session, roll }) {
       ind: { yea: stats.ind_yea || 0, nay: stats.ind_nay || 0 },
     } : null,
     result,
-    sourceUrl: members[0]?.source_url || null,
+    sourceUrl: voteSourceUrl(id, members[0]?.source_url),
     votes: members
       .map((r) => ({ position: r.position, member: r.politicians }))
       .sort((a, b) => a.member.name.localeCompare(b.member.name)),

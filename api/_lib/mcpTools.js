@@ -4,7 +4,7 @@
 
 import { supabaseAdmin } from './supabase.js'
 import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath, billLabel } from './pages.js'
-import { buildRollCallId, rollCallPath } from './rollCallResult.js'
+import { buildRollCallId, rollCallPath, voteSourceUrl } from './rollCallResult.js'
 import { geocodeAddress, geocodeZip } from './geocode.js'
 import { getDataUpdatedAt } from './etlMeta.js'
 import { SITE_ORIGIN as SITE, congressGovMemberUrl } from './site.js'
@@ -119,7 +119,7 @@ export async function getMemberVotes({ bioguide_id, since, limit = 50 }) {
       question: questions.get(v.roll_call_id) || null,
       bill: v.bills ? { id: v.bills.id, label: billLabel(v.bills.id), title: v.bills.title, canonical: `${SITE}${billPath(v.bills.id)}` } : null,
       position: v.position,
-      source_url: v.source_url,
+      source_url: voteSourceUrl(v.roll_call_id, v.source_url),
       canonical: `${SITE}${rollCallPath(v.roll_call_id)}`,
     })),
     data_updated_at: updatedAt,

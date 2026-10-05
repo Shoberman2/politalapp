@@ -1,6 +1,7 @@
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { supabaseAdmin } from './supabase.js'
+import { officialRollCallUrl } from './rollCallResult.js'
 import { getHeader, getRequestUrl, readJsonBody, sendResponse } from './request.js'
 
 export { getHeader, getRequestUrl, readJsonBody, sendResponse } from './request.js'
@@ -339,10 +340,11 @@ function resultKind(result) {
   return 'recorded'
 }
 
-function clerkVoteUrl(vote) {
-  const date = vote.startDate || vote.voteDate || vote.date || ''
-  const year = new Date(date).getUTCFullYear() || new Date().getUTCFullYear()
-  return vote.rollCallNumber ? `https://clerk.house.gov/Votes/${year}${vote.rollCallNumber}` : 'https://clerk.house.gov/Votes'
+// Congress.gov's house-vote list carries congress + sessionNumber, so the Clerk
+// URL year comes from the session, not the vote timestamp or the clock.
+function clerkVoteUrl(vote, congress) {
+  return officialRollCallUrl({ chamber: 'house', congress: vote.congress || congress, session: vote.sessionNumber, roll: vote.rollCallNumber })
+    || 'https://clerk.house.gov/Votes'
 }
 
 async function getHouseVotes(bioguideId, limit = 5) {
@@ -374,7 +376,7 @@ async function getHouseVotes(bioguideId, limit = 5) {
       result: vote.result || '',
       resultKind: resultKind(vote.result),
       position,
-      sourceUrl: clerkVoteUrl(vote),
+      sourceUrl: clerkVoteUrl(vote, congress),
     })
   }
 
