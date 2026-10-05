@@ -81,7 +81,6 @@ export function renderHomeBody(data) {
   return chrome(`<div class="bw landing">
   <section class="hero">
     <div class="hero-inner">
-      <span class="hero-kicker">${recorded ? `Recorded through ${escapeHtml(recorded)} · ` : ''}119th Congress</span>
       <h1 class="hero-title">How did your representative vote <em>this week?</em></h1>
       <p class="hero-mission">${escapeHtml(BRAND.mission)}</p>
       <p class="home-about">${escapeHtml(HOME_ABOUT)}</p>
@@ -98,7 +97,7 @@ export function renderHomeBody(data) {
     <h2 id="home-faq-h">Questions</h2>
     ${faq}
   </section>
-  <footer class="home-links">${links} · <a href="/llms.txt">For agents</a></footer>
+  <footer class="home-links">${links} · <a href="/llms.txt">For agents</a>${recorded ? `<p class="home-updated">Data updated ${escapeHtml(recorded)}.</p>` : ''}</footer>
 </div>`)
 }
 

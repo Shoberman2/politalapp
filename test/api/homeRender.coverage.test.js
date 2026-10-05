@@ -95,6 +95,22 @@ describe('renderHomeBody fallbacks and escaping', () => {
   })
 })
 
+describe('renderHomeBody freshness line', () => {
+  it('drops the hero kicker and puts "Data updated" in the footer when the data has a date', () => {
+    const html = renderHomeBody({ votes: { latest: vote(), recent: [] }, updatedAt: '2026-09-03T12:00:00Z' })
+    expect(html).not.toContain('Recorded through')
+    expect(html).not.toContain('hero-kicker')
+    const footer = html.slice(html.indexOf('<footer class="home-links">'))
+    expect(footer).toMatch(/<a href="\/llms\.txt">For agents<\/a><p class="home-updated">Data updated [^<]*2026\.<\/p><\/footer>/)
+  })
+
+  it('omits the "Data updated" line when there is no update time', () => {
+    const html = renderHomeBody({ votes: null, updatedAt: null })
+    expect(html).not.toContain('home-updated')
+    expect(html).toContain('<a href="/llms.txt">For agents</a></footer>')
+  })
+})
+
 describe('homeMarkdown fallbacks', () => {
   it('escapes pipes in table cells, renders unlinked bills, and omits sections without data', () => {
     const v = vote({ question: 'A | B', bill: { id: 'x', label: 'Odd', path: null, title: null }, tally: null, result: null })

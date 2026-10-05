@@ -208,3 +208,21 @@ describe('getRecentFloorVotes — recency ordering', () => {
     expect(queries.filter((q) => q.table === 'roll_calls')).toHaveLength(1);
   });
 });
+
+describe('getRecentFloorVotes — vote date', () => {
+  it('carries voted_at through as votedAt, and null when the roll call has none', async () => {
+    tableResponses['roll_calls'] = {
+      data: [
+        { ...rollCall('house-119-2-281', '119-hr-8800'), voted_at: '2026-07-24' },
+        rollCall('house-119-2-280', '119-hr-7008'),
+      ],
+      error: null,
+    };
+    tableResponses['roll_call_stats'] = { data: [], error: null };
+    tableResponses['votes'] = { data: [], error: null };
+
+    const { votes } = await getRecentFloorVotes(16);
+    expect(byId(votes, 'house-119-2-281').votedAt).toBe('2026-07-24');
+    expect(byId(votes, 'house-119-2-280').votedAt).toBeNull();
+  });
+});

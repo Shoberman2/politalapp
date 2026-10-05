@@ -55,10 +55,42 @@ function fromFloorVote(v) {
     voteHref: rollCallHref(v.id),
     bill: v.bill,
     text: truncate(v.description || v.question || '', 92),
+    question: v.question || null,
+    description: v.description || null,
+    votedAt: v.votedAt || null,
+    yea: v.yea,
+    nay: v.nay,
     tally: v.yea != null && v.nay != null ? `${v.yea}–${v.nay}` : null,
     result: v.result,
     resultKind: resultKindOf(v.result),
   }
+}
+
+// "Motion to Invoke Cloture on the Motion to Proceed to H.R. 9340; A bill to
+// amend…" reads as procedure first. Split it into what the vote was about (the
+// bill's own words) and a plain line for the step being voted on.
+function plainStep(question) {
+  const q = String(question || '').toLowerCase()
+  if (q.includes('cloture') && q.includes('proceed')) return 'Vote to end debate on taking up the bill'
+  if (q.includes('cloture')) return 'Vote to end debate'
+  if (q.includes('suspend the rules')) return 'Vote to pass under a fast-track rule (two-thirds needed)'
+  if (q.includes('override') || q.includes('veto')) return 'Vote to override a veto'
+  if (q.includes('motion to proceed')) return 'Vote to take up the bill'
+  if (q.includes('recommit')) return 'Vote to send the bill back to committee'
+  if (q.includes('passage') || q.includes('on the bill')) return 'Vote on final passage'
+  if (q.includes('nomination')) return 'Vote on a nomination'
+  if (q.includes('amendment')) return 'Vote on an amendment'
+  if (q.includes('resolution')) return 'Vote on the resolution'
+  return question || 'Recorded vote'
+}
+
+function voteSubject(v) {
+  const desc = String(v.description || '')
+  const after = desc.includes(';') ? desc.slice(desc.indexOf(';') + 1).trim() : ''
+  const text = after || desc || v.question || ''
+  if (text.length <= 110) return text
+  const cut = text.slice(0, 110)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:]$/, '')}…`
 }
 
 function fromBill(b) {
@@ -258,7 +290,7 @@ function Landing() {
           <ArrowRight />
         </button>
       </form>
-      <p className="lookup-hint">Free · No account · Source-linked records</p>
+      <p className="lookup-hint">Free · No sign-up needed · Every record linked to its source</p>
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -388,7 +420,7 @@ function Landing() {
   // tally, else the most recent recorded vote of any kind. Never invented.
   const headlineVote = floor.find((v) => v.voteHref && v.bill && v.tally) || floor.find((v) => v.voteHref) || null
   const recordedLabel = recordedThrough
-    ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
     : null
 
   // Feature five: the opening of a real Tell your rep draft, built from the
@@ -506,9 +538,6 @@ function Landing() {
       {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
       <section className="hero">
         <div className="hero-inner">
-          <span className="hero-kicker">
-            {recordedLabel ? `Recorded through ${recordedLabel} · 119th Congress` : '119th Congress'}
-          </span>
           <h1 className="hero-title">How did your representative vote <em>this week?</em></h1>
           <p className="hero-mission">{BRAND.mission}</p>
 
@@ -524,23 +553,29 @@ function Landing() {
             ) : headlineVote && (
               <div className="hv-card">
                 <div className="hv-meta">
-                  <span>Latest recorded vote</span>
-                  {headlineVote.chamber && <span>{headlineVote.chamber}</span>}
-                  {headlineVote.rollLabel && <span>{headlineVote.rollLabel}</span>}
+                  {[headlineVote.chamber, headlineVote.votedAt && new Date(headlineVote.votedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }), headlineVote.rollLabel]
+                    .filter(Boolean).join(' · ')}
                 </div>
-                <div className="hv-main">
-                  <p className="hv-text">
-                    {headlineVote.bill && <span className="hv-bill">{headlineVote.bill.display}</span>}
-                    {headlineVote.text}
-                  </p>
-                  <div className="hv-outcome">
-                    {headlineVote.tally && <span className="fr-tally">{headlineVote.tally}</span>}
-                    {headlineVote.result && <span className={`fr-result ${headlineVote.resultKind}`}>{headlineVote.result}</span>}
+                {headlineVote.bill && <span className="hv-bill">{headlineVote.bill.display}</span>}
+                <p className="hv-text">{voteSubject(headlineVote)}</p>
+                <p className="hv-step">
+                  {plainStep(headlineVote.question)}
+                  {headlineVote.result && <span className={`fr-result ${headlineVote.resultKind}`}>{headlineVote.result}</span>}
+                </p>
+                {headlineVote.yea != null && headlineVote.nay != null && (headlineVote.yea + headlineVote.nay) > 0 && (
+                  <div className="hv-tally" aria-label={`${headlineVote.yea} yea, ${headlineVote.nay} nay`}>
+                    <div className="hv-bar">
+                      <span className="hv-yea" style={{ width: `${(100 * headlineVote.yea) / (headlineVote.yea + headlineVote.nay)}%` }} />
+                    </div>
+                    <div className="hv-counts">
+                      <span><b>{headlineVote.yea}</b> yea</span>
+                      <span><b>{headlineVote.nay}</b> nay</span>
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className="hv-links">
-                  <Link className="btn-text btn-go" to={headlineVote.voteHref}>How each member voted</Link>
-                  <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about this vote</Link>
+                  <Link className="btn-text btn-go" to={headlineVote.voteHref}>See how each member voted</Link>
+                  <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about it</Link>
                 </div>
               </div>
             )}

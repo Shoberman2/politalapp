@@ -29,7 +29,6 @@
   padding: clamp(64px, 11vh, 128px) 40px clamp(56px, 9vh, 104px);
   text-align: center;
 }
-.landing .hero-kicker,
 .landing .section-kicker {
   display: block;
   font-family: var(--mono);
@@ -65,46 +64,61 @@
 .landing .hv-card {
   display: flex;
   flex-direction: column;
-  padding: 18px 20px;
+  padding: 22px 24px;
   background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: var(--r-md, 8px);
 }
 .landing .hv-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
   font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-.landing .hv-meta span:first-child { color: var(--ink-2); }
-.landing .hv-main {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 10px;
-}
-.landing .hv-text { font-weight: 600;
-  margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(18px, 2.2vw, 23px);
-  line-height: 1.22;
-  color: var(--ink);
-  text-wrap: pretty;
+  font-size: 12px;
+  color: var(--ink-3, var(--ink-2));
 }
 .landing .hv-bill {
+  display: block;
+  margin-top: 14px;
   font-family: var(--mono);
   font-size: 13px;
   font-weight: 600;
   color: var(--accent);
-  margin-right: 10px;
-  vertical-align: 2px;
 }
-.landing .hv-outcome { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.landing .hv-text {
+  margin: 4px 0 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(19px, 2.2vw, 24px);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.landing .hv-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 8px 0 0;
+  font-family: var(--sans);
+  font-size: 16px;
+  color: var(--ink-2);
+}
+.landing .hv-tally { margin-top: 16px; }
+.landing .hv-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: hidden;
+}
+.landing .hv-yea { display: block; height: 100%; background: var(--accent); border-radius: 999px 0 0 999px; }
+.landing .hv-counts {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.landing .hv-counts b { font-family: var(--mono); color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .landing .hv-links {
   display: flex;
   flex-wrap: wrap;
@@ -671,8 +685,6 @@
 @media (max-width: 640px) {
   .landing .hero-inner, .landing .feature, .landing .ai-inner, .landing .offices-inner,
   .landing .faq-inner, .landing .finale-inner { padding-left: 16px; padding-right: 16px; }
-  .landing .hv-main { flex-direction: column; }
-  .landing .hv-outcome { flex-direction: row; align-items: center; }
   .landing .lookup-form { padding-left: 6px; }
   .landing .lookup-form button .btn-word { display: none; }
 }
