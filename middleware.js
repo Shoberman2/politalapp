@@ -14,11 +14,21 @@
 export const config = { matcher: '/' }
 
 export const HOME_PRERENDER_PATH = '/api/prerender?kind=home'
+export const HOME_MARKDOWN_PATH = '/api/prerender?kind=home&format=md'
+
+// Markdown is rewritten to its own URL so the CDN caches HTML and Markdown
+// under different keys and never relies on `Vary: Accept` alone (one
+// Markdown request must not be able to replace the cached HTML homepage).
+export function prefersMarkdown(accept) {
+  const a = String(accept || '')
+  return /text\/markdown/i.test(a) && !/text\/html/i.test(a.split(',')[0])
+}
 
 export default function middleware(request) {
   const url = new URL(request.url)
   if (url.pathname !== '/') return undefined
+  const target = prefersMarkdown(request.headers.get('accept')) ? HOME_MARKDOWN_PATH : HOME_PRERENDER_PATH
   return new Response(null, {
-    headers: { 'x-middleware-rewrite': new URL(HOME_PRERENDER_PATH, url).toString() },
+    headers: { 'x-middleware-rewrite': new URL(target, url).toString() },
   })
 }

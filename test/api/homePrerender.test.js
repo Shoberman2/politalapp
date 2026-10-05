@@ -176,7 +176,7 @@ describe('prerender kind=home', () => {
     expect(rootText(res.body)).toContain(LANDING_FAQ[0].q)
   })
 
-  it('falls back to the plain shell, uncached, when the data load times out', async () => {
+  it('falls back to the plain shell, cached only briefly, when the data load times out', async () => {
     vi.resetModules()
     process.env.PRERENDER_TIMEOUT_MS = '30'
     const mod = await import('../../api/prerender.js')
@@ -186,7 +186,7 @@ describe('prerender kind=home', () => {
     const res = makeRes()
     await mod.default(req({ kind: 'home' }), res)
     expect(res.statusCode).toBe(200)
-    expect(res.getHeader('cache-control')).toBe('no-store')
+    expect(res.getHeader('cache-control')).toBe('public, s-maxage=30')
     expect(res.getHeader('x-ballotwatch-prerender')).toBe('fallback')
     expect(res.body).toContain('<div id="root"></div>')
   })
@@ -240,10 +240,13 @@ describe('homepage routing', () => {
     expect(middleware(new Request('https://www.ballotwatch.io/assets/index.js'))).toBeUndefined()
   })
 
-  it('index.html defaults match the homepage title and description', () => {
+  // The shell is reused by every client-rendered route, so its defaults stay
+  // generic; the homepage's own title arrives through kind=home.
+  it('index.html defaults are generic, not the homepage title', () => {
     const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8')
-    expect(html).toContain(`<title>${HOME_TITLE}</title>`)
-    expect(html).toContain(`<meta name="description" content="${HOME_DESCRIPTION}" />`)
+    expect(html).not.toContain(`<title>${HOME_TITLE}</title>`)
+    expect(html).not.toContain(`content="${HOME_DESCRIPTION}"`)
+    expect(html).toMatch(/<title>BallotWatch[^<]*<\/title>/)
     expect(html.match(/<h1[\s>]/g)).toBeNull()
   })
 

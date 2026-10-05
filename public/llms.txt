@@ -43,7 +43,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - About (independence, open source, mission): https://www.ballotwatch.io/about
 - For congressional offices (in development): https://www.ballotwatch.io/offices
 
-The homepage, the info pages (how it works, methodology, data sources, about, this week, offices, contact, privacy, terms), every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, methodology, data sources, about, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
 ## API (no key required for GET)
 

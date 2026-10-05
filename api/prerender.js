@@ -124,10 +124,14 @@ export function resolveTarget(query) {
 
 // The homepage always renders: a failed vote read drops that section (and
 // shortens the cache) instead of failing the page.
+// Each homepage read gets its own short budget, so a slow database degrades
+// to the briefly cached no-votes page instead of an uncached fallback.
+const HOME_READ_TIMEOUT_MS = 2500
+
 async function loadHome() {
   const [votes, updatedAt] = await Promise.all([
-    getHomeVotes().catch((err) => { console.error('[prerender] home votes unavailable:', err.message); return null }),
-    getDataUpdatedAt().catch(() => null),
+    withTimeout(getHomeVotes(), HOME_READ_TIMEOUT_MS, 'home votes').catch((err) => { console.error('[prerender] home votes unavailable:', err.message); return null }),
+    withTimeout(getDataUpdatedAt(), HOME_READ_TIMEOUT_MS, 'etl meta').catch(() => null),
   ])
   return { kind: 'home', votes, updatedAt, indexable: true }
 }
@@ -142,6 +146,7 @@ async function loadData(target) {
 }
 
 function wantsMarkdown(req) {
+  if (req.query?.format === 'md') return true
   const accept = String(req.headers?.accept || '')
   return /text\/markdown/i.test(accept) && !/text\/html/i.test(accept.split(',')[0])
 }
@@ -225,7 +230,9 @@ export default async function handler(req, res) {
     if (!shell && !markdown) shell = await shellPromise
     if (markdown) { res.statusCode = 503; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); res.setHeader('Retry-After', '30'); return res.end('Temporarily unavailable\n') }
     if (!shell) { res.statusCode = 503; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.end('Temporarily unavailable\n') }
-    return sendHtml(res, shell, 200, 'no-store', { 'X-BallotWatch-Prerender': 'fallback' })
+    // The homepage fallback is cached briefly so an incident doesn't send every
+    // visit to the database; record pages keep no-store (their shell is generic).
+    return sendHtml(res, shell, 200, target.kind === 'home' ? 'public, s-maxage=30' : 'no-store', { 'X-BallotWatch-Prerender': 'fallback' })
   }
 }
 
