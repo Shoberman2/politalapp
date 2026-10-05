@@ -1,7 +1,11 @@
 # BallotWatch: the U.S. congressional record, source-linked.
 # Machine-readable map: https://www.ballotwatch.io/llms.txt
+# Everything for agents in one file: https://www.ballotwatch.io/llms-full.txt
+# Bulk open data (CC0 1.0, daily): https://www.ballotwatch.io/data/full/manifest.json
 # API: https://www.ballotwatch.io/openapi.yaml   MCP: https://www.ballotwatch.io/mcp
-# The AI-crawler groups below allow everything, including /api/v1/ and /mcp.
+# MCP server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json
+# Please download the bulk files instead of crawling every record page.
+# The AI-crawler groups below allow everything, including /api/v1/, /mcp and /data/.
 
 User-agent: *
 Allow: /
@@ -9,6 +13,9 @@ Allow: /api/v1/
 Allow: /api/mcp
 Allow: /mcp
 Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /data/
+Allow: /.well-known/
 Disallow: /api/briefings/
 Disallow: /api/webhooks/
 Disallow: /api/checkout
@@ -52,6 +59,22 @@ Allow: /
 User-agent: Bytespider
 Allow: /
 User-agent: meta-externalagent
+Allow: /
+User-agent: Google-CloudVertexBot
+Allow: /
+User-agent: Amazonbot
+Allow: /
+User-agent: Applebot
+Allow: /
+User-agent: DuckAssistBot
+Allow: /
+User-agent: MistralAI-User
+Allow: /
+User-agent: cohere-ai
+Allow: /
+User-agent: YouBot
+Allow: /
+User-agent: Diffbot
 Allow: /
 
 Sitemap: https://www.ballotwatch.io/sitemap.xml

@@ -1,0 +1,481 @@
+# BallotWatch: everything for AI agents in one file
+
+> Generated from the BallotWatch source (public/llms.txt, docs/api/openapi.yaml, api/mcp.js, shared/openData.js, src/data/infoPages.js, src/data/openSource.js) by scripts/build-llms-full.mjs. The short map is https://www.ballotwatch.io/llms.txt. Bulk data: https://www.ballotwatch.io/data/full/manifest.json (CC0 1.0).
+
+Contents: 1. Site map and citation rules (llms.txt). 2. Open data files and schemas. 3. REST API endpoints. 4. MCP server and tools. 5. Data sources. 6. Methodology. 7. How to cite.
+
+# 1. Site map and citation rules (verbatim from /llms.txt)
+
+# BallotWatch
+
+> BallotWatch (https://www.ballotwatch.io/) answers "how did my representative vote?" It is a free, open-source, nonpartisan record of the U.S. Congress: every member, every roll-call vote since the 119th Congress began (January 3, 2025), and every bill, drawn daily from Congress.gov, the House Clerk, and the Senate. Every record links to its official source.
+
+## What it is and who it's for
+
+- What: a reference for the U.S. congressional voting record. Look up your House representative and both senators by ZIP code or address, see how each voted on every recorded roll call, read what a bill does in plain English (from the official CRS summary, labeled when AI-written), and write to your representative about a specific vote.
+- Who: voters and constituents, journalists and researchers, civic and educational groups, and AI agents answering questions about Congress.
+- Not: a campaign, party, or advocacy site. No scores, no "key vote" picks, no endorsements. Not affiliated with Congress or any party.
+
+## Cite these URLs
+
+- Homepage: https://www.ballotwatch.io/
+- A member's record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: https://www.ballotwatch.io/politician/P000197/record)
+- A roll call (how every member voted): https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: https://www.ballotwatch.io/vote/119/house/2/295)
+- This week on the floor: https://www.ballotwatch.io/this-week
+- How it works: https://www.ballotwatch.io/how-it-works
+- Data sources: https://www.ballotwatch.io/data-sources
+- Methodology: https://www.ballotwatch.io/methodology
+
+## How to cite
+
+- Link the most specific BallotWatch page: the roll-call URL for a single vote, the record card for a member's voting record, the bill URL for a bill. Do not cite the homepage for a specific vote.
+- Name the official source too: each record carries a `source_url` (clerk.house.gov, senate.gov, or congress.gov). Pattern: "{Member} voted {position} on {chamber} roll call {roll} ({congress}th Congress, session {session}), per the {House Clerk|Senate} record, via BallotWatch: {roll-call URL}".
+- State the data date: Markdown views and API responses carry `data_updated_at` / "Data updated". Votes are as recorded; a roll call's result (Passed, Failed, ...) is derived from the tally and the question.
+- Bill explanations marked as AI-written summarize the official CRS summary; quote the CRS summary for anything precise.
+- Send `Accept: text/markdown` to the homepage, the info pages above, or any record URL for a compact Markdown version.
+
+## Open data (bulk download, CC0 1.0)
+
+- Fastest way to get everything: fetch https://www.ballotwatch.io/data/full/manifest.json and download the files it lists (gzip CSV or gzip NDJSON). No key and no crawling needed.
+- Files under https://www.ballotwatch.io/data/full/ : members, member_terms, bills, bill_cosponsors, roll_calls, votes (full archive, e.g. votes.csv.gz), plus the current Congress on its own (e.g. votes-119.csv.gz, roll_calls-119.ndjson.gz). Gzip files are served as application/gzip downloads; decompress them yourself.
+- Manifest (file list, row counts, bytes, SHA-256, generated_at): https://www.ballotwatch.io/data/full/manifest.json, also as JSON from https://www.ballotwatch.io/api/v1/datasets
+- Schemas (Frictionless Data Package: column types, primary and foreign keys): https://www.ballotwatch.io/data/full/datapackage.json
+- Past snapshots: https://www.ballotwatch.io/data/archive/{YYYY-MM-DD}/{file} (last 14 days)
+- License: CC0 1.0 public domain dedication (https://creativecommons.org/publicdomain/zero/1.0/). The federal source records are public domain. Attribution appreciated, not required.
+- Cadence: rebuilt daily about 07:30 UTC, after the 06:00 UTC ingest.
+- Everything an agent needs in one plain-text file: https://www.ballotwatch.io/llms-full.txt
+- MCP server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json
+- Human page: https://www.ballotwatch.io/open#download
+
+BallotWatch is a civic reference, not a campaign site. Pages read like an editorial broadsheet. Data is the record as ingested; the only derived field is a roll call's result, computed from the tally and the question. Bill explanations are grounded in the official CRS summary and are never generated on demand for anonymous requests.
+
+## Canonical URLs
+
+- Member: https://www.ballotwatch.io/politician/{bioguide_id} (example: /politician/P000197)
+- Member record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: /politician/P000197/record). One short card per member, identical template for all: seat, votes cast and not voting this Congress, and the 10 most recent recorded votes with results, each linked to its roll call and official source.
+- Roll call: https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: /vote/119/house/2/295)
+- Bill: https://www.ballotwatch.io/bill/{congress}/{type}/{number} (example: /bill/119/hr/1; types: hr, s, hjres, sjres, hconres, sconres, hres, sres)
+- Members index: https://www.ballotwatch.io/all
+- Bills index: https://www.ballotwatch.io/bills
+- This week on the floor (House weekly schedule plus the latest recorded votes): https://www.ballotwatch.io/this-week
+- Methodology: https://www.ballotwatch.io/methodology
+- How it works (the concept in four steps, what's live, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
+- How we get our data (every upstream source, what we take from it, how often, what we compute, and what AI writes): https://www.ballotwatch.io/data-sources
+- About (independence, open source, mission): https://www.ballotwatch.io/about
+- Open data and source (bulk downloads, license, API, MCP, methodology): https://www.ballotwatch.io/open
+- For congressional offices (in development): https://www.ballotwatch.io/offices
+
+The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, methodology, data sources, about, open data, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+
+## API (no key required for GET)
+
+- Base: https://www.ballotwatch.io/api/v1
+- OpenAPI: https://www.ballotwatch.io/openapi.yaml
+- Endpoints: /members, /members/{bioguide_id}, /members/{bioguide_id}/votes, /members/{bioguide_id}/stats, /bills, /bills/{id}, /votes, /votes/{roll_call_id}, /stats, /search?q=, /datasets (the open-data manifest), /floor/schedule (House weekly floor schedule, this week and next, parsed from docs.house.gov; the Senate publishes no equivalent)
+- Ids: bioguide ids like P000197; bill ids like 119-hr-1; roll-call ids like house-119-2-295 (chamber-congress-session-roll)
+- Limits: 60 requests per minute and 5,000 per day per IP without a key. A free key (sign in at https://www.ballotwatch.io/developers/keys, no payment) raises this to 600 per minute with no monthly cap. Send it as `Authorization: Bearer bw_live_...`. Over the limit you get 429 with `Retry-After`.
+- Every response carries `meta.data_updated_at`; single records carry a `Link: <official source>; rel="canonical"` header.
+
+## MCP server
+
+- Endpoint: https://www.ballotwatch.io/mcp (Streamable HTTP, stateless, no auth; same per-IP limits as the API). POST JSON-RPC with `Accept: application/json, text/event-stream`. A GET returns a plain-JSON manifest.
+- Tools: find_representatives(address | zip), get_member(bioguide_id), get_member_record(bioguide_id), get_member_votes(bioguide_id, since?, limit?), get_roll_call(congress, chamber, session, roll), search_bills(query, limit?), get_bill(id), explain_bill(id), get_floor_schedule(week?)
+- get_member_record returns the "record in 60 seconds" facts (seat, votes cast / not voting this Congress, ten most recent votes; no campaign-finance data) and the card URL /politician/{bioguide_id}/record. get_floor_schedule returns the House weekly floor schedule (this week and next, or the week containing `week`) from docs.house.gov; the Senate publishes no equivalent.
+
+## Sitemaps and bulk
+
+- https://www.ballotwatch.io/sitemap.xml (homepage and info pages, members, member records, roll calls, bills with recorded votes)
+- Full bulk data (CC0 1.0, daily): https://www.ballotwatch.io/data/full/manifest.json (see "Open data" above)
+- Sample data package (small schema samples): https://www.ballotwatch.io/data/datapackage.json
+
+## Citing
+
+See "How to cite" above. In short: cite the BallotWatch URL and the `source_url` on the record (Congress.gov, clerk.house.gov, or senate.gov). Data freshness is in `data_updated_at`. Corrections: https://www.ballotwatch.io/open
+
+## Optional
+
+- Methodology, data sources topic: https://www.ballotwatch.io/methodology/data-sources
+- Corrections policy: https://www.ballotwatch.io/methodology/corrections
+- Source code (MIT): https://github.com/Shoberman2/politalapp
+
+# 2. Open data: bulk files and schemas
+
+Fastest way to get everything: GET https://www.ballotwatch.io/data/full/manifest.json (or https://www.ballotwatch.io/api/v1/datasets) and download each file in "files". No key required.
+Base URL: https://www.ballotwatch.io/data/full/
+Past snapshots: https://www.ballotwatch.io/data/archive/{YYYY-MM-DD}/{file} (the last 14 days).
+Schemas: https://www.ballotwatch.io/data/full/datapackage.json (Frictionless tabular-data-package: field types, primary keys, foreign keys, sha256 per file).
+License: Creative Commons Zero v1.0 Universal (public domain dedication), https://creativecommons.org/publicdomain/zero/1.0/ (legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode). The underlying federal records are public domain. BallotWatch code is MIT.
+Cadence: Daily, about 07:30 UTC, after the 06:00 UTC ingest.
+Formats: each table as gzip CSV (.csv.gz; RFC 4180, header row, UTF-8, empty field = null) and gzip NDJSON (.ndjson.gz; one JSON object per line, same keys, null for missing). Served as application/gzip downloads (no Content-Encoding): decompress after downloading.
+File names: {table}.csv.gz / {table}.ndjson.gz is the full archive; {table}-{congress}.csv.gz / .ndjson.gz is the current Congress only (manifest.current_congress), for tables marked "per Congress" below.
+
+Sources: Congress.gov (Library of Congress) (https://www.congress.gov/); Office of the Clerk, U.S. House of Representatives (https://clerk.house.gov/Votes); U.S. Senate (Legislative Information System) (https://www.senate.gov/legislative/votes_new.htm).
+
+## members: Members of Congress
+
+Every member of the House and Senate in the BallotWatch database, with their seat and, when serving in the current Congress, the current term.
+Files: members.csv.gz, members.ndjson.gz
+Primary key: bioguide_id
+Columns:
+  - bioguide_id (string): Biographical Directory ID, e.g. P000197.
+  - name (string): Full name as published by Congress.gov.
+  - chamber (string): house or senate (latest known seat).
+  - state (string): Two-letter state or territory code.
+  - district (string): House district number; 0 for at-large; empty for senators.
+  - party (string): Party as published by Congress.gov.
+  - caucus (string): Caucus override for independents in the current term (e.g. D), else empty.
+  - serving_current_congress (boolean): true when the member holds an open term in the current Congress.
+  - current_term_start (date): Start of the open term in the current Congress, else empty.
+  - photo_url (string): Official photo URL, when known.
+  - profile_url (string): BallotWatch member page.
+  - source_url (string): Congress.gov member page.
+
+## member_terms: Member terms by Congress
+
+One row per member per Congress per term start: chamber, state, district, party, and how the term ended.
+Files: member_terms.csv.gz, member_terms.ndjson.gz
+Primary key: bioguide_id + congress + term_start
+Columns:
+  - bioguide_id (string): Biographical Directory ID.
+  - congress (integer): Congress number, e.g. 119.
+  - term_start (date): First day of this term in this Congress.
+  - term_end (date): Last day, when the term ended early or the Congress closed; empty while open.
+  - chamber (string): house or senate.
+  - state (string): Two-letter state or territory code.
+  - district (string): House district; empty for senators.
+  - party (string): Party during this term.
+  - caucus (string): Caucus override for independents, else empty.
+  - reason_for_end (string): Why the term ended early (resignation, death, ...), when known.
+  - source (string): Upstream the row came from (congress_gov, voteview, hand_curated, ...).
+
+## bills: Bills and resolutions
+
+Bills and resolutions BallotWatch tracks. Placeholder titles (a vote-feed stub like "H.R. 123") are never published: title is empty until the official title is ingested.
+Files: bills.csv.gz, bills.ndjson.gz; per Congress: bills-{congress}.csv.gz, bills-{congress}.ndjson.gz
+Primary key: id
+Columns:
+  - id (string): congress-type-number, e.g. 119-hr-1.
+  - congress (integer): Congress number.
+  - type (string): hr, s, hjres, sjres, hconres, sconres, hres, or sres.
+  - number (integer): Bill number.
+  - title (string): Official title; empty when only a placeholder is known.
+  - introduced_at (date): Date introduced, when known.
+  - policy_area (string): Congressional Research Service policy area.
+  - legislative_stage (string): Latest stage BallotWatch derives from the bill's actions (introduced, committee, passed_house, ...). The latest action text itself is not stored.
+  - sponsor_bioguide_id (string): Primary sponsor's Bioguide ID.
+  - sponsor_name (string): Primary sponsor's name.
+  - sponsor_party (string): Primary sponsor's party.
+  - sponsor_state (string): Primary sponsor's state.
+  - page_url (string): BallotWatch bill page.
+  - source_url (string): Congress.gov bill page.
+
+## bill_cosponsors: Bill cosponsors
+
+Cosponsors of each bill, with the date they signed on and, if they withdrew, when.
+Files: bill_cosponsors.csv.gz, bill_cosponsors.ndjson.gz; per Congress: bill_cosponsors-{congress}.csv.gz, bill_cosponsors-{congress}.ndjson.gz
+Primary key: bill_id + bioguide_id
+Foreign keys: bill_id -> bills.id
+Columns:
+  - bill_id (string): Bill id, e.g. 119-hr-1.
+  - bioguide_id (string): Cosponsor's Bioguide ID.
+  - cosponsored_at (date): Date the member cosponsored.
+  - withdrawn_at (date): Date the member withdrew, else empty.
+
+## roll_calls: Roll-call votes
+
+Every recorded roll call with the question, the bill, the yea/nay tally by party, and the result BallotWatch derives from the tally and the question. Tallies that fail the sanity check (empty, or more votes than seats) are left empty, and so is the result.
+Files: roll_calls.csv.gz, roll_calls.ndjson.gz; per Congress: roll_calls-{congress}.csv.gz, roll_calls-{congress}.ndjson.gz
+Primary key: id
+Foreign keys: bill_id -> bills.id
+Columns:
+  - id (string): chamber-congress-session-roll, e.g. house-119-2-295.
+  - chamber (string): house or senate.
+  - congress (integer): Congress number.
+  - session (integer): Session (1 or 2).
+  - roll (integer): Roll-call number within the session.
+  - voted_at (date): Date of the vote.
+  - question (string): The question voted on, as recorded.
+  - description (string): Description of the measure, as recorded.
+  - bill_id (string): Bill voted on, when the vote is on a bill.
+  - yea (integer): Total yea votes (empty when the tally is not sane).
+  - nay (integer): Total nay votes (empty when the tally is not sane).
+  - dem_yea (integer): Democratic (and caucusing independents) yea.
+  - dem_nay (integer): Democratic (and caucusing independents) nay.
+  - rep_yea (integer): Republican yea.
+  - rep_nay (integer): Republican nay.
+  - ind_yea (integer): Other independents yea.
+  - ind_nay (integer): Other independents nay.
+  - result (string): Derived result (Passed, Failed, Cloture invoked, ...); empty when the tally is not sane or the threshold is unknown.
+  - page_url (string): BallotWatch roll-call page.
+  - source_url (string): Official record (clerk.house.gov or senate.gov).
+
+## votes: Member votes
+
+How each member voted on each roll call: Yea, Nay, Present, or Not Voting.
+Files: votes.csv.gz, votes.ndjson.gz; per Congress: votes-{congress}.csv.gz, votes-{congress}.ndjson.gz
+Primary key: roll_call_id + bioguide_id
+Foreign keys: roll_call_id -> roll_calls.id; bioguide_id -> members.bioguide_id
+Columns:
+  - roll_call_id (string): Roll call id, e.g. house-119-2-295.
+  - bioguide_id (string): Member's Bioguide ID.
+  - position (string): Yea, Nay, Present, or Not Voting.
+  - voted_at (date): Date of the vote.
+
+# 3. REST API (no key required for GET)
+
+Base: https://www.ballotwatch.io. OpenAPI 3.1: https://www.ballotwatch.io/openapi.yaml. Responses are JSON with "data" and "meta" (meta.data_updated_at); single records carry a Link: <official source>; rel="canonical" header.
+Limits: 60 requests per minute and 5,000 per day per IP without a key; a free key (Authorization: Bearer bw_live_...) raises it to 600 per minute. Over the limit: 429 with Retry-After.
+
+## GET /api/v1/members
+
+List members of Congress
+Parameters:
+  - state (query, string) [e.g. CA]
+  - chamber (query, string) [one of house, senate]
+  - party (query, string)
+  - offset (query, integer) [range 0..; default 0]
+  - limit (query, integer) [range 1..100; default 20]
+
+## GET /api/v1/members/{bioguideId}
+
+Get one member
+Parameters:
+  - bioguideId (path, string, required) [e.g. P000197]
+
+## GET /api/v1/members/{bioguideId}/votes
+
+Get voting history for one member
+Parameters:
+  - bioguideId (path, string, required) [e.g. P000197]
+  - offset (query, integer) [range 0..; default 0]
+  - limit (query, integer) [range 1..100; default 20]
+
+## GET /api/v1/members/{bioguideId}/stats
+
+Get voting statistics for one member
+Parameters:
+  - bioguideId (path, string, required) [e.g. P000197]
+
+## GET /api/v1/bills
+
+List bills. Newest first by introduced_at. Bills with no introduced date sort last and are excluded by date_from and date_to.
+Parameters:
+  - policy_area (query, string)
+  - search (query, string)
+  - date_from (query, string, date)
+  - date_to (query, string, date)
+  - offset (query, integer) [range 0..; default 0]
+  - limit (query, integer) [range 1..100; default 20]
+
+## GET /api/v1/bills/{id}
+
+Get one bill
+Parameters:
+  - id (path, string, required)
+
+## GET /api/v1/votes
+
+List roll call votes
+Parameters:
+  - chamber (query, string) [one of house, senate]
+  - date_from (query, string, date)
+  - date_to (query, string, date)
+  - offset (query, integer) [range 0..; default 0]
+  - limit (query, integer) [range 1..100; default 20]
+
+## GET /api/v1/votes/{rollCallId}
+
+Get one roll call vote
+Parameters:
+  - rollCallId (path, string, required)
+
+## GET /api/v1/stats
+
+Get aggregate statistics
+Parameters:
+  - type (query, string) [one of party_loyalty, attendance, bills_by_area]
+  - chamber (query, string) [one of house, senate]
+  - limit (query, integer) [range 1..100; default 20]
+
+## GET /api/v1/search
+
+Search members and bills. Bill matches are newest first by introduced_at; bills with no introduced date sort last.
+Parameters:
+  - q (query, string, required)
+  - type (query, string) [one of members, bills]
+  - limit (query, integer)
+
+## GET /api/v1/floor/schedule
+
+Get the House weekly floor schedule. Items the House Majority Leader has listed for possible floor consideration this week and next week (when published), parsed from the "Bills This Week" XML on docs.house.gov. The schedule names a week, not a day, and a listing is not a guarantee of a vote. Items later removed from the schedule are omitted. The Senate does not publish a weekly floor schedule in this format, so only the House is covered.
+Parameters:
+  - week (query, string, date): Any real date (YYYY-MM-DD) from 2010 to 60 days ahead, in the week to fetch; returns only that week. Defaults to this week and next.
+
+## GET /api/v1/datasets
+
+List the open-data bulk files (latest snapshot manifest). The manifest of the latest open-data snapshot: every bulk file (members, member terms, bills, bill cosponsors, roll calls, votes; full archive and the current Congress; gzip CSV and gzip NDJSON) with its URL under https://www.ballotwatch.io/data/full/, row count, byte size and SHA-256, plus the license (CC0 1.0), sources and citation. Rebuilt daily. The same document is served statically at /data/full/manifest.json; column schemas are in /data/full/datapackage.json (Frictionless Data Package). The fastest way to get everything is to download the files this lists.
+
+# 4. MCP server
+
+Endpoint: https://www.ballotwatch.io/mcp. Transport: Streamable HTTP, stateless, no auth (same per-IP limits as the API). POST JSON-RPC 2.0 with Content-Type: application/json and Accept: application/json, text/event-stream. A plain GET returns a JSON manifest.
+Server: ballotwatch 1.0.0. Server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json.
+Instructions the server sends: BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.
+
+## find_representatives (Find representatives)
+
+Resolve a U.S. street address or ZIP code to its two senators and House member. Addresses resolve to an exact district; a ZIP resolves by centroid and may span districts.
+Arguments:
+  - address (string, optional, max length 200): Full street address
+  - zip (string, optional, max length 10): 5-digit ZIP code
+
+## get_member (Get member)
+
+A member of Congress by Bioguide ID: seat, party, terms, vote statistics, and latest votes.
+Arguments:
+  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+
+## get_member_votes (Get member votes)
+
+Recorded votes for a member, newest first, with the question, bill, position, and official source.
+Arguments:
+  - bioguide_id (string, required, max length 7)
+  - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD
+  - limit (integer, optional, min 1, max 100)
+
+## get_roll_call (Get roll call)
+
+One roll-call vote with the tally, party split, derived result, and how every member voted.
+Arguments:
+  - congress (integer, required, min 1, max 200)
+  - chamber (one of house|senate, required)
+  - session (integer, required, min 1, max 3)
+  - roll (integer, required, min 1, max 5000)
+
+## search_bills (Search bills)
+
+Search bills by title keyword or bill number (e.g. "H.R. 1", "119-s-5051").
+Arguments:
+  - query (string, required, max length 100)
+  - limit (integer, optional, min 1, max 50)
+
+## get_bill (Get bill)
+
+A bill with sponsor, stage, official CRS summary, and every recorded floor vote.
+Arguments:
+  - id (string, required, max length 40): 119-hr-1 or "H.R. 1"
+
+## explain_bill (Explain bill)
+
+The cached plain-English explanation of a bill, grounded in the official CRS summary. Returns the official summary when no explanation is cached. Never generates text on demand.
+Arguments:
+  - id (string, required, max length 40)
+
+## get_floor_schedule (Get House floor schedule)
+
+What the House may take up this week and next (or the week containing a given date), read live from the Majority Leader's schedule on docs.house.gov: each item's label, title, procedure, and bill page. Use for "what is Congress voting on this week". House only; the Senate publishes no equivalent. Cite each week's source_url.
+Arguments:
+  - week (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.
+
+## get_member_record (Get member record)
+
+A member's record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote's source_url.
+Arguments:
+  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+
+# 5. Data sources
+
+Every upstream source and how often BallotWatch reads it (https://www.ballotwatch.io/data-sources):
+
+## Congress.gov API (Library of Congress)
+
+Members of Congress, bills, their actions and sponsors, and the official summaries written by the Congressional Research Service.
+Cadence: Daily. Plus a weekly full re-check. Some bill details load live.
+URL: https://api.congress.gov/
+
+## Office of the Clerk, U.S. House (U.S. House of Representatives)
+
+Every House roll-call vote: the question, the tally, and how each member voted. We read it through the Congress.gov API and link each vote to the Clerk’s page.
+Cadence: Daily
+URL: https://clerk.house.gov/Votes
+
+## U.S. Senate (Senate Legislative Information System)
+
+Every Senate roll-call vote, read from the Senate’s own published vote files.
+Cadence: Daily
+URL: https://www.senate.gov/legislative/votes_new.htm
+
+## docs.house.gov (House Majority Leader)
+
+The House weekly floor schedule, this week and next. The Senate publishes no equivalent.
+Cadence: Live. Fetched when you open the page, kept for 5 minutes.
+URL: https://docs.house.gov/floor/
+
+## U.S. Census Bureau geocoder (U.S. Census Bureau)
+
+Your street address to its congressional district. A ZIP code alone is matched to its state with Zippopotam.us.
+Cadence: On request. Sent straight from your browser to the Census Bureau.
+URL: https://geocoding.geo.census.gov/geocoder/
+
+## Federal Election Commission (OpenFEC API)
+
+Campaign finance context: candidate committees, totals, and itemized contributions.
+Cadence: On request. Cached in your browser for 24 hours.
+URL: https://api.open.fec.gov/developers/
+
+# 6. Methodology
+
+Source, cadence and caveat for each feature that computes or explains something (https://www.ballotwatch.io/methodology):
+
+## Data sources
+
+Where BallotWatch data comes from and what each source supports.
+Source: Congress.gov, the House Clerk, the U.S. Senate, docs.house.gov, the Census Bureau, the FEC, and BallotWatch ETL metadata
+Cadence: Reviewed as source integrations change
+Caveat: Official records can be corrected after first publication, and source coverage varies by dataset.
+Page: https://www.ballotwatch.io/methodology/data-sources
+
+## Source-linked explanations
+
+How BallotWatch explains congressional records with structured public data and AI assistance.
+Source: Structured bill, vote, routing, and deterministic statistics passed to server-side AI functions
+Cadence: Cached by prompt version and regenerated when prompts change
+Caveat: AI text is explanatory. It does not replace official source records.
+Page: https://www.ballotwatch.io/methodology/ai-explanations
+
+## Committee survival
+
+How often bills assigned to a primary committee advance beyond that committee.
+Source: Bill committee routing, legislative stages, and BallotWatch committee survival computation
+Cadence: Recomputed when routing backfills or weekly jobs run
+Caveat: This is descriptive history, not a prediction.
+Page: https://www.ballotwatch.io/methodology/committee-survival
+
+## Sponsor activity
+
+What primary bill sponsorship can and cannot tell you about a member.
+Source: Congress.gov sponsor data and BallotWatch sponsor backfill
+Cadence: Updated as bill sponsor data is extracted
+Caveat: Bill count is activity, not effectiveness.
+Page: https://www.ballotwatch.io/methodology/sponsor-activity
+
+## Campaign finance matching
+
+How donation context is matched to member profiles and policy areas.
+Source: Federal Election Commission data and BallotWatch industry mapping
+Cadence: Refreshed when finance data is queried or mappings change
+Caveat: Campaign finance context does not prove why a member voted a certain way.
+Page: https://www.ballotwatch.io/methodology/campaign-finance-matching
+
+## Corrections
+
+How source-linked data corrections should work.
+Source: Public source URLs submitted by users and reviewed by maintainers
+Cadence: Reviewed as reports arrive
+Caveat: Corrections are for factual records and methodology, not political agreement.
+Page: https://www.ballotwatch.io/methodology/corrections
+
+# 7. How to cite
+
+For a single record: cite the most specific BallotWatch URL (roll call, member record, or bill) and the record's official source_url, and state data_updated_at. See section 1, "How to cite".
+For the bulk data (attribution optional under CC0): BallotWatch open data, snapshot {snapshot_date from manifest.json}. https://www.ballotwatch.io/data/full/ (CC0 1.0). Source records: Congress.gov, Office of the Clerk of the U.S. House, U.S. Senate.
+Attribution line: BallotWatch (https://www.ballotwatch.io), from public records of Congress.gov, the Office of the Clerk of the U.S. House, and the U.S. Senate.

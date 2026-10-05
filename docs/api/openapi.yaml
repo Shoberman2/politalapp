@@ -11,7 +11,8 @@ info:
     minute; send it as `Authorization: Bearer bw_live_...`. Every response
     carries `meta.data_updated_at`; single records carry a
     `Link: <official source>; rel="canonical"` header. Machine-readable site
-    map: /llms.txt. MCP server: /mcp. Public sample data: /data.
+    map: /llms.txt. MCP server: /mcp. Bulk open data (CC0 1.0, daily):
+    /data/full/manifest.json and GET /api/v1/datasets.
 servers:
   - url: https://www.ballotwatch.io
     description: Production
@@ -380,6 +381,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/v1/datasets:
+    get:
+      summary: List the open-data bulk files (latest snapshot manifest)
+      description: >
+        The manifest of the latest open-data snapshot: every bulk file
+        (members, member terms, bills, bill cosponsors, roll calls, votes; full
+        archive and the current Congress; gzip CSV and gzip NDJSON) with its
+        URL under https://www.ballotwatch.io/data/full/, row count, byte size
+        and SHA-256, plus the license (CC0 1.0), sources and citation. Rebuilt
+        daily. The same document is served statically at
+        /data/full/manifest.json; column schemas are in
+        /data/full/datapackage.json (Frictionless Data Package). The fastest
+        way to get everything is to download the files this lists.
+      responses:
+        "200":
+          description: Latest snapshot manifest
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/DatasetManifest"
+                  meta:
+                    type: object
+                    properties:
+                      api_version:
+                        type: string
+                      data_updated_at:
+                        type: [string, "null"]
+                        format: date-time
+                      generated_at:
+                        type: [string, "null"]
+                        format: date-time
+                      manifest_url:
+                        type: string
+                        format: uri
+                      datapackage_url:
+                        type: string
+                        format: uri
+                      license:
+                        type: string
+                        format: uri
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          description: No snapshot has been published yet, or Storage is unreachable (code SNAPSHOT_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
@@ -478,6 +534,89 @@ components:
           schema:
             $ref: "#/components/schemas/RateLimitError"
   schemas:
+    DatasetManifest:
+      type: object
+      properties:
+        name:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        snapshot_date:
+          type: string
+          format: date
+        data_updated_at:
+          type: [string, "null"]
+          format: date-time
+        current_congress:
+          type: integer
+        license:
+          type: object
+          properties:
+            id:
+              type: string
+              example: CC0-1.0
+            path:
+              type: string
+              format: uri
+        attribution:
+          type: string
+        citation:
+          type: string
+        update_cadence:
+          type: string
+        base_url:
+          type: string
+          format: uri
+        archive_url:
+          type: string
+          format: uri
+        datapackage:
+          type: string
+          format: uri
+        row_counts:
+          type: object
+          additionalProperties:
+            type: integer
+        notes:
+          type: array
+          items:
+            type: string
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetFile"
+    DatasetFile:
+      type: object
+      properties:
+        path:
+          type: string
+          example: votes-119.csv.gz
+        table:
+          type: string
+          enum: [members, member_terms, bills, bill_cosponsors, roll_calls, votes]
+        scope:
+          type: string
+          enum: [all, congress]
+        congress:
+          type: [integer, "null"]
+        format:
+          type: string
+          enum: [csv, ndjson]
+        mediatype:
+          type: string
+        encoding:
+          type: string
+          enum: [gzip]
+        rows:
+          type: integer
+        bytes:
+          type: integer
+        sha256:
+          type: string
+        url:
+          type: string
+          format: uri
     Meta:
       type: object
       properties:

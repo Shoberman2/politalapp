@@ -78,6 +78,19 @@ function DataSourcesPage() {
 
       <section>
         <div className="ip-inner">
+          <h2>Take all of it</h2>
+          <p>
+            Every member, bill, roll call and vote we hold is published every day as CSV and NDJSON files you can
+            download in one go. The files are in the public domain (CC0 1.0): use them for anything.
+          </p>
+          <div className="ip-links">
+            <Link className="btn-text btn-go" to="/open#download">Download the full record</Link>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="ip-inner">
           <h2>What AI does here</h2>
           <ul className="ip-list">
             {AI.map((t) => <li key={t}>{t}</li>)}

@@ -182,7 +182,7 @@ function ApiDocs() {
         <p>Authentication: <code>Authorization: Bearer bw_live_xxx</code></p>
         <p>
           OpenAPI spec: <a href="/openapi.yaml">/openapi.yaml</a> · agents start at <a href="/llms.txt">/llms.txt</a>
-          {' '} · Sample data: <a href="/data/datapackage.json">/data/datapackage.json</a>
+          {' '} · Full data (CC0, daily): <a href="/data/full/manifest.json">/data/full/manifest.json</a>
         </p>
       </div>
 
@@ -273,10 +273,12 @@ function ApiDocs() {
             <pre className="api-docs-code">Authorization: Bearer bw_live_your_key_here</pre>
             <p>Claim a free key or a paid plan at <a href="/developers/keys">/developers/keys</a>.</p>
 
-            <h3>Open Data Samples</h3>
+            <h3>Open Data</h3>
             <p>
-              You can inspect schema samples without an API key at <a href="/data/datapackage.json">/data/datapackage.json</a>.
-              These samples are for prototyping and documentation, not full production exports.
+              Need everything? Download every member, bill, roll call and vote as daily gzip CSV or NDJSON files,
+              dedicated to the public domain (CC0 1.0). The list of files is at <a href="/data/full/manifest.json">/data/full/manifest.json</a> (or
+              {' '}<code>GET /api/v1/datasets</code>), schemas at <a href="/data/full/datapackage.json">/data/full/datapackage.json</a>,
+              and the overview at <a href="/open#download">/open</a>. Small schema samples stay at <a href="/data/datapackage.json">/data/datapackage.json</a>.
             </p>
 
             <h3>Rate Limits</h3>

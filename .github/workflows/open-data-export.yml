@@ -1,0 +1,82 @@
+# =============================================================================
+# BallotWatch - Daily open-data snapshot
+# =============================================================================
+# Exports every public congressional table (members, member terms, bills,
+# cosponsors, roll calls, votes) as gzip CSV + NDJSON with a manifest and a
+# Frictionless datapackage, and uploads them to the public Supabase Storage
+# bucket `open-data` (latest/ and a dated YYYY-MM-DD/ prefix; the last 14
+# dated snapshots are kept). Served at https://www.ballotwatch.io/data/full/.
+# License of the output: CC0 1.0 (DATA_LICENSE.md).
+#
+# Schedule: daily at 07:30 UTC, after the 06:00 UTC Daily ETL (60 min budget).
+# Manual trigger: workflow_dispatch (e.g. for the first publish).
+#
+# Required secrets (the same ones the Daily ETL already uses; nothing new):
+#   SUPABASE_URL              - Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY - service role key (reads tables, writes Storage)
+#
+# A full export takes about 15 minutes (183k bills, 384k votes as of 2026-10).
+# Reads only from Postgres. Its own concurrency group: sharing the ETL's group
+# would let a queued export cancel a queued ETL run.
+
+name: Open Data Export
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: '30 7 * * *'
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Upload to Supabase Storage (uncheck for a dry export)'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: open-data-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    name: Export and publish open data
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export snapshot
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          UPLOAD: ${{ github.event_name == 'schedule' || github.event.inputs.upload == 'true' }}
+        run: |
+          if [ "$UPLOAD" = "true" ]; then
+            npx tsx etl/exportOpenData.ts --upload
+          else
+            npx tsx etl/exportOpenData.ts
+          fi
+
+      - name: Summarize
+        if: success()
+        run: |
+          {
+            echo "### Open data snapshot"
+            echo ""
+            node -e "const m=require('./dist-data/manifest.json');console.log('Generated '+m.generated_at+' (Congress '+m.current_congress+')\n');console.log('| table | rows |');console.log('|---|---|');for(const [k,v] of Object.entries(m.row_counts))console.log('| '+k+' | '+v+' |')"
+          } >> "$GITHUB_STEP_SUMMARY"

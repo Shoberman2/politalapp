@@ -13,7 +13,11 @@ import { clientIp, hashIp, ANON_PER_MINUTE, ANON_PER_DAY } from './_lib/auth.js'
 import { SITE_ORIGIN } from './_lib/site.js'
 import * as tools from './_lib/mcpTools.js'
 
-const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.`
+export const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.`
+
+// Name and version the server reports on initialize; the server card
+// (public/.well-known/mcp/server-card.json, scripts/build-llms-full.mjs) reads them too.
+export const SERVER_INFO = { name: 'ballotwatch', version: '1.0.0' }
 
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
 
@@ -91,7 +95,7 @@ function text(obj) {
 }
 
 export function buildServer() {
-  const server = new McpServer({ name: 'ballotwatch', version: '1.0.0' }, { instructions: INSTRUCTIONS })
+  const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS })
   for (const t of TOOLS) {
     server.registerTool(t.name, { title: t.title, description: t.description, inputSchema: t.inputSchema }, async (args) => {
       try {
@@ -135,6 +139,8 @@ export default async function handler(req, res) {
       tools: TOOL_NAMES,
       limits: `${ANON_PER_MINUTE} requests per minute and ${ANON_PER_DAY} per day per IP`,
       docs: `${SITE_ORIGIN}/llms.txt`,
+      server_card: `${SITE_ORIGIN}/.well-known/mcp/server-card.json`,
+      open_data: `${SITE_ORIGIN}/data/full/manifest.json`,
     }, { 'Cache-Control': 'public, s-maxage=3600' })
   }
 

@@ -35,11 +35,11 @@ export const FEATURE_READABILITY = [
     action: 'Inspect donors, industries, and visible caveats',
   },
   {
-    feature: 'API and sample data',
+    feature: 'API and open data',
     question: 'How can I build with BallotWatch?',
-    source: 'Hosted API, OpenAPI spec, and public schema samples',
-    cadence: 'API is hosted; samples are versioned manually',
-    action: 'Read docs, download samples, or request an API key',
+    source: 'Daily CC0 bulk files, the keyless API, the OpenAPI spec, and the MCP server',
+    cadence: 'Bulk files rebuilt daily; the API reads live data',
+    action: 'Download the full record, call the API, or point an agent at /mcp',
   },
 ]
 
@@ -54,10 +54,10 @@ export const OPEN_TRACKS = [
   },
   {
     title: 'Use the data',
-    text: 'Start with schema samples, the OpenAPI contract, and hosted API docs. Full hosted access remains available for teams that need volume and freshness.',
+    text: 'Download every member, bill, roll call and vote as daily CSV or NDJSON files (CC0, public domain), or query the keyless API and MCP server.',
     links: [
+      { label: 'Download the full record', href: '/open#download' },
       { label: 'API docs', to: '/developers/docs' },
-      { label: 'Sample data', href: '/data/datapackage.json' },
     ],
   },
   {

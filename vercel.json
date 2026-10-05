@@ -52,7 +52,7 @@
       "destination": "/api/prerender?kind=home"
     },
     {
-      "source": "/:page(how-it-works|methodology|data-sources|about|this-week|offices|contact|privacy|terms)",
+      "source": "/:page(how-it-works|methodology|data-sources|about|this-week|offices|contact|privacy|terms|open)",
       "destination": "/api/prerender?kind=static&page=:page"
     },
     {
@@ -74,6 +74,18 @@
     {
       "source": "/mcp",
       "destination": "/api/mcp"
+    },
+    {
+      "source": "/mcp/server-card",
+      "destination": "/.well-known/mcp/server-card.json"
+    },
+    {
+      "source": "/data/full/:path*",
+      "destination": "https://dbtbmjjjcfwobhlicduk.supabase.co/storage/v1/object/public/open-data/latest/:path*"
+    },
+    {
+      "source": "/data/archive/:date(\\d{4}-\\d{2}-\\d{2})/:path*",
+      "destination": "https://dbtbmjjjcfwobhlicduk.supabase.co/storage/v1/object/public/open-data/:date/:path*"
     },
     {
       "source": "/s/bill/:congress/:billType/:number",
@@ -127,6 +139,83 @@
           "key": "Cache-Control",
           "value": "public, max-age=3600"
         },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/data/full/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/data/archive/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, s-maxage=31536000, immutable"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/llms-full.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/.well-known/mcp/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/data/(.*).json",
+      "headers": [
         {
           "key": "Access-Control-Allow-Origin",
           "value": "*"

@@ -247,6 +247,113 @@
   margin: var(--space-3) 0 var(--space-5);
 }
 
+/* Download the full record */
+.open-section-lede {
+  max-width: 680px;
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.open-data-table td:nth-child(2) {
+  width: 46%;
+}
+
+.open-data-table td:nth-child(3),
+.open-data-table td:nth-child(4) {
+  width: 14%;
+  white-space: nowrap;
+}
+
+.open-data-key {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.open-data-files {
+  display: inline-flex;
+  gap: var(--space-3);
+}
+
+.open-data-files a,
+.open-data-facts a,
+.open-data-notes a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.open-data-files a {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.open-data-files a:hover,
+.open-data-facts a:hover,
+.open-data-notes a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.open-data-na {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.open-data-meta {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+}
+
+.open-data-facts {
+  margin: 0;
+}
+
+.open-data-facts dt {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.open-data-facts dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.open-data-notes h3 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.open-data-notes p {
+  margin: 0 0 var(--space-4);
+}
+
+.open-data-notes p + h3 {
+  margin-top: var(--space-5);
+}
+
+.open-data-cite {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 980px) {
   .open-hero h1 {
     font-size: 3.25rem;

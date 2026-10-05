@@ -144,7 +144,20 @@ describe('prerender kind=home', () => {
     expect(byType.Dataset.isAccessibleForFree).toBe(true)
     expect(byType.Dataset.dateModified).toBe('2026-09-05T10:25:32.028Z')
     expect(byType.Dataset.temporalCoverage).toBe('2025-01-03/..')
-    expect(byType.Dataset.distribution.map((d) => d.contentUrl)).toEqual(['https://www.ballotwatch.io/api/v1/votes', 'https://www.ballotwatch.io/openapi.yaml'])
+    expect(byType.Dataset.license).toBe('https://creativecommons.org/publicdomain/zero/1.0/')
+    const urls = byType.Dataset.distribution.map((d) => d.contentUrl)
+    // Every bulk file in the shared catalog, then the manifest, datapackage, API and OpenAPI.
+    const { openDataFiles, currentCongress } = await import('../../shared/openData.js')
+    const files = openDataFiles(currentCongress())
+    expect(urls.slice(0, files.length)).toEqual(files.map((f) => f.url))
+    for (const u of urls.slice(0, files.length)) expect(u).toMatch(/^https:\/\/www\.ballotwatch\.io\/data\/full\/[a-z_]+(-\d+)?\.(csv|ndjson)\.gz$/)
+    expect(urls.slice(files.length)).toEqual([
+      'https://www.ballotwatch.io/data/full/manifest.json',
+      'https://www.ballotwatch.io/data/full/datapackage.json',
+      'https://www.ballotwatch.io/api/v1/votes',
+      'https://www.ballotwatch.io/openapi.yaml',
+    ])
+    for (const d of byType.Dataset.distribution) expect(d.encodingFormat).toBeTruthy()
   })
 
   it('serves compact Markdown for Accept: text/markdown', async () => {
