@@ -18,7 +18,7 @@ const COLUMNS = [
       { label: 'Members', to: '/all' },
       { label: 'Bills', to: '/bills' },
       { label: 'This week', to: '/this-week' },
-      SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },
+      SHOW_BILL_ALERTS && { label: 'Bill alerts (sign in)', to: '/alerts' },
     ],
   },
   {

@@ -68,7 +68,7 @@ export default function BillWatchControl({ billId }) {
       <div className="bill-rail-card bill-watch-card">
         <div className="bill-watch-kicker">Bill alerts</div>
         <h3>Get the next update</h3>
-        <p>Sign in to add this bill to your watchlist and see official committee, floor, and recorded-vote updates.</p>
+        <p>Sign in with a free account to watch this bill and see official committee, floor, and recorded-vote updates.</p>
         <button
           type="button"
           className="bill-watch-primary btn-primary btn-sm"

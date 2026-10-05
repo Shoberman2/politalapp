@@ -33,7 +33,7 @@ export const HOME_FEATURES = [
   { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', href: '/bills', label: 'Browse bills' },
   { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
   { id: 'write', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', href: '/how-it-works', label: 'How Tell your rep works' },
-  { id: 'alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.', href: '/alerts', label: 'Follow a bill' },
+  { id: 'alerts', title: 'Know before the vote.', body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote. This one needs a free account.', href: '/alerts', label: 'Sign in to follow a bill' },
 ]
 
 export const HOME_LINKS = [
