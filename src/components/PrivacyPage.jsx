@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import '../styles/InfoPage.css'
-import '../styles/LegalPage.css'
 
 // NOTE FOR MAINTAINERS: this notice was written from an audit of the code on
 // 2026-10-04 (AuthContext, userService, TellYourRep, api/_lib/auth.js +
@@ -22,7 +21,7 @@ function ContactLine() {
 
 function PrivacyPage() {
   return (
-    <div className="bw info-page legal-page">
+    <div className="bw info-page ip-compact legal-page">
       <SEO
         title="Privacy"
         description={`What ${BRAND.name} collects, what it doesn't, and why. Tell your rep messages are never sent to or stored by us.`}
@@ -32,7 +31,7 @@ function PrivacyPage() {
       <section className="ip-hero">
         <div className="ip-inner">
           <span className="ip-kicker">Privacy</span>
-          <h1>Privacy notice</h1>
+          <h1 className="ip-title">Privacy notice</h1>
           <p className="ip-lede">
             You can read the whole congressional record on {BRAND.name} without an account. This page explains, in
             plain language, the small amount of information we do handle and why.
@@ -244,8 +243,8 @@ function PrivacyPage() {
             Questions about this notice: <ContactLine />.
           </p>
           <div className="ip-links">
-            <Link to="/terms">Terms of use</Link>
-            <Link to="/contact">Contact</Link>
+            <Link className="btn-text btn-go" to="/terms">Terms of use</Link>
+            <Link className="btn-text btn-go" to="/contact">Contact</Link>
           </div>
         </div>
       </section>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 const SITE_NAME = 'BallotWatch'
@@ -5,11 +6,35 @@ const BASE_URL = 'https://www.ballotwatch.io'
 const DEFAULT_IMAGE = `${BASE_URL}/congress.jpg`
 const DEFAULT_DESCRIPTION = 'Look up your senators and representative, review congressional voting records, browse bills with source-linked explanations, and inspect public methodology.'
 
-function SEO({ title, description, path = '/', type = 'website', image, article, schema }) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Congressional Voting Records, Bill Tracker & Representative Lookup`
+// Server-rendered pages (api/prerender.js) put their JSON-LD in <head> tagged
+// data-bw-ssr="<path>". On the page they describe, rendering our own copy
+// would duplicate every block (Search Console flags a second FAQPage, for
+// example), so skip it. After client navigation those blocks describe a
+// different page, so remove them.
+function hasServerJsonLd(path) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return false
+  if (window.location.pathname !== path) return false
+  return Boolean(document.querySelector(`script[data-bw-ssr=${JSON.stringify(path)}]`))
+}
+
+function useDropStaleServerJsonLd(path) {
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    for (const el of document.querySelectorAll('script[data-bw-ssr]')) {
+      if (el.getAttribute('data-bw-ssr') !== window.location.pathname) el.remove()
+    }
+  }, [path])
+}
+
+// `fullTitle` sets the whole <title> (for the homepage, whose title already
+// names the site); `title` gets " | BallotWatch" appended.
+function SEO({ title, fullTitle: fullTitleProp, description, path = '/', type = 'website', image, article, schema }) {
+  useDropStaleServerJsonLd(path)
+  const fullTitle = fullTitleProp || (title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Congressional Voting Records, Bill Tracker & Representative Lookup`)
   const desc = description || DEFAULT_DESCRIPTION
   const url = `${BASE_URL}${path}`
   const img = image || DEFAULT_IMAGE
+  const serverLd = hasServerJsonLd(path)
 
   return (
     <Helmet>
@@ -32,7 +57,7 @@ function SEO({ title, description, path = '/', type = 'website', image, article,
       <meta name="twitter:description" content={desc} />
       <meta name="twitter:image" content={img} />
 
-      {article && (
+      {article && !serverLd && (
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
@@ -56,7 +81,7 @@ function SEO({ title, description, path = '/', type = 'website', image, article,
         </script>
       )}
 
-      {schema && (
+      {schema && !serverLd && (
         <script type="application/ld+json">
           {JSON.stringify({ '@context': 'https://schema.org', ...schema })}
         </script>

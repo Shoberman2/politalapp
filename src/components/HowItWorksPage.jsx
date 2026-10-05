@@ -1,78 +1,53 @@
 import { Link } from 'react-router-dom'
 import SEO from './SEO'
+import InfoIndex from './InfoIndex'
 import { BRAND } from '../config/brand'
+import { SHOW_BILL_ALERTS } from '../config/features'
+import { AI_NEVER, AI_USES } from '../data/infoPages'
 import '../styles/InfoPage.css'
-import '../styles/HowItWorksPage.css'
 
-// Plain-English walkthrough of the product. Keep the AI lists in step with
-// the landing page's "How we use AI" section.
+// The concept in four ideas, not a manual. Detail lives on /data-sources and
+// /methodology; keep this page short.
 
-const STEPS = [
+const LOOP = [
   {
-    title: 'Find who represents you',
-    body: 'Enter a ZIP code or a street address. The U.S. Census Bureau geocoder maps it to your congressional district, and the district gives you your House member and your two senators. When a ZIP code alone can’t pin down your district, a street address settles it.',
-    links: [
-      { label: 'Find your representatives', to: '/my-representative' },
-      { label: 'Data sources', to: '/methodology/data-sources' },
-    ],
+    title: 'Read the record',
+    body: 'See how your members voted on every roll call, each linked to its official source.',
+    link: { to: '/my-representative', label: 'Find my reps' },
   },
   {
-    title: 'See every vote',
-    body: 'Every recorded roll call in the House and the Senate, from the House Clerk and the Senate, with the tally, the result, and how each member voted. Each record links to its official source so you can check it.',
-    links: [
-      { label: 'Browse members', to: '/all' },
-      { label: 'Methodology', to: '/methodology' },
-    ],
+    title: 'Write to your rep',
+    body: 'Start from the facts of a vote, add your own words, and send it yourself.',
+    link: { to: '/this-week', label: 'Pick a vote' },
   },
   {
-    title: 'Read bills in plain English',
-    body: 'Each bill shows its official title, status, and actions from Congress.gov. Where the Congressional Research Service has published its official summary, we add a short plain-English explanation written with AI from that summary, and the official summary is one click away. When there is no summary yet, we say so rather than guess from the title.',
-    links: [
-      { label: 'Browse bills', to: '/bills' },
-      { label: 'How AI explanations are made', to: '/methodology/ai-explanations' },
-    ],
+    title: 'Offices answer from their own words',
+    tag: 'Where we’re headed',
+    body: 'Offices reply from what they have published, never in a voice they didn’t write.',
+    link: { to: '/offices', label: 'For offices' },
   },
   {
-    title: 'This week on the floor',
-    body: 'The House publishes its weekly floor schedule at docs.house.gov. We show this week and next, next to the latest recorded votes. The Senate publishes no equivalent schedule, so Senate items appear once they are voted on.',
-    links: [{ label: 'This week', to: '/this-week' }],
-  },
-  {
-    title: 'A record in 60 seconds',
-    body: 'Every member gets the same short card: their seat, votes cast and not voting this Congress, and their ten most recent recorded votes, each linked to the roll call. The template is identical for everyone, so no member is framed differently from another.',
-    links: [{ label: 'Find a member', to: '/all' }],
-  },
-  {
-    title: 'Tell your rep',
-    body: 'From a vote, a bill, or a member page, open a short factual outline of what happened. You write the message, copy it, and send it yourself through the office’s official contact page. We never send it, and we never store what you wrote.',
-    links: [{ label: 'Privacy', to: '/privacy' }],
-  },
-  {
-    title: 'Bill alerts',
-    body: 'Sign in and watch a bill. When it reaches a committee, the floor schedule, or a recorded vote, it shows up on your alerts page, with an email if you turn email on.',
-    links: [{ label: 'Bill alerts', to: '/alerts' }],
+    title: 'See how they vote next',
+    body: 'Follow a bill and hear when it reaches committee, the floor, or a recorded vote.',
+    link: SHOW_BILL_ALERTS ? { to: '/alerts', label: 'Follow a bill' } : { to: '/this-week', label: 'This week' },
   },
 ]
 
-const SOURCES = [
-  { name: 'Congress.gov', detail: 'Members, bills, actions, and CRS summaries' },
-  { name: 'Office of the Clerk, U.S. House', detail: 'House roll-call votes' },
-  { name: 'U.S. Senate', detail: 'Senate roll-call votes' },
-  { name: 'docs.house.gov', detail: 'The House weekly floor schedule' },
-  { name: 'U.S. Census Bureau', detail: 'Address and ZIP code to district' },
-  { name: 'Federal Election Commission', detail: 'Campaign finance context' },
-]
+const LIVE = [
+  { label: 'Your representatives', to: '/my-representative' },
+  { label: 'Every House and Senate roll call', to: '/this-week' },
+  { label: 'Bills in plain English', to: '/bills' },
+  { label: 'This week on the floor', to: '/this-week' },
+  { label: 'A record in 60 seconds', to: '/all' },
+  { label: 'Tell your rep', to: '/this-week' },
+  SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },
+  { label: 'Free API and MCP server', to: '/developers' },
+].filter(Boolean)
 
-const AI_USES = [
-  'Explain bills from the official summary, with the source beside it',
-  'Explain what a procedural vote actually decided',
-  'Help you, or your AI assistant, find the right roll call',
-]
-
-const AI_NEVER = [
-  'Write in your representative’s voice or guess their positions',
-  'Send anything you haven’t read and approved',
-  'Choose a side for you, or rank and score constituents',
+const DEEPER = [
+  { to: '/data-sources', title: 'How we get our data', dek: 'Every source, what we take from it, and how often.' },
+  { to: '/methodology', title: 'Methodology', dek: 'How each number and explanation is made.' },
+  { to: '/about', title: `About ${BRAND.name}`, dek: 'Independent, nonpartisan, and open source.' },
 ]
 
 function HowItWorksPage() {
@@ -80,76 +55,70 @@ function HowItWorksPage() {
     <div className="bw info-page how-page">
       <SEO
         title="How It Works"
-        description={`How ${BRAND.name} works: find who represents you, see every recorded vote, read bills in plain English, and contact your representatives yourself. Where the data comes from and how AI is used.`}
+        description={`How ${BRAND.name} works: read your members' voting record, write to them yourself, and follow what they vote on next. Every fact links to its official source.`}
         path="/how-it-works"
       />
 
       <section className="ip-hero">
         <div className="ip-inner">
           <span className="ip-kicker">How it works</span>
-          <h1>The public record, made easy to read and easy to act on.</h1>
+          <h1 className="ip-title">Read the record. Reach the people in it.</h1>
           <p className="ip-lede">
-            {BRAND.name} takes the official record of Congress, links every fact to its source, and puts it next
-            to the people who represent you. Here is what it does, step by step.
+            {BRAND.name} takes the official record of Congress, links every fact to its source, and puts it next to
+            the people who represent you.
           </p>
         </div>
       </section>
 
-      <section>
+      <section aria-label="How it works, in four steps">
         <div className="ip-inner">
-          <ol className="how-steps">
-            {STEPS.map((step, i) => (
+          <ol className="ip-steps">
+            {LOOP.map((step) => (
               <li key={step.title}>
-                <span className="how-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-                <div>
-                  <h2>{step.title}</h2>
-                  <p>{step.body}</p>
-                  <div className="ip-links">
-                    {step.links.map((l) => <Link key={l.to + l.label} to={l.to}>{l.label}</Link>)}
-                  </div>
+                {step.tag && <p className="ip-tag">{step.tag}</p>}
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+                <div className="ip-links">
+                  <Link className="btn-text btn-go" to={step.link.to}>{step.link.label}</Link>
                 </div>
               </li>
             ))}
           </ol>
+          <p className="ip-loop">Then the next vote, and the loop starts again.</p>
         </div>
       </section>
 
       <section>
         <div className="ip-inner">
-          <span className="ip-kicker">Where the data comes from</span>
-          <h2>Official public sources, refreshed daily</h2>
-          <dl className="how-sources">
-            {SOURCES.map((s) => (
-              <div key={s.name}>
-                <dt>{s.name}</dt>
-                <dd>{s.detail}</dd>
-              </div>
+          <h2>What’s live today</h2>
+          <ul className="ip-checks">
+            {LIVE.map((item) => (
+              <li key={item.label}><Link to={item.to}>{item.label}</Link></li>
             ))}
-          </dl>
-          <p className="ip-muted how-note">
-            The record is shown as published. The only value we compute is a roll call’s result, from its tally and
-            question. Spot an error? <Link to="/methodology/corrections">Send a correction</Link>.
-          </p>
+          </ul>
         </div>
       </section>
 
       <section>
         <div className="ip-inner">
-          <span className="ip-kicker">How we use AI</span>
-          <div className="how-ai">
-            <div className="how-ai-col how-ai-use">
+          <h2>AI that explains. It never speaks for anyone.</h2>
+          <div className="ip-pair">
+            <div className="ip-pair-info">
               <h3>We use AI to</h3>
               <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
-            <div className="how-ai-col how-ai-never">
+            <div>
               <h3>We never use AI to</h3>
               <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
             </div>
           </div>
-          <div className="ip-links">
-            <Link to="/methodology/ai-explanations">How AI explanations are made</Link>
-            <Link to="/about">About {BRAND.name}</Link>
-          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="ip-inner">
+          <h2>Go deeper</h2>
+          <InfoIndex items={DEEPER} />
         </div>
       </section>
     </div>

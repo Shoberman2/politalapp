@@ -25,7 +25,7 @@ function renderPage() {
 describe('OfficesPage', () => {
   it('states its status plainly', () => {
     const { container } = renderPage()
-    const status = container.querySelector('.op-status')
+    const status = container.querySelector('.ip-note')
     expect(status.textContent).toMatch(/not yet authorized/i)
     expect(status.textContent).toMatch(/not selling it or offering trials/i)
   })

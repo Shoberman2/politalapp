@@ -3,6 +3,20 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.8.0.0] - 2026-10-04
+
+### Added
+
+- A "How we get our data" page at `/data-sources`: every source (Congress.gov, the House Clerk, the U.S. Senate, docs.house.gov, the U.S. Census Bureau, the FEC), what we take from each, how often it refreshes, what we compute, and what AI does.
+- The homepage and the info pages now arrive as real HTML for search engines and AI answer engines: the latest roll calls, the features, the FAQ, and structured data (Organization, WebSite, FAQPage, Dataset). AI agents can ask for the homepage as Markdown, the sitemap lists the info pages, and `llms.txt` says plainly what BallotWatch is and how to cite it.
+
+### Changed
+
+- New fonts across the site: Bricolage Grotesque for headlines and Hanken Grotesk for text, with Instrument Serif kept for italic accents.
+- The front page is simpler: no small labels above each feature, clearer headlines, the record image shows the member's real profile, "How we use AI" is a dark Now / Next / Never section framed as what we're building toward, and the offices band and FAQ are larger and easier to read. The data-sources strip moved to its own page.
+- How it works is now four short steps instead of seven paragraphs; Methodology is a clean list of topics; every explanatory page shares one layout.
+- The "How we use AI" list matches what the site does: AI explains bills from the official summary and narrates voting patterns from numbers computed first; procedural terms come from a written glossary.
+
 ## [0.7.0.0] - 2026-10-04
 
 ### Added

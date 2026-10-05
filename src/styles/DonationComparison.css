@@ -55,7 +55,7 @@
 }
 
 .comparison-vs {
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   font-size: 1.125rem;
   color: var(--text-muted);

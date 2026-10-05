@@ -197,7 +197,7 @@
   color: var(--text-primary);
 }
 .bill-ai-headline em {
-  font-style: italic;
+  font-style: italic; font-family: var(--accent-serif); font-weight: 400;
   color: var(--info);
 }
 .bill-ai-prose p {
@@ -219,7 +219,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   color: var(--text-secondary);
   font-size: 16px;
@@ -283,7 +283,7 @@
   color: var(--text-primary);
 }
 .bill-section-title em {
-  font-style: italic;
+  font-style: italic; font-family: var(--accent-serif); font-weight: 400;
   color: var(--accent);
 }
 .bill-section-loading {
@@ -575,7 +575,7 @@
   text-align: center;
 }
 .bill-detail-loading p {
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   color: var(--text-secondary);
   margin-top: 16px;

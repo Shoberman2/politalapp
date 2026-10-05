@@ -16,7 +16,7 @@
 }
 
 .vpa-heading {
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   font-size: 28px;
   font-weight: 400;
@@ -229,7 +229,7 @@
 }
 
 .vpa-notable-heading {
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   font-size: 22px;
   font-weight: 400;
@@ -364,7 +364,7 @@
 }
 
 .vpa-modal-title {
-  font-family: var(--font-display);
+  font-family: var(--accent-serif);
   font-style: italic;
   font-size: 24px;
   font-weight: 400;

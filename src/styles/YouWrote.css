@@ -26,7 +26,7 @@
   margin: 0 0 12px;
   color: var(--text-primary);
 }
-.yw-title em { font-style: italic; }
+.yw-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .yw-list { list-style: none; margin: 0; padding: 0; }
 .yw-item { padding: 12px 0; border-top: 1px solid var(--border-light); }

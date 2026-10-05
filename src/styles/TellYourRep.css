@@ -60,7 +60,7 @@
 }
 .tyr-title:focus { outline: none; }
 .tyr-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.tyr-title em { font-style: italic; color: var(--accent); }
+.tyr-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; color: var(--accent); }
 
 .tyr-disclaimer {
   margin: 12px 0 0;

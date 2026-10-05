@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import '../styles/InfoPage.css'
-import '../styles/ContactPage.css'
 
 const REPO = 'https://github.com/Shoberman2/politalapp'
 const CORRECTION_ISSUE_URL = `${REPO}/issues/new?template=data_correction.yml`
@@ -23,7 +22,7 @@ function ContactPage() {
       <section className="ip-hero">
         <div className="ip-inner">
           <span className="ip-kicker">Contact</span>
-          <h1>How to reach us</h1>
+          <h1 className="ip-title">How to reach us</h1>
           <p className="ip-lede">
             {BRAND.name} is a small, open-source project. The fastest way to reach us depends on what you need.
           </p>
@@ -32,7 +31,7 @@ function ContactPage() {
 
       <section>
         <div className="ip-inner">
-          <ul className="ip-list contact-list">
+          <ul className="ip-list">
             <li>
               <h2>A correction to the record</h2>
               <p>
@@ -40,8 +39,8 @@ function ContactPage() {
                 you expected, and a public source that shows it.
               </p>
               <div className="ip-links">
-                <a href={CORRECTION_ISSUE_URL} target="_blank" rel="noopener noreferrer">Open a correction</a>
-                <Link to="/methodology/corrections">Corrections policy</Link>
+                <a className="btn-text btn-go" href={CORRECTION_ISSUE_URL} target="_blank" rel="noopener noreferrer">Open a correction</a>
+                <Link className="btn-text btn-go" to="/methodology/corrections">Corrections policy</Link>
               </div>
             </li>
             <li>
@@ -51,7 +50,7 @@ function ContactPage() {
                 security policy for a private report.
               </p>
               <div className="ip-links">
-                <a href={SECURITY_URL} target="_blank" rel="noopener noreferrer">Security policy</a>
+                <a className="btn-text btn-go" href={SECURITY_URL} target="_blank" rel="noopener noreferrer">Security policy</a>
               </div>
             </li>
             <li>
@@ -69,8 +68,8 @@ function ContactPage() {
                 </p>
               )}
               <div className="ip-links">
-                <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer">GitHub issues</a>
-                <Link to="/offices">For congressional offices</Link>
+                <a className="btn-text btn-go" href={ISSUES_URL} target="_blank" rel="noopener noreferrer">GitHub issues</a>
+                <Link className="btn-text btn-go" to="/offices">For congressional offices</Link>
               </div>
             </li>
           </ul>

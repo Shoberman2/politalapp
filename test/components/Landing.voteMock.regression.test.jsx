@@ -266,12 +266,25 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     expect(container.querySelectorAll('video').length).toBe(0)
   })
 
-  it('links offices to /offices and states the in-development status', () => {
+  it('links offices to /offices and never offers a pilot, trial or price', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const band = container.querySelector('.offices-band')
     expect(band.querySelector('a[href="/offices"]')).not.toBeNull()
-    expect(band.textContent).toMatch(/not yet authorized/i)
-    expect(band.textContent).not.toMatch(/free trial|pilot/i)
+    expect(band.textContent).not.toMatch(/free trial|pilot|\$\d|pricing/i)
+  })
+
+  it('frames AI as the concept: now, next and never', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    const ai = container.querySelector('.ai')
+    expect(ai.textContent).toMatch(/what we’re building toward/i)
+    expect([...ai.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Now', 'Next', 'Never'])
+  })
+
+  it('has no small labels above the feature headlines', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    expect(container.querySelectorAll('.features .section-kicker').length).toBe(0)
   })
 })

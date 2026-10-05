@@ -30,6 +30,7 @@ import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
 import OfficesPage from './components/OfficesPage'
 import HowItWorksPage from './components/HowItWorksPage'
+import DataSourcesPage from './components/DataSourcesPage'
 import AboutPage from './components/AboutPage'
 import ContactPage from './components/ContactPage'
 import PrivacyPage from './components/PrivacyPage'
@@ -72,6 +73,7 @@ function App() {
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/offices" element={<OfficesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/data-sources" element={<DataSourcesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />

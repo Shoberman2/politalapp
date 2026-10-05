@@ -1,65 +1,86 @@
-/* Shared editorial layout for the information pages (/how-it-works, /about,
-   /contact, /privacy, /terms). Modeled on OfficesPage.css: single column,
-   mono kicker, Instrument Serif headings, thin rules between sections
-   (DESIGN.md). Each page adds its own file for page-specific rules. */
+/* The one layout for every explanatory page: /how-it-works, /data-sources,
+   /methodology (+ topics), /about, /contact, /privacy, /terms, /offices.
+   Editorial and quiet (DESIGN.md): one reading column, a hero with an optional
+   mono kicker, one serif H1 (.ip-title) and a one-sentence lede, sections split
+   by thin rules, and links as `.btn-text .btn-go` arrow actions from App.css.
+   Fonts come only from the --serif / --sans / --mono tokens. Pages should not
+   need their own stylesheet; add a pattern here instead. */
 
 .info-page { color: var(--ink); background: var(--bg); }
 .info-page section { border-bottom: 1px solid var(--rule); }
 .info-page section:last-child { border-bottom: 0; }
 .info-page .ip-inner {
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: clamp(40px, 7vh, 72px) 40px;
+  padding: clamp(40px, 7vh, 64px) 24px;
 }
-.info-page .ip-hero .ip-inner { padding-top: clamp(48px, 9vh, 96px); }
+
+/* ---------- Hero ---------- */
+.info-page .ip-hero .ip-inner { padding-top: clamp(56px, 10vh, 104px); padding-bottom: clamp(40px, 7vh, 64px); }
 .info-page .ip-kicker {
   display: block;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-3);
-  margin-bottom: 16px;
+  color: var(--ink-2);
+  margin: 0 0 16px;
 }
-.info-page h1 {
+.info-page .ip-title {
   font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(34px, 4.8vw, 52px);
-  line-height: 1.05;
+  font-weight: 600;
+  font-size: clamp(34px, 5vw, 48px);
+  line-height: 1.06;
   letter-spacing: -0.015em;
   text-wrap: balance;
+  color: var(--ink);
   margin: 0;
 }
+.info-page .ip-lede {
+  margin-top: 18px;
+  font-size: clamp(17px, 1.7vw, 19px);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 36rem;
+  text-wrap: pretty;
+}
+.info-page .ip-updated {
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.info-page .ip-back { font-size: 14px; }
+.info-page .ip-hero .ip-back { display: inline-flex; margin-bottom: 28px; }
+.info-page .ip-back::before { content: "\2190"; }
+
+/* ---------- Type ---------- */
 .info-page h2 {
   font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 600;
+  font-size: clamp(24px, 2.6vw, 28px);
   line-height: 1.15;
-  margin: 0 0 14px;
+  color: var(--ink);
+  margin: 0 0 16px;
 }
 .info-page h3 {
   font-family: var(--sans);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--ink);
 }
 .info-page p,
 .info-page li { font-size: 16px; line-height: 1.65; color: var(--ink-2); }
 .info-page p { margin: 0; }
 .info-page p + p { margin-top: 12px; }
-.info-page .ip-lede { margin-top: 20px; font-size: clamp(16px, 1.6vw, 18px); max-width: 38rem; }
-.info-page .ip-updated {
-  margin-top: 20px;
-  font-family: var(--mono);
-  font-size: 11.5px;
-  letter-spacing: 0.06em;
-  color: var(--ink-3);
-}
-
-.info-page a:not(.ip-plain) { color: var(--accent); }
-.info-page a:not(.ip-plain):hover { text-decoration: underline; }
+.info-page strong { color: var(--ink); font-weight: 600; }
+.info-page p a,
+.info-page li > a:not([class]) { color: var(--accent); text-decoration: none; }
+.info-page p a:hover,
+.info-page li > a:not([class]):hover { text-decoration: underline; text-underline-offset: 3px; }
 .info-page code {
   font-family: var(--mono);
   font-size: 0.86em;
@@ -67,21 +88,207 @@
   border-radius: var(--r-sm, 4px);
   background: var(--bg-tint);
 }
+.info-page .ip-muted { font-size: 14px; color: var(--ink-3); }
+.info-page .ip-after { margin-top: 18px; }
 
-/* Plain list with thin rules between items, as on /offices. */
+/* Row of arrow links under a block. Anchors carry `.btn-text .btn-go`. */
+.info-page .ip-links { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 18px; }
+
+/* ---------- Lists ---------- */
+/* Plain list, thin rules between items. */
 .info-page .ip-list { list-style: none; margin: 0; padding: 0; }
-.info-page .ip-list li { padding: 12px 0; border-top: 1px solid var(--rule-light); }
-.info-page .ip-list li:first-child { border-top: 0; padding-top: 0; }
+.info-page .ip-list > li { padding: 16px 0; border-top: 1px solid var(--rule-light); }
+.info-page .ip-list > li:first-child { border-top: 0; padding-top: 0; }
+.info-page .ip-list > li:last-child { padding-bottom: 0; }
+.info-page .ip-list > li > p { margin-top: 4px; }
+.info-page .ip-list > li > h2 { font-size: 22px; margin-bottom: 6px; }
+.info-page .ip-list > li:has(> h2) { padding: 24px 0; }
+.info-page .ip-list > li:has(> h2):first-child { padding-top: 0; }
+.info-page .ip-list > li:has(> h2):last-child { padding-bottom: 0; }
+.info-page .ip-code-list > li { padding: 8px 0; }
+.info-page .ip-code-list a { color: var(--ink-2); text-decoration: none; }
+.info-page .ip-code-list a:hover { color: var(--accent); }
 
-/* Bulleted prose list for legal-style sections. */
+/* Bulleted prose list (legal pages). */
 .info-page .ip-bullets { margin: 12px 0 0; padding-left: 20px; }
 .info-page .ip-bullets li + li { margin-top: 6px; }
 
-.info-page .ip-links { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 18px; }
-.info-page .ip-links a { font-size: 14px; font-weight: 600; }
+/* Index of links: title + one line + arrow. The whole row is the link. */
+.info-page .ip-index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.info-page .ip-index li { border-bottom: 1px solid var(--rule); }
+.info-page .ip-index a {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 24px;
+  padding: 20px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.info-page .ip-index .ip-index-title { font-family: var(--serif); font-size: 22px; line-height: 1.2; color: var(--ink); }
+.info-page .ip-index .ip-index-dek { grid-column: 1; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.info-page .ip-index .ip-index-go {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--accent);
+  font-size: 18px;
+  transition: transform .15s ease;
+}
+.info-page .ip-index a:hover .ip-index-title { color: var(--accent); }
+.info-page .ip-index a:hover .ip-index-go { transform: translateX(3px); }
+.info-page .ip-index a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-toggle); }
 
-.info-page .ip-muted { font-size: 14px; color: var(--ink-3); }
+/* Short definition rows: mono label, plain value. */
+.info-page .ip-facts { margin: 0; }
+.info-page .ip-facts > div {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule-light);
+}
+.info-page .ip-facts > div:first-child { border-top: 0; padding-top: 0; }
+.info-page .ip-facts dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-top: 4px;
+}
+.info-page .ip-facts dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---------- Concept patterns ---------- */
+/* Numbered steps: a 2x2 grid of short ideas, each one sentence and one link. */
+.info-page .ip-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 44px 48px;
+  counter-reset: ip-step;
+}
+.info-page .ip-steps > li { counter-increment: ip-step; padding-top: 16px; border-top: 1px solid var(--rule-strong); }
+.info-page .ip-steps > li::before {
+  content: counter(ip-step);
+  display: block;
+  font-family: var(--serif);
+  font-size: 44px;
+  line-height: 1;
+  color: var(--ink-2);
+  margin-bottom: 14px;
+}
+.info-page .ip-steps h3 { font-family: var(--serif); font-weight: 600; font-size: 22px; line-height: 1.2; margin-bottom: 8px; }
+.info-page .ip-steps p { font-size: 16px; }
+.info-page .ip-steps .ip-links { margin-top: 12px; }
+.info-page .ip-steps .ip-tag { margin: 0 0 8px; }
+.info-page .ip-loop { margin-top: 36px; font-size: 14px; color: var(--ink-3); }
+
+/* Status tag ("Where we're headed"): small mono text, warning amber. */
+.info-page .ip-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--warning);
+}
+
+/* Compact two-column checklist ("What's live today"). */
+.info-page .ip-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+}
+.info-page .ip-checks li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule-light);
+  font-size: 15px;
+  color: var(--ink);
+}
+.info-page .ip-checks li::before { content: "\2713"; color: var(--success); font-size: 13px; }
+.info-page .ip-checks a { color: var(--ink); text-decoration: none; }
+.info-page .ip-checks a:hover { color: var(--accent); }
+
+/* Two lists side by side with left-rule marginalia (AI uses / never). */
+.info-page .ip-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.info-page .ip-pair > div { padding-left: 16px; border-left: 2px solid var(--rule-strong); }
+.info-page .ip-pair > .ip-pair-info { border-left-color: var(--info); }
+.info-page .ip-pair h3 { margin-bottom: 8px; }
+.info-page .ip-pair ul { list-style: none; margin: 0; padding: 0; }
+.info-page .ip-pair li { padding: 5px 0; font-size: 16px; line-height: 1.5; }
+
+/* Source rows: name + what we take, then cadence and a link. */
+.info-page .ip-sources { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.info-page .ip-sources > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 8px 32px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.info-page .ip-sources p { font-size: 16px; line-height: 1.55; }
+.info-page .ip-sources .ip-source-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.info-page .ip-sources .ip-cadence {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.info-page .ip-sources .ip-cadence-note { font-size: 13px; line-height: 1.45; color: var(--ink-3); }
+.info-page .ip-sources .btn-text { font-size: 14px; white-space: normal; }
+
+/* Pull quote (About mission, Offices testimony). */
+.info-page .ip-quote { margin: 0; padding-left: 18px; border-left: 2px solid var(--accent); }
+.info-page .ip-quote p {
+  font-family: var(--serif);
+  font-size: clamp(20px, 2.3vw, 24px);
+  line-height: 1.35;
+  color: var(--ink);
+}
+.info-page .ip-quote footer {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.info-page .ip-quote footer a { color: var(--accent); }
+.info-page .ip-hero .ip-quote { margin-top: 24px; max-width: 36rem; }
+
+/* Status note (in development, not authorized). */
+.info-page .ip-note {
+  margin-top: 28px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--warning);
+  background: var(--warning-subtle);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* Tinted closing band (one per page at most). */
+.info-page .ip-band { background: var(--bg-tint); }
+.info-page .ip-band .btn-primary { margin-top: 20px; }
+.info-page .ip-band .ip-muted { margin-top: 16px; }
+
+/* Long notices (privacy, terms): tighter section rhythm so they stay scannable. */
+.info-page.ip-compact section:not(.ip-hero) .ip-inner { padding-top: 32px; padding-bottom: 32px; }
+.info-page.ip-compact h2 { font-size: clamp(20px, 2.2vw, 24px); margin-bottom: 10px; }
 
 @media (max-width: 640px) {
   .info-page .ip-inner { padding-left: 16px; padding-right: 16px; }
+  .info-page .ip-steps,
+  .info-page .ip-checks,
+  .info-page .ip-pair { grid-template-columns: 1fr; }
+  .info-page .ip-steps { gap: 36px; }
+  .info-page .ip-pair { gap: 24px; }
+  .info-page .ip-facts > div { grid-template-columns: 1fr; gap: 2px; }
+  .info-page .ip-sources > li { grid-template-columns: 1fr; }
 }

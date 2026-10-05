@@ -9,14 +9,14 @@
 }
 
 .api-docs-header h1 {
-  font-family: 'Instrument Serif', serif;
+  font-family: var(--serif);
   font-size: 28px;
   color: var(--text-primary);
   margin: 0 0 8px;
 }
 
 .api-docs-header p {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   color: var(--text-secondary);
   margin: 4px 0;
@@ -28,7 +28,7 @@
 }
 
 .api-docs-header code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   background: var(--bg-tint);
   padding: 2px 6px;
@@ -50,7 +50,7 @@
 }
 
 .api-docs-nav h3 {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -70,7 +70,7 @@
   background: transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 13px;
   color: var(--text-secondary);
   transition: background 0.15s;
@@ -86,7 +86,7 @@
 }
 
 .api-docs-method {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   font-weight: 700;
   color: var(--success);
@@ -97,7 +97,7 @@
 }
 
 .api-docs-path {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -137,7 +137,7 @@
 }
 
 .api-docs-method-badge {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 12px;
   font-weight: 700;
   color: var(--success);
@@ -147,13 +147,13 @@
 }
 
 .api-docs-endpoint-path {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 16px;
   color: var(--text-primary);
 }
 
 .api-docs-endpoint-desc {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -165,7 +165,7 @@
 }
 
 .api-docs-section h3 {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -176,7 +176,7 @@
 .api-docs-params-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 13px;
 }
 
@@ -198,7 +198,7 @@
 }
 
 .api-docs-params-table code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 12px;
   color: var(--text-primary);
 }
@@ -212,7 +212,7 @@
 
 /* Code block */
 .api-docs-code {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--mono);
   font-size: 13px;
   background: #1A1A18;
   color: #E8E6E1;
@@ -230,7 +230,7 @@
 }
 
 .api-docs-auth-section h3 {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -242,7 +242,7 @@
 }
 
 .api-docs-auth-section p {
-  font-family: 'General Sans', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.5;

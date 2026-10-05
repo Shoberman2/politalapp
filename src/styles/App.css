@@ -99,11 +99,15 @@
   --maxw: 1180px;
 
   /* Typography */
-  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --sans: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Display (headlines): Bricolage Grotesque. Body/UI: Hanken Grotesk.
+     Instrument Serif survives only as the italic accent inside headlines
+     (--accent-serif). The --serif name is historical: it is the display face. */
+  --serif: 'Bricolage Grotesque', 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --accent-serif: 'Instrument Serif', Georgia, serif;
   --mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-body: 'General Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--serif);
+  --font-body: var(--sans);
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 }
 
@@ -514,3 +518,17 @@ select:focus {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Italic accents inside headlines (e.g. "this week?") use the serif italic,
+   the one place Instrument Serif remains. Zero specificity, so page rules that
+   set color or style still apply. */
+:where(h1, h2, h3) em {
+  font-family: var(--accent-serif);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Dark mode: the accent fill is light (#5B8DEF), so a white label fails AA;
+   use a dark label there. */
+:root[data-theme="dark"] .btn-primary,
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled) { color: #0B1220; }
