@@ -42,7 +42,7 @@ import RollCallPage from './components/RollCallPage'
 import ThisWeekPage from './components/ThisWeekPage'
 import MemberRecord from './components/MemberRecord'
 import RequireAuth from './components/RequireAuth'
-import { SHOW_BILL_ALERTS } from './config/features'
+import { SHOW_BILL_ALERTS, SHOW_BRIEFINGS } from './config/features'
 
 // Feature flag gates the /committee/:code route registration.
 // When false, requests fall through to the catch-all redirect to "/" — no
@@ -69,7 +69,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/pricing" element={<Pricing />} />
+          {SHOW_BRIEFINGS && <Route path="/pricing" element={<Pricing />} />}
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/offices" element={<OfficesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
@@ -94,9 +94,11 @@ function App() {
           <Route path="/my-representative" element={
             <ProtectedRoute><MyPolitician /></ProtectedRoute>
           } />
+{SHOW_BRIEFINGS && (
           <Route path="/briefings" element={
             <ProtectedRoute><CivicBriefing /></ProtectedRoute>
           } />
+          )}
           <Route path="/all" element={
             <ProtectedRoute><AllPoliticians /></ProtectedRoute>
           } />

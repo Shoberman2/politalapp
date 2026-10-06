@@ -3,6 +3,12 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.8.1.1] - 2026-10-06
+
+### Removed
+
+- Bill alerts and email briefings are switched off for now, because neither can send email yet. Their pages, the nav and footer links, the "Know before the vote" section, the "Watch this bill" box on bill pages, and the daily briefing job are gone. Signing in is now only needed for an API key.
+
 ## [0.8.1.0] - 2026-10-05
 
 ### Changed

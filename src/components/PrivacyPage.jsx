@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
+import { SHOW_BILL_ALERTS, SHOW_BRIEFINGS } from '../config/features'
 import '../styles/InfoPage.css'
 
 // NOTE FOR MAINTAINERS: this notice was written from an audit of the code on
@@ -94,18 +95,21 @@ function PrivacyPage() {
         <div className="ip-inner">
           <h2>Accounts</h2>
           <p>
-            Signing in is optional and only needed for features like bill alerts, API keys, and briefings. Accounts
+            Signing in is optional and only needed for an API key. Accounts
             are handled by Supabase Auth, using either an email address and password or Google sign-in. We store
             your email address and a profile record. Passwords are managed by Supabase; we never see them. Your
             signed-in session is kept in your browser’s local storage.
           </p>
-          <p>
-            If you buy a paid plan, payment is handled by Stripe on its own checkout page. We store your Stripe
-            customer ID and subscription status, never your card details.
-          </p>
+          {SHOW_BRIEFINGS && (
+            <p>
+              If you buy a paid plan, payment is handled by Stripe on its own checkout page. We store your Stripe
+              customer ID and subscription status, never your card details.
+            </p>
+          )}
         </div>
       </section>
 
+      {SHOW_BILL_ALERTS && (
       <section>
         <div className="ip-inner">
           <h2>Bill alerts</h2>
@@ -117,7 +121,9 @@ function PrivacyPage() {
           </p>
         </div>
       </section>
+      )}
 
+      {SHOW_BRIEFINGS && (
       <section>
         <div className="ip-inner">
           <h2>Civic briefings and Gmail</h2>
@@ -130,6 +136,7 @@ function PrivacyPage() {
           </p>
         </div>
       </section>
+      )}
 
       <section>
         <div className="ip-inner">

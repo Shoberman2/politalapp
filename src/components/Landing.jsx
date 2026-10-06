@@ -498,29 +498,12 @@ function Landing() {
     </div>
   )
 
-  // Feature six: Bill Watch on a real current bill. The stages are what the
-  // alert covers, not invented events.
-  const alertsVisual = (
-    <div className="mock mock-alerts" aria-hidden="true">
-      <div className="mk-billhead">
-        <span className="mk-billnum">{featuredBill ? billLabel(featuredBill) : 'H.R. —'}</span>
-        <span className="mk-watch">Watching</span>
-      </div>
-      <p className="mk-alert-title">{featuredBill ? truncate(featuredBill.headline || featuredBill.title, 80) : 'Loading a current bill…'}</p>
-      <ul className="mk-stages">
-        <li>Reaches committee</li>
-        <li>Scheduled for the floor</li>
-        <li>Recorded vote</li>
-      </ul>
-    </div>
-  )
-
   const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
   const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
 
   // Headlines and copy come from src/data/homeSeo.js, the same text the
   // server-rendered homepage gives crawlers and AI answer engines.
-  const VISUALS = { find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual, alerts: alertsVisual }
+  const VISUALS = { find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual }
   const LINK_OVERRIDES = {
     record: { to: recordHref, label: 'See a record' },
     write: { to: writeHref, label: 'Write about the latest vote' },

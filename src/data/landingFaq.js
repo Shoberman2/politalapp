@@ -8,7 +8,7 @@ export const LANDING_FAQ = [
   },
   {
     q: 'Is it free?',
-    a: 'Yes. Reading the record needs no account: members, votes, bills, Tell your rep, and the public API. A free account lets you follow bills and get alerts.',
+    a: 'Yes. Reading the record needs no account: members, votes, bills, Tell your rep, and the public API. You only need a free account for an API key.',
   },
   {
     q: 'Where does the data come from?',

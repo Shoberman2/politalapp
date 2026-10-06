@@ -73,7 +73,7 @@ function Auth() {
       <div className="auth-card">
         <div className="auth-header">
           <h1 className="auth-logo">BallotWatch</h1>
-          <p className="auth-tagline">An account is free. You only need one to follow bills or get an API key. Reading the record never needs one.</p>
+          <p className="auth-tagline">An account is free. You only need one to get an API key. Reading the record never needs one.</p>
         </div>
 
         <div className="auth-tabs">

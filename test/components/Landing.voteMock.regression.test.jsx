@@ -213,7 +213,8 @@ describe('Landing — "See every vote" step', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const features = container.querySelectorAll('.features .feature')
-    expect(features.length).toBe(6)
+    expect(features.length).toBe(5)
+    expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
       expect(f.querySelector('a.btn-text.btn-go')).not.toBeNull()

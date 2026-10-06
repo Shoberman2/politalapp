@@ -6,14 +6,15 @@ afterEach(() => {
 })
 
 describe('production feature defaults', () => {
-  it('ships the in-app bill watchlist by default while email remains opt-in', async () => {
+  it('keeps bill alerts and email briefings off until email delivery works', async () => {
     const features = await import('../../src/config/features.js')
-    expect(features.SHOW_BILL_ALERTS).toBe(true)
+    expect(features.SHOW_BILL_ALERTS).toBe(false)
+    expect(features.SHOW_BRIEFINGS).toBe(false)
     expect(features.BILL_ALERT_EMAIL_ENABLED).toBe(false)
   })
 
-  it('retains an explicit alerts kill switch', async () => {
-    vi.stubEnv('VITE_BILL_ALERTS_ENABLED', 'false')
+  it('cannot be switched back on by an environment variable alone', async () => {
+    vi.stubEnv('VITE_BILL_ALERTS_ENABLED', 'true')
     const features = await import('../../src/config/features.js')
     expect(features.SHOW_BILL_ALERTS).toBe(false)
   })
