@@ -28,7 +28,9 @@ const LOOP = [
   },
   {
     title: 'See how they vote next',
-    body: 'Follow a bill with a free account and hear when it reaches committee, the floor, or a recorded vote.',
+    body: SHOW_BILL_ALERTS
+      ? 'Follow a bill with a free account and hear when it reaches committee, the floor, or a recorded vote.'
+      : 'Check This week to see what reaches the floor next and how each member voted.',
     link: SHOW_BILL_ALERTS ? { to: '/alerts', label: 'Follow a bill' } : { to: '/this-week', label: 'This week' },
   },
 ]

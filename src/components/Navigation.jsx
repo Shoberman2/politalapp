@@ -7,7 +7,7 @@ import { BRAND } from '../config/brand'
 import '../styles/Navigation.css'
 
 // Public pages only. Everything here works without an account; features that
-// need one (bill alerts, briefings) live behind Sign in, not in the main row.
+// need one live behind Sign in, not in the main row.
 const NAV_LINKS = [
   { to: '/all', label: 'Members' },
   { to: '/bills', label: 'Bills' },
@@ -21,9 +21,14 @@ function Navigation() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const { user } = useAuth()
-  const account = user
-    ? (SHOW_BILL_ALERTS ? { to: '/alerts', label: 'My alerts' } : null)
-    : { to: location.pathname.startsWith('/auth') ? '/auth' : `/auth?next=${encodeURIComponent(location.pathname)}`, label: 'Sign in' }
+  // Signing in only matters for bill alerts; with alerts off there is nothing
+  // in the nav to sign in for (API keys have their own entry on /developers).
+  let account = null
+  if (SHOW_BILL_ALERTS) {
+    account = user
+      ? { to: '/alerts', label: 'My alerts' }
+      : { to: location.pathname.startsWith('/auth') ? '/auth' : `/auth?next=${encodeURIComponent(location.pathname)}`, label: 'Sign in' }
+  }
 
   useEffect(() => {
     setMenuOpen(false)

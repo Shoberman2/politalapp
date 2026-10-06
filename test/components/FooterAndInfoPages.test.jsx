@@ -40,7 +40,7 @@ describe('site-wide footer', () => {
     expect(footers).toHaveLength(1)
     const hrefs = [...footers[0].querySelectorAll('a')].map((a) => a.getAttribute('href'))
     for (const href of [
-      '/my-representative', '/all', '/bills', '/this-week', '/alerts',
+      '/my-representative', '/all', '/bills', '/this-week',
       '/how-it-works', '/data-sources', '/methodology', '/methodology/ai-explanations', '/methodology/corrections',
       '/developers', '/developers/docs', '/open', '/llms.txt', '/developers#mcp',
       '/about', '/offices', '/contact', '/privacy', '/terms',

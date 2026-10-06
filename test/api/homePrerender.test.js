@@ -91,7 +91,7 @@ describe('prerender kind=home', () => {
     expect(text).not.toContain('180 yea')
     expect(text).not.toMatch(/HR 2\b/)
     // Features and links.
-    for (const href of ['/my-representative', '/this-week', '/bills', '/all', '/vote/119/house/2/295#tell-your-rep', '/alerts', '/how-it-works', '/methodology', '/about', '/offices']) {
+    for (const href of ['/my-representative', '/this-week', '/bills', '/all', '/vote/119/house/2/295#tell-your-rep', '/how-it-works', '/methodology', '/about', '/offices']) {
       expect(html).toContain(`href="${href}"`)
     }
     for (const { q, a } of LANDING_FAQ) {
