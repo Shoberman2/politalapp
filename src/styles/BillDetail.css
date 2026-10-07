@@ -102,7 +102,7 @@
 
 .bill-masthead-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 56px;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -189,16 +189,12 @@
 }
 .bill-ai-headline {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 28px;
   line-height: 1.2;
   letter-spacing: -0.01em;
   margin: 0 0 24px;
   color: var(--text-primary);
-}
-.bill-ai-headline em {
-  font-style: italic; font-family: var(--accent-serif); font-weight: 400;
-  color: var(--info);
 }
 .bill-ai-prose p {
   font-size: 17px;
@@ -219,8 +215,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   color: var(--text-secondary);
   font-size: 16px;
   padding: 12px 0;
@@ -275,16 +270,12 @@
 }
 .bill-section-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 32px;
   line-height: 1.1;
   letter-spacing: -0.01em;
   margin: 0 0 20px;
   color: var(--text-primary);
-}
-.bill-section-title em {
-  font-style: italic; font-family: var(--accent-serif); font-weight: 400;
-  color: var(--accent);
 }
 .bill-section-loading {
   display: flex;
@@ -421,7 +412,7 @@
   padding: 24px;
   margin-bottom: 16px;
 }
-.bill-watch-card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin: 4px 0 8px; }
+.bill-watch-card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 600; margin: 4px 0 8px; }
 .bill-watch-card > p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 16px; }
 .bill-watch-kicker, .bill-watch-status {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
@@ -575,8 +566,7 @@
   text-align: center;
 }
 .bill-detail-loading p {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   color: var(--text-secondary);
   margin-top: 16px;
 }

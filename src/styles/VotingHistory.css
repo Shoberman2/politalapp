@@ -33,7 +33,7 @@
   font-size: 1.5rem;
   color: var(--text-primary);
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .bill-count {
@@ -184,7 +184,6 @@
 .expand-button {
   flex-shrink: 0;
 }
-
 
 .expand-button svg {
   transition: transform 0.15s ease;

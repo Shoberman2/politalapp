@@ -230,7 +230,7 @@ function AllPoliticians() {
       <header className="page-masthead">
         <div className="pm-inner">
           <span className="pm-kicker kicker">Who Represents America / 119th Congress</span>
-          <h1 className="pm-title">The Members <em>Register</em></h1>
+          <h1 className="pm-title">The Members Register</h1>
           <p className="pm-deck">The current congressional roster includes {composition.rosterTotal} members and delegates. Party bars show voting seats and vacancies; non-voting delegates remain searchable below.</p>
           <div className="composition">
             <CompositionBlock

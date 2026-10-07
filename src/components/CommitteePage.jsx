@@ -172,7 +172,7 @@ export default function CommitteePage() {
           {chamber === 'house' ? 'HOUSE COMMITTEE' : chamber === 'senate' ? 'SENATE COMMITTEE' : 'CONGRESSIONAL COMMITTEE'}
           {' · '}{CONGRESS_LABEL[congress] || `${congress}th`} CONGRESS
         </div>
-        <h1 className="committee-title"><em>{committeeName}</em></h1>
+        <h1 className="committee-title">{committeeName}</h1>
         <p className="committee-deck">{deck}</p>
         <div className="committee-stats">
           <span>{billsReferred} bills referred</span>
@@ -197,7 +197,7 @@ export default function CommitteePage() {
 
       {/* SECTION 1: Bills currently in committee */}
       <section className="committee-section">
-        <h2 className="committee-section-title"><em>Bills currently in committee</em></h2>
+        <h2 className="committee-section-title">Bills currently in committee</h2>
         <p className="committee-section-subtitle">
           {showAllTime
             ? 'All-time bills referred to this committee'
@@ -252,7 +252,7 @@ export default function CommitteePage() {
       {/* SECTION 3: Historical activity (Section 2 — members — deferred:
           requires a separate committee_members table we haven't built yet) */}
       <section className="committee-section">
-        <h2 className="committee-section-title"><em>Historical activity</em></h2>
+        <h2 className="committee-section-title">Historical activity</h2>
         <p className="committee-section-subtitle">Last 3 Congresses</p>
         <dl className="committee-historical">
           {[117, 118, 119].map((c) => {

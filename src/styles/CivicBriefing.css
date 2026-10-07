@@ -29,7 +29,7 @@
   max-width: 760px;
   font-family: var(--serif);
   font-size: clamp(2.5rem, 7vw, 5.5rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 0.95;
   letter-spacing: 0;
   margin: 14px 0 18px;
@@ -280,7 +280,7 @@
   margin: 10px 0 8px;
   font-family: var(--serif);
   font-size: clamp(2rem, 6vw, 3.8rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 0.98;
   letter-spacing: 0;
   color: var(--ink);
@@ -348,7 +348,7 @@
 .briefing-record strong {
   font-family: var(--serif);
   font-size: 1.22rem;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.22;
   color: var(--ink);
 }

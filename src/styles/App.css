@@ -99,12 +99,14 @@
   --maxw: 1180px;
 
   /* Typography */
-  /* Display (headlines): Bricolage Grotesque. Body/UI: Hanken Grotesk.
-     Instrument Serif survives only as the italic accent inside headlines
-     (--accent-serif). The --serif name is historical: it is the display face. */
-  --serif: 'Bricolage Grotesque', 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --sans: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --accent-serif: 'Instrument Serif', Georgia, serif;
+  /* Inter for display AND body (variable, optical sizing); Geist Mono for
+     data and code. --serif is the display token; the name is historical.
+     --accent-serif is kept so older rules resolve, but it is plain Inter now:
+     headlines carry no italic accent words. */
+  --serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --accent-serif: var(--sans);
+  --display: var(--serif);
   --mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
   --font-display: var(--serif);
   --font-body: var(--sans);
@@ -168,6 +170,9 @@ html body { background: var(--bg); }
 
 html {
   scroll-behavior: smooth;
+  font-family: var(--sans);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -177,8 +182,8 @@ body {
   background: var(--bg);
   color: var(--text-primary);
   line-height: 1.6;
+  font-size: 16px;
   font-weight: 400;
-  font-feature-settings: "ss01";
   transition: background 0.35s ease, color 0.35s ease;
 }
 
@@ -188,10 +193,12 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-h1 { font-weight: 400; }
-h2 { font-weight: 400; }
-h3 { font-weight: 400; }
-h4, h5, h6 { font-weight: 400; }
+/* Inter 600 headlines with tight tracking (DESIGN.md Typography). Zero
+   specificity, so a page rule that sets its own size or weight still wins. */
+:where(h1, h2, h3, h4, h5, h6) { font-weight: 600; }
+:where(h1) { letter-spacing: -0.03em; }
+:where(h2) { letter-spacing: -0.025em; }
+:where(h3) { letter-spacing: -0.01em; }
 
 p { font-weight: 400; }
 label { font-weight: 500; }
@@ -332,7 +339,7 @@ select {
   gap: 8px;
   font-family: var(--sans);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0;
   text-transform: none;
@@ -519,13 +526,13 @@ select:focus {
   outline-offset: 2px;
 }
 
-/* Italic accents inside headlines (e.g. "this week?") use the serif italic,
-   the one place Instrument Serif remains. Zero specificity, so page rules that
-   set color or style still apply. */
+/* No italic accent words in headlines. If an <em> survives inside a
+   headline it renders as plain headline type. Zero specificity. */
 :where(h1, h2, h3) em {
-  font-family: var(--accent-serif);
-  font-weight: 400;
-  letter-spacing: 0;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
 }
 
 /* Dark mode: the accent fill is light (#5B8DEF), so a white label fails AA;

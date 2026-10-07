@@ -13,13 +13,12 @@
 .bills-desk .pm-kicker { display: block; margin-bottom: 16px; }
 .bills-desk .pm-title {
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 72px;
   line-height: 0.95;
   letter-spacing: 0;
   color: var(--ink);
 }
-.bills-desk .pm-title em { color: var(--accent); }
 .bills-desk .pm-deck { font-size: 18px; color: var(--ink-2); max-width: 60ch; margin-top: 16px; line-height: 1.5; }
 .bills-desk .pm-meta {
   display: flex;
@@ -172,7 +171,7 @@
 .bills-desk .bill-rail .rid { font-family: var(--mono); font-size: 17px; font-weight: 600; color: var(--accent); letter-spacing: 0; }
 .bills-desk .bill-rail .policy { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); margin-top: 8px; line-height: 1.4; }
 .bills-desk .bill-main { min-width: 0; }
-.bills-desk .bill-title { font-family: var(--serif); font-weight: 400; font-size: 26px; line-height: 1.08; letter-spacing: 0; margin-bottom: 10px; color: var(--ink); }
+.bills-desk .bill-title { font-family: var(--serif); font-weight: 600; font-size: 26px; line-height: 1.08; letter-spacing: -0.015em; margin-bottom: 10px; color: var(--ink); }
 .bills-desk .bill-row:hover .bill-title { color: var(--accent); }
 .bills-desk .bill-byline { font-size: 13.5px; color: var(--ink-2); margin-bottom: 10px; }
 .bills-desk .bill-byline .sp { color: var(--ink); font-weight: 600; }

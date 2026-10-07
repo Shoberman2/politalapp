@@ -165,7 +165,7 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
     <section className="bill-routing-section" id="routing-section">
       <div className="bill-section-label">Where this bill goes</div>
       <h2 className="bill-section-title">
-        Committee <em>path</em>
+        Committee path
       </h2>
 
       {emptyRoutings ? (

@@ -51,7 +51,7 @@
 }
 .tyr-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.75rem;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -60,7 +60,6 @@
 }
 .tyr-title:focus { outline: none; }
 .tyr-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-.tyr-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; color: var(--accent); }
 
 .tyr-disclaimer {
   margin: 12px 0 0;

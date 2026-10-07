@@ -52,7 +52,7 @@ export default function MethodologyModal({ open, anchor, onClose }) {
           ×
         </button>
         <h2 id="methodology-title" className="methodology-title">
-          <em>Methodology</em>
+          Methodology
         </h2>
         <p className="methodology-intro">
           Public methodology pages are available at <a href="/methodology">/methodology</a>.

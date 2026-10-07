@@ -57,7 +57,7 @@ export default function VotingRecordSummary({ bioguideId, party, displayName }) 
     <section className="pol-record-summary" aria-labelledby="record-summary-title">
       <div className="pol-section-label">Voting history · at a glance</div>
       <div className="pol-record-heading-row">
-        <h2 id="record-summary-title" className="pol-section-title">The record, <em>up front</em></h2>
+        <h2 id="record-summary-title" className="pol-section-title">The record, up front</h2>
         {ideology?.congress && <span className="pol-record-congress">{ideology.congress}th Congress</span>}
       </div>
 

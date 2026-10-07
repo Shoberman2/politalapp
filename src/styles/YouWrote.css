@@ -20,13 +20,12 @@
 
 .yw-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1.375rem;
   line-height: 1.2;
   margin: 0 0 12px;
   color: var(--text-primary);
 }
-.yw-title em { font-style: italic; font-family: var(--accent-serif); font-weight: 400; }
 
 .yw-list { list-style: none; margin: 0; padding: 0; }
 .yw-item { padding: 12px 0; border-top: 1px solid var(--border-light); }

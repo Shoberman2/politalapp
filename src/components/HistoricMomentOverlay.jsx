@@ -43,7 +43,7 @@ function HistoricMomentOverlay({
     <div className="historic-moment-overlay">
       <div className="historic-moment-header">
         <h2 className="historic-moment-section-heading">
-          <em>Historic moments</em>
+          Historic moments
         </h2>
         <p className="historic-moment-blurb">
           Replay a notable Senate vote on the chamber. Each desk is colored
@@ -83,7 +83,7 @@ function HistoricMomentOverlay({
       {active && (
         <div className="historic-moment-detail" role="region" aria-live="polite">
           <h3 className="historic-moment-detail-title">
-            <em>{active.title}</em>
+            {active.title}
           </h3>
           <div className="historic-moment-detail-tally">
             {/* Plain-text tally per [editorial-popover-anti-gauge] — no gauges. */}

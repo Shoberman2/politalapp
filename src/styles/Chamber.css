@@ -24,7 +24,6 @@
   }
 }
 
-
 /* ----- Header ----- */
 
 .chamber-header {
@@ -45,14 +44,10 @@
 .chamber-title {
   font-family: var(--serif);
   font-size: 48px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.05;
   margin: 0 0 8px 0;
   color: #1A1A18;
-}
-
-.chamber-title em {
-  font-style: italic; font-family: var(--accent-serif); font-weight: 400;
 }
 
 @media (max-width: 768px) {
@@ -64,7 +59,7 @@
 .chamber-subtitle {
   font-family: var(--serif);
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.3;
   color: #6B6861;
   margin-bottom: 8px;
@@ -107,7 +102,6 @@
   font-weight: 500;
 }
 
-
 /* ----- Thin rule dividers ----- */
 
 .chamber-rule {
@@ -116,7 +110,6 @@
   background: #E8E6E1;
   margin: 24px 0;
 }
-
 
 /* ----- Chamber toggle (Senate / House tabs) ----- */
 
@@ -129,10 +122,6 @@
 .chamber-toggle .chamber-toggle-btn {
   padding: 7px 16px;
 }
-
-
-
-
 
 /* ----- Senate chamber map (SVG hemicycle) ----- */
 
@@ -152,8 +141,7 @@
 }
 
 .rostrum-label {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-size: 13px;
   letter-spacing: 0.05em;
   fill: #9C9789;
@@ -198,7 +186,6 @@
   font-size: 11px;
 }
 
-
 /* ----- Fidelity caveat banner ----- */
 
 .chamber-fidelity-banner {
@@ -223,7 +210,6 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-
 
 /* ----- Composition-only Senate fallback ----- */
 
@@ -301,7 +287,6 @@
   color: #6B6861;
   margin-left: 8px;
 }
-
 
 /* ----- House composition map ----- */
 
@@ -386,7 +371,6 @@
   border-color: #9C9789;
   border-style: dashed;
 }
-
 
 /* ----- Scrubber ----- */
 
@@ -498,7 +482,6 @@
   opacity: 0;
 }
 
-
 /* ----- Drawer (desktop slide-in) / modal (mobile) ----- */
 
 .chamber-drawer-backdrop {
@@ -585,17 +568,15 @@
 }
 
 .chamber-drawer-title {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
   color: #1A1A18;
 }
 
 .chamber-drawer-subtitle {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-size: 16px;
   color: #6B6861;
   margin-top: 4px;
@@ -692,7 +673,6 @@
   color: #DC2626;
 }
 
-
 /* ----- Mobile tap-to-reveal label ----- */
 
 .chamber-mobile-reveal {
@@ -717,7 +697,6 @@
   color: #6B6861;
 }
 
-
 /* ----- Historic moments overlay ----- */
 
 .historic-moment-overlay {
@@ -729,10 +708,9 @@
 }
 
 .historic-moment-section-heading {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0 0 8px 0;
   color: #1A1A18;
 }
@@ -809,10 +787,9 @@
 }
 
 .historic-moment-detail-title {
-  font-family: var(--accent-serif);
-  font-style: italic;
+  font-family: var(--sans);
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0 0 4px 0;
 }
 
@@ -869,7 +846,6 @@
   border-style: dashed;
 }
 
-
 /* ----- Footer ----- */
 
 .chamber-footer {
@@ -900,7 +876,6 @@
   text-decoration: underline;
 }
 
-
 /* ----- Loading state ----- */
 
 .chamber-loading {
@@ -911,7 +886,6 @@
   text-align: center;
   padding: 48px 0;
 }
-
 
 /* ----- Animations ----- */
 

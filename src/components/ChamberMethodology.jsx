@@ -24,7 +24,7 @@ function ChamberMethodology() {
 
       <header className="chamber-header">
         <div className="chamber-eyebrow">BALLOTWATCH</div>
-        <h1 className="chamber-title"><em>Chamber methodology</em></h1>
+        <h1 className="chamber-title">Chamber methodology</h1>
         <div className="chamber-subtitle">
           How we reconstructed 50 years of Senate seating
         </div>
@@ -123,7 +123,7 @@ function ChamberMethodology() {
         </section>
 
         <section>
-          <h2>What the chart does <em>not</em> show</h2>
+          <h2>What the chart does not show</h2>
           <ul>
             <li>
               <strong>House individual seat assignments.</strong> The U.S.
