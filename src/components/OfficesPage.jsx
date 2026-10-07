@@ -60,6 +60,9 @@ function useLatestVote() {
       .then((data) => {
         if (!cancelled) setVote(inboxFields(pickHeadlineVote(data?.votes)))
       })
+      // The service resolves to null on failure; the catch only guards a
+      // future change (or a test double) that rejects.
+      .catch(() => { if (!cancelled) setVote(inboxFields(null)) })
     return () => { cancelled = true }
   }, [])
   return vote

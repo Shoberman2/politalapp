@@ -208,6 +208,10 @@ function Landing() {
         if (cancelled) return
         const items = bills.filter((b) => b.latestAction?.text && b.number).map(fromBill)
         if (items.length >= 3) setFloor(items)
+      } catch {
+        // The service resolves to null on a failed query, so this only runs
+        // if a future change (or a test double) makes it reject: treat that
+        // like an empty feed rather than leaving an unhandled rejection.
       } finally {
         // Mark the fetch resolved either way so the feed swaps skeletons for
         // real rows (and never falls back to invented bills).
