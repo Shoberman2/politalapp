@@ -1,49 +1,76 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
-import { SHOW_BILL_ALERTS } from '../config/features'
 import { useAuth } from '../context/AuthContext'
 import { BRAND } from '../config/brand'
+import { DEFAULT_SIGNED_IN_PATH } from '../config/access'
 import '../styles/Navigation.css'
 
-// Public pages only. Everything here works without an account; features that
-// need one live behind Sign in, not in the main row.
+// Public pages only. Everything in the main row works without an account; the
+// personal app (your reps, the Bills index and tools) sits behind "Find my reps".
 const NAV_LINKS = [
-  { to: '/all', label: 'Members' },
-  { to: '/bills', label: 'Bills' },
-  { to: '/this-week', label: 'This week' },
   { to: '/how-it-works', label: 'How it works' },
+  { to: '/this-week', label: 'This week' },
+  { to: '/all', label: 'Members' },
   { to: '/offices', label: 'For offices' },
 ]
+
+const DEFAULT_CTA = `/auth?next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
+const isAuthPath = (pathname) => /^\/auth(?:\/|$)/i.test(pathname)
+// The sign-in page itself ('/auth' or '/auth/'), not /auth/callback.
+const isAuthPage = (pathname) => /^\/auth\/?$/i.test(pathname)
+
+// Already on /auth: keep its ?next= (where the reader was headed) instead of
+// dropping it or replacing it. Anywhere else: return to the current page.
+function signInHref(location) {
+  if (isAuthPath(location.pathname)) {
+    return isAuthPage(location.pathname) && location.search ? `/auth${location.search}` : '/auth'
+  }
+  return `/auth?next=${encodeURIComponent(`${location.pathname}${location.search}${location.hash || ''}`)}`
+}
+
+function ctaHref(location) {
+  return isAuthPage(location.pathname) && new URLSearchParams(location.search).get('next') ? `/auth${location.search}` : DEFAULT_CTA
+}
 
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const { user } = useAuth()
-  // Signing in only matters for bill alerts; with alerts off there is nothing
-  // in the nav to sign in for (API keys have their own entry on /developers).
-  let account = null
-  if (SHOW_BILL_ALERTS) {
-    account = user
-      ? { to: '/alerts', label: 'My alerts' }
-      : { to: location.pathname.startsWith('/auth') ? '/auth' : `/auth?next=${encodeURIComponent(location.pathname)}`, label: 'Sign in' }
-  }
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
 
+  // Leave the page first: signing out on a gated page would otherwise bounce
+  // the reader to /auth while the session clears.
+  const handleSignOut = async () => {
+    setMenuOpen(false)
+    navigate('/')
+    try { await signOut() } catch { /* the session is cleared either way */ }
+  }
+
+  const cta = user
+    ? { to: '/my-representative', label: 'My reps' }
+    : { to: ctaHref(location), label: 'Find my reps' }
+
+  const accountLink = (className) => (user ? (
+    <button type="button" className={className} onClick={handleSignOut}>Sign out</button>
+  ) : (
+    <Link to={signInHref(location)} className={className} rel="nofollow">Sign in</Link>
+  ))
+
   return (
     <div className="bw bw-masthead">
       <div className="topbar-wrap">
         <div className="topbar">
-          <button className="brand" onClick={() => navigate('/')} aria-label={`${BRAND.name} home`}>
+          <Link className="brand" to="/" aria-label={`${BRAND.name} home`}>
             <span className="brand-mark"><img src="/capitol-logo.svg" alt="" /></span>
             <span className="brand-name">{BRAND.name}</span>
-          </button>
+          </Link>
 
-          <nav className={`topnav ${menuOpen ? 'open-mobile' : ''}`}>
+          <nav className={`topnav ${menuOpen ? 'open-mobile' : ''}`} aria-label="Main">
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.to}
@@ -53,19 +80,13 @@ function Navigation() {
                 {link.label}
               </NavLink>
             ))}
-            {account && (
-              <NavLink to={account.to} className="topnav-account-mobile">{account.label}</NavLink>
-            )}
+            {accountLink('topnav-account-mobile')}
           </nav>
 
           <div className="topbar-right">
-            <ThemeToggle />
-            {account && <NavLink to={account.to} className="nav-account">{account.label}</NavLink>}
-            <button className="btn btn-primary btn-sm" onClick={() => navigate('/my-representative')}>
-              <span className="nav-cta-full">Find my reps</span>
-              <span className="nav-cta-short">My reps</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </button>
+            {user && <ThemeToggle />}
+            {accountLink('nav-account')}
+            <Link className="btn-primary btn-sm nav-cta" to={cta.to}>{cta.label}</Link>
             <button
               className="nav-burger"
               onClick={() => setMenuOpen((o) => !o)}

@@ -92,7 +92,7 @@ function RollCallPage() {
       <SEO title={title.slice(0, 110)} description={description.slice(0, 200)} path={path} type="article" />
       <nav className="rc-crumb">
         <Link to="/">BallotWatch</Link><span className="rc-crumb-sep">/</span>
-        <Link to="/bills">Bills</Link><span className="rc-crumb-sep">/</span>
+        <Link to="/this-week">This week</Link><span className="rc-crumb-sep">/</span>
         <span>{rc.chamber} roll call {rc.number}</span>
       </nav>
 
@@ -141,7 +141,7 @@ function RollCallPage() {
 
       <section className="rc-section">
         <div className="rc-section-label">Every member · {rc.votes.length} recorded</div>
-        <h2 className="rc-section-title">How <em>each member</em> voted</h2>
+        <h2 className="rc-section-title">How each member voted</h2>
         {rc.votes.length ? (
           <>
             <div className="rc-filter">

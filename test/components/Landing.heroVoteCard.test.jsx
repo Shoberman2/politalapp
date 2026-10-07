@@ -77,27 +77,25 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('Landing hero card — plainStep', () => {
-  it('turns each procedural question into a plain step, in priority order', async () => {
-    const cases = [
-      ['On the Cloture Motion to Proceed', 'Vote to end debate on taking up the bill'],
-      ['On the Cloture Motion', 'Vote to end debate'],
-      ['On Motion to Suspend the Rules and Pass', 'Vote to pass under a fast-track rule (two-thirds needed)'],
-      ['On Overriding the Veto', 'Vote to override a veto'],
-      ['On the Motion to Proceed', 'Vote to take up the bill'],
-      ['On Motion to Recommit', 'Vote to send the bill back to committee'],
-      ['On Passage', 'Vote on final passage'],
-      ['On the Bill', 'Vote on final passage'],
-      ['On the Nomination', 'Vote on a nomination'],
-      ['On the Amendment', 'Vote on an amendment'],
-      ['On the Resolution', 'Vote on the resolution'],
-      ['On the Motion to Table', 'On the Motion to Table'],   // unknown: original text
-      [null, 'Recorded vote'],                                // no question at all
-    ]
-    for (const [question, expected] of cases) {
-      const card = await renderCard(vote({ question, description: 'Something' }))
-      expect(card.querySelector('.hv-step').textContent).toBe(expected)
-      cleanup()
-    }
+  // One test per case: each case mounts the whole Landing, and thirteen
+  // mounts inside a single test overran the 5s timeout under full-suite load.
+  it.each([
+    ['On the Cloture Motion to Proceed', 'Vote to end debate on taking up the bill'],
+    ['On the Cloture Motion', 'Vote to end debate'],
+    ['On Motion to Suspend the Rules and Pass', 'Vote to pass under a fast-track rule (two-thirds needed)'],
+    ['On Overriding the Veto', 'Vote to override a veto'],
+    ['On the Motion to Proceed', 'Vote to take up the bill'],
+    ['On Motion to Recommit', 'Vote to send the bill back to committee'],
+    ['On Passage', 'Vote on final passage'],
+    ['On the Bill', 'Vote on final passage'],
+    ['On the Nomination', 'Vote on a nomination'],
+    ['On the Amendment', 'Vote on an amendment'],
+    ['On the Resolution', 'Vote on the resolution'],
+    ['On the Motion to Table', 'On the Motion to Table'],   // unknown: original text
+    [null, 'Recorded vote'],                                // no question at all
+  ])('turns %j into a plain step, in priority order', async (question, expected) => {
+    const card = await renderCard(vote({ question, description: 'Something' }))
+    expect(card.querySelector('.hv-step').textContent).toBe(expected)
   })
 
   it('shows the result chip inside the step line with its result kind', async () => {

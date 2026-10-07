@@ -27,10 +27,10 @@
 .twof-heading {
   margin: 0;
   font-family: var(--serif);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 2.25rem;
   line-height: 1.05;
-  letter-spacing: 0;
+  letter-spacing: -0.025em;
 }
 
 .twof-grid {
@@ -213,23 +213,19 @@ a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
   .twof-heading { font-size: 1.75rem; }
 }
 
-/* Page wrapper for /this-week */
-.twof-page {
-  max-width: 1120px;
+/* Page wrapper for /this-week. The hero, kicker, H1 and lede come from the
+   shared info-page system (InfoPage.css, `.ip-wide` column, `--maxw`). The
+   floor component sits in its own body below, outside `.info-page`, on the
+   same `--maxw` column. */
+.twof-page { background: var(--bg); }
+.twof-page .ip-hero .ip-lede { max-width: 44rem; }
+.twof-page .info-page .ip-hero { border-bottom: 1px solid var(--rule); }
+.twof-page-body {
+  max-width: var(--maxw);
   margin: 0 auto;
-  padding: var(--space-6) 16px var(--space-8);
+  padding: clamp(32px, 5vh, 48px) 24px clamp(48px, 8vh, 80px);
 }
-.twof-page-title {
-  margin: 0 0 var(--space-3);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 2.25rem;
-  line-height: 1.05;
-}
-.twof-page-intro {
-  max-width: 62ch;
-  margin: 0 0 var(--space-6);
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--ink-2);
+.twof-page-body > .twof { border-top: 0; padding-top: 0; }
+@media (max-width: 640px) {
+  .twof-page-body { padding-left: 16px; padding-right: 16px; }
 }

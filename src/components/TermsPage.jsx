@@ -7,7 +7,7 @@ import '../styles/InfoPage.css'
 // been reviewed by counsel. Have counsel review them before relying on them.
 // API limits quoted here mirror api/_lib/auth.js defaults; keep them in sync.
 
-const LAST_UPDATED = 'October 4, 2026'
+const LAST_UPDATED = 'October 6, 2026'
 const REPO_URL = 'https://github.com/Shoberman2/politalapp'
 
 function ContactLine() {
@@ -96,7 +96,10 @@ function TermsPage() {
         <div className="ip-inner">
           <h2>Accounts and acceptable use</h2>
           <p>
-            Keep your account credentials secure and give accurate information. Don’t try to break, overload, or get
+            An account is free. You need one for the app’s tools (your representatives, the bills browser, the district map, the shutdown
+            tracker, campaign-finance comparison and AI Congress); member
+            profiles, record cards, bills, votes, the members list and the public API don’t need one. Keep your account credentials
+            secure and give accurate information. Don’t try to break, overload, or get
             around the security or limits of the service, and don’t use it for anything unlawful.
           </p>
         </div>

@@ -126,7 +126,7 @@ export default function BillAlertsPage() {
       <SEO title="Bill alerts" description="Manage the congressional bills BallotWatch is monitoring for you." path="/alerts" />
       <header className="alerts-header">
         <div className="alerts-kicker">Your watchlist</div>
-        <h1>Bill <em>alerts</em></h1>
+        <h1>Bill alerts</h1>
         <p>Follow official committee, floor, and vote activity without repeatedly checking Congress.gov.</p>
         {BILL_ALERT_EMAIL_ENABLED ? (
           <>

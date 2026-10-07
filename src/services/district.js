@@ -77,12 +77,10 @@ export const US_STATES = [
 // Uses zip code extraction and state lookup since Census API has CORS issues
 export const getDistrictFromAddress = async (address) => {
   try {
-    console.log('[District API] Looking up district for address:', address)
 
     // Extract zip code from address
     const zipMatch = address.match(/\b(\d{5})(-\d{4})?\b/)
     if (!zipMatch) {
-      console.log('[District API] No zip code found in address')
       // Try to extract state abbreviation
       const stateMatch = address.match(/\b([A-Z]{2})\b/)
       if (stateMatch && US_STATES.find(s => s.abbr === stateMatch[1])) {
@@ -96,7 +94,6 @@ export const getDistrictFromAddress = async (address) => {
     }
 
     const zipCode = zipMatch[1]
-    console.log('[District API] Found zip code:', zipCode)
 
     // Use Zippopotam.us API (free, CORS-enabled)
     const response = await axios.get(`https://api.zippopotam.us/us/${zipCode}`)
@@ -105,7 +102,6 @@ export const getDistrictFromAddress = async (address) => {
       const place = response.data.places?.[0]
       const stateAbbr = place?.['state abbreviation']
 
-      console.log('[District API] Zip lookup result:', { state: stateAbbr, city: place?.['place name'] })
 
       if (stateAbbr) {
         // We have the state, but need to determine district
@@ -132,7 +128,9 @@ export const getDistrictFromAddress = async (address) => {
 
     return null
   } catch (error) {
-    console.error('[District API] Error looking up district:', error)
+    // Log the message only: the error object carries the lookup URL, which
+    // includes the ZIP the reader typed. Never print user input.
+    console.error('[District API] Error looking up district:', error?.message || 'unknown error')
 
     // Fallback: try to extract state from address text
     const addressUpper = address.toUpperCase()
@@ -168,7 +166,6 @@ const fipsToState = {
 // Get representatives by state and district using Congress.gov API
 export const getRepresentativesByState = async (stateAbbr, district = null) => {
   try {
-    console.log(`[District API] Fetching representatives for ${stateAbbr}${district ? ` district ${district}` : ''}`)
 
     // Fetch all members with pagination
     const allMembers = []
@@ -193,7 +190,6 @@ export const getRepresentativesByState = async (stateAbbr, district = null) => {
       if (members.length < limit) break
     }
 
-    console.log(`[District API] Total members from API: ${allMembers.length}`)
 
     // Filter by state
     let filtered = allMembers.filter(member => {
@@ -201,7 +197,6 @@ export const getRepresentativesByState = async (stateAbbr, district = null) => {
       return memberState === stateAbbr
     })
 
-    console.log(`[District API] Members in ${stateAbbr}: ${filtered.length}`)
 
     // Filter by district if specified (House members only)
     if (district !== null && district !== undefined && district !== '') {
@@ -216,7 +211,6 @@ export const getRepresentativesByState = async (stateAbbr, district = null) => {
         }
         return false
       })
-      console.log(`[District API] House members in district ${districtNum}: ${filtered.length}`)
     }
 
     // Normalize the data
@@ -225,7 +219,7 @@ export const getRepresentativesByState = async (stateAbbr, district = null) => {
       return normalizeMember(member, chamber || 'house')
     })
   } catch (error) {
-    console.error('[District API] Error getting representatives:', error)
+    console.error('[District API] Error getting representatives:', error?.message || 'unknown error')
     throw error
   }
 }
@@ -326,7 +320,6 @@ const fetchAllMembersWithCache = async () => {
       if (members.length < limit) break
     }
 
-    console.log(`[District API] Cached ${allMembers.length} members`)
     return allMembers
   })()
 
@@ -336,7 +329,6 @@ const fetchAllMembersWithCache = async () => {
 // Get House representative for a specific district
 export const getHouseRepForDistrict = async (stateAbbr, district) => {
   try {
-    console.log(`[District API] Fetching House rep for ${stateAbbr} district ${district}`)
     const allMembers = await fetchAllMembersWithCache()
 
     const districtNum = parseInt(district)
@@ -348,12 +340,11 @@ export const getHouseRepForDistrict = async (stateAbbr, district) => {
     })
 
     if (houseRep) {
-      console.log(`[District API] Found House rep: ${houseRep.name}`)
       return normalizeMember(houseRep, 'house')
     }
     return null
   } catch (error) {
-    console.error('[District API] Error getting House rep:', error)
+    console.error('[District API] Error getting House rep:', error?.message || 'unknown error')
     throw error
   }
 }
@@ -361,7 +352,6 @@ export const getHouseRepForDistrict = async (stateAbbr, district) => {
 // Get Senators for a state
 export const getSenatorsForState = async (stateAbbr) => {
   try {
-    console.log(`[District API] Fetching Senators for ${stateAbbr}`)
     const allMembers = await fetchAllMembersWithCache()
 
     const senators = allMembers.filter(member => {
@@ -370,10 +360,9 @@ export const getSenatorsForState = async (stateAbbr) => {
       return memberState === stateAbbr && chamber === 'senate'
     })
 
-    console.log(`[District API] Found ${senators.length} senators for ${stateAbbr}`)
     return senators.map(s => normalizeMember(s, 'senate'))
   } catch (error) {
-    console.error('[District API] Error getting senators:', error)
+    console.error('[District API] Error getting senators:', error?.message || 'unknown error')
     throw error
   }
 }
@@ -381,7 +370,6 @@ export const getSenatorsForState = async (stateAbbr) => {
 // Get all representatives for a location (House + Senate)
 export const getAllRepresentativesForLocation = async (stateAbbr, district = null) => {
   try {
-    console.log(`[District API] Fetching ALL representatives for ${stateAbbr}${district ? ` district ${district}` : ''}`)
 
     const allMembers = await fetchAllMembersWithCache()
 
@@ -391,7 +379,6 @@ export const getAllRepresentativesForLocation = async (stateAbbr, district = nul
       return memberState === stateAbbr
     })
 
-    console.log(`[District API] Members in state ${stateAbbr}: ${stateMembers.length}`)
 
     const representatives = []
 
@@ -404,7 +391,6 @@ export const getAllRepresentativesForLocation = async (stateAbbr, district = nul
         return chamber === 'house' && memberDistrict === districtNum
       })
       if (houseRep) {
-        console.log(`[District API] Found House rep: ${houseRep.name}`)
         representatives.push(normalizeMember(houseRep, 'house'))
       }
     }
@@ -415,16 +401,14 @@ export const getAllRepresentativesForLocation = async (stateAbbr, district = nul
       return chamber === 'senate'
     })
 
-    console.log(`[District API] Found ${senators.length} senators for ${stateAbbr}`)
 
     senators.forEach(senator => {
       representatives.push(normalizeMember(senator, 'senate'))
     })
 
-    console.log(`[District API] Total representatives found: ${representatives.length}`)
     return representatives
   } catch (error) {
-    console.error('[District API] Error getting all representatives:', error)
+    console.error('[District API] Error getting all representatives:', error?.message || 'unknown error')
     throw error
   }
 }
@@ -449,7 +433,6 @@ const normalizeMember = (member, chamber) => {
 
 export const getDistrictsByState = async (stateAbbr) => {
   try {
-    console.log(`[District API] Fetching districts for state: ${stateAbbr}`)
 
     // Fetch all members with pagination
     const allMembers = []
@@ -474,7 +457,6 @@ export const getDistrictsByState = async (stateAbbr) => {
       if (members.length < limit) break
     }
 
-    console.log(`[District API] Total members for district lookup: ${allMembers.length}`)
 
     // Filter House members by state
     const stateHouseMembers = allMembers.filter(member => {
@@ -483,27 +465,24 @@ export const getDistrictsByState = async (stateAbbr) => {
       return memberState === stateAbbr && chamber === 'house'
     })
 
-    console.log(`[District API] House members in ${stateAbbr}: ${stateHouseMembers.length}`)
 
     const districts = [...new Set(stateHouseMembers.map(m => getMemberDistrict(m)))]
       .filter(d => d !== null && d !== undefined)
       .map(d => String(d))
       .sort((a, b) => parseInt(a) - parseInt(b))
 
-    console.log(`[District API] Districts found for ${stateAbbr}:`, districts)
 
     // Handle at-large states (single district represented as "0" or "00")
     if (districts.length === 0) {
       // Check if this state has any house members at all - might be at-large
       if (isAtLargeState(stateAbbr)) {
-        console.log(`[District API] ${stateAbbr} is at-large state`)
         return ['0']
       }
     }
 
     return districts
   } catch (error) {
-    console.error('[District API] Error getting districts:', error)
+    console.error('[District API] Error getting districts:', error?.message || 'unknown error')
     return []
   }
 }
@@ -542,7 +521,6 @@ const jsonpFetch = (url) => {
 // Free, no API key required, uses JSONP to work from the browser
 export const getCongressionalDistrict = async (street, city, state, zip) => {
   try {
-    console.log('[District API] Looking up congressional district via Census Geocoder')
 
     const params = new URLSearchParams({
       street,
@@ -559,11 +537,9 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
 
     const match = data?.result?.addressMatches?.[0]
     if (!match) {
-      console.log('[District API] Census Geocoder: no address match found')
       return null
     }
 
-    console.log('[District API] Census Geocoder matched address:', match.matchedAddress)
 
     // Find congressional district in geographies
     // Key looks like "119th Congressional Districts"
@@ -572,7 +548,6 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
     const cd = geographies[cdKey]?.[0]
 
     if (!cd) {
-      console.log('[District API] Census Geocoder: no congressional district in response')
       return null
     }
 
@@ -583,7 +558,6 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
     const rawCode = (cdField && cd[cdField]) || cd.GEOID?.substring(2) || cd.BASENAME
     const district = normalizeCensusDistrict(rawCode)
     if (district == null) {
-      console.log('[District API] Census Geocoder: empty congressional district code')
       return null
     }
 
@@ -591,14 +565,13 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
     const stateFips = cd.GEOID?.substring(0, 2)
     const stateAbbr = fipsToState[stateFips] || state
 
-    console.log(`[District API] Census Geocoder result: ${stateAbbr} district ${district}`)
 
     return {
       district,
       state: stateAbbr
     }
   } catch (error) {
-    console.error('[District API] Census Geocoder error:', error.message)
+    console.error('[District API] Census Geocoder error:', error?.message || 'unknown error')
     return null
   }
 }
@@ -652,7 +625,7 @@ export const searchAddress = async (query) => {
       })
       .filter(r => r.street && r.state)
   } catch (error) {
-    console.error('[District API] Nominatim search error:', error)
+    console.error('[District API] Nominatim search error:', error?.message || 'unknown error')
     return []
   }
 }

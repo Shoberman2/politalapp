@@ -52,6 +52,11 @@ describe('site-wide footer', () => {
     expect(footers[0].textContent).toContain('© 2026')
     expect(footers[0].textContent).toContain(BRAND.name)
     expect(footers[0].textContent).not.toMatch(/From the Desk/i)
+
+    const explore = [...footers[0].querySelectorAll('.footer-col')][0]
+    const exploreLinks = [...explore.querySelectorAll('a')]
+    expect(exploreLinks.at(-1).textContent).toBe('Sign in')
+    expect(exploreLinks.at(-1).getAttribute('href')).toBe('/auth')
   })
 })
 
@@ -65,7 +70,6 @@ describe('information pages', () => {
     ['/contact', ContactPage, /How to reach us/],
     ['/privacy', PrivacyPage, /Privacy notice/],
     ['/terms', TermsPage, /Terms of use/],
-    ['/offices', OfficesPage, /Answer constituents/],
   ]
 
   // Methodology reads its slug from the route, so render it through Routes.
@@ -89,6 +93,25 @@ describe('information pages', () => {
       expect(container.textContent).not.toMatch(/plainfloor/i)
     })
   }
+
+  // /offices has its own dossier layout (Offices.css), not the info-page one.
+  it('/offices renders one H1 in its own layout and never says "Plainfloor"', () => {
+    const { container } = renderAt('/offices', <OfficesPage />)
+    expect(container.querySelector('.offices-page')).not.toBeNull()
+    const h1s = container.querySelectorAll('h1')
+    expect(h1s).toHaveLength(1)
+    expect(h1s[0].textContent).toMatch(/Answer constituents/)
+    expect(container.textContent).not.toMatch(/plainfloor/i)
+  })
+
+  it('info-page headings carry no italic em accents', () => {
+    const mine = ['/how-it-works', '/data-sources', '/methodology', '/methodology/corrections']
+    for (const [path, Page] of pages.filter(([p]) => mine.includes(p))) {
+      const { container } = renderPage(path, Page)
+      expect(container.querySelector('h1 em, h2 em, h3 em')).toBeNull()
+      cleanup()
+    }
+  })
 
   it('how it works shows the four-step loop and labels the future step', () => {
     const { container } = renderAt('/how-it-works', <HowItWorksPage />)
@@ -138,7 +161,17 @@ describe('information pages', () => {
   it('privacy notice says Tell your rep text is not sent or stored', () => {
     const { container } = renderAt('/privacy', <PrivacyPage />)
     expect(container.textContent).toMatch(/Tell your rep messages are never sent to or stored by us/)
-    expect(container.textContent).toMatch(/Last updated: October 4, 2026/)
+    expect(container.textContent).toMatch(/Last updated: October 6, 2026/)
+  })
+
+  it('privacy notice is accurate about accounts and the ZIP lookup', () => {
+    const { container } = renderAt('/privacy', <PrivacyPage />)
+    const text = container.textContent
+    expect(text).not.toMatch(/whole congressional record on .* without an account/)
+    expect(text).not.toMatch(/only needed for an API key/)
+    expect(text).toMatch(/hash of your password/)
+    expect(text).toMatch(/ZIP code, your browser sends it to the free Zippopotam\.us service/)
+    expect(text).toMatch(/street address, your browser sends it to the U\.S\. Census Bureau/)
   })
 
   it('contact page falls back to GitHub issues while no email is set', () => {

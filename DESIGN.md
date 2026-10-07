@@ -13,24 +13,21 @@
 - **Reference sites:** GovTrack (functional but dated), Quorum (enterprise SaaS), Open States/Plural (transitioning to B2B). BallotWatch deliberately departs from all of these by treating civic data as editorial content, not database output.
 
 ## Typography
-- **Display/Hero:** Bricolage Grotesque, weight 600, slight negative tracking. Flowing, modern, readable at every size. (Token `--serif`; the name is historical.)
-- **Accent:** Instrument Serif *italic only*, for the emphasized words inside headlines (`<em>` in h1–h3, first names, taglines). Never set Bricolage in italic; it has no italic and browsers fake one. (Token `--accent-serif`.)
-- **Body/UI:** Hanken Grotesk, with a real italic for body emphasis. (Token `--sans`.)
-- **UI/Labels:** Hanken Grotesk (weight 500-600 for emphasis)
-- **Data/Tables:** Geist Mono — tabular figures, clean at small sizes, modern. For vote counts, bill numbers, percentages, dates.
-- **Code:** Geist Mono
-- **Loading:** Google Fonts for Bricolage Grotesque, Hanken Grotesk, Instrument Serif (italic) and Geist Mono, in one request in `index.html`. Stylesheets use the tokens, never literal font names.
+- **Display and body:** Inter (variable, optical sizing), one family for everything readable. Headlines are plain Inter 600 with tight tracking. (Tokens `--serif` / `--display` for display and `--sans` for body; `--serif` is a historical name and is Inter.)
+- **No italic accents.** No `<em>` inside h1–h3, no italic accent words, no serif. `--accent-serif` survives only as an alias of `--sans` so old rules resolve.
+- **UI/Labels:** Inter 500 (nav 14px/500, labels 14px/500).
+- **Data/Tables/Code:** Geist Mono — tabular figures, for vote counts, bill numbers, percentages, dates.
+- **Mono kickers:** 11px, uppercase, tracking 0.12em. Sparingly: one per section at most, none above feature headlines.
+- **Loading:** one Google Fonts request in `index.html` for Inter (`ital,opsz,wght@0,14..32,400..700;1,14..32,400..500`) and Geist Mono. Stylesheets use the tokens, never literal font names. `html` sets `font-optical-sizing: auto` and antialiasing.
 - **Scale:**
-  - Display XL: 52px / 3.25rem (landing hero)
-  - Display: 36px / 2.25rem (page titles)
-  - H1: 28px / 1.75rem
-  - H2: 22px / 1.375rem
-  - H3: 18px / 1.125rem
-  - Body: 16px / 1rem
-  - Body SM: 14px / 0.875rem
-  - Caption: 13px / 0.8125rem
-  - Micro: 12px / 0.75rem
-  - Mono Data: 11-12px / 0.6875-0.75rem
+  - Display XL (landing hero h1): clamp(40px, 5.6vw, 64px), 600, -0.035em, line-height 1.0
+  - Section h2: clamp(28px, 3.4vw, 40px), 600, -0.025em, line-height 1.08
+  - H3: 20px, 600, -0.01em
+  - Body: 17px/1.55 on the landing, 16px/1.6 elsewhere
+  - Small: 14px
+  - Caption: 13px
+  - Mono data: 11-12px
+- **Buttons:** Inter 15px/500 (14px on `.btn-sm`).
 
 ## Color
 - **Approach:** Restrained — one accent + neutrals, color is rare and meaningful
@@ -73,16 +70,17 @@
 ## Layout
 - **Approach:** Hybrid — editorial reading-order for politician profiles and bill pages (top to bottom, like an article), grid-disciplined for browsing/listing pages (cards, filters)
 - **Grid:** Single column for content pages, 2-3 columns for listing/browse pages
-- **Max content width:** 1120px
+- **Max content width:** 1180px (`--maxw`)
 - **Border radius:** btn: 12px (primary and small buttons, button-joined inputs — `--r-btn`), toggle: 8px (filters, segmented controls, text-button focus ring — `--r-toggle`), icon: 10px (40px icon-only buttons — `--r-icon`), sm: 4px (tags, chips, inputs), md: 8px (cards, panels), lg: 12px (hero sections, modals), full: 9999px (avatars)
   - Never use a pill radius (999px) for a button or toggle. 12px on a 44px button is clearly soft and clearly not a pill (~22px) or a square.
   - A button nested inside a bordered container (e.g. the landing ZIP field) sets the container to `calc(var(--r-btn) + <padding>)` so the two curves stay concentric.
 - **Buttons:** one shared system, unscoped in `src/styles/App.css` (`.btn-primary`, `.btn-secondary`, `.btn-text`, `.btn-go`, `.btn-sm`, `.btn-toggle`, `.btn-icon`). Each variant class works on its own; page stylesheets only add layout (width, margin, flex), never button visuals.
-  - **Primary** (`.btn-primary`, one per view): solid `--accent`, white label, General Sans 15px/600, sentence case, padding 11px 18px, min-height 44px, `--r-btn`, no border, no shadow; hover `--accent-hover`.
+  - **Primary** (`.btn-primary`, one per view): solid `--accent`, white label, Inter 15px/500, sentence case, padding 11px 18px, min-height 44px, `--r-btn`, no border, no shadow; hover `--accent-hover`.
   - **Secondary** (`.btn-secondary`): a quiet text action, not a box — accent label at 600, no border, no fill, underline on hover. Add `.btn-go` for a trailing arrow when it navigates. `.btn-text` is the same action inline (no padding or min-height). `.btn-ghost` and `.btn-tertiary` are legacy aliases of secondary.
   - **Small** (`.btn-sm`): 14px, min-height 36px, padding 8px 14px on primary.
   - **Toggles / filters / segmented** (`.btn-toggle`): 13.5px, `--r-toggle`, borderless; the selected item (`.is-active`, `.active`, `aria-pressed`/`aria-selected="true"`) gets a soft fill (`--fill-soft`), not a heavy border.
   - **Icon-only** (`.btn-icon`, theme toggle, burger, close): 40px square, `--r-icon`, no border unless it floats over imagery (map controls keep a hairline).
+  - Provider sign-in button (`.auth-google`): the one bordered button, 1px rule, 44px, Inter 500; a documented exception so a third-party sign-in reads as a distinct control.
   - No uppercase, letter-spacing or mono type on any button. Focus-visible is a 2px accent ring offset 2px.
 - **Key layout principles:**
   - Politician pages read like articles, not dashboards — top to bottom with editorial summary
@@ -112,3 +110,5 @@
 | 2026-10-04 | One button system; `--r-btn` 10px → 12px; secondary buttons become text actions | Founder feedback: buttons felt "boxy/pilly" and inconsistent; the platform should flow, minimal and easy. The 2026-07-25 10px rule only unified radius — 31 rules across 21 stylesheets still each drew their own button (bordered boxes, uppercase tracked labels, ink-filled CTAs, 999px tabs and chips). Replaced them with one unscoped system in `App.css`: solid civic-blue primary at 12px, borderless accent text for secondary actions (with an arrow when they navigate), 8px soft-fill toggles for filters and segmented controls, and 40px/10px icon buttons. Page stylesheets now carry layout only. Masthead CTA is sentence case, "Find my reps". Retires the 10px rule. The politician dashboard keeps its layout; only its buttons changed. Landing (`Landing.css`) adopts the system in its own rewrite. |
 | 2026-10-04 | Fonts: Bricolage Grotesque + Hanken Grotesk, Instrument Serif italic accent | The founder found Instrument Serif headings with General Sans body didn't flow, and chose the UTern pairing (Bricolage Grotesque display, Hanken Grotesk body, Instrument Serif italic accents). Tokens `--serif` (display), `--sans` (body) and `--accent-serif` (italic accent) in App.css; every literal font-family in page stylesheets was replaced with tokens; italic display text uses the accent serif so no browser-faked italics remain. Landing also changed: no small labels above feature headlines, the record image shows the real member profile, "How we use AI" became a dark Now / Next / Never concept band ("what we're building toward"), the offices band is a bold full-width band with one primary action, the FAQ is a two-column section with larger questions, and the data-sources band moved off the landing to its own page. |
 | 2026-10-04 | One info-page system | Founder feedback: Methodology looked like a different site and How it works was a wall of text. Every explanatory page (How it works, Data sources, Methodology index + topics, About, Contact, Privacy, Terms, For offices) now uses `InfoPage.css` only: a 720px reading column, a hero with an optional mono kicker, one serif `h1.ip-title` and a one-sentence lede, thin-rule sections, and `.btn-text .btn-go` arrow links. Shared patterns live there (`.ip-steps`, `.ip-index`, `.ip-sources`, `.ip-facts`, `.ip-pair`, `.ip-checks`, `.ip-quote`, `.ip-note`, `.ip-band`); the per-page stylesheets (About, Contact, Legal, Offices, How it works, and the methodology rules in OpenSourcePage.css) are gone. How it works is now four steps plus "What's live today" and the AI pair; source detail moved to the new `/data-sources`. Fonts come only from the `--serif`/`--sans`/`--mono` tokens. |
+| 2026-10-06 | Inter for display and body; no italic accents; account gate | Founder found Bricolage Grotesque and the Instrument Serif italic accent words ugly and generic, and wanted a Linear/Apple-grade feel. Inter (variable, optical sizing) now sets every headline and all body text at 600/400 with tight display tracking; Geist Mono stays for data. Token names are unchanged (`--serif`, `--sans`, `--accent-serif` all resolve to Inter) so no page broke; `<em>` accents were removed from headlines site-wide. Parts of the app now need a free account: the list is `shared/access.js`, enforced by `src/components/AccessGate.jsx` around every route, and the sitemap leaves those pages out. |
+| 2026-10-06 | Landing as a classic landing page; For offices as its own dossier page; full-width masthead | Founder feedback (2026-10-06): the nav exposed the app's features, the dark "Our concept / Now / Next / Never" band and the blue offices band looked bad, the logo sat too far from the left edge and the CTA too far from the right. The masthead is now full-width (logo at the left edge, `Sign in` + `Find my reps` at the right edge) with four public links: How it works, This week, Members, For offices; the theme toggle shows only when signed in. The landing keeps the parts the founder liked (hero question, ZIP call to action, latest-vote card, alternating feature sections with real-data cards, FAQ, finale) and extends the same feature format to `Ask your AI assistant` (MCP transcript card), `Built for agents and developers` (real `/api/v1/votes/<id>` JSON card) and a brief `For congressional offices` card low on the page. Both bands are gone. The ZIP hint says what a privacy audit could defend: "No sign-up to look up. Your ZIP code never reaches our servers." (the ZIP goes from the browser to Zippopotam.us; the member list request carries no ZIP; the address is saved only in localStorage; console logging of user input was removed). `/offices` left the info-page system for its own `Offices.css` dossier layout: two-column hero with a stacked inbox visual built from the real latest vote, numbered 01/02/03 columns, a two-column never-list, the CAO pull quote, one tinted closing band. All copy and legal constraints on that page are unchanged. The server-rendered masthead in `api/_lib/renderPage.js` mirrors the React nav. Gated routes (free account): the personal my-representative page, the Bills index, map, shutdown tracker, compare, AI Congress and committee pages; full member profiles, bill pages, record cards and roll calls stay public because the MCP server, llms.txt and search results link to them. |

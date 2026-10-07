@@ -66,10 +66,12 @@ production Supabase project.
 
 ### Auth and pricing (dead code in production)
 
-- `src/components/ProtectedRoute.jsx` is a pass-through; the auth and subscription checks are
+- The route guard is a pass-through; the auth and subscription checks are
   commented out. Every "protected" route is public. `/pricing` sells a monthly plan that gates
   nothing. Stripe checkout and webhook code exist.
-- `RequireAuth` (real) gates only `/alerts`.
+- A second, real guard gates only `/alerts`.
+- (Both guards have since been replaced by `src/components/AccessGate.jsx`, driven by the list
+  in `shared/access.js`.)
 
 ### Data quality visible to the public
 

@@ -2,7 +2,7 @@
  * VoteDashboard — 538-style editorial voting dashboard
  *
  * Layout:
- *   Section heading (Instrument Serif H2, thin rule)
+ *   Section heading (Inter display H2, thin rule)
  *   Stats bar (left-aligned, party loyalty hero number)
  *   Vote cards (editorial bill cards, thin rule dividers)
  *
@@ -16,7 +16,7 @@
 .dash-section-title {
   font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   padding-bottom: var(--space-2);
@@ -214,7 +214,7 @@
 .dash-bill-title {
   font-family: var(--font-display);
   font-size: 1.0625rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.35;
@@ -311,7 +311,6 @@
   width: 100%;
   margin-top: var(--space-3);
 }
-
 
 /* Loading skeleton */
 .dash-loading {

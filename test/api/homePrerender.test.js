@@ -77,7 +77,7 @@ describe('prerender kind=home', () => {
     const html = res.body
     const text = rootText(html)
 
-    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How did your representative vote <em>this week\?<\/em><\/h1>/)
+    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How did your representative vote this week\?<\/h1>/)
     expect(html.match(/<h1[\s>]/g)).toHaveLength(1)
     expect(text).toContain(BRAND.mission)
     expect(text).toContain('free, open-source, nonpartisan record of the U.S. Congress')

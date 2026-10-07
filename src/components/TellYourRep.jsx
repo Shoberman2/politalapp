@@ -461,7 +461,7 @@ export default function TellYourRep({ context, members }) {
       <div id={panelId} className="tyr-panel" role="region" aria-labelledby={headingId} hidden={!open}>
         <div className="tyr-panel-head">
           <h2 id={headingId} ref={headingRef} tabIndex={-1} className="tyr-title">
-            Write it <em>yourself</em>, send it <em>yourself</em>
+            Write it yourself, send it yourself
           </h2>
           <button type="button" className="tyr-link-btn btn-text btn-sm" onClick={() => setOpen(false)}>Close</button>
         </div>

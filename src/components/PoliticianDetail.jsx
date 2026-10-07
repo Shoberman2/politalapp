@@ -445,7 +445,7 @@ function PoliticianDetail() {
         <section className="pol-editorial">
           <div className="pol-section-label">Congress history · since 2001</div>
           <h2 className="pol-section-title">
-            <em>{tenureItems.length}</em> record{tenureItems.length !== 1 ? 's' : ''} of service
+            {tenureItems.length} record{tenureItems.length !== 1 ? 's' : ''} of service
           </h2>
           <div className="pol-tenure-grid">
             {tenureItems.map((t, i) => (
@@ -462,7 +462,7 @@ function PoliticianDetail() {
       {/* VOTES */}
       <section className="pol-editorial">
         <div className="pol-section-label">Voting record</div>
-        <h2 className="pol-section-title">How <em>they voted</em></h2>
+        <h2 className="pol-section-title">How they voted</h2>
         <VoteDashboard bioguideId={bioguideId} />
       </section>
 
@@ -472,7 +472,7 @@ function PoliticianDetail() {
           Campaign finance · {donations?.cycle ? `${donations.cycle} cycle` : 'most recent cycle'}
         </div>
         <h2 className="pol-section-title">
-          <InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Where the <em>money</em> comes from</InfoTip>
+          <InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Where the money comes from</InfoTip>
         </h2>
         {donationsLoading ? (
           <div className="pol-section-loading">

@@ -40,6 +40,14 @@ Key routing rules:
   `api/prerender.js` through `vercel.json` rewrites. A new record route needs
   the React route, the rewrite, the sitemap (`api/sitemap.js`), and
   `public/llms.txt`.
+- Pages that need a free account are listed once, in `GATED_PATHS` in
+  `shared/access.js` (re-exported by `src/config/access.js`).
+  `src/components/AccessGate.jsx` enforces it around every route and
+  `api/sitemap.js` leaves those pages out. Keep record pages, `/this-week`,
+  the API and `/mcp` off the list: llms.txt, the MCP server and search
+  results link to them. `ProtectedRoute` and `RequireAuth` are legacy
+  aliases; do not wrap new routes in them. `test/shared/access.test.js` and
+  `test/components/AccessGate.test.jsx` cover the list.
 - `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in
   `api/_lib/auth.js` and `api/_lib/rateLimit.js`.
 - The browser never holds the Congress.gov or OpenFEC key. It calls

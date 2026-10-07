@@ -55,7 +55,7 @@
 
 .article-title {
   font-size: 2.25rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   line-height: 1.25;
   margin-bottom: 1.25rem;
@@ -108,7 +108,7 @@
 .article-not-found h1 {
   font-size: 1.75rem;
   color: var(--text-primary);
-  font-weight: 400;
+  font-weight: 600;
   font-family: var(--font-display);
 }
 
@@ -120,7 +120,6 @@
 .article-not-found .back-button {
   margin-top: 0.5rem;
 }
-
 
 @media (max-width: 768px) {
   .article-page {

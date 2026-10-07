@@ -21,7 +21,7 @@
 .dev-hero h1 {
   font-family: var(--serif);
   font-size: 42px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 16px 0;
   line-height: 1.2;
@@ -100,7 +100,7 @@
 .dev-open-data-copy h2 {
   font-family: var(--serif);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 12px 0 16px;
 }

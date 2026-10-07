@@ -81,10 +81,10 @@ export function renderHomeBody(data) {
   return chrome(`<div class="bw landing">
   <section class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title">How did your representative vote <em>this week?</em></h1>
+      <h1 class="hero-title">How did your representative vote this week?</h1>
       <p class="hero-mission">${escapeHtml(BRAND.mission)}</p>
       <p class="home-about">${escapeHtml(HOME_ABOUT)}</p>
-      <p><a class="btn btn-primary" href="/my-representative">Find my representatives</a></p>
+      <p><a class="btn-primary" href="/auth?next=%2Fmy-representative">Find my reps</a></p>
     </div>
   </section>
   ${latest ? latestVoteHtml(latest) : ''}

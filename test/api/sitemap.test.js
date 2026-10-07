@@ -4,7 +4,8 @@ import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 const db = makeSupabaseMock()
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
 
-import handler, { memberEntries, voteEntries, billEntries, buildPart, _resetSitemapMemo } from '../../api/sitemap.js'
+import { isGatedPath } from '../../shared/access.js'
+import handler, { memberEntries, pageEntries, voteEntries, billEntries, buildPart, _resetSitemapMemo } from '../../api/sitemap.js'
 import { _resetMemory } from '../../api/_lib/rateLimit.js'
 
 function makeRes() {
@@ -65,6 +66,14 @@ describe('api/sitemap', () => {
     expect(db.ops('roll_calls', 'not')[0]).toEqual(['not', 'bill_id', 'is', null])
     expect(db.ops('bills', 'in')[0]).toEqual(['in', 'id', ['119-hr-1', '119-hr-915', '119-s-5051']])
     expect(await buildPart('bogus')).toBeNull()
+  })
+
+  it('keeps pages that need an account out of the pages part', async () => {
+    db.responses.roll_calls = { data: [{ voted_at: '2026-09-03' }] }
+    const pages = (await pageEntries()).map((e) => e.path)
+    expect(pages[0]).toBe('/')
+    expect(pages).toContain('/how-it-works')
+    expect(pages.filter((p) => isGatedPath(p))).toEqual([])
   })
 
   it('serves the index on the canonical origin only, memoizes parts, rate-limits per ip, and 503s when the database fails', async () => {

@@ -136,7 +136,7 @@ export function YourMessages() {
   return (
     <section className="yw yw-page" aria-labelledby="yw-heading">
       <div className="yw-kicker">You wrote; they voted</div>
-      <h2 id="yw-heading" className="yw-title">Your <em>messages</em></h2>
+      <h2 id="yw-heading" className="yw-title">Your messages</h2>
       {sends.length ? (
         <ul className="yw-list">
           {sends.map((s) => <SentFollowUp key={sendId(s)} send={s} linkBill />)}

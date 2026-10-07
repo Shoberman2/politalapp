@@ -159,7 +159,9 @@ function RecordedColumn({ votes, limit }) {
   )
 }
 
-export default function ThisWeekOnFloor({ limit = 6, showRecorded = true }) {
+// `showHeader={false}` drops the kicker and H2 when the page already has its
+// own title (the /this-week hero).
+export default function ThisWeekOnFloor({ limit = 6, showRecorded = true, showHeader = true }) {
   // undefined = loading, null = failed/none, otherwise data.
   const [schedule, setSchedule] = useState(undefined)
   const [votes, setVotes] = useState(undefined)
@@ -185,11 +187,16 @@ export default function ThisWeekOnFloor({ limit = 6, showRecorded = true }) {
   }, [showRecorded, limit])
 
   return (
-    <section className={`twof${showRecorded ? '' : ' twof--single'}`} aria-labelledby="twof-heading">
-      <header className="twof-header">
-        <p className="twof-kicker">This week on the floor</p>
-        <h2 id="twof-heading" className="twof-heading">Coming up, and just decided.</h2>
-      </header>
+    <section
+      className={`twof${showRecorded ? '' : ' twof--single'}`}
+      {...(showHeader ? { 'aria-labelledby': 'twof-heading' } : { 'aria-label': 'This week on the floor' })}
+    >
+      {showHeader && (
+        <header className="twof-header">
+          <p className="twof-kicker">This week on the floor</p>
+          <h2 id="twof-heading" className="twof-heading">Coming up, and just decided.</h2>
+        </header>
+      )}
       <div className="twof-grid">
         <div className="twof-col twof-col--scheduled">
           <h3 className="twof-col-title">Scheduled</h3>

@@ -99,7 +99,7 @@ function renderHtml(data, origin) {
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Geist+Mono:wght@500&display=swap" />
 
 <style>
   :root {
@@ -129,18 +129,18 @@ function renderHtml(data, origin) {
     border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 48px;
   }
   .brand { font-weight: 600; font-size: 14px; letter-spacing: 4px; text-decoration: none; color: var(--text); }
-  .date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .date { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 48px;
   }
-  .bill-no { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+  .bill-no { font-family: 'Geist Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
   h1 {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-style: italic;
-    font-weight: 400;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-style: normal;
+    font-weight: 600;
     font-size: 44px;
     line-height: 1.1;
     letter-spacing: -0.5px;
@@ -150,7 +150,7 @@ function renderHtml(data, origin) {
   .tally-block { margin-top: 36px; border-top: 2px solid var(--text); padding-top: 18px; }
   .tally-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
   .tally-label { font-weight: 600; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
-  .tally-numbers { font-family: 'JetBrains Mono', monospace; font-size: 17px; }
+  .tally-numbers { font-family: 'Geist Mono', monospace; font-size: 17px; }
   .tally-numbers .yea { color: var(--yea); }
   .tally-numbers .nay { color: var(--nay); }
   .tally-numbers .sep { color: var(--muted); margin: 0 10px; }

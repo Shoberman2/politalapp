@@ -219,7 +219,7 @@ function ChamberPage() {
       <header className="chamber-header">
         <div className="chamber-eyebrow">BALLOTWATCH</div>
         <h1 className="chamber-title">
-          <em>The {chamberView === 'house' ? 'House' : 'Senate'} Chamber</em>
+          The {chamberView === 'house' ? 'House' : 'Senate'} Chamber
         </h1>
         <div className="chamber-subtitle">{congressLabel}</div>
 

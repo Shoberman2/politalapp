@@ -23,7 +23,6 @@ export const saveUserAddress = (address) => {
   const data = getUserData()
   data.address = address
   saveUserData(data)
-  console.log('[UserService] Saved address:', address)
   return address
 }
 

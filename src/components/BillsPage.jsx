@@ -333,7 +333,7 @@ function BillsPage() {
       <header className="page-masthead">
         <div className="pm-inner">
           <span className="pm-kicker kicker">Congressional Index / {formatCongressFilterLabel(congressFilter)}</span>
-          <h1 className="pm-title">The <em>Bills</em> Desk</h1>
+          <h1 className="pm-title">The Bills Desk</h1>
           <p className="pm-deck">Every bill introduced in the U.S. House and Senate, searchable, sourced and explained in plain English. Updated daily from the official Congress.gov record.</p>
           <div className="pm-meta">
             <span>{today}</span>

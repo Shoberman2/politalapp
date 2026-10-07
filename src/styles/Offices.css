@@ -1,0 +1,314 @@
+/* /offices: a dossier for a chief of staff. Paper, big type, numbered parts,
+   and a mock office inbox built from a real recorded vote. Its own layout (it
+   does not use InfoPage.css); every rule is scoped under .offices-page.
+   Inter scale per the 2026-10-06 type decision; fonts only via the --serif /
+   --sans / --mono tokens. No dark backgrounds, no gradients, no icons. */
+
+.offices-page {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--sans);
+}
+
+.offices-page .of-wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.offices-page section { border-bottom: 1px solid var(--rule); }
+.offices-page section:last-child { border-bottom: 0; }
+.offices-page .of-section { padding: clamp(56px, 9vh, 96px) 0; }
+
+/* ---------- Type ---------- */
+.offices-page p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.offices-page b { color: var(--ink); font-weight: 600; }
+.offices-page .of-kicker {
+  display: block;
+  margin: 0 0 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.offices-page .of-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.offices-page .of-lede {
+  margin-top: 24px;
+  max-width: 34rem;
+  font-size: clamp(17px, 1.6vw, 19px);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.offices-page .of-h2 {
+  margin: 0 0 32px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+.offices-page h3 {
+  margin: 0 0 8px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.offices-page .of-muted { font-size: 14px; color: var(--ink-3); }
+
+/* ---------- Hero ---------- */
+.offices-page .of-hero { padding: clamp(56px, 10vh, 112px) 0 clamp(56px, 9vh, 96px); }
+.offices-page .of-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+}
+@media (min-width: 960px) {
+  .offices-page .of-hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 64px; }
+}
+
+/* Status note: a card with a 3px amber rule. */
+.offices-page .of-status {
+  margin-top: 32px;
+  max-width: 34rem;
+  padding: 16px 20px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--warning);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* ---------- Inbox stack (decorative, aria-hidden) ---------- */
+.offices-page .of-stack {
+  position: relative;
+  display: grid;
+  gap: 0;
+  max-width: 460px;
+  width: 100%;
+  justify-self: center;
+  padding-right: 24px;
+}
+.offices-page .of-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+/* Overlap with a slight offset; no rotation. */
+.offices-page .of-card--message { z-index: 3; }
+.offices-page .of-card--draft { z-index: 2; margin: -14px -24px 0 24px; padding-top: 30px; }
+.offices-page .of-card--audit { z-index: 1; margin: -12px -12px 0 48px; padding-top: 24px; }
+
+.offices-page .of-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule-light);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.offices-page .of-fields { margin: 0; display: grid; gap: 10px; }
+.offices-page .of-field {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+.offices-page .of-field dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.offices-page .of-field dd {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.offices-page .of-field:nth-child(3) dd { font-family: var(--mono); font-size: 13px; }
+
+.offices-page .of-draft-lines { display: grid; gap: 8px; margin-bottom: 14px; }
+.offices-page .of-line { display: block; height: 8px; border-radius: 4px; background: var(--rule-light); }
+.offices-page .of-line--short { width: 58%; }
+
+.offices-page .of-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.offices-page .of-chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-radius: var(--r-sm, 3px);
+  padding: 3px 8px;
+}
+
+.offices-page .of-card--audit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.offices-page .of-audit-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* Skeleton: a flat block with a calm pulse, never a gradient. */
+.offices-page .of-skel {
+  display: inline-block;
+  width: 70%;
+  height: 12px;
+  vertical-align: middle;
+  border-radius: 4px;
+  background: var(--rule-light);
+  animation: of-pulse 1.6s ease-in-out infinite;
+}
+@keyframes of-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .offices-page .of-skel { animation: none; }
+}
+
+/* ---------- How it would work: three numbered columns ---------- */
+.offices-page .of-parts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+.offices-page .of-parts > li { padding-top: 24px; border-top: 1px solid var(--rule-strong); }
+.offices-page .of-num {
+  display: block;
+  margin-bottom: 20px;
+  font-family: var(--mono);
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+/* ---------- What it never does: two-column list with a mono × ---------- */
+.offices-page .of-never {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 48px;
+  border-top: 1px solid var(--rule);
+}
+.offices-page .of-never > li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.offices-page .of-never > li::before {
+  content: "\00D7";
+  font-family: var(--mono);
+  color: var(--ink-3);
+}
+
+/* ---------- Why now: pull quote ---------- */
+.offices-page .of-quote { margin: 0; max-width: 44rem; }
+.offices-page .of-quote p {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.offices-page .of-quote footer {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.offices-page .of-quote footer a { color: var(--accent); }
+.offices-page .of-quote footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.offices-page .of-after { margin-top: 28px; max-width: 40rem; }
+
+/* ---------- Public record + sponsor band ---------- */
+/* The section above draws the top rule; this draws the bottom one (beating
+   the last-child reset above). */
+.offices-page section.of-band {
+  background: var(--bg-tint);
+  border-bottom: 1px solid var(--rule);
+  padding: clamp(56px, 9vh, 96px) 0;
+}
+.offices-page .of-band-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 64px;
+}
+.offices-page .of-band .of-h2 { margin-bottom: 20px; }
+.offices-page .of-band p { max-width: 34rem; }
+.offices-page .of-links { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 20px; }
+.offices-page .of-sponsor .btn-primary { margin-top: 4px; }
+.offices-page .of-sponsor .of-muted { margin-top: 16px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 940px) {
+  .offices-page .of-wrap { padding: 0 24px; }
+  .offices-page .of-band-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+}
+@media (max-width: 800px) {
+  .offices-page .of-parts { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .offices-page .of-never { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .offices-page .of-wrap { padding: 0 16px; }
+  .offices-page .of-stack { padding-right: 16px; }
+  .offices-page .of-card--draft { margin: -14px -16px 0 16px; }
+  .offices-page .of-card--audit { margin: -12px -8px 0 32px; }
+}

@@ -4,7 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import BillAlertsPage from '../../src/components/BillAlertsPage'
 import BillWatchControl from '../../src/components/BillWatchControl'
-import RequireAuth from '../../src/components/RequireAuth'
+import AccessGate from '../../src/components/AccessGate'
 
 const { authState, services } = vi.hoisted(() => ({
   authState: { user: null, loading: false },
@@ -89,10 +89,12 @@ describe('authenticated alert management', () => {
   it('redirects signed-out users while preserving the requested alerts URL', () => {
     render(
       <MemoryRouter initialEntries={['/alerts?view=history']}>
-        <Routes>
-          <Route path="/alerts" element={<RequireAuth><div>Private alerts</div></RequireAuth>} />
-          <Route path="/auth" element={<Destination />} />
-        </Routes>
+        <AccessGate>
+          <Routes>
+            <Route path="/alerts" element={<div>Private alerts</div>} />
+            <Route path="/auth" element={<Destination />} />
+          </Routes>
+        </AccessGate>
       </MemoryRouter>,
     )
     expect(screen.getByText(/Auth destination/)).toHaveTextContent('next=%2Falerts%3Fview%3Dhistory')

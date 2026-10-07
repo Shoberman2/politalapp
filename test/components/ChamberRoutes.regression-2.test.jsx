@@ -14,7 +14,7 @@ vi.mock('../../src/components/ShutdownBanner', () => ({ default: emptyComponent 
 vi.mock('../../src/components/Landing', () => ({ default: () => <div>Landing route</div> }))
 vi.mock('../../src/components/Auth', () => ({ default: emptyComponent }))
 vi.mock('../../src/components/AuthCallback', () => ({ default: emptyComponent }))
-vi.mock('../../src/components/ProtectedRoute', () => ({ default: ({ children }) => children }))
+vi.mock('../../src/components/AccessGate', () => ({ default: ({ children }) => children }))
 vi.mock('../../src/components/MyPolitician', () => ({ default: emptyComponent }))
 vi.mock('../../src/components/CivicBriefing', () => ({ default: emptyComponent }))
 vi.mock('../../src/components/AllPoliticians', () => ({ default: emptyComponent }))

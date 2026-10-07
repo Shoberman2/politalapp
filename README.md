@@ -20,7 +20,7 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | --- | --- | --- | --- |
 | Representative lookup | Who represents this address or district? | Census and congressional member data | Open member profiles |
 | Bill tracker | What does this bill do and where is it now? | Congress.gov bill records | Search, filter, cite, share |
-| Bill Watch alerts | When does a followed bill reach committee, the floor, or a recorded vote? | Congress.gov actions and committee meetings; House weekly floor schedule | Sign in, watch a bill, manage alerts at `/alerts` |
+| Bill Watch alerts | When does a followed bill reach committee, the floor, or a recorded vote? | Congress.gov actions and committee meetings; House weekly floor schedule | Switched off until email delivery is configured (`SHOW_BILL_ALERTS` in `src/config/features.js`) |
 | Vote records | How did a member vote? | House and Senate roll call data | Filter by member, bill, date, issue |
 | Record in 60 seconds | What is this member's record, on one screen? | House and Senate roll call data | Open `/politician/:id/record`, share the card |
 | This week on the floor | What is the House voting on this week? | House weekly floor schedule (docs.house.gov) and recent roll calls | Open `/this-week` or `GET /api/v1/floor/schedule` |
@@ -29,6 +29,13 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | Campaign finance context | What money context is visible? | FEC data and local industry mapping | Inspect donors and caveats |
 | API and sample data | How can I build with this? | BallotWatch API, OpenAPI, sample exports | Use `/open` and `/developers/docs` |
 | Methodology pages | How was this computed? | Public docs and code references | Audit, cite, or correct |
+
+Reading the record needs no account: the ZIP lookup on the homepage, the
+members list, every member profile and record card, every bill and roll call,
+This week, the public API, and `/mcp`. The app pages need a free account: My
+representatives, the Bills browser, the district map, the shutdown tracker,
+campaign-finance comparison, AI Congress, and committee pages. The list lives
+in `shared/access.js` and is enforced by `src/components/AccessGate.jsx`.
 
 ## Open-Source Surface
 
@@ -61,8 +68,7 @@ or a SaaS dashboard. The design system lives in `DESIGN.md` and is mandatory for
 UI work:
 
 - Warm paper background.
-- Instrument Serif headings.
-- General Sans body/UI text.
+- Inter for headlines and body text; no serif, no italic accent words.
 - Geist Mono for data.
 - Thin rule lines.
 - Restrained civic blue accent.
@@ -252,7 +258,7 @@ ios/                  Native SwiftUI client on the same Supabase data
 public/data/          Sample datasets and datapackage metadata
 scripts/              Config check, OpenAPI sync (prebuild), data refresh scripts
 server/alerts/        Bill Watch source ingestion, event fan-out, and email delivery
-shared/               Shared utilities
+shared/               Code shared by the app and API (account-gate list, open-data URLs, member record)
 src/components/       React views and UI components
 src/data/             Static civic data and glossary maps
 src/services/         Frontend data services
@@ -291,8 +297,10 @@ Agent surfaces:
 - Member, member-record (`/politician/:id/record`), bill, and roll-call pages
   return full HTML without JavaScript and answer `Accept: text/markdown` with a
   compact Markdown record.
-- `/sitemap.xml` is generated from the database and lists every member with
-  votes (and their record card), every roll call with a sane tally, and every bill with a recorded vote.
+- `/sitemap.xml` is generated from the database and lists the homepage and info
+  pages, every member with votes (and their record card), every roll call with a
+  sane tally, and every bill with a recorded vote. Pages that need an account
+  (`shared/access.js`) are left out.
 
 Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per

@@ -16,7 +16,7 @@
 
 .shutdown-tracker__header h1 {
   font-size: 2.25rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   font-family: var(--font-display);
@@ -67,8 +67,6 @@
   to { transform: rotate(360deg); }
 }
 
-
-
 /* Status Card */
 .shutdown-status-card {
   background: var(--surface);
@@ -87,7 +85,7 @@
 
 .status-card__header h2 {
   font-size: 1.25rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0;
   font-family: var(--font-display);
@@ -179,7 +177,7 @@
 
 .shutdown-countdown h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 1.25rem 0;
   font-family: var(--font-display);
@@ -266,7 +264,7 @@
 
 .shutdown-progress h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 1rem 0;
   font-family: var(--font-display);
@@ -328,7 +326,7 @@
 
 .shutdown-bills h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 1rem 0;
   font-family: var(--font-display);
@@ -469,7 +467,7 @@
 
 .shutdown-deadlines h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 1rem 0;
   font-family: var(--font-display);
@@ -565,7 +563,7 @@
 
 .shutdown-api-bills h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   font-family: var(--font-display);
@@ -626,7 +624,7 @@
 
 .shutdown-history h2 {
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 0.25rem 0;
   font-family: var(--font-display);

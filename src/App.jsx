@@ -4,7 +4,7 @@ import Navigation from './components/Navigation'
 import Landing from './components/Landing'
 import Auth from './components/Auth'
 import AuthCallback from './components/AuthCallback'
-import ProtectedRoute from './components/ProtectedRoute'
+import AccessGate from './components/AccessGate'
 import MyPolitician from './components/MyPolitician'
 import CivicBriefing from './components/CivicBriefing'
 import AllPoliticians from './components/AllPoliticians'
@@ -41,7 +41,6 @@ import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
 import ThisWeekPage from './components/ThisWeekPage'
 import MemberRecord from './components/MemberRecord'
-import RequireAuth from './components/RequireAuth'
 import { SHOW_BILL_ALERTS, SHOW_BRIEFINGS } from './config/features'
 
 // Feature flag gates the /committee/:code route registration.
@@ -64,6 +63,7 @@ function App() {
       {!isLanding && <ShutdownBanner />}
       <Navigation />
       <main className="main-content">
+        <AccessGate>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
@@ -81,7 +81,7 @@ function App() {
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/methodology/:slug" element={<MethodologyPage />} />
           {SHOW_BILL_ALERTS && (
-            <Route path="/alerts" element={<RequireAuth><BillAlertsPage /></RequireAuth>} />
+            <Route path="/alerts" element={<BillAlertsPage />} />
           )}
 
           {/* Developer portal */}
@@ -90,27 +90,18 @@ function App() {
           <Route path="/developers/usage" element={<UsageDashboard />} />
           <Route path="/developers/docs" element={<ApiDocs />} />
 
-          {/* App routes */}
-          <Route path="/my-representative" element={
-            <ProtectedRoute><MyPolitician /></ProtectedRoute>
-          } />
-{SHOW_BRIEFINGS && (
-          <Route path="/briefings" element={
-            <ProtectedRoute><CivicBriefing /></ProtectedRoute>
-          } />
+          {/* App routes. Gated ones need a free account: the list is in
+              shared/access.js and AccessGate (wrapping these Routes) enforces
+              it, so no route wraps itself. */}
+          <Route path="/my-representative" element={<MyPolitician />} />
+          {SHOW_BRIEFINGS && (
+          <Route path="/briefings" element={<CivicBriefing />} />
           )}
-          <Route path="/all" element={
-            <ProtectedRoute><AllPoliticians /></ProtectedRoute>
-          } />
-          <Route path="/bills" element={
-            <ProtectedRoute><BillsPage /></ProtectedRoute>
-          } />
-          <Route path="/bill/:congress/:billType/:number" element={
-            <ProtectedRoute><BillDetail /></ProtectedRoute>
-          } />
-          <Route path="/politician/:bioguideId" element={
-            <ProtectedRoute><PoliticianDetail /></ProtectedRoute>
-          } />
+          {/* Members list, profiles and bill pages: public, no account needed. */}
+          <Route path="/all" element={<AllPoliticians />} />
+          <Route path="/bills" element={<BillsPage />} />
+          <Route path="/bill/:congress/:billType/:number" element={<BillDetail />} />
+          <Route path="/politician/:bioguideId" element={<PoliticianDetail />} />
           {/* "Record in 60 seconds" card, server-rendered by api/prerender.js. */}
           <Route path="/politician/:bioguideId/record" element={<MemberRecord />} />
           {/* One roll call: the tally, the derived result, every member's vote.
@@ -118,9 +109,7 @@ function App() {
           <Route path="/vote/:congress/:chamber/:session/:roll" element={<RollCallPage />} />
           <Route path="/this-week" element={<ThisWeekPage />} />
           {SHOW_ROUTING_PANEL && (
-            <Route path="/committee/:code" element={
-              <ProtectedRoute><CommitteePage /></ProtectedRoute>
-            } />
+            <Route path="/committee/:code" element={<CommitteePage />} />
           )}
 
           {/* Historical chamber — feature flagged until P3 launch */}
@@ -136,23 +125,20 @@ function App() {
               <Route path="/chamber/:congress/desk/:deskId" element={<ChamberPage />} />
             </>
           )}
-          <Route path="/shutdown-tracker" element={
-            <ProtectedRoute><ShutdownTracker /></ProtectedRoute>
-          } />
-          <Route path="/map" element={
-            <ProtectedRoute><DistrictMap /></ProtectedRoute>
-          } />
+          <Route path="/shutdown-tracker" element={<ShutdownTracker />} />
+          <Route path="/map" element={<DistrictMap />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<ArticlePage />} />
 
-          {/* AI Congress simulation (public) */}
+          {/* AI Congress simulation (account required, see shared/access.js) */}
           <Route path="/ai-congress" element={<AiCongress />} />
           <Route path="/ai-congress/:sessionId" element={<AiCongressSession />} />
 
-          {/* Campaign finance comparison (public) */}
+          {/* Campaign finance comparison (account required) */}
           <Route path="/compare" element={<DonationComparison />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </AccessGate>
       </main>
       <Footer />
       <Analytics />

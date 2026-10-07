@@ -8,7 +8,7 @@ export const LANDING_FAQ = [
   },
   {
     q: 'Is it free?',
-    a: 'Yes. Reading the record needs no account: members, votes, bills, Tell your rep, and the public API. You only need a free account for an API key.',
+    a: 'Yes. An account is free, and you need one for the app’s tools: your representatives, the bills browser, the district map, the shutdown tracker, campaign-finance comparison and AI Congress. Looking up who represents you, this week’s votes, the members list, every member profile and record card, every bill and roll call, and the public API need no account.',
   },
   {
     q: 'Where does the data come from?',
