@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
-import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
+import { getRecentFloorVotes, pickHeadlineVote, inboxFields, rollCallHref, hasSomethingToShow } from '../services/floorVotes'
 import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
 import { findMembersForDistrict } from '../services/myMembers'
@@ -11,10 +11,13 @@ import RecordLink from './RecordLink'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
-import { AI_USES, AI_NEVER } from '../data/infoPages'
 import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
+import { voteSourceUrl } from '../../api/_lib/rollCallResult.js'
 import '../styles/Landing.css'
+
+// The line under both ZIP fields (wording from the privacy audit, 2026-10-06).
+const LOOKUP_HINT = 'No sign-up to look up. Your ZIP code never reaches our servers.'
 
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -25,13 +28,6 @@ const BILL_TYPE_LABELS = {
   HJRES: 'H.J.Res.', SJRES: 'S.J.Res.', HCONRES: 'H.Con.Res.', SCONRES: 'S.Con.Res.',
 }
 
-
-// Where the product is headed. Stated as intent, not as shipped features.
-const AI_NEXT = [
-  'Offices answer common questions from their own published words, cited every time',
-  'Your AI assistant pulls the record and starts your message; you approve every word',
-  'You see how your representative voted on what you wrote about',
-]
 
 
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
@@ -46,6 +42,9 @@ function resultKindOf(result) {
   if (r.includes('passed') || r.includes('invoked') || r.includes('confirmed') || r.includes('agreed')) return 'pass'
   return 'neutral'
 }
+
+const NO_VOTE = 'No recorded vote available right now.'
+const NO_RECORD = 'The record could not be loaded right now.'
 
 function fromFloorVote(v) {
   return {
@@ -120,32 +119,53 @@ function Landing() {
   // Guards the member fetch against a newer lookup finishing first.
   const lookupSeq = useRef(0)
   const [floor, setFloor] = useState([])
+  // The raw recorded votes behind the feed; the headline vote is picked from
+  // these with the same rule /offices uses (pickHeadlineVote).
+  const [floorVotes, setFloorVotes] = useState([])
+  // votesReady: the recorded votes have resolved (the hero, agents and offices
+  // cards read only these). floorReady: the feed is final, which may wait for
+  // the bills fallback below.
+  const [votesReady, setVotesReady] = useState(false)
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
   const [featuredRecord, setFeaturedRecord] = useState(null)
+  // Failures end the skeletons: a mock shows a one-line fallback instead of
+  // loading forever.
+  const [membersFailed, setMembersFailed] = useState(false)
+  const [recordFailed, setRecordFailed] = useState(false)
+  const [billFailed, setBillFailed] = useState(false)
 
   // Real members for the "Find who represents you" illustration — actual names
-  // and headshots instead of blank placeholders. Best-effort; the mock falls
-  // back to a skeleton while this resolves (or if it fails).
+  // and headshots instead of blank placeholders. Best-effort; the mock shows
+  // a skeleton while this resolves and a one-line fallback if it fails.
   useEffect(() => {
     let cancelled = false
     getFeaturedMembers(3)
-      .then((members) => { if (!cancelled) setFeaturedMembers(members) })
-      .catch(() => {})
+      .then((members) => {
+        if (cancelled) return
+        if (members?.length) setFeaturedMembers(members)
+        else { setMembersFailed(true); setRecordFailed(true) }
+      })
+      .catch(() => { if (!cancelled) { setMembersFailed(true); setRecordFailed(true) } })
     return () => { cancelled = true }
   }, [])
 
   // The "record in 60 seconds" illustration: the real card for the first
-  // featured member. Best-effort; the mock shows a skeleton until it resolves.
+  // featured member. Best-effort; a skeleton while it loads, a one-line
+  // fallback if it fails.
   const recordMemberId = featuredMembers[0]?.bioguideId
   useEffect(() => {
     if (!recordMemberId) return undefined
     let cancelled = false
     getMemberRecord(recordMemberId)
-      .then((r) => { if (!cancelled) setFeaturedRecord(r) })
-      .catch(() => {})
+      .then((r) => {
+        if (cancelled) return
+        if (r) setFeaturedRecord(r)
+        else setRecordFailed(true)
+      })
+      .catch(() => { if (!cancelled) setRecordFailed(true) })
     return () => { cancelled = true }
   }, [recordMemberId])
 
@@ -154,8 +174,12 @@ function Landing() {
   useEffect(() => {
     let cancelled = false
     getTrendingBills()
-      .then((bills) => { if (!cancelled && bills?.length) setFeaturedBill(bills[0]) })
-      .catch(() => {})
+      .then((bills) => {
+        if (cancelled) return
+        if (bills?.length) setFeaturedBill(bills[0])
+        else setBillFailed(true)
+      })
+      .catch(() => { if (!cancelled) setBillFailed(true) })
     return () => { cancelled = true }
   }, [])
 
@@ -166,14 +190,15 @@ function Landing() {
     let cancelled = false
     ;(async () => {
       try {
-        const data = await getRecentFloorVotes(16).catch(() => null)
+        // The service never rejects: a failed query resolves to null.
+        const data = await getRecentFloorVotes(16)
         if (cancelled) return
-        // Keep anything with real substance to show. `v.text` was the original
-        // predicate here, but that field is produced by fromFloorVote below and
-        // never exists on a raw service vote — so this quietly kept only
-        // bill-bearing rows and dropped every nomination, even though the
-        // service deliberately carries their descriptions.
-        const votes = (data?.votes || []).filter((v) => v.description || v.question || v.bill)
+        const all = data?.votes || []
+        // The headline pick (pickHeadlineVote) applies its own rule to all of
+        // them; the feed keeps the rows with something to show.
+        setFloorVotes(all)
+        setVotesReady(true)
+        const votes = all.filter(hasSomethingToShow)
         if (votes.length >= 3) {
           setFloor(votes.map(fromFloorVote))
           if (data.recordedThrough) setRecordedThrough(data.recordedThrough)
@@ -186,7 +211,7 @@ function Landing() {
       } finally {
         // Mark the fetch resolved either way so the feed swaps skeletons for
         // real rows (and never falls back to invented bills).
-        if (!cancelled) setFloorReady(true)
+        if (!cancelled) { setVotesReady(true); setFloorReady(true) }
       }
     })()
     return () => { cancelled = true }
@@ -202,7 +227,7 @@ function Landing() {
       setLookup({
         code: '· · ·',
         body: 'Enter a five-digit ZIP code to find your district.',
-        sub: 'Address-to-district matching uses U.S. Census data.',
+        sub: 'A ZIP code finds your state and senators. A street address finds your House district.',
       })
       return
     }
@@ -290,7 +315,7 @@ function Landing() {
           <ArrowRight />
         </button>
       </form>
-      <p className="lookup-hint">Free · No sign-up needed · Every record linked to its source</p>
+      <p className="lookup-hint">{LOOKUP_HINT}</p>
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -323,9 +348,10 @@ function Landing() {
   )
 
   // Step-one illustration built from real members, with a skeleton fallback.
-  const repsRows = featuredMembers.length ? featuredMembers : [null, null, null]
+  const repsRows = featuredMembers.length ? featuredMembers : membersFailed ? [] : [null, null, null]
   const repsVisual = (
     <div className="mock mock-reps" aria-hidden="true">
+      {membersFailed && <p className="mk-unavailable">Members could not be loaded right now.</p>}
       {repsRows.map((m, i) => {
         const bioguideId = m?.bioguideId
         const photo = m && (m.imageUrl || m.photoFallbackUrl)
@@ -369,14 +395,18 @@ function Landing() {
   const billVisual = (
     <div className="mock mock-explain">
       <div className="mk-billhead">
-        <span className="mk-billnum">{featuredBill ? billLabel(featuredBill) : 'H.R. —'}</span>
+        {featuredBill
+          ? <span className="mk-billnum">{billLabel(featuredBill)}</span>
+          : !billFailed && <span className="mk-skel" style={{ width: 72, maxWidth: 'none' }} />}
         <span className="mk-billcongress">{featuredBill ? `${featuredBill.congress || 119}th Congress` : ''}</span>
       </div>
-      <p className="mk-billtitle">{featuredBill ? (featuredBill.headline || featuredBill.title) : 'Loading a current bill…'}</p>
-      <div className="mk-annot">
-        <span className="mk-annot-tag">From the official summary</span>
-        <p>{featuredBill ? truncate(featuredBill.whyItMatters || featuredBill.summary || featuredBill.latestAction?.text || '', 175) : ''}</p>
-      </div>
+      <p className="mk-billtitle">{featuredBill ? (featuredBill.headline || featuredBill.title) : billFailed ? 'A current bill could not be loaded right now.' : 'Loading a current bill…'}</p>
+      {!billFailed && (
+        <div className="mk-annot">
+          <span className="mk-annot-tag">From the official summary</span>
+          <p>{featuredBill ? truncate(featuredBill.whyItMatters || featuredBill.summary || featuredBill.latestAction?.text || '', 175) : ''}</p>
+        </div>
+      )}
       {featuredBill && <span className="mk-src">Source · Congress.gov <ArrowRight /></span>}
     </div>
   )
@@ -395,7 +425,8 @@ function Landing() {
   ].slice(0, 3)
   const votesVisual = (
     <div className="mock mock-votes" aria-hidden="true">
-      {(votesRows.length ? votesRows : [null, null, null]).map((v, i) => (
+      {floorReady && !votesRows.length && <p className="mk-unavailable">{NO_VOTE}</p>}
+      {(votesRows.length ? votesRows : floorReady ? [] : [null, null, null]).map((v, i) => (
         v ? (
           <div className="mk-vote" key={v.key}>
             <span className="mk-bill">{v.bill ? v.bill.display : v.rollLabel}</span>
@@ -416,9 +447,11 @@ function Landing() {
     </div>
   )
 
-  // The hero's proof: the most recent recorded vote with a bill and a real
-  // tally, else the most recent recorded vote of any kind. Never invented.
-  const headlineVote = floor.find((v) => v.voteHref && v.bill && v.tally) || floor.find((v) => v.voteHref) || null
+  // The hero's proof, picked by pickHeadlineVote (the same pick as /offices):
+  // the latest vote with a roll-call page, a bill and a real tally, else the
+  // latest vote with a roll-call page and anything to show. Never invented.
+  const headlineRaw = pickHeadlineVote(floorVotes)
+  const headlineVote = headlineRaw ? fromFloorVote(headlineRaw) : null
   const recordedLabel = recordedThrough
     ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
     : null
@@ -436,6 +469,8 @@ function Landing() {
           <br />
           <span className="mk-yours">[Write your message here, in your own words.]</span>
         </p>
+      ) : floorReady ? (
+        <p className="mk-unavailable">{NO_VOTE}</p>
       ) : (
         <p className="mk-letter">
           <span className="mk-skel" style={{ width: '90%', maxWidth: 'none' }} />
@@ -488,6 +523,8 @@ function Landing() {
             </div>
           ))}
         </>
+      ) : recordFailed ? (
+        <p className="mk-unavailable">{NO_RECORD}</p>
       ) : (
         <>
           <div className="mk-rec-head"><span className="mk-rec-photo" /><b className="mk-skel" style={{ width: 140, maxWidth: 'none', height: 14 }} /></div>
@@ -498,12 +535,113 @@ function Landing() {
     </div>
   )
 
+  // Feature six: a two-turn MCP transcript. The question names the real
+  // featured member; the answer lines are that member's real latest votes.
+  const mcpVotes = (featuredRecord?.recentVotes || []).slice(0, 3)
+  const mcpSource = mcpVotes[0]?.roll != null
+    ? `${mcpVotes[0].chamber || 'Roll call'} roll call ${mcpVotes[0].roll}`
+    : null
+  const mcpVisual = (
+    <div className="mock mock-chat" aria-hidden="true">
+      <div className="mk-turn mk-turn-user">
+        <span className="mk-who">You</span>
+        {featuredRecord
+          ? <p>How did {featuredRecord.name} vote recently?</p>
+          : recordFailed
+            ? <p>How did my representative vote recently?</p>
+            : <p><span className="mk-skel" style={{ width: '70%', maxWidth: 'none' }} /></p>}
+      </div>
+      <div className="mk-turn mk-turn-ai">
+        <span className="mk-who">Assistant</span>
+        {featuredRecord ? (
+          mcpVotes.length ? (
+            <ul className="mk-answer">
+              {mcpVotes.map((v) => (
+                <li key={v.roll_call_id}>
+                  {v.position && <span className={`mk-pos ${String(v.position).toLowerCase().replace(/\s+/g, '-')}`}>{v.position}</span>}
+                  <span className="mk-desc">{truncate([v.bill?.label, v.question].filter(Boolean).join(' · ') || 'Recorded vote', 48)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p>No recorded votes yet.</p>
+        ) : recordFailed ? (
+          <p className="mk-unavailable">{NO_RECORD}</p>
+        ) : (
+          <div className="mk-answer">
+            <span className="mk-skel" style={{ width: '88%', maxWidth: 'none' }} />
+            <span className="mk-skel" style={{ width: '76%', maxWidth: 'none', marginTop: 10 }} />
+            <span className="mk-skel" style={{ width: '64%', maxWidth: 'none', marginTop: 10 }} />
+          </div>
+        )}
+      </div>
+      {mcpSource && <span className="mk-src">Source · {BRAND.name} MCP · {mcpSource}</span>}
+    </div>
+  )
+
+  // Feature seven: the public API's response for the same latest recorded vote
+  // the hero shows, in the endpoint's own field names (GET /api/v1/votes/{id}),
+  // trimmed. Only values the page actually has are printed.
+  const apiJson = headlineVote ? (() => {
+    const data = { roll_call_id: headlineVote.key }
+    if (headlineVote.votedAt) data.voted_at = String(headlineVote.votedAt).slice(0, 10)
+    const src = voteSourceUrl(headlineVote.key, null)
+    if (src) data.source_url = src
+    if (headlineVote.yea != null && headlineVote.nay != null) data.summary = { yea: headlineVote.yea, nay: headlineVote.nay }
+    // The real response carries more (the bill, every member's position); the
+    // ellipsis says so rather than pretending this is the whole body.
+    const inner = JSON.stringify(data, null, 2).replace(/\n\}$/, ',\n  \u2026\n}').replace(/\n/g, '\n  ')
+    return `{\n  "data": ${inner}\n}`
+  })() : null
+  const agentsVisual = (
+    <div className="mock mock-code" aria-hidden="true">
+      {headlineVote ? (
+        <>
+          <code className="mk-req">GET /api/v1/votes/{headlineVote.key}</code>
+          <pre className="mk-json">{apiJson}</pre>
+        </>
+      ) : votesReady ? (
+        <p className="mk-unavailable">{NO_VOTE}</p>
+      ) : (
+        <>
+          <span className="mk-skel" style={{ width: '62%', maxWidth: 'none' }} />
+          <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', marginTop: 14 }} />
+          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
+          <span className="mk-skel" style={{ width: '54%', maxWidth: 'none', marginTop: 8 }} />
+        </>
+      )}
+      <span className="mk-src">No key needed to read · JSON · OpenAPI</span>
+    </div>
+  )
+
+  // Feature eight: one row of an office inbox, built from the same latest
+  // recorded vote. Nothing in it speaks in the Member's name.
+  // Same fields and the same pick as the /offices inbox (inboxFields).
+  const inbox = inboxFields(headlineRaw)
+  const officesVisual = (
+    <div className="mock mock-inbox" aria-hidden="true">
+      <span className="mk-label">Office inbox</span>
+      {votesReady && !headlineVote ? (
+        <p className="mk-unavailable">{NO_VOTE}</p>
+      ) : (
+        <dl className="mk-fields">
+          <div><dt>From</dt><dd>A constituent in your district</dd></div>
+          <div><dt>Re</dt><dd>{headlineVote ? (inbox.re || truncate(headlineVote.text, 40)) : <span className="mk-skel" />}</dd></div>
+          <div><dt>Vote</dt><dd className="mk-mono">{headlineVote ? (inbox.vote || 'Recorded vote') : <span className="mk-skel" />}</dd></div>
+          <div><dt>Status</dt><dd><span className="mk-status">Received</span></dd></div>
+        </dl>
+      )}
+    </div>
+  )
+
   const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
-  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/bills'
+  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/this-week'
 
   // Headlines and copy come from src/data/homeSeo.js, the same text the
   // server-rendered homepage gives crawlers and AI answer engines.
-  const VISUALS = { find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual }
+  const VISUALS = {
+    find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual,
+    mcp: mcpVisual, agents: agentsVisual, offices: officesVisual,
+  }
   const LINK_OVERRIDES = {
     record: { to: recordHref, label: 'See a record' },
     write: { to: writeHref, label: 'Write about the latest vote' },
@@ -521,19 +659,19 @@ function Landing() {
       {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
       <section className="hero">
         <div className="hero-inner">
-          <h1 className="hero-title">How did your representative vote <em>this week?</em></h1>
+          <h1 className="hero-title">How did your representative vote this week?</h1>
           <p className="hero-mission">{BRAND.mission}</p>
 
           {renderLookup('hero')}
 
           <div className="headline-vote" aria-live="polite">
-            {!floorReady ? (
+            {!votesReady ? (
               <div className="hv-card" aria-hidden="true">
                 <span className="mk-skel" style={{ width: 160, maxWidth: 'none' }} />
                 <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', height: 18, marginTop: 10 }} />
                 <span className="mk-skel" style={{ width: 120, maxWidth: 'none', marginTop: 12 }} />
               </div>
-            ) : headlineVote && (
+            ) : headlineVote ? (
               <div className="hv-card">
                 <div className="hv-meta">
                   {[headlineVote.chamber, headlineVote.votedAt && new Date(headlineVote.votedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }), headlineVote.rollLabel]
@@ -561,6 +699,8 @@ function Landing() {
                   <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about it</Link>
                 </div>
               </div>
+            ) : (
+              <p className="mk-unavailable">{NO_VOTE}</p>
             )}
           </div>
         </div>
@@ -578,46 +718,6 @@ function Landing() {
             <div className="feature-visual">{f.visual}</div>
           </article>
         ))}
-      </section>
-
-      {/* ===== THE CONCEPT: how AI is used now, where it's headed, what it never does ===== */}
-      <section className="ai" aria-labelledby="ai-title">
-        <div className="ai-inner">
-          <header className="ai-head">
-            <span className="ai-kicker">Our concept · what we’re building toward</span>
-            <h2 id="ai-title">AI that makes Congress easier to read and easier to reach. <em>A person writes every message. A person answers it.</em></h2>
-          </header>
-          <div className="ai-cols">
-            <div className="ai-col">
-              <h3>Now</h3>
-              <ul>{AI_USES.map((t) => <li key={t}>{t}</li>)}</ul>
-            </div>
-            <div className="ai-col ai-col-next">
-              <h3>Next</h3>
-              <ul>{AI_NEXT.map((t) => <li key={t}>{t}</li>)}</ul>
-            </div>
-            <div className="ai-col ai-col-never">
-              <h3>Never</h3>
-              <ul>{AI_NEVER.map((t) => <li key={t}>{t}</li>)}</ul>
-            </div>
-          </div>
-          <Link className="btn-text btn-go ai-link" to="/how-it-works">How it works</Link>
-        </div>
-      </section>
-
-      {/* ===== FOR OFFICES ===== */}
-      <section className="offices-band" aria-labelledby="offices-title">
-        <div className="offices-inner">
-          <div className="offices-text">
-            <span className="offices-kicker">If you work in a congressional office</span>
-            <h2 id="offices-title">A better way for constituents to reach your office, and for your office to answer.</h2>
-            <p className="offices-lede">
-              Cited answers from sources your office approves. Messages written and approved by the person who sent
-              them, tagged to the vote they’re about. Nothing is ever said in the Member’s name.
-            </p>
-          </div>
-          <Link className="btn-primary offices-cta" to="/offices">See how it would work</Link>
-        </div>
       </section>
 
       {/* ===== FAQ ===== */}

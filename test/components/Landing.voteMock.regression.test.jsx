@@ -213,7 +213,9 @@ describe('Landing — "See every vote" step', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const features = container.querySelectorAll('.features .feature')
-    expect(features.length).toBe(5)
+    expect(features.length).toBe(8)
+    expect([...features].map((f) => f.className.replace('feature feature-', ''))).toEqual(
+      ['find', 'votes', 'bills', 'record', 'write', 'mcp', 'agents', 'offices'])
     expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
@@ -271,17 +273,29 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
   it('links offices to /offices and never offers a pilot, trial or price', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    const band = container.querySelector('.offices-band')
-    expect(band.querySelector('a[href="/offices"]')).not.toBeNull()
-    expect(band.textContent).not.toMatch(/free trial|pilot|\$\d|pricing/i)
+    const offices = container.querySelector('.feature-offices')
+    expect(offices.querySelector('a[href="/offices"]')).not.toBeNull()
+    expect(offices.textContent).toMatch(/not for sale/i)
+    expect(offices.textContent).not.toMatch(/free trial|pilot|\$\d|pricing/i)
   })
 
-  it('frames AI as the concept: now, next and never', () => {
+  it('has no dark concept band, no offices band and no italic headline accents', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    const ai = container.querySelector('.ai')
-    expect(ai.textContent).toMatch(/what we’re building toward/i)
-    expect([...ai.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Now', 'Next', 'Never'])
+    expect(container.querySelector('.ai')).toBeNull()
+    expect(container.querySelector('.offices-band')).toBeNull()
+    expect(container.querySelectorAll('h1 em, h2 em, h3 em').length).toBe(0)
+    expect(container.textContent).not.toMatch(/what we’re building toward/i)
+  })
+
+  it('puts the privacy line under both lookups', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    const hints = [...container.querySelectorAll('.lookup-hint')].map((p) => p.textContent)
+    expect(hints).toEqual([
+      'No sign-up to look up. Your ZIP code never reaches our servers.',
+      'No sign-up to look up. Your ZIP code never reaches our servers.',
+    ])
   })
 
   it('has no small labels above the feature headlines', () => {
