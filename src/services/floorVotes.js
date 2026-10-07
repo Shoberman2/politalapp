@@ -133,7 +133,7 @@ const isMissingVotedAt = (error) =>
   !!error && (error.code === '42703' || error.code === 'PGRST204' ||
     /voted_at/.test(error.message || ''))
 
-export async function getRecentFloorVotes(fetchCount = 16) {
+async function fetchRecentFloorVotes(fetchCount) {
   try {
     // Order by when the vote happened, NOT by created_at, which is when we
     // ingested the row. Those agree only while ingestion runs forward in time:
@@ -221,4 +221,53 @@ export async function getRecentFloorVotes(fetchCount = 16) {
     console.warn('[FloorVotes] query failed:', err)
     return null
   }
+}
+
+// The landing and /offices both ask for the latest votes; share one request
+// per fetchCount for 60 seconds. A failed or empty result is not kept, so the
+// next caller retries.
+const FLOOR_VOTES_TTL_MS = 60 * 1000
+const floorVotesCache = new Map()
+
+export function getRecentFloorVotes(fetchCount = 16) {
+  const hit = floorVotesCache.get(fetchCount)
+  if (hit && Date.now() - hit.at < FLOOR_VOTES_TTL_MS) return hit.promise
+  const promise = fetchRecentFloorVotes(fetchCount)
+  const entry = { promise, at: Date.now() }
+  floorVotesCache.set(fetchCount, entry)
+  const drop = () => { if (floorVotesCache.get(fetchCount) === entry) floorVotesCache.delete(fetchCount) }
+  promise.then((data) => { if (!data?.votes?.length) drop() }, drop)
+  return promise
+}
+
+/** Test hook: forget every cached result. */
+export function _resetFloorVotesCache() {
+  floorVotesCache.clear()
+}
+
+// A vote is worth a row when it has a description, a question or a bill.
+export function hasSomethingToShow(v) {
+  return !!v && !!(v.description || v.question || v.bill)
+}
+
+// The headline vote shared by the landing and /offices. Only votes that link
+// to a roll-call page (a parseable id) and have something to show (a
+// description, a question or a bill) qualify; of those, the latest with a bill
+// and a real tally wins, else the latest one. Never invented; null when none.
+export function pickHeadlineVote(votes) {
+  const usable = (Array.isArray(votes) ? votes : [])
+    .filter((v) => hasSomethingToShow(v) && rollCallHref(v.id))
+  return usable.find((v) => v.bill && v.yea != null && v.nay != null) || usable[0] || null
+}
+
+// The "Re" and "Vote" lines of an office inbox row for one vote:
+// re = the bill number, else "<Chamber> Roll Call <n>"; vote = "<yea>–<nay>"
+// plus " · <result>" when there is one. Either may be null when the record
+// does not say.
+export function inboxFields(vote) {
+  if (!vote) return { re: null, vote: null }
+  const rollLabel = vote.number != null ? `Roll Call ${vote.number}` : null
+  const re = vote.bill?.display || [vote.chamber, rollLabel].filter(Boolean).join(' ') || null
+  const tally = vote.yea != null && vote.nay != null ? `${vote.yea}–${vote.nay}` : null
+  return { re, vote: [tally, vote.result].filter(Boolean).join(' · ') || null }
 }

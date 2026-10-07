@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock the supabase client for getRecentFloorVotes.
 //
@@ -224,5 +224,96 @@ describe('getRecentFloorVotes — vote date', () => {
     const { votes } = await getRecentFloorVotes(16);
     expect(byId(votes, 'house-119-2-281').votedAt).toBe('2026-07-24');
     expect(byId(votes, 'house-119-2-280').votedAt).toBeNull();
+  });
+});
+
+describe('getRecentFloorVotes: shared 60-second cache', () => {
+  it('serves a second caller from the same request, keeps failures out, and resets for tests', async () => {
+    const mod = await import('../../src/services/floorVotes.js');
+    tableResponses['roll_calls'] = { data: [rollCall('house-119-2-281', '119-hr-1')], error: null };
+    tableResponses['votes'] = { data: [], error: null };
+    const a = mod.getRecentFloorVotes(16);
+    const b = mod.getRecentFloorVotes(16);
+    expect(a).toBe(b);
+    await a;
+    const callsAfterFirst = queries.length;
+    await mod.getRecentFloorVotes(16);
+    expect(queries.length).toBe(callsAfterFirst);
+
+    mod._resetFloorVotesCache();
+    tableResponses['roll_calls'] = { data: [], error: null };
+    const empty = mod.getRecentFloorVotes(16);
+    expect(await empty).toBeNull();
+    // An empty result is not cached: the next call asks again.
+    expect(mod.getRecentFloorVotes(16)).not.toBe(empty);
+  });
+
+  it('drops the entry when the query throws, so the next caller retries', async () => {
+    const mod = await import('../../src/services/floorVotes.js');
+    const { supabase } = await import('../../src/lib/supabase');
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    supabase.from.mockImplementationOnce(() => { throw new Error('offline'); });
+    const failed = mod.getRecentFloorVotes(16);
+    expect(await failed).toBeNull();
+    tableResponses['roll_calls'] = { data: [rollCall('house-119-2-281', '119-hr-1')], error: null };
+    const retry = mod.getRecentFloorVotes(16);
+    expect(retry).not.toBe(failed);
+    expect((await retry).votes).toHaveLength(1);
+  });
+
+  it('drops the entry when no votes come back', async () => {
+    const mod = await import('../../src/services/floorVotes.js');
+    tableResponses['roll_calls'] = { data: [], error: null };
+    const first = mod.getRecentFloorVotes(16);
+    expect(await first).toBeNull();
+    const before = queries.filter((q) => q.table === 'roll_calls').length;
+    await mod.getRecentFloorVotes(16);
+    expect(queries.filter((q) => q.table === 'roll_calls').length).toBe(before + 1);
+  });
+
+  describe('expiry', () => {
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('asks again once the 60 seconds are up', async () => {
+      vi.useFakeTimers();
+      const mod = await import('../../src/services/floorVotes.js');
+      tableResponses['roll_calls'] = { data: [rollCall('house-119-2-281', '119-hr-1')], error: null };
+      tableResponses['votes'] = { data: [], error: null };
+      const a = mod.getRecentFloorVotes(16);
+      await a;
+      vi.advanceTimersByTime(59_000);
+      expect(mod.getRecentFloorVotes(16)).toBe(a);
+      vi.advanceTimersByTime(1_001);
+      const b = mod.getRecentFloorVotes(16);
+      expect(b).not.toBe(a);
+      await b;
+    });
+  });
+});
+
+describe('pickHeadlineVote and inboxFields', () => {
+  it('prefers a bill with a tally, else the first vote with something to show', async () => {
+    const { pickHeadlineVote } = await import('../../src/services/floorVotes.js');
+    const nom = { id: 'senate-119-2-501', chamber: 'Senate', number: 501, question: 'On the Nomination', bill: null, yea: 51, nay: 49 };
+    const bill = { id: 'house-119-2-300', chamber: 'House', number: 300, question: 'On Passage', bill: { display: 'H.R. 12' }, yea: 220, nay: 210 };
+    expect(pickHeadlineVote([nom, bill])).toBe(bill);
+    expect(pickHeadlineVote([{ id: 'x' }, nom])).toBe(nom);
+    // Only votes with a roll-call page qualify, so Landing and /offices pick alike.
+    const noPage = { ...bill, id: 'not-a-roll-call' };
+    expect(pickHeadlineVote([noPage, nom])).toBe(nom);
+    expect(pickHeadlineVote([noPage])).toBeNull();
+    expect(pickHeadlineVote([{ id: 'x' }])).toBeNull();
+    expect(pickHeadlineVote(null)).toBeNull();
+  });
+
+  it('builds the Re and Vote lines from the record only', async () => {
+    const { inboxFields } = await import('../../src/services/floorVotes.js');
+    expect(inboxFields({ chamber: 'House', number: 300, bill: { display: 'H.R. 12' }, yea: 220, nay: 210, result: 'Passed' }))
+      .toEqual({ re: 'H.R. 12', vote: '220–210 · Passed' });
+    expect(inboxFields({ chamber: 'Senate', number: 501, bill: null, yea: null, nay: null, result: 'Confirmed' }))
+      .toEqual({ re: 'Senate Roll Call 501', vote: 'Confirmed' });
+    expect(inboxFields({ chamber: 'House', number: 9, yea: 1, nay: 2 })).toEqual({ re: 'House Roll Call 9', vote: '1–2' });
+    expect(inboxFields({})).toEqual({ re: null, vote: null });
+    expect(inboxFields(null)).toEqual({ re: null, vote: null });
   });
 });
