@@ -10,7 +10,7 @@ import '../styles/InfoPage.css'
 // reviewed by counsel. Have counsel review it before relying on it, and update
 // it whenever data handling changes.
 
-const LAST_UPDATED = 'October 4, 2026'
+const LAST_UPDATED = 'October 6, 2026'
 const REPO_URL = 'https://github.com/Shoberman2/politalapp'
 
 function ContactLine() {
@@ -34,8 +34,10 @@ function PrivacyPage() {
           <span className="ip-kicker">Privacy</span>
           <h1 className="ip-title">Privacy notice</h1>
           <p className="ip-lede">
-            You can read the whole congressional record on {BRAND.name} without an account. This page explains, in
-            plain language, the small amount of information we do handle and why.
+            Member profiles, record cards, bills, roll call votes, this week’s votes and the members list need no
+            account. The app’s tools (your representatives, the bills browser, the district map, the shutdown
+            tracker, campaign-finance comparison and AI Congress) need a free one. This page explains, in plain
+            language, the small amount of information we do handle and why.
           </p>
           <p className="ip-updated">Last updated: {LAST_UPDATED}</p>
         </div>
@@ -45,7 +47,11 @@ function PrivacyPage() {
         <div className="ip-inner">
           <h2>The short version</h2>
           <ul className="ip-bullets">
-            <li>Reading the site requires no account and sets no tracking or advertising cookies.</li>
+            <li>
+              Reading record cards, votes and the members list requires no account. The site sets no tracking or
+              advertising cookies.
+            </li>
+            <li>An account stores only your email address and a hash of your password.</li>
             <li>
               <strong>Tell your rep messages are never sent to or stored by us.</strong> You write the text in your
               browser and send it yourself through your representative’s official contact page.
@@ -60,10 +66,11 @@ function PrivacyPage() {
         <div className="ip-inner">
           <h2>Finding your representatives</h2>
           <p>
-            When you enter a ZIP code or street address, your browser sends it directly to the U.S. Census Bureau’s
-            public geocoder (and, for some ZIP codes, the free Zippopotam.us lookup) to find your district. We save
-            the address in your browser’s local storage so you don’t have to type it again. It is not sent to our
-            servers or linked to an account. You can remove it by clearing this site’s data in your browser.
+            When you look up a ZIP code, your browser sends it to the free Zippopotam.us service to find your state.
+            When you enter a street address, your browser sends it to the U.S. Census Bureau’s public geocoder to find
+            your district. Neither request goes through {BRAND.name}’s servers, and we never log or store them. If
+            you click through to the app, the address is saved only in your browser’s local storage so you don’t
+            have to type it again. You can remove it by clearing this site’s data in your browser.
           </p>
         </div>
       </section>
@@ -95,10 +102,11 @@ function PrivacyPage() {
         <div className="ip-inner">
           <h2>Accounts</h2>
           <p>
-            Signing in is optional and only needed for an API key. Accounts
-            are handled by Supabase Auth, using either an email address and password or Google sign-in. We store
-            your email address and a profile record. Passwords are managed by Supabase; we never see them. Your
-            signed-in session is kept in your browser’s local storage.
+            An account is free. You need one for the app’s tools (your representatives, the bills browser, the district map, the shutdown
+            tracker, campaign-finance comparison and AI Congress) and for an API
+            key; member profiles, record cards, bills, votes and the members list don’t need one. Accounts are handled by Supabase
+            Auth. It stores your email address and a hash of your password, never the password itself, and we keep a
+            profile record linked to it. Your signed-in session is kept in your browser’s local storage.
           </p>
           {SHOW_BRIEFINGS && (
             <p>

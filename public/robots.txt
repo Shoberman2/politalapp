@@ -26,7 +26,6 @@ Disallow: /api/og
 Disallow: /api/share
 Disallow: /api/prerender
 Disallow: /api/sitemap
-Disallow: /auth
 Disallow: /alerts
 Disallow: /developers/keys
 Disallow: /developers/usage

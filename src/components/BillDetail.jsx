@@ -226,8 +226,6 @@ function BillDetail() {
       <nav className="bill-crumb">
         <Link to="/">BallotWatch</Link>
         <span className="bill-crumb-sep">/</span>
-        <Link to="/bills">Bills</Link>
-        <span className="bill-crumb-sep">/</span>
         <span>{billType.toUpperCase()}. {number}</span>
       </nav>
 
@@ -294,7 +292,7 @@ function BillDetail() {
                 ? 'Official summary not yet available · no inferred provisions'
                 : 'AI explanation from the official Congress.gov summary · no inferred provisions'}
             </div>
-            <h2 className="bill-ai-headline">What this bill <em>would do</em></h2>
+            <h2 className="bill-ai-headline">What this bill would do</h2>
             {aiLoading && (
               <div className="bill-ai-loading">
                 <span className="loading-spinner-small"></span>
@@ -332,7 +330,7 @@ function BillDetail() {
           {voteTallies.length > 0 && (
             <section className="bill-editorial-section">
               <div className="bill-section-label">Floor votes</div>
-              <h2 className="bill-section-title">How the chambers <em>voted</em></h2>
+              <h2 className="bill-section-title">How the chambers voted</h2>
               <div className="bill-tally-grid">
                 {voteTallies.map((tally, index) => {
                   const total = (tally.totalYea || 0) + (tally.totalNay || 0) + (tally.totalNotVoting || 0) + (tally.totalPresent || 0)
@@ -380,7 +378,7 @@ function BillDetail() {
           {actions.length > 0 && (
             <section className="bill-editorial-section" id="actions-section">
               <div className="bill-section-label">Legislative timeline</div>
-              <h2 className="bill-section-title">What's happened <em>so far</em></h2>
+              <h2 className="bill-section-title">What's happened so far</h2>
               <div className="bill-timeline">
                 {actions.slice(0, 12).map((action, index) => {
                   const text = (action.text || '').toLowerCase()

@@ -14,8 +14,12 @@ import {
   RECORD_VOTE_LIMIT, recordPath, recordHeadline, recordSeatCode, recordSeatTitle, houseSeatTitle,
   recordSummary, recordDate, recordOgImagePath,
 } from '../../shared/memberRecord.js'
+import { DEFAULT_SIGNED_IN_PATH } from '../../shared/access.js'
 
 export const ordinal = congressOrdinal
+
+// The masthead "Find my reps" button, same as Navigation.jsx's DEFAULT_CTA.
+const SIGN_IN_CTA = `/auth?next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
 
 export function escapeHtml(s) {
   if (s == null) return ''
@@ -97,7 +101,7 @@ const COLOPHON_RC = 'Data from Congress.gov, the House Clerk, and the Senate. Th
 
 // Mirrors Navigation.jsx so broadsheet.css styles the masthead before React mounts.
 export function chrome(inner) {
-  return `<div class="app"><div class="bw bw-masthead"><div class="topbar-wrap"><div class="topbar"><a class="brand" href="/" aria-label="BallotWatch home"><span class="brand-mark"><img src="/capitol-logo.svg" alt="" /></span><span class="brand-name">BallotWatch</span></a><nav class="topnav"><a href="/all">Members</a><a href="/bills">Bills</a><a href="/map">Map</a><a href="/blog">Blog</a></nav><div class="topbar-right"><a class="btn btn-primary btn-sm" href="/my-representative"><span class="nav-cta-full">Find My Rep</span><span class="nav-cta-short">My Rep</span></a></div></div></div></div><main class="main-content">${inner}</main></div>`
+  return `<div class="app"><div class="bw bw-masthead"><div class="topbar-wrap"><div class="topbar"><a class="brand" href="/" aria-label="BallotWatch home"><span class="brand-mark"><img src="/capitol-logo.svg" alt="" /></span><span class="brand-name">BallotWatch</span></a><nav class="topnav"><a href="/how-it-works">How it works</a><a href="/this-week">This week</a><a href="/all">Members</a><a href="/offices">For offices</a></nav><div class="topbar-right"><a class="nav-account" href="/auth" rel="nofollow">Sign in</a><a class="btn-primary btn-sm nav-cta" href="${SIGN_IN_CTA}">Find my reps</a></div></div></div></div><main class="main-content">${inner}</main></div>`
 }
 
 function initials(name) {
@@ -181,7 +185,7 @@ export function renderMemberBody(m) {
   ${terms ? `<section class="pol-editorial"><div class="pol-section-label">Terms of service</div><h2 class="pol-section-title">Congress history</h2><ul class="pol-terms">${terms}</ul></section>` : ''}
   <section class="pol-editorial">
     <div class="pol-section-label">Voting record · ${Number(m.voteCount) || 0} recorded votes${m.votes.length < m.voteCount ? ` · latest ${m.votes.length} shown` : ''}</div>
-    <h2 class="pol-section-title">How <em>they voted</em></h2>
+    <h2 class="pol-section-title">How they voted</h2>
     <div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Date</th><th>Question</th><th>Bill</th><th>Vote</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>
   <footer class="rc-colophon">Data from Congress.gov, the House Clerk, and the Senate. ${m.updatedAt ? `Updated ${escapeHtml(fmtDate(m.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
@@ -314,7 +318,7 @@ export function rollCallJsonLd(rc) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'BallotWatch', item: SITE },
-        { '@type': 'ListItem', position: 2, name: 'Bills', item: `${SITE}/bills` },
+        { '@type': 'ListItem', position: 2, name: 'This week', item: `${SITE}/this-week` },
         { '@type': 'ListItem', position: 3, name: `${rc.chamber} roll call ${rc.roll}`, item: meta.canonical },
       ],
     },
@@ -335,7 +339,7 @@ export function renderRollCallBody(rc) {
   const filter = `<div class="rc-filter"><input type="search" placeholder="Filter by name or state" aria-label="Filter members by name or state" disabled /><div class="rc-filter-positions" role="group" aria-label="Filter by vote"><button type="button" class="is-active" disabled>All</button><button type="button" disabled>Yea</button><button type="button" disabled>Nay</button><button type="button" disabled>Present</button><button type="button" disabled>Not Voting</button></div></div>`
 
   return chrome(`<article class="rc">
-  <nav class="rc-crumb"><a href="/">BallotWatch</a><span class="rc-crumb-sep">/</span><a href="/bills">Bills</a><span class="rc-crumb-sep">/</span><span>${escapeHtml(rc.chamber)} roll call ${rc.roll}</span></nav>
+  <nav class="rc-crumb"><a href="/">BallotWatch</a><span class="rc-crumb-sep">/</span><a href="/this-week">This week</a><span class="rc-crumb-sep">/</span><span>${escapeHtml(rc.chamber)} roll call ${rc.roll}</span></nav>
   <header class="rc-masthead">
     <div class="rc-kicker">${escapeHtml(rc.chamber)} · Roll call ${rc.roll} · Session ${rc.session} · ${escapeHtml(ordinal(rc.congress))} Congress${rc.voted_at ? ` · ${escapeHtml(fmtDate(rc.voted_at))}` : ''}</div>
     <h1 class="rc-title">${escapeHtml(rc.question || 'Recorded vote')}${rc.bill && bp ? ` on <a href="${bp}">${escapeHtml(billLabel(rc.bill.id))}</a>` : ''}</h1>
@@ -345,7 +349,7 @@ export function renderRollCallBody(rc) {
   </header>
   <section class="rc-section">
     <div class="rc-section-label">Every member · ${rc.votes.length} recorded</div>
-    <h2 class="rc-section-title">How <em>each member</em> voted</h2>
+    <h2 class="rc-section-title">How each member voted</h2>
     ${rows ? `${filter}<div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Member</th><th>Seat</th><th>Vote</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="rc-muted">Member-level votes for this roll call have not been ingested yet.</p>'}
   </section>
   <footer class="rc-colophon">${COLOPHON_RC} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
@@ -385,8 +389,7 @@ export function billJsonLd(b) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'BallotWatch', item: SITE },
-        { '@type': 'ListItem', position: 2, name: 'Bills', item: `${SITE}/bills` },
-        { '@type': 'ListItem', position: 3, name: b.label, item: meta.canonical },
+        { '@type': 'ListItem', position: 2, name: b.label, item: meta.canonical },
       ],
     },
   ]
@@ -401,7 +404,7 @@ export function renderBillBody(b) {
   const src = safeUrl(b.source_url)
 
   return chrome(`<article class="bill-detail">
-  <nav class="bill-crumb"><a href="/">BallotWatch</a><span class="bill-crumb-sep">/</span><a href="/bills">Bills</a><span class="bill-crumb-sep">/</span><span>${escapeHtml(b.label)}</span></nav>
+  <nav class="bill-crumb"><a href="/">BallotWatch</a><span class="bill-crumb-sep">/</span><span>${escapeHtml(b.label)}</span></nav>
   <header class="bill-masthead">
     <div class="bill-id-row"><span class="bill-masthead-id">${escapeHtml(b.label)}</span><span class="bill-masthead-congress">${escapeHtml(ordinal(b.congress))} Congress</span>${status ? `<span class="bill-status-pill ${escapeHtml(status.cls)}"><span class="bill-status-pill-dot"></span>${escapeHtml(status.label)}</span>` : ''}</div>
     <h1 class="bill-masthead-title">${escapeHtml(b.title)}</h1>
@@ -410,7 +413,7 @@ export function renderBillBody(b) {
   </header>
   <div class="bill-layout"><div class="bill-main">
     ${b.summary ? `<section class="bill-editorial-section"><div class="bill-section-label">${b.crs_summary ? 'Official CRS summary' : 'Summary'}</div><div class="bill-summary-body">${escapeHtml(b.summary).split(/\n{2,}/).map((p) => `<p>${p}</p>`).join('')}</div></section>` : ''}
-    <section class="bill-editorial-section"><div class="bill-section-label">Floor votes</div><h2 class="bill-section-title">How the chambers <em>voted</em></h2>${votes ? `<ul class="bill-tally-grid">${votes}</ul>` : '<p>No recorded floor vote yet.</p>'}</section>
+    <section class="bill-editorial-section"><div class="bill-section-label">Floor votes</div><h2 class="bill-section-title">How the chambers voted</h2>${votes ? `<ul class="bill-tally-grid">${votes}</ul>` : '<p>No recorded floor vote yet.</p>'}</section>
   </div></div>
   <footer class="rc-colophon">Data from Congress.gov. Summaries are the official CRS text. ${b.updatedAt ? `Updated ${escapeHtml(fmtDate(b.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
 </article>`)

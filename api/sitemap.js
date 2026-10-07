@@ -1,6 +1,7 @@
 // Generated sitemaps on the canonical domain.
 //   /sitemap.xml           -> index pointing at the parts below
-//   /sitemap-pages.xml     -> the homepage and the static info pages
+//   /sitemap-pages.xml     -> the homepage and the static info pages, minus
+//                             the ones that need an account (shared/access.js)
 //   /sitemap-members.xml   -> every member with at least one recorded vote
 //   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members
 //   /sitemap-votes.xml     -> every roll call with a sane, non-empty tally
@@ -11,6 +12,7 @@
 // full-table-read amplifier.
 
 import { supabaseAdmin } from './_lib/supabase.js'
+import { isGatedPath } from '../shared/access.js'
 import { buildSitemapIndex, buildUrlset, toDateOnly, chunk, SITEMAP_PART_SIZE } from './_lib/sitemapXml.js'
 import { parseRollCallId, rollCallPath, saneTally, tallyFromStats } from './_lib/rollCallResult.js'
 import { isPlaceholderTitle } from './_lib/indexGate.js'
@@ -51,7 +53,7 @@ export async function pageEntries() {
   const lastmod = await latestVoteDate()
   return [
     { path: '/', lastmod, changefreq: 'daily', priority: 1.0 },
-    ...Object.entries(STATIC_PAGES).map(([path, p]) => ({
+    ...Object.entries(STATIC_PAGES).filter(([path]) => !isGatedPath(path)).map(([path, p]) => ({
       path,
       lastmod: path === '/this-week' ? lastmod : null,
       changefreq: p.changefreq,
