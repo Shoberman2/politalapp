@@ -13,7 +13,10 @@ vi.mock('../../src/services/floorVotes', async (importOriginal) => ({
   ...(await importOriginal()), getRecentFloorVotes: services.getRecentFloorVotes,
 }))
 
+import { HelmetProvider } from 'react-helmet-async'
 import ThisWeekOnFloor, { weekLabel } from '../../src/components/ThisWeekOnFloor'
+import ThisWeekPage from '../../src/components/ThisWeekPage'
+import { STATIC_PAGES } from '../../api/_lib/staticPages.js'
 
 const SOURCE = 'https://docs.house.gov/floor/Default.aspx?date=2026-09-14'
 
@@ -131,5 +134,33 @@ describe('ThisWeekOnFloor', () => {
   it('formats week labels without a timezone shift', () => {
     expect(weekLabel('2026-09-14')).toBe('Sep 14')
     expect(weekLabel('2026-01-05')).toBe('Jan 5')
+  })
+})
+
+describe('ThisWeekPage', () => {
+  afterEach(cleanup)
+
+  it('uses the info-page hero and keeps its H1 and lede in step with staticPages', () => {
+    services.getFloorSchedule.mockReturnValue(pending())
+    services.getRecentFloorVotes.mockReturnValue(pending())
+    const { container } = render(
+      <HelmetProvider><MemoryRouter><ThisWeekPage /></MemoryRouter></HelmetProvider>
+    )
+    const hero = container.querySelector('.info-page.ip-wide .ip-hero')
+    expect(hero).not.toBeNull()
+    expect(hero.querySelector('.ip-kicker').textContent).toBe('119th Congress · updated daily')
+    const h1s = container.querySelectorAll('h1')
+    expect(h1s).toHaveLength(1)
+    expect(h1s[0].classList.contains('ip-title')).toBe(true)
+    expect(h1s[0].textContent).toBe(STATIC_PAGES['/this-week'].h1)
+    expect(hero.querySelector('.ip-lede').textContent.replace(/\s+/g, ' ').trim()).toBe(STATIC_PAGES['/this-week'].lede)
+    // The floor component sits outside .info-page so its row type is its own.
+    expect(container.querySelector('.info-page .twof')).toBeNull()
+    expect(container.querySelector('.twof-page-body .twof')).not.toBeNull()
+    // The page has its own title, so the component's kicker and H2 are off,
+    // and the page root is not a second <main>.
+    expect(container.querySelector('.twof-kicker, .twof-heading')).toBeNull()
+    expect(container.querySelector('main')).toBeNull()
+    expect(container.querySelector('.twof-page-body .twof').getAttribute('aria-label')).toBe('This week on the floor')
   })
 })
