@@ -3,6 +3,35 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.9.0.0] - 2026-10-06
+
+### Added
+
+- A free account now opens the app: your representatives, the Bills browser, the district map, the shutdown tracker, campaign-finance comparison and AI Congress ask you to sign in or create an account first, and bring you back to the page you wanted. Everything that is a public record stays open without an account: the members list, every member profile and record card, every bill and roll call, This week, the API and the MCP server.
+- The landing page shows three more things BallotWatch does, each from real data: "Ask your AI assistant" (an MCP transcript built from a real member's latest votes), "Built for agents and developers" (the real JSON for the latest roll call) and a short "For congressional offices" card that leads to the offices page.
+- The For offices page has its own design: a two-column opening with a mock office inbox built from the latest recorded vote, three numbered steps, a plain list of what it never does, the House CAO quote, and the sponsorship ask. All of its copy and legal wording is unchanged.
+
+### Changed
+
+- New type across the site: Inter for headlines and text, Geist Mono for numbers and labels. Bricolage Grotesque, Hanken Grotesk and the italic Instrument Serif accents are gone, along with every italic accent word inside a headline.
+- The top bar reads like a landing page: the logo sits at the left edge, four public links (How it works, This week, Members, For offices), then Sign in and Find my reps at the right edge. Bills left the bar. The light/dark toggle shows only when you are signed in.
+- The landing page dropped the dark "Now / Next / Never" concept band and the blue offices band. Under the ZIP field it now says exactly what is true: "No sign-up to look up. Your ZIP code never reaches our servers."
+- The sign-in page was rebuilt: one card, Sign in or Create your account, and a Google button that appears only when Google sign-in is switched on for the project. Signing up when email confirmation is on now tells you to check your email instead of sending you into the app without a session.
+- How it works shows its four steps as a 2 by 2 grid. This week opens with the same hero as the other info pages and names the current Congress automatically.
+- The FAQ, the privacy page and the terms say the same thing about accounts: what needs one, what never does, and that an account stores only an email and a password hash. The privacy page now describes the ZIP lookup correctly (a ZIP goes from your browser to Zippopotam.us; a street address goes to the Census Bureau; neither passes through our servers).
+
+### Fixed
+
+- The sign-in return path rejects backslash and control-character forms that browsers would have read as an outside address.
+- The account gate no longer waits on the profile lookup, so a slow or failed profile read cannot leave a page on "Loading" forever; signing out clears the device even when the network call fails; the sign-in page sends an already signed-in reader straight on.
+- The ZIP and street address you type are no longer printed to the browser console during a lookup.
+- The server-rendered masthead on member, bill and roll-call pages matches the React one (one button label, the public links, Sign in).
+- Landing and offices cards no longer shimmer forever when a fetch fails; they say the data is not available.
+- The offices page reuses the landing's recent-votes result instead of fetching it again.
+- Roll-call pages lead back to This week and bill pages back to the homepage, instead of to the Bills browser that now asks for an account.
+- Opening an email confirmation link on a different device now says the email is confirmed and asks you to sign in there, instead of showing an error. Sign-in tokens are no longer accepted from a link's hash.
+- A gated address spelled with percent-encoding or extra slashes no longer slips past the sign-in.
+
 ## [0.8.1.1] - 2026-10-06
 
 ### Removed
