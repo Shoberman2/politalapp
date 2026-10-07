@@ -233,7 +233,7 @@ describe('Landing — "See every vote" step', () => {
 })
 
 describe('Landing — record-first hero (2026-10 redesign)', () => {
-  it('shows the latest real tallied vote under the lookup, with links to the record and to Tell your rep', async () => {
+  it('shows the latest real votes under the lookup as a ticker, each linking to its roll call', async () => {
     services.getRecentFloorVotes.mockResolvedValue({
       votes: [untallied(207), untallied(208), tallied(281, '8800', 216, 214)],
       recordedThrough: '2026-07-24',
@@ -242,26 +242,25 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     const { container } = renderLanding()
 
     await waitFor(() => {
-      expect(container.querySelector('.hero .hv-card .hv-bill')).not.toBeNull()
+      expect(container.querySelector('.hero .floor-ticker .ft-bill')).not.toBeNull()
     })
-    const card = container.querySelector('.hero .hv-card')
-    expect(within(card).getByText('H.R. 8800')).toBeTruthy()
-    expect(card.querySelector('.hv-counts').textContent).toMatch(/216 yea.*214 nay/)
-    expect(card.querySelector('.hv-tally').getAttribute('aria-label')).toBe('216 yea, 214 nay')
-    const hrefs = [...card.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    const group = container.querySelector('.hero .floor-ticker .ft-group:not([aria-hidden])')
+    expect(within(group).getByText('H.R. 8800')).toBeTruthy()
+    expect(within(group).getByText('216–214')).toBeTruthy()
+    const hrefs = [...group.querySelectorAll('a')].map((a) => a.getAttribute('href'))
     expect(hrefs).toContain('/vote/119/house/2/281')
-    expect(hrefs).toContain('/vote/119/house/2/281#tell-your-rep')
   })
 
-  it('renders no hero card at all when there is no recorded vote, never an invented one', async () => {
+  it('renders no ticker items when there is no recorded vote, never an invented one', async () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
 
     const { container } = renderLanding()
 
     await waitFor(() => {
-      expect(container.querySelector('.hero .hv-card .mk-skel')).toBeNull()
+      expect(container.querySelector('.hero .floor-ticker .mk-skel')).toBeNull()
     })
-    expect(container.querySelector('.hero .hv-card')).toBeNull()
+    expect(container.querySelector('.hero .floor-ticker .ft-item')).toBeNull()
+    expect(container.querySelector('.hero .floor-ticker .mk-unavailable')).not.toBeNull()
   })
 
   it('has no video on the page', () => {
