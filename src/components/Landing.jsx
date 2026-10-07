@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
@@ -45,11 +45,62 @@ function resultKindOf(result) {
 
 const NO_VOTE = 'No recorded vote available right now.'
 const NO_RECORD = 'The record could not be loaded right now.'
+// The hero ticker: at most this many votes, and at least this long a loop.
+const TICKER_MAX = 12
+const TICKER_SECONDS_PER_ITEM = 7
+const TICKER_MIN_SECONDS = 40
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+
+const reducedMotionQuery = () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  ? window.matchMedia(REDUCED_MOTION)
+  : null)
+
+// True when the reader asked for less motion; follows the setting live. Older
+// Safari only has the deprecated addListener/removeListener pair.
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(() => !!reducedMotionQuery()?.matches)
+  useEffect(() => {
+    const mq = reducedMotionQuery()
+    if (!mq) return undefined
+    const onChange = (e) => setReduced(!!e.matches)
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', onChange)
+      return () => mq.removeEventListener('change', onChange)
+    }
+    if (typeof mq.addListener === 'function') {
+      mq.addListener(onChange)
+      return () => mq.removeListener(onChange)
+    }
+    return undefined
+  }, [])
+  return reduced
+}
+
+// Copies of the ticker list needed for a seamless loop: the track shifts by
+// one copy, so the copies must cover the viewport plus one copy. Never fewer
+// than two (also the answer when nothing can be measured).
+function tickerCopies(viewportWidth, copyWidth) {
+  if (!(viewportWidth > 0) || !(copyWidth > 0)) return 2
+  return Math.max(2, Math.ceil(viewportWidth / copyWidth) + 1)
+}
+
+// The ticker item's accessible name, e.g. "House roll call 412, H.R. 9340:
+// A bill to fund the parks, 215 to 210, Passed". Missing parts are left out.
+function tickerItemLabel(v, subject) {
+  const roll = v.chamber && v.number != null ? `${v.chamber} roll call ${v.number}`
+    : v.chamber ? v.chamber
+      : v.number != null ? `Roll call ${v.number}` : null
+  const clean = subject ? subject.replace(/[\s.,;:]+$/, '') : subject
+  const about = v.bill?.display ? (clean ? `${v.bill.display}: ${clean}` : v.bill.display) : clean
+  const tally = v.yea != null && v.nay != null ? `${v.yea} to ${v.nay}` : null
+  return [roll, about, tally, v.result].filter(Boolean).join(', ')
+}
 
 function fromFloorVote(v) {
   return {
     key: v.id,
     chamber: v.chamber,
+    number: v.number ?? null,
     rollLabel: v.number != null ? `Roll Call ${v.number}` : null,
     voteHref: rollCallHref(v.id),
     bill: v.bill,
@@ -66,30 +117,19 @@ function fromFloorVote(v) {
 }
 
 // "Motion to Invoke Cloture on the Motion to Proceed to H.R. 9340; A bill to
-// amend…" reads as procedure first. Split it into what the vote was about (the
-// bill's own words) and a plain line for the step being voted on.
-function plainStep(question) {
-  const q = String(question || '').toLowerCase()
-  if (q.includes('cloture') && q.includes('proceed')) return 'Vote to end debate on taking up the bill'
-  if (q.includes('cloture')) return 'Vote to end debate'
-  if (q.includes('suspend the rules')) return 'Vote to pass under a fast-track rule (two-thirds needed)'
-  if (q.includes('override') || q.includes('veto')) return 'Vote to override a veto'
-  if (q.includes('motion to proceed')) return 'Vote to take up the bill'
-  if (q.includes('recommit')) return 'Vote to send the bill back to committee'
-  if (q.includes('passage') || q.includes('on the bill')) return 'Vote on final passage'
-  if (q.includes('nomination')) return 'Vote on a nomination'
-  if (q.includes('amendment')) return 'Vote on an amendment'
-  if (q.includes('resolution')) return 'Vote on the resolution'
-  return question || 'Recorded vote'
-}
-
-function voteSubject(v) {
+// amend…" reads as procedure first. Keep what the vote was about: the bill's
+// own words after the semicolon, else the description, else the question.
+// Long subjects are cut at a word boundary to at most `max` characters,
+// ellipsis included, without a dangling comma, semicolon or colon.
+function voteSubject(v, max = 110) {
   const desc = String(v.description || '')
   const after = desc.includes(';') ? desc.slice(desc.indexOf(';') + 1).trim() : ''
   const text = after || desc || v.question || ''
-  if (text.length <= 110) return text
-  const cut = text.slice(0, 110)
-  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:]$/, '')}…`
+  if (text.length <= max) return text
+  const cut = text.slice(0, max)
+  const space = cut.lastIndexOf(' ')
+  const head = space > 0 ? cut.slice(0, space) : cut.slice(0, max - 1)
+  return `${head.trimEnd().replace(/[,;:]$/, '')}…`
 }
 
 function fromBill(b) {
@@ -128,6 +168,14 @@ function Landing() {
   const [votesReady, setVotesReady] = useState(false)
   const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
+  const reducedMotion = usePrefersReducedMotion()
+  // The hero ticker: paused by the reader's Pause control; focused while a
+  // link inside it has keyboard focus (the strip stops and scrolls instead).
+  const [tickerPaused, setTickerPaused] = useState(false)
+  const [tickerFocused, setTickerFocused] = useState(false)
+  const [tickerCopyCount, setTickerCopyCount] = useState(2)
+  const tickerViewportRef = useRef(null)
+  const tickerGroupRef = useRef(null)
   const [featuredMembers, setFeaturedMembers] = useState([])
   const [featuredBill, setFeaturedBill] = useState(null)
   const [featuredRecord, setFeaturedRecord] = useState(null)
@@ -456,6 +504,96 @@ function Landing() {
   // latest vote with a roll-call page and anything to show. Never invented.
   const headlineRaw = pickHeadlineVote(floorVotes)
   const headlineVote = headlineRaw ? fromFloorVote(headlineRaw) : null
+  // The hero ticker: the recorded votes newest first (the service order), only
+  // ones with a roll-call page to link to. Real data only; never padded.
+  const tickerVotes = floorVotes
+    .filter(hasSomethingToShow)
+    .map(fromFloorVote)
+    .filter((v) => v.voteHref)
+    .slice(0, TICKER_MAX)
+  // Seconds for the track to move by one copy of the list.
+  const tickerSeconds = Math.max(TICKER_MIN_SECONDS, TICKER_SECONDS_PER_ITEM * tickerVotes.length)
+  const tickerRolling = votesReady && tickerVotes.length > 0 && !reducedMotion
+  const tickerKeys = tickerVotes.map((v) => v.key).join('|')
+  // Measure one copy against the viewport so even a one-vote list covers the
+  // strip with no gap; re-measured when either changes size.
+  useLayoutEffect(() => {
+    if (!tickerRolling) return undefined
+    const measure = () => {
+      const viewport = tickerViewportRef.current
+      const group = tickerGroupRef.current
+      if (!viewport || !group) return
+      setTickerCopyCount(tickerCopies(viewport.getBoundingClientRect().width, group.getBoundingClientRect().width))
+    }
+    measure()
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(measure)
+      if (tickerViewportRef.current) ro.observe(tickerViewportRef.current)
+      if (tickerGroupRef.current) ro.observe(tickerGroupRef.current)
+      return () => ro.disconnect()
+    }
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [tickerRolling, tickerKeys])
+  const tickerCopiesShown = reducedMotion ? 1 : tickerCopyCount
+  // The track renders the list `tickerCopiesShown` times back to back and
+  // shifts by one copy (--ft-shift), so the loop is seamless; every copy after
+  // the first is hidden from assistive tech and the tab order.
+  const renderTickerGroup = (index) => {
+    const copy = index > 0
+    return (
+      <div
+        className="ft-group"
+        aria-hidden={copy ? 'true' : undefined}
+        key={copy ? `copy-${index}` : 'main'}
+        ref={copy ? undefined : tickerGroupRef}
+      >
+        {tickerVotes.map((v) => {
+          const subject = voteSubject(v, 72)
+          const roll = [v.chamber, v.number != null ? `Roll ${v.number}` : null].filter(Boolean).join(' · ')
+          return (
+            <Link
+              className="ft-item"
+              to={v.voteHref}
+              key={v.key}
+              tabIndex={copy ? -1 : undefined}
+              aria-label={tickerItemLabel(v, subject)}
+            >
+              {roll && <span className="ft-roll">{roll}</span>}
+              {v.bill?.display && <span className="ft-bill">{v.bill.display}</span>}
+              <span className="ft-subject">{subject}</span>
+              {v.tally && <span className="ft-tally">{v.tally}</span>}
+              {v.result && <span className={`fr-result ${v.resultKind}`}>{v.result}</span>}
+            </Link>
+          )
+        })}
+      </div>
+    )
+  }
+  // Keyboard focus on a ticker link stops the strip and lets the browser
+  // scroll the focused link into view; leaving resets the scroll.
+  // Only KEYBOARD focus counts: a mouse press also focuses the link, and
+  // snapping the track back to offset 0 between mousedown and mouseup would
+  // move a different link under the pointer and swallow the click.
+  // A pointer press sets a flag for the rest of this task; the focus event it
+  // raises is then ignored, so only Tab (or script) focus counts.
+  const tickerPointerRef = useRef(false)
+  const onTickerPointerDown = () => {
+    tickerPointerRef.current = true
+    setTimeout(() => { tickerPointerRef.current = false }, 0)
+  }
+  const onTickerFocus = (e) => {
+    if (!e.target.closest?.('a.ft-item')) return
+    if (tickerPointerRef.current) return
+    setTickerFocused(true)
+  }
+  const onTickerBlur = (e) => {
+    const next = e.relatedTarget
+    const stillOnLink = next && e.currentTarget.contains(next) && next.closest?.('a.ft-item')
+    if (stillOnLink) return
+    if (tickerViewportRef.current) tickerViewportRef.current.scrollLeft = 0
+    setTickerFocused(false)
+  }
   const recordedLabel = recordedThrough
     ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
     : null
@@ -667,46 +805,60 @@ function Landing() {
           <p className="hero-mission">{BRAND.mission}</p>
 
           {renderLookup('hero')}
+        </div>
 
-          <div className="headline-vote" aria-live="polite">
-            {!votesReady ? (
-              <div className="hv-card" aria-hidden="true">
-                <span className="mk-skel" style={{ width: 160, maxWidth: 'none' }} />
-                <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', height: 18, marginTop: 10 }} />
-                <span className="mk-skel" style={{ width: 120, maxWidth: 'none', marginTop: 12 }} />
-              </div>
-            ) : headlineVote ? (
-              <div className="hv-card">
-                <div className="hv-meta">
-                  {[headlineVote.chamber, headlineVote.votedAt && new Date(headlineVote.votedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }), headlineVote.rollLabel]
-                    .filter(Boolean).join(' · ')}
-                </div>
-                {headlineVote.bill && <span className="hv-bill">{headlineVote.bill.display}</span>}
-                <p className="hv-text">{voteSubject(headlineVote)}</p>
-                <p className="hv-step">
-                  {plainStep(headlineVote.question)}
-                  {headlineVote.result && <span className={`fr-result ${headlineVote.resultKind}`}>{headlineVote.result}</span>}
-                </p>
-                {headlineVote.yea != null && headlineVote.nay != null && (headlineVote.yea + headlineVote.nay) > 0 && (
-                  <div className="hv-tally" aria-label={`${headlineVote.yea} yea, ${headlineVote.nay} nay`}>
-                    <div className="hv-bar">
-                      <span className="hv-yea" style={{ width: `${(100 * headlineVote.yea) / (headlineVote.yea + headlineVote.nay)}%` }} />
-                    </div>
-                    <div className="hv-counts">
-                      <span><b>{headlineVote.yea}</b> yea</span>
-                      <span><b>{headlineVote.nay}</b> nay</span>
-                    </div>
-                  </div>
-                )}
-                <div className="hv-links">
-                  <Link className="btn-text btn-go" to={headlineVote.voteHref}>See how each member voted</Link>
-                  <Link className="btn-text btn-go" to={`${headlineVote.voteHref}#tell-your-rep`}>Write to your rep about it</Link>
-                </div>
-              </div>
-            ) : (
-              <p className="mk-unavailable">{NO_VOTE}</p>
+        {/* The latest recorded votes as a news ticker that rolls left (the only
+            continuously scrolling content on the site, loading indicators
+            aside; DESIGN.md, 2026-10-06). */}
+        <div
+          className={`floor-ticker${tickerPaused ? ' is-paused' : ''}${tickerFocused ? ' is-focused' : ''}`}
+          role="region"
+          aria-label="Latest recorded votes"
+          onPointerDownCapture={onTickerPointerDown}
+          onMouseDownCapture={onTickerPointerDown}
+          onFocus={onTickerFocus}
+          onBlur={onTickerBlur}
+        >
+          <div className="ft-label">
+            <span className="ft-label-long">Latest recorded votes</span>
+            <span className="ft-label-short">Latest votes</span>
+            {tickerRolling && (
+              <button
+                type="button"
+                className="ft-pause"
+                onClick={() => setTickerPaused((p) => !p)}
+              >
+                {tickerPaused ? 'Play' : 'Pause'}
+              </button>
             )}
           </div>
+          {!votesReady ? (
+            <div className="ft-viewport">
+              <div className="ft-track ft-static" aria-hidden="true">
+                {[0, 1, 2].map((i) => (
+                  <span className="ft-item ft-skel" key={i}>
+                    <span className="mk-skel" style={{ width: 92, maxWidth: 'none', height: 10 }} />
+                    <span className="mk-skel" style={{ width: 260, maxWidth: 'none', height: 12 }} />
+                    <span className="mk-skel" style={{ width: 44, maxWidth: 'none', height: 10 }} />
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : tickerVotes.length ? (
+            <div className="ft-viewport" ref={tickerViewportRef}>
+              <div
+                className={`ft-track${reducedMotion ? ' ft-static' : ''}`}
+                style={reducedMotion ? undefined : {
+                  animationDuration: `${tickerSeconds}s`,
+                  '--ft-shift': `${-(100 / tickerCopiesShown)}%`,
+                }}
+              >
+                {Array.from({ length: tickerCopiesShown }, (_, i) => renderTickerGroup(i))}
+              </div>
+            </div>
+          ) : (
+            <p className="mk-unavailable ft-empty">{NO_VOTE}</p>
+          )}
         </div>
       </section>
 

@@ -3,6 +3,12 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.9.1.0] - 2026-10-06
+
+### Changed
+
+- The latest-vote card under the ZIP field is now a ticker: the most recent recorded votes roll leftward across the full width of the page, each with its chamber and roll number, bill, subject, tally and result, linking to the roll call. It pauses when you hover or tab into it, and stays still for readers who prefer reduced motion.
+
 ## [0.9.0.0] - 2026-10-06
 
 ### Added
