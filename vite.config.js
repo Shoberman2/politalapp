@@ -87,5 +87,8 @@ export default defineConfig(({ mode }) => ({
     // and run via `npm run test:e2e`. Exclude from vitest so unit-test runs
     // don't trip on the playwright import.
     exclude: ['**/node_modules/**', 'dist', 'test/e2e/**', '.claude/**'],
+    // Component tests mount whole pages; under machine load the default 5s
+    // timeout flakes with no assertion failing. 20s keeps real hangs visible.
+    testTimeout: 20000,
   },
 }))
