@@ -76,6 +76,8 @@
   -webkit-mask: url('/capitol-logo.svg') center / contain no-repeat;
   mask: url('/capitol-logo.svg') center / contain no-repeat;
   forced-color-adjust: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .bw .brand-mark img { display: none; }
 @media (forced-colors: active) {
