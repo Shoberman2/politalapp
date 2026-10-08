@@ -64,14 +64,28 @@
   border: none;
   padding: 0;
 }
+/* The Capitol mark stands on its own, no tile. The SVG is a mask filled
+   with --ink, so it matches the wordmark in both themes; the <img> stays in
+   the markup (alt="") but is not drawn. forced-color-adjust keeps the mark
+   in high-contrast modes, where it takes CanvasText. */
 .bw .brand-mark {
-  width: 28px; height: 28px;
-  display: grid; place-items: center;
-  background: var(--ink);
-  border-radius: var(--r-sm);
+  display: block;
+  width: 36px;
+  height: 20px;
+  background-color: var(--ink);
+  -webkit-mask: url('/capitol-logo.svg') center / contain no-repeat;
+  mask: url('/capitol-logo.svg') center / contain no-repeat;
+  forced-color-adjust: none;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
-.bw .brand-mark img { width: 20px; height: 20px; }
-[data-theme="dark"] .bw .brand-mark img { filter: invert(1); }
+.bw .brand-mark img { display: none; }
+@media (forced-colors: active) {
+  .bw .brand-mark { background-color: CanvasText; }
+}
+@media (max-width: 400px) {
+  .bw .brand-mark { width: 30px; height: 17px; }
+}
 .bw .brand-name {
   font-family: var(--display);
   font-size: 18px;
