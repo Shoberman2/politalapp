@@ -8,7 +8,7 @@
 
 ## Aesthetic Direction
 - **Direction:** Editorial/Magazine — the feeling of a well-designed broadsheet newspaper covering Congress, not a government database or SaaS dashboard
-- **Decoration level:** Intentional — subtle warm grain texture on hero sections, thin rule lines as dividers (newspaper-style), generous whitespace. No gradients, no blobs, no decorative illustrations.
+- **Decoration level:** Intentional — thin rule lines as dividers (newspaper-style), generous whitespace. No gradients, no blobs, no decorative illustrations. One scoped exception: the landing hero's Capitol photograph under a dark gradient scrim (see the 2026-10-07 decision).
 - **Mood:** Authoritative but approachable. Typography does the heavy lifting. Clean, confident, serious content presented with care. The user should feel: "This is unexpectedly well-designed for a civic tool, and therefore I trust it more."
 - **Reference sites:** GovTrack (functional but dated), Quorum (enterprise SaaS), Open States/Plural (transitioning to B2B). BallotWatch deliberately departs from all of these by treating civic data as editorial content, not database output.
 
