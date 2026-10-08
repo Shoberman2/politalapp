@@ -29,15 +29,24 @@
 /* no bottom rule: the floor ticker is the hero's last element and draws it */
 /* The question sits over a real photograph of the U.S. Capitol (Pexels, free
    license; the frame the retired hero film opened on). A still, not motion.
-   The scrim darkens the sky behind the text and deepens toward the ticker so
-   white type holds AA contrast in both themes. */
+   The scrim keeps at least 0.62 over the dome and sky, where the photo is
+   near white, and deepens toward the ticker; with the soft shadow under the
+   lines, the white type stays above 4.5:1 in both themes. Phones get a 720px
+   copy of the same frame. */
 .landing .hero {
   background-color: #1a1d22;
   background-image:
-    linear-gradient(180deg, rgba(12, 14, 18, 0.62) 0%, rgba(12, 14, 18, 0.5) 45%, rgba(12, 14, 18, 0.78) 100%),
+    linear-gradient(180deg, rgba(12, 14, 18, 0.66) 0%, rgba(12, 14, 18, 0.62) 45%, rgba(12, 14, 18, 0.8) 100%),
     url('/hero-capitol.jpg');
   background-size: cover;
   background-position: center 38%;
+}
+@media (max-width: 640px) {
+  .landing .hero {
+    background-image:
+      linear-gradient(180deg, rgba(12, 14, 18, 0.66) 0%, rgba(12, 14, 18, 0.62) 45%, rgba(12, 14, 18, 0.8) 100%),
+      url('/hero-capitol-720.jpg');
+  }
 }
 .landing .hero-inner {
   max-width: 820px;
@@ -62,17 +71,35 @@
   font-family: var(--sans);
   font-size: 17px;
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
   text-wrap: pretty;
 }
+/* the server-rendered home (api/_lib/renderHome.js) adds this line under the
+   mission inside the same hero */
+.landing .hero .home-about {
+  max-width: 34rem;
+  margin: 12px auto 0;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+/* The ZIP field stays a white surface over the photo in both themes, so its
+   own tokens are pinned to the light values. */
 .landing .hero .lookup-form {
+  --surface: #FFFFFF;
+  --ink: #1A1A18;
+  --ink-3: #6B6861;
+  background: var(--surface);
   border-color: transparent;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
 }
 .landing .hero .lookup-form:focus-within {
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.28), 0 12px 40px rgba(0, 0, 0, 0.28);
 }
-.landing .hero .lookup-hint { color: rgba(255, 255, 255, 0.78); }
+.landing .hero .lookup-hint {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
 
 /* the latest recorded votes, a full-bleed ticker rolling left under the
    lookup. The only continuously scrolling content on the site (loading
