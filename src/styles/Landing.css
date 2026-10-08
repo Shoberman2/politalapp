@@ -31,8 +31,9 @@
    license; the frame the retired hero film opened on). A still, not motion.
    The scrim keeps at least 0.62 over the dome and sky, where the photo is
    near white, and deepens toward the ticker; with the soft shadow under the
-   lines, the white type stays above 4.5:1 in both themes. Phones get a 720px
-   copy of the same frame. */
+   lines, the white type stays above 4.5:1 in both themes. Phones get an
+   810x810 center crop of the same frame: the same height, so the same
+   sharpness under `cover`, at about half the bytes. */
 .landing .hero {
   background-color: #1a1d22;
   background-image:
@@ -45,7 +46,7 @@
   .landing .hero {
     background-image:
       linear-gradient(180deg, rgba(12, 14, 18, 0.66) 0%, rgba(12, 14, 18, 0.62) 45%, rgba(12, 14, 18, 0.8) 100%),
-      url('/hero-capitol-720.jpg');
+      url('/hero-capitol-square.jpg');
   }
 }
 .landing .hero-inner {
@@ -83,9 +84,11 @@
   color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 }
-/* The ZIP field stays a white surface over the photo in both themes, so its
-   own tokens are pinned to the light values. */
+/* The ZIP field stays a white surface over the photo in both themes: its
+   own tokens and color-scheme are pinned light (so autofill and selection
+   stay light too), with the placeholder at --ink-2 for contrast on white. */
 .landing .hero .lookup-form {
+  color-scheme: light;
   --surface: #FFFFFF;
   --ink: #1A1A18;
   --ink-3: #6B6861;
