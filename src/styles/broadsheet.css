@@ -64,14 +64,14 @@
   border: none;
   padding: 0;
 }
+/* The Capitol mark stands on its own, no tile: the SVG is drawn in white, so
+   light theme darkens it to ink and dark theme keeps it white. */
 .bw .brand-mark {
-  width: 28px; height: 28px;
-  display: grid; place-items: center;
-  background: var(--ink);
-  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
 }
-.bw .brand-mark img { width: 20px; height: 20px; }
-[data-theme="dark"] .bw .brand-mark img { filter: invert(1); }
+.bw .brand-mark img { display: block; width: 36px; height: auto; filter: brightness(0); }
+[data-theme="dark"] .bw .brand-mark img { filter: none; }
 .bw .brand-name {
   font-family: var(--display);
   font-size: 18px;
