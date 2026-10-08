@@ -3,6 +3,13 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.9.2.0] - 2026-10-07
+
+### Changed
+
+- The landing page opens over a photograph of the U.S. Capitol: the question, the mission line and the ZIP lookup sit on a darkened still of the real building, with the latest-votes ticker closing the photo. The text stays readable in light and dark themes, the ZIP box stays white in both, and phones load a smaller square crop of the same photo.
+- The Capitol logo in the top bar no longer sits in a black square: the building itself is the mark, dark on the light page and white in dark mode.
+
 ## [0.9.1.0] - 2026-10-06
 
 ### Changed
