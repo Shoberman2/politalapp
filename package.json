@@ -29,20 +29,20 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "@stripe/stripe-js": "^8.7.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "@vercel/analytics": "^1.6.1",
-    "@vercel/og": "^0.11.1",
-    "axios": "^1.6.7",
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@stripe/stripe-js": "^10.0.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/og": "^1.0.3",
+    "axios": "^1.20.0",
     "d3-geo": "^3.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-helmet-async": "^2.0.5",
-    "react-router-dom": "^6.22.0",
-    "react-simple-maps": "^3.0.0",
-    "stripe": "^22.0.1",
-    "zod": "^3.25.76"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-helmet-async": "^3.0.0",
+    "react-router-dom": "^7.18.4",
+    "react-simple-maps": "^5.0.5",
+    "stripe": "^23.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
