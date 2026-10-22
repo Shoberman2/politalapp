@@ -39,16 +39,18 @@ export const PROXY_SERVICES = {
     envKeys: ['CONGRESS_API_KEY', 'VITE_CONGRESS_API_KEY'],
     fallbackKey: null,
     // Exactly the query parameters the browser clients send (congress.js,
-    // district.js, shutdown.js). `format` is not listed: it is always forced
+    // district.js, shutdown.js) and the iOS app (CongressAPI.swift). `format` is not listed: it is always forced
     // to json server-side.
     params: ['limit', 'offset', 'currentMember', 'sort'],
     forced: { format: 'json' },
     clamp: { limit: [1, 250], offset: [0, 100_000] },
     // /member, /member/:id, /member/:id/sponsored-legislation,
+    // /member/congress/:congress/:state[/:district] (the iOS app's district lookup),
     // /bill[/:congress[/:type[/:number[/summaries|text|cosponsors|committees|actions]]]],
     // /house-vote/:congress[/...], /vote/:congress/:chamber/:roll (recordedVotes urls).
     allow: [
       new RegExp(`^/member(?:/${SEGMENT}(?:/sponsored-legislation)?)?/?$`),
+      /^\/member\/congress\/\d{2,3}\/[A-Za-z]{2}(?:\/\d{1,2})?\/?$/,
       new RegExp(`^/bill(?:/\\d{2,3}(?:/[a-z]{1,8}(?:/\\d{1,6}(?:/(?:summaries|text|cosponsors|committees|actions))?)?)?)?/?$`),
       new RegExp(`^/house-vote(?:/${SEGMENT}){1,4}/?$`),
       new RegExp(`^/vote(?:/${SEGMENT}){1,4}/?$`),
