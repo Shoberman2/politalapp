@@ -15,6 +15,7 @@ import {
   recordSummary, recordDate, recordOgImagePath,
 } from '../../shared/memberRecord.js'
 import { DEFAULT_SIGNED_IN_PATH } from '../../shared/access.js'
+import { explanationSourceLine } from '../../shared/billExplainer.js'
 
 export const ordinal = congressOrdinal
 
@@ -395,6 +396,13 @@ export function billJsonLd(b) {
   ]
 }
 
+function renderExplanation(e) {
+  if (!e) return ''
+  const src = safeUrl(e.source?.url)
+  const points = (e.keyPoints || []).map((k) => `<li>${escapeHtml(k)}</li>`).join('')
+  return `<section class="bill-ai-card"><div class="bill-ai-label">The bill, in plain English</div><p class="bill-ai-byline">${escapeHtml(explanationSourceLine(e.source))}${src ? ` <a href="${src}" target="_blank" rel="noopener noreferrer">Read the text ↗</a>` : ''}</p><div class="bill-ai-prose"><p>${escapeHtml(e.summary)}</p>${(e.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join('')}</div>${points ? `<h3 class="bill-ai-points-title">What it does</h3><ul class="bill-ai-points">${points}</ul>` : ''}</section>`
+}
+
 export function renderBillBody(b) {
   const votes = b.rollCalls.map((r) => {
     const p = rollCallPath(r.id)
@@ -412,10 +420,11 @@ export function renderBillBody(b) {
     <div class="bill-masthead-actions">${src ? `<a class="bill-action-btn" href="${src}" target="_blank" rel="noopener noreferrer">Congress.gov ↗</a>` : ''}</div>
   </header>
   <div class="bill-layout"><div class="bill-main">
+    ${renderExplanation(b.explanation)}
     ${b.summary ? `<section class="bill-editorial-section"><div class="bill-section-label">${b.crs_summary ? 'Official CRS summary' : 'Summary'}</div><div class="bill-summary-body">${escapeHtml(b.summary).split(/\n{2,}/).map((p) => `<p>${p}</p>`).join('')}</div></section>` : ''}
     <section class="bill-editorial-section"><div class="bill-section-label">Floor votes</div><h2 class="bill-section-title">How the chambers voted</h2>${votes ? `<ul class="bill-tally-grid">${votes}</ul>` : '<p>No recorded floor vote yet.</p>'}</section>
   </div></div>
-  <footer class="rc-colophon">Data from Congress.gov. Summaries are the official CRS text. ${b.updatedAt ? `Updated ${escapeHtml(fmtDate(b.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
+  <footer class="rc-colophon">Data from Congress.gov. Plain-English explanations are written by AI from the bill’s official text; summaries are the official CRS text. ${b.updatedAt ? `Updated ${escapeHtml(fmtDate(b.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
 </article>`)
 }
 

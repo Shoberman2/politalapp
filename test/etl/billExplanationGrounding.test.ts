@@ -10,6 +10,10 @@ const prewarmSource = readFileSync(
   resolve(process.cwd(), 'etl/preWarmBillExplanations.ts'),
   'utf8',
 );
+const explainerSource = readFileSync(
+  resolve(process.cwd(), 'shared/billExplainer.js'),
+  'utf8',
+);
 
 describe('bill explanation grounding contract', () => {
   it('never authorizes title-only inference in the Edge Function', () => {
@@ -25,12 +29,15 @@ describe('bill explanation grounding contract', () => {
     expect(edgeSource).toContain('officialBill.summary');
   });
 
-  it('pre-warms only bills with official CRS summaries using the same cache version', () => {
-    expect(prewarmSource).toMatch(/select\('id, title, crs_summary'\)/);
-    expect(prewarmSource).toMatch(/MODEL = 'official-crs'/);
-    expect(prewarmSource).toMatch(/PROMPT_VERSION = 1/);
+  it('pre-warms with the same explainer the site uses, which reads the bill and never the title alone', () => {
+    expect(prewarmSource).toContain("from '../shared/billExplainer.js'");
+    expect(prewarmSource).toMatch(/EXPLAINER_MODEL/);
     expect(prewarmSource).not.toMatch(/generateExplanationWithOpenAI/);
     expect(prewarmSource).not.toMatch(/Reason from the title/i);
+    expect(explainerSource).toContain('/text');
+    expect(explainerSource).toMatch(/if \(!sources\.text && !sources\.summary\) return \{ status: 'no_source' \}/);
+    expect(explainerSource).toMatch(/Never guess/);
+    expect(explainerSource).not.toMatch(/Reason from the title|most likely concrete effects/i);
   });
 
   it('renders official summary text without injecting remote HTML', () => {

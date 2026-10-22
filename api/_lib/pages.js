@@ -227,7 +227,7 @@ export async function getBillPage(billId) {
   const [{ data: bill }, { data: rcs }, { data: explanation }, updatedAt] = await Promise.all([
     supabaseAdmin.from('bills').select('id, title, introduced_at, summary, crs_summary, policy_area, source_url, sponsor_bioguide_id, sponsor_name, sponsor_party, sponsor_state, legislative_stage, updated_at').eq('id', id).maybeSingle(),
     supabaseAdmin.from('roll_calls').select('id, question, description, voted_at').eq('bill_id', id).order('voted_at', { ascending: false, nullsFirst: false }),
-    supabaseAdmin.from('bill_explanations').select('paragraphs, bill_title').eq('bill_key', id).eq('model', EXPLANATION_MODEL).eq('prompt_version', EXPLANATION_PROMPT_VERSION).maybeSingle(),
+    supabaseAdmin.from('bill_explanations').select('paragraphs, bill_title, key_points, source_kind, source_label, source_date, source_url').eq('bill_key', id).eq('model', EXPLANATION_MODEL).eq('prompt_version', EXPLANATION_PROMPT_VERSION).maybeSingle(),
     lastRun(),
   ])
   if (!bill) return null
@@ -268,6 +268,10 @@ export async function getBillPage(billId) {
     crs_summary: bill.crs_summary,
     summary,
     oneLiner,
+    // Written by AI from the bill's own text (shared/billExplainer.js).
+    explanation: explanationOk
+      ? { summary: oneLiner, paragraphs: (explanation.paragraphs || []).slice(1), keyPoints: explanation.key_points || [], source: { kind: explanation.source_kind, label: explanation.source_label, date: explanation.source_date, url: explanation.source_url } }
+      : null,
     explanationDiscarded: Boolean(oneLinerCandidate && !explanationOk),
     source_url: bill.source_url,
     rollCalls,

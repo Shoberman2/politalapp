@@ -3,6 +3,8 @@
 // `canonical`, `source_url`, and `data_updated_at` so an agent can cite it.
 
 import { supabaseAdmin } from './supabase.js'
+import { getOrCreateExplanation, explanationPayload } from './explanations.js'
+import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath, billLabel } from './pages.js'
 import { buildRollCallId, rollCallPath, voteSourceUrl } from './rollCallResult.js'
 import { geocodeAddress, geocodeZip } from './geocode.js'
@@ -209,19 +211,29 @@ export async function getBill({ id }) {
   }
 }
 
-// Cached, source-grounded explanation only. Never generates on demand.
+// Plain-English explanation written by AI from the bill's official text
+// (api/_lib/explanations.js). Read-only here: MCP calls share the general
+// API limit, not the per-IP generation limit, so writing one is left to the
+// bill page (GET /api/explain).
 export async function explainBill({ id }) {
   const billId = normalizeBillId(id)
   if (!billId) return { error: 'Bill id looks wrong. Use 119-hr-1 or "H.R. 1".' }
   const b = await getBillPage(billId)
   if (!b) return { error: `No bill ${billId}` }
+  const out = b.explanation ? null : await getOrCreateExplanation(b.id, { allowGenerate: false }).catch(() => null)
+  const e = b.explanation || (out?.status === 'ok' ? explanationPayload(out.row) : null)
   return {
     id: b.id,
     label: b.label,
     title: b.title,
-    plain_english: b.oneLiner || null,
+    plain_english: e ? { summary: e.summary, paragraphs: e.paragraphs, key_points: e.key_points || e.keyPoints || [] } : null,
+    explained_from: e ? { ...e.source, note: explanationSourceLine(e.source) } : null,
     official_summary: b.crs_summary || null,
-    note: b.oneLiner ? 'plain_english is an AI summary grounded in the official CRS summary; cite official_summary and source_url.' : 'No cached explanation. Use official_summary when present, otherwise the source_url.',
+    note: e
+      ? 'plain_english was written by AI from the official text named in explained_from. Cite source_url (Congress.gov) for anything legally precise.'
+      : out?.status === 'no_source'
+        ? 'Congress.gov has published no text or summary for this bill yet, so there is no explanation. Nothing is inferred from the title.'
+        : 'No plain-English explanation has been written for this bill yet. Use official_summary when present, otherwise the source_url.',
     canonical: `${SITE}${billPath(b.id)}`,
     source_url: b.source_url,
     data_updated_at: b.updatedAt,

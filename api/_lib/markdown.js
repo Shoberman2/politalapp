@@ -5,6 +5,7 @@ import { rollCallPath } from './rollCallResult.js'
 import { billPath, billLabel } from './pages.js'
 import { congressOrdinal as ord } from './billCard.js'
 import { SITE_ORIGIN as SITE } from './site.js'
+import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { recordHeadline, recordPath, recordSeatTitle } from '../../shared/memberRecord.js'
 
 function cell(s) {
@@ -105,6 +106,12 @@ export function billMarkdown(b) {
   lines.push(`- Canonical: ${SITE}${billPath(b.id)}`)
   if (b.source_url) lines.push(`- Source: ${b.source_url}`)
   if (b.updatedAt) lines.push(`- Data updated: ${b.updatedAt}`)
+  if (b.explanation) {
+    const e = b.explanation
+    lines.push('', '## In plain English', '', `_${explanationSourceLine(e.source)}${e.source?.url ? ` Text: ${e.source.url}` : ''}_`, '', e.summary)
+    for (const p of e.paragraphs || []) lines.push('', p)
+    if (e.keyPoints?.length) lines.push('', ...e.keyPoints.map((k) => `- ${k}`))
+  }
   if (b.summary) lines.push('', `## ${b.crs_summary ? 'Official CRS summary' : 'Summary'}`, '', b.summary.trim())
   lines.push('', '## Recorded votes', '')
   if (!b.rollCalls.length) lines.push('No recorded floor vote yet.')

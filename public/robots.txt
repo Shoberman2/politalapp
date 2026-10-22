@@ -25,6 +25,7 @@ Disallow: /api/metrics/
 Disallow: /api/og
 Disallow: /api/share
 Disallow: /api/prerender
+Disallow: /api/explain
 Disallow: /api/sitemap
 Disallow: /alerts
 Disallow: /developers/keys
