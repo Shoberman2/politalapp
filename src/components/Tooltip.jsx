@@ -1,36 +1,24 @@
-import { useState } from 'react'
+import { InfoDot } from './Term'
 import '../styles/Tooltip.css'
 
-function Tooltip({ text, children, tag: Tag = 'span' }) {
-  const [visible, setVisible] = useState(false)
+// Legacy names for a label with a one-off definition. Both now render the
+// shared ⓘ button from Term.jsx (tap, click, keyboard and hover all work);
+// prefer <Term id="..."> from the glossary for new code.
 
+function Tooltip({ text, children, tag: Tag = 'span' }) {
   return (
-    <Tag
-      className="tooltip-wrapper"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onClick={() => setVisible(v => !v)}
-    >
+    <Tag className="tooltip-wrapper">
       {children}
-      <span className="tooltip-icon">?</span>
-      {visible && <span className="tooltip-popup">{text}</span>}
+      <InfoDot def={text} label={typeof children === 'string' ? children : undefined} />
     </Tag>
   )
 }
 
-// Inline version — just underlines the text, no "?" icon
-function InfoTip({ text, children, tag: Tag = 'span' }) {
-  const [visible, setVisible] = useState(false)
-
+function InfoTip({ text, children, tag: Tag = 'span', className }) {
   return (
-    <Tag
-      className="infotip-wrapper"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onClick={() => setVisible(v => !v)}
-    >
+    <Tag className={['tooltip-wrapper', className].filter(Boolean).join(' ')}>
       {children}
-      {visible && <span className="tooltip-popup">{text}</span>}
+      <InfoDot def={text} label={typeof children === 'string' ? children : undefined} />
     </Tag>
   )
 }

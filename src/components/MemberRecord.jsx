@@ -21,6 +21,7 @@ import { toStateName } from '../utils/states'
 import SEO from './SEO'
 import '../styles/RollCall.css'
 import '../styles/MemberRecord.css'
+import Term, { InfoDot } from './Term'
 
 const SITE = 'https://www.ballotwatch.io'
 
@@ -161,7 +162,8 @@ export default function MemberRecord() {
           <h1 className="rec-name">{r.name}</h1>
           <div className="rec-seat">
             <span className={`rec-party rec-party-${party.toLowerCase()}`}>{party}</span>
-            {recordSeatTitle(r)} · {toStateName(r.state)}{r.district ? ` district ${r.district}` : ''} · {r.chamber === 'senate' ? 'Senate' : 'House'}
+            <InfoDot id="party" />{' '}
+            {recordSeatTitle(r)} · {toStateName(r.state)}{r.district ? <> <Term id="district">district</Term> {r.district}</> : ''} · {r.chamber === 'senate' ? 'Senate' : 'House'}
           </div>
           {r.servingSince && r.congress && (
             <div className="rec-since">Serving in the {ordinalCongress(r.congress)} Congress since <span className="rc-mono">{longDate(r.servingSince)}</span></div>
@@ -171,9 +173,9 @@ export default function MemberRecord() {
 
       {s ? (
         <dl className="rec-facts">
-          <div><dt>Roll calls, {ordinalCongress(s.congress)} Congress</dt><dd>{s.total}</dd></div>
-          <div><dt>Votes cast</dt><dd>{s.cast}</dd></div>
-          <div><dt>Not voting</dt><dd>{s.notVoting} <span className="rec-facts-sub">({s.notVotingPct}%)</span></dd></div>
+          <div><dt><Term id="rollCall">Recorded votes</Term>, {ordinalCongress(s.congress)} Congress</dt><dd>{s.total}</dd></div>
+          <div><dt>Times they voted</dt><dd>{s.cast}</dd></div>
+          <div><dt><Term id="notVoting">Not voting</Term></dt><dd>{s.notVoting} <span className="rec-facts-sub">({s.notVotingPct}%)</span></dd></div>
         </dl>
       ) : (
         <p className="rec-note">Vote totals for the current Congress are not available yet.</p>
@@ -190,7 +192,7 @@ export default function MemberRecord() {
             {r.thin && <p className="rec-note">{r.name} has {r.voteCount} recorded vote{r.voteCount === 1 ? '' : 's'} so far. All are shown.</p>}
             <div className="rc-table-wrap">
               <table className="rc-table rec-table">
-                <thead><tr><th>Date</th><th>Question</th><th>Vote</th><th>Result</th><th>Source</th></tr></thead>
+                <thead><tr><th>Date</th><th><Term id="question">What was voted on</Term></th><th>Their vote</th><th><Term id="voteResult">Result</Term></th><th>Source</th></tr></thead>
                 <tbody>
                   {r.recentVotes.map((v) => (
                     <tr key={v.roll_call_id}>

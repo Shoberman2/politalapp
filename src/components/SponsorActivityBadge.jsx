@@ -3,6 +3,7 @@ import { getSponsorActivity } from '../services/billsDb'
 import { CONGRESS_MAX } from '../utils/congressUtil'
 import { InfoTip } from './Tooltip'
 import '../styles/SponsorActivityBadge.css'
+import { InfoDot } from './Term'
 
 /**
  * Sponsor activity badge on PoliticianDetail (per cherry-pick D6, reframed
@@ -78,12 +79,12 @@ export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_M
         <dd className="sponsor-badge-stat">
           Introduced{' '}
           <span className="sponsor-badge-number">{data.count}</span>{' '}
-          bill{data.count !== 1 ? 's' : ''} this {congressLabel}.
+          bill{data.count !== 1 ? 's' : ''} this {congressLabel}.<InfoDot id="sponsor" />
           {!isFreshman && (
             <>
               {' '}
               <span className="sponsor-badge-median">
-                {data.chamber === 'senate' ? 'Senate' : 'House'} median:{' '}
+                Typical {data.chamber === 'senate' ? 'senator' : 'House member'}:{' '}
                 <span className="sponsor-badge-number-small">{data.chamberMedian}</span>.
               </span>
             </>
@@ -91,7 +92,7 @@ export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_M
         </dd>
       </dl>
       <small className="sponsor-badge-methodology">
-        <InfoTip text="Bill count includes messaging bills and resolutions. Effectiveness not measured.">
+        <InfoTip text="This counts every bill and resolution the member introduced, including ones mainly meant to make a point. It does not measure whether any of them passed.">
           {data.methodology}
         </InfoTip>
       </small>

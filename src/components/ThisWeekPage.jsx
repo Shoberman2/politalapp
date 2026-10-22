@@ -1,5 +1,6 @@
 import ThisWeekOnFloor from './ThisWeekOnFloor'
 import SEO from './SEO'
+import { InfoDot } from './Term'
 import { currentCongress } from '../../shared/openData.js'
 import { ordinalCongress } from '../../shared/memberRecord.js'
 import '../styles/InfoPage.css'
@@ -21,13 +22,13 @@ export default function ThisWeekPage() {
       <div className="info-page ip-wide">
         <section className="ip-hero">
           <div className="ip-inner">
-            <span className="ip-kicker">{ordinalCongress(currentCongress())} Congress · updated daily</span>
-            <h1 className="ip-title">This week on the floor</h1>
+            <span className="ip-kicker">{ordinalCongress(currentCongress())} Congress<InfoDot id="congressNumber" label={`${ordinalCongress(currentCongress())} Congress`} /> · updated daily</span>
+            <h1 className="ip-title">This week on the floor<InfoDot id="floor" /></h1>
             <p className="ip-lede">
-              What the House has scheduled for floor consideration, from the Majority Leader’s
-              weekly schedule on docs.house.gov, beside the roll-call votes Congress has most
-              recently recorded. A listing means a bill may come up that week; it is not a
-              promise of a vote, and the schedule names the week, not the day.
+              What the House plans to take up this week, from the weekly schedule its majority
+              leader publishes on docs.house.gov, next to the votes Congress has just recorded.
+              A listing means a bill may come up that week, not that it will, and the schedule
+              names the week, not the day.
             </p>
           </div>
         </section>

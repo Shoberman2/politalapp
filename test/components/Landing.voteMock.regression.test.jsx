@@ -215,7 +215,7 @@ describe('Landing — "See every vote" step', () => {
     const features = container.querySelectorAll('.features .feature')
     expect(features.length).toBe(8)
     expect([...features].map((f) => f.className.replace('feature feature-', ''))).toEqual(
-      ['find', 'votes', 'bills', 'record', 'write', 'mcp', 'agents', 'offices'])
+      ['find', 'bills', 'votes', 'record', 'write', 'mcp', 'agents', 'offices'])
     expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()

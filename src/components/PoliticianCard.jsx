@@ -4,6 +4,7 @@ import { isFavorite, toggleFavorite } from '../services/userService'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import RecordLink from './RecordLink'
 import '../styles/PoliticianCard.css'
+import { InfoDot } from './Term'
 
 function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) {
   const navigate = useNavigate()
@@ -86,6 +87,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
           >
             {partyAbbr}
           </div>
+          <InfoDot id="party" />
 
           {showFavorite && (
             <button

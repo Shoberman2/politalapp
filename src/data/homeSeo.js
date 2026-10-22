@@ -29,8 +29,8 @@ export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan rec
 // records); the renderer fills it in or falls back.
 export const HOME_FEATURES = [
   { id: 'find', title: 'Know who speaks for you.', body: 'Your address finds your House member and both senators, from U.S. Census district data. A ZIP code alone finds your senators.', href: '/my-representative', label: 'Save my reps (free account)' },
-  { id: 'votes', title: 'See exactly how they voted.', body: 'Every roll call, this week’s and every one before it, with each member’s yea or nay linked to the official record.', href: '/this-week', label: 'This week on the floor' },
-  { id: 'bills', title: 'Bills in plain English.', body: 'What a bill would actually change and who it affects, written from the official summary, with the full text one click away.', href: '/bills', label: 'Browse bills (free account)' },
+  { id: 'bills', title: 'Every bill, explained in plain English.', body: 'Bills are written in dense legal language. We read each one and explain it in a few everyday sentences: what it would change and who it affects, written with AI from the bill’s own text, never guessed from its title. Confusing words get an ⓘ you can tap, and the full official text is one click away.', href: '/bills', label: 'Browse bills (free account)' },
+  { id: 'votes', title: 'See exactly how they voted.', body: 'Every recorded vote (a roll call), this week’s and every one before it, with each member’s yes or no linked to the official record.', href: '/this-week', label: 'This week on the floor' },
   { id: 'record', title: 'Any record in 60 seconds.', body: 'The same one-screen card for every member: votes cast, votes missed, and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
   { id: 'write', title: 'Then write to the person who cast it.', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', href: '/how-it-works', label: 'How Tell your rep works' },
   { id: 'mcp', title: 'Ask your AI assistant.', body: 'Connect Claude, ChatGPT or any MCP client and ask how your representative voted. Every answer cites the official record.', href: '/developers#mcp', label: 'Set up the MCP server' },
@@ -40,6 +40,7 @@ export const HOME_FEATURES = [
 
 export const HOME_LINKS = [
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/glossary', label: 'Glossary' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/data-sources', label: 'Data sources' },
   { href: '/about', label: 'About' },

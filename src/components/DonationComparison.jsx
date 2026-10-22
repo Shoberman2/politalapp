@@ -4,6 +4,7 @@ import SEO from './SEO'
 import { getDonationsByPoliticianName } from '../services/donations'
 import { getIndustryBreakdown, formatCurrency } from '../data/industryMap'
 import '../styles/DonationComparison.css'
+import Term from './Term'
 
 function DonationComparison() {
   const navigate = useNavigate()
@@ -74,7 +75,7 @@ function DonationComparison() {
 
       <h1>Compare Campaign Funding</h1>
       <p className="comparison-subtitle">
-        See which industries fund each politician. Enter two names to compare.
+        See which industries give money to each member's campaign (<Term id="campaignFinance">campaign finance</Term>). Enter two names to compare.
       </p>
 
       <div className="comparison-inputs">

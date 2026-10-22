@@ -26,6 +26,7 @@ const COLUMNS = [
     title: 'How it works',
     links: [
       { label: 'How it works', to: '/how-it-works' },
+      { label: 'Glossary', to: '/glossary' },
       { label: 'Data sources', to: '/data-sources' },
       { label: 'Methodology', to: '/methodology' },
       { label: 'AI explanations', to: '/methodology/ai-explanations' },

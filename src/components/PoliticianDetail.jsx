@@ -24,6 +24,7 @@ import TellYourRep from './TellYourRep'
 import { YouWroteNotes } from './YouWrote'
 import { memberRef } from '../utils/tellYourRepDraft'
 import '../styles/PoliticianDetail.css'
+import Term, { InfoDot } from './Term'
 
 // Same feature flag as the BillsPage filter pills — both surfaces depend on
 // the same sponsor data being persisted by migration 006 + Phase A backfill.
@@ -348,6 +349,7 @@ function PoliticianDetail() {
             {restName && ' '}
             {restName}
             {party && <span className={`pol-party-tag ${partyClass(party)}`}>{partyShort(party)}</span>}
+            {party && <InfoDot id="party" />}
           </h1>
           {standfirst && <p className="pol-standfirst">{standfirst}</p>}
           {SHOW_SPONSOR_FILTER && bioguideId && (
@@ -356,12 +358,12 @@ function PoliticianDetail() {
           <dl className="pol-meta-grid">
             {chamber && (
               <>
-                <dt>Chamber</dt>
+                <dt><Term id="chamber">Chamber</Term></dt>
                 <dd>{chamber}</dd>
               </>
             )}
             <dt>State</dt>
-            <dd>{stateName}{stateAbbr ? <> <span className="pol-meta-mono">{stateAbbr}{district ? `-${district}` : ''}</span></> : null}</dd>
+            <dd>{stateName}{stateAbbr ? <> <span className="pol-meta-mono">{stateAbbr}{district ? `-${district}` : ''}</span></> : null}{district ? <InfoDot id="district" /> : null}</dd>
             {firstTermYear && firstTermYear !== Infinity && (
               <>
                 <dt>In office</dt>
@@ -443,7 +445,7 @@ function PoliticianDetail() {
       {/* TENURE TIMELINE */}
       {tenureItems.length > 0 && (
         <section className="pol-editorial">
-          <div className="pol-section-label">Congress history · since 2001</div>
+          <div className="pol-section-label">Congress history · since 2001 <InfoDot id="congressNumber" /></div>
           <h2 className="pol-section-title">
             {tenureItems.length} record{tenureItems.length !== 1 ? 's' : ''} of service
           </h2>
@@ -462,17 +464,17 @@ function PoliticianDetail() {
       {/* VOTES */}
       <section className="pol-editorial">
         <div className="pol-section-label">Voting record</div>
-        <h2 className="pol-section-title">How they voted</h2>
+        <h2 className="pol-section-title">How they voted <InfoDot id="rollCall" /></h2>
         <VoteDashboard bioguideId={bioguideId} />
       </section>
 
       {/* CAMPAIGN FINANCE */}
       <section className="pol-editorial">
         <div className="pol-section-label">
-          Campaign finance · {donations?.cycle ? `${donations.cycle} cycle` : 'most recent cycle'}
+          <Term id="campaignFinance">Campaign finance</Term> · {donations?.cycle ? `${donations.cycle} election cycle` : 'most recent election cycle'}
         </div>
         <h2 className="pol-section-title">
-          <InfoTip text="Money raised and spent for election campaigns, reported to the Federal Election Commission (FEC). Includes donations from individuals, PACs, and organizations.">Where the money comes from</InfoTip>
+          Where the money comes from
         </h2>
         {donationsLoading ? (
           <div className="pol-section-loading">
@@ -498,7 +500,7 @@ function PoliticianDetail() {
                 {donations.pacTotal > 0 && (
                   <div className="pol-money-split">
                     <div className="pol-money-split-v">{formatCurrency(donations.pacTotal)}</div>
-                    <div className="pol-money-split-l">From PACs</div>
+                    <div className="pol-money-split-l">From <Term id="pac">PACs</Term></div>
                   </div>
                 )}
                 {donations.totalSpent > 0 && (
@@ -510,7 +512,7 @@ function PoliticianDetail() {
                 {donations.cashOnHand > 0 && (
                   <div className="pol-money-split">
                     <div className="pol-money-split-v">{formatCurrency(donations.cashOnHand)}</div>
-                    <div className="pol-money-split-l">Cash on hand</div>
+                    <div className="pol-money-split-l"><Term def="Money the campaign still has in the bank, not yet spent." label="Cash on hand">Cash on hand</Term></div>
                   </div>
                 )}
               </div>
@@ -540,7 +542,7 @@ function PoliticianDetail() {
         {correlationData.length > 0 && (
           <div className="pol-correlation-block">
             <h3 className="pol-correlation-h3">
-              <InfoTip text="How often this politician votes 'Yea' on bills related to the industries that fund them. Based on FEC donation data matched to Congress.gov bill policy areas.">Money &amp; votes correlation</InfoTip>
+              <InfoTip text="How often this member voted yes on bills in the same topic as an industry that gave to their campaign. It shows overlap only; it does not prove the money caused the vote.">Money and votes</InfoTip>
             </h3>
             <div className="pol-correlation-grid">
               {correlationData.map((corr, i) => (
@@ -549,7 +551,7 @@ function PoliticianDetail() {
                   <div className="pol-correlation-stats">
                     <span className="pol-correlation-donated">{formatCompact(corr.donationAmount)} donated</span>
                     <span className="pol-correlation-votes">
-                      Voted Yea {corr.yeaPercent}% on {corr.billsVotedOn} related bill{corr.billsVotedOn !== 1 ? 's' : ''}
+                      Voted yes {corr.yeaPercent}% on {corr.billsVotedOn} related bill{corr.billsVotedOn !== 1 ? 's' : ''}
                     </span>
                   </div>
                   <div className="pol-correlation-bar"><div className="pol-correlation-fill" style={{ width: `${corr.yeaPercent}%` }}></div></div>
@@ -562,7 +564,7 @@ function PoliticianDetail() {
         {/* TOP DONORS */}
         {donations?.donors && donations.donors.length > 0 && (
           <div className="pol-donors-block">
-            <h3 className="pol-correlation-h3">Largest itemized receipts shown</h3>
+            <h3 className="pol-correlation-h3"><Term def="Donations big enough that the campaign had to report who gave them to the FEC (generally over $200)." label="Largest itemized receipts">Largest named donations</Term></h3>
             <div className="pol-donors-list">
               {donations.donors.slice(0, 10).map((donor, i) => (
                 <div key={i} className="pol-donor-row">
@@ -589,6 +591,7 @@ function PoliticianDetail() {
                 <a href={`https://www.fec.gov/data/candidate/${donations.candidate.id}/`} target="_blank" rel="noopener noreferrer" className="pol-fec-link">
                   View full FEC records ↗
                 </a>
+                <InfoDot id="fec" />
               </div>
             )}
           </div>

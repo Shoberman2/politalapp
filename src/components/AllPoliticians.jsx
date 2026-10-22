@@ -9,6 +9,7 @@ import { getLeadershipTitle, isLeadership } from '../data/leadership'
 import { toStateAbbr, toStateName } from '../utils/states'
 import { getRosterComposition, isNonVotingDelegate } from '../utils/congressRoster'
 import '../styles/AllPoliticians.css'
+import Term from './Term'
 
 const HOUSE_SEATS = 435
 const SENATE_SEATS = 100
@@ -47,7 +48,7 @@ function locationOf(member) {
 
 // One composition bar (House or Senate). Segments are derived from the members
 // actually loaded; vacant seats are inferred from the chamber's fixed size.
-function CompositionBlock({ name, total, majority, counts, note }) {
+function CompositionBlock({ name, term, total, majority, counts, note }) {
   const segs = [
     { cls: 'r', label: 'Republican', n: counts.R },
     { cls: 'd', label: 'Democrat', n: counts.D },
@@ -58,8 +59,8 @@ function CompositionBlock({ name, total, majority, counts, note }) {
   return (
     <div className="comp-block">
       <div className="comp-head">
-        <span className="ch-name">{name}</span>
-        <span className="ch-total">{total} voting seats / majority {majority}</span>
+        <span className="ch-name">{term ? <Term id={term}>{name}</Term> : name}</span>
+        <span className="ch-total">{total} voting seats / {majority} needed for a <Term id="majorityVote">majority</Term></span>
       </div>
       <div className="comp-bar">
         {segs.map((s) => (
@@ -229,18 +230,19 @@ function AllPoliticians() {
 
       <header className="page-masthead">
         <div className="pm-inner">
-          <span className="pm-kicker kicker">Who Represents America / 119th Congress</span>
+          <span className="pm-kicker kicker">Who Represents America / <Term id="congressNumber">119th Congress</Term></span>
           <h1 className="pm-title">The Members Register</h1>
-          <p className="pm-deck">The current congressional roster includes {composition.rosterTotal} members and delegates. Party bars show voting seats and vacancies; non-voting delegates remain searchable below.</p>
+          <p className="pm-deck">Everyone serving in Congress right now: {composition.rosterTotal} members, including <Term id="delegate">delegates</Term> from D.C. and the U.S. territories, who cannot vote on final passage. The bars show how many seats each <Term id="party">party</Term> holds and how many are empty.</p>
           <div className="composition">
             <CompositionBlock
               name="House"
+              term="house"
               total={HOUSE_SEATS}
               majority={218}
               counts={composition.house}
               note={`${composition.delegates.total} non-voting delegate${composition.delegates.total === 1 ? '' : 's'} listed in roster`}
             />
-            <CompositionBlock name="Senate" total={SENATE_SEATS} majority={51} counts={composition.senate} />
+            <CompositionBlock name="Senate" term="senate" total={SENATE_SEATS} majority={51} counts={composition.senate} />
           </div>
         </div>
       </header>

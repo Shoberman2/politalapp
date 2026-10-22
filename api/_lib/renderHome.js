@@ -11,6 +11,7 @@ import { SITE_ORIGIN as SITE } from './site.js'
 import { staticPageTitle } from './staticPages.js'
 import { BRAND } from '../../src/config/brand.js'
 import { LANDING_FAQ } from '../../src/data/landingFaq.js'
+import { CIVICS_PRIMER } from '../../src/data/civicsPrimer.js'
 import {
   HOME_TITLE, HOME_DESCRIPTION, HOME_ABOUT, HOME_FEATURES, HOME_LINKS, DEFAULT_OG_IMAGE, homeJsonLd,
 } from '../../src/data/homeSeo.js'
@@ -76,6 +77,7 @@ export function renderHomeBody(data) {
   const recorded = data.updatedAt ? fmtDate(data.updatedAt) : ''
   const features = HOME_FEATURES.map((f) => `<li><h3>${escapeHtml(f.title)}</h3><p>${escapeHtml(f.body)}</p><a href="${escapeHtml(featureHref(f, latest))}">${escapeHtml(f.label)}</a></li>`).join('')
   const faq = LANDING_FAQ.map(({ q, a }) => `<div class="home-faq-item"><h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p></div>`).join('')
+  const primer = CIVICS_PRIMER.map((p) => `<li><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.body)}</p></li>`).join('')
   const links = HOME_LINKS.map((l) => `<a href="${escapeHtml(l.href)}">${escapeHtml(l.label)}</a>`).join(' · ')
 
   return chrome(`<div class="bw landing">
@@ -89,6 +91,11 @@ export function renderHomeBody(data) {
   </section>
   ${latest ? latestVoteHtml(latest) : ''}
   ${recent.length ? recentVotesHtml(recent) : ''}
+  <section class="home-primer" aria-labelledby="home-primer-h">
+    <h2 id="home-primer-h">Congress in one minute</h2>
+    <p>No background in politics needed. Every bill is explained in plain English, and every term is defined in the <a href="/glossary">glossary</a>.</p>
+    <ol>${primer}</ol>
+  </section>
   <section class="home-features" aria-labelledby="home-features-h">
     <h2 id="home-features-h">What you can do on ${escapeHtml(BRAND.name)}</h2>
     <ul>${features}</ul>

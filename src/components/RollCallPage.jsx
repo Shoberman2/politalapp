@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { getRollCall, fromPrerender } from '../services/rollCall'
 import SEO from './SEO'
 import TellYourRep from './TellYourRep'
+import { InfoDot } from './Term'
+import { termForQuestion } from '../../shared/glossary.js'
 import { voteRef } from '../utils/tellYourRepDraft'
 import '../styles/RollCall.css'
 
@@ -73,6 +75,7 @@ function RollCallPage() {
   const description = `${rc.chamber} vote ${rc.number}, session ${rc.session} of the ${ORD(rc.congress)} Congress${rc.votedAt ? `, ${fmtDate(rc.votedAt)}` : ''}. ${rc.question || 'Recorded vote'}${subject ? ` on ${subject}` : ''}. ${rc.tally ? `${rc.tally.yea} yea, ${rc.tally.nay} nay${rc.result ? `, ${rc.result.toLowerCase()}` : ''}.` : ''}`
   const total = rc.tally ? rc.tally.yea + rc.tally.nay : 0
   const yeaPct = total ? (rc.tally.yea / total) * 100 : 0
+  const questionTerm = termForQuestion(rc.question)
   const tellContext = {
     kind: 'vote',
     ref: voteRef({ congress: rc.congress, chamber: rc.chamberKey, session: rc.session, roll: rc.number }),
@@ -97,9 +100,12 @@ function RollCallPage() {
       </nav>
 
       <header className="rc-masthead">
-        <div className="rc-kicker">{rc.chamber} · Roll call {rc.number} · Session {rc.session} · {ORD(rc.congress)} Congress{rc.votedAt ? ` · ${fmtDate(rc.votedAt)}` : ''}</div>
+        <div className="rc-kicker">
+          {rc.chamber} · Roll call {rc.number}<InfoDot id="rollCall" label="Roll call" /> · Session {rc.session}<InfoDot id="session" /> · {ORD(rc.congress)} Congress{rc.votedAt ? ` · ${fmtDate(rc.votedAt)}` : ''}
+        </div>
         <h1 className="rc-title">
           {rc.question || 'Recorded vote'}
+          {questionTerm ? <InfoDot id={questionTerm} /> : <InfoDot id="question" label="What this vote decided" />}
           {rc.bill && <> on <Link to={rc.bill.href}>{rc.bill.label}</Link></>}
         </h1>
         {rc.bill?.title
@@ -110,11 +116,16 @@ function RollCallPage() {
           <div className="rc-tally">
             <div className="rc-tally-head">
               <span className="rc-tally-numbers">
-                <span className="rc-yea">{rc.tally.yea} Yea</span> · <span className="rc-nay">{rc.tally.nay} Nay</span>
-                {rc.tally.present ? <> · {rc.tally.present} Present</> : null}
-                {rc.tally.notVoting ? <> · {rc.tally.notVoting} Not voting</> : null}
+                <span className="rc-yea">{rc.tally.yea} Yea</span><InfoDot id="yea" /> · <span className="rc-nay">{rc.tally.nay} Nay</span><InfoDot id="nay" />
+                {rc.tally.present ? <> · {rc.tally.present} Present<InfoDot id="present" /></> : null}
+                {rc.tally.notVoting ? <> · {rc.tally.notVoting} Not voting<InfoDot id="notVoting" /></> : null}
               </span>
-              {rc.result && <span className={`rc-result rc-result-${resultKind(rc.result)}`}>{rc.result}</span>}
+              {rc.result && (
+                <span className="rc-result-wrap">
+                  <span className={`rc-result rc-result-${resultKind(rc.result)}`}>{rc.result}</span>
+                  <InfoDot id="voteResult" label={rc.result} />
+                </span>
+              )}
             </div>
             <div className="rc-tally-bar" aria-hidden="true">
               <span className="rc-tally-yea" style={{ width: `${yeaPct.toFixed(1)}%` }} />
@@ -122,8 +133,9 @@ function RollCallPage() {
             </div>
             {rc.party && (
               <div className="rc-party">
-                D {rc.party.dem.yea}–{rc.party.dem.nay} · R {rc.party.rep.yea}–{rc.party.rep.nay}
+                By party<InfoDot id="partySplit" /> (yes–no): D {rc.party.dem.yea}–{rc.party.dem.nay} · R {rc.party.rep.yea}–{rc.party.rep.nay}
                 {rc.party.ind.yea + rc.party.ind.nay ? <> · I {rc.party.ind.yea}–{rc.party.ind.nay}</> : null}
+                <InfoDot id="party" label="D, R and I" />
               </div>
             )}
           </div>
@@ -160,7 +172,7 @@ function RollCallPage() {
             </div>
             <div className="rc-table-wrap">
               <table className="rc-table">
-                <thead><tr><th>Member</th><th>Seat</th><th>Vote</th></tr></thead>
+                <thead><tr><th>Member</th><th>Party and state<InfoDot id="party" /></th><th>Vote</th></tr></thead>
                 <tbody>
                   {visible.map((v) => (
                     <tr key={v.member.id}>
@@ -180,8 +192,8 @@ function RollCallPage() {
       </section>
 
       <footer className="rc-colophon">
-        Data from Congress.gov, the House Clerk, and the Senate. The result is derived from the tally and the question.{' '}
-        <Link to="/methodology">Methodology</Link> · <a href="/llms.txt">For agents</a>
+        Data from Congress.gov, the House Clerk, and the Senate. We work out the result from the vote count and what the vote decided.{' '}
+        <Link to="/methodology">Methodology</Link> · <Link to="/glossary">Glossary</Link> · <a href="/llms.txt">For agents</a>
       </footer>
     </article>
   )

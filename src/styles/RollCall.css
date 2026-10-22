@@ -94,3 +94,6 @@
   .rc-crumb { margin-bottom: 24px; }
   .rc-masthead { margin-bottom: 32px; }
 }
+
+/* The result chip followed by its ⓘ (Term.jsx). */
+.rc-result-wrap { display: inline-flex; align-items: center; gap: 4px; }

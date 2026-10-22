@@ -204,7 +204,7 @@
     {
       "name": "explain_bill",
       "title": "Explain bill",
-      "description": "The cached plain-English explanation of a bill, grounded in the official CRS summary. Returns the official summary when no explanation is cached. Never generates text on demand.",
+      "description": "A plain-English explanation of a bill for readers with no background in government: a one-sentence summary, short paragraphs and key points, written by AI from the bill's official text (or the CRS summary when the text is not published). Says which text version it read. Nothing is inferred from the title; when Congress.gov has no text yet, plain_english is null.",
       "inputSchema": {
         "type": "object",
         "properties": {

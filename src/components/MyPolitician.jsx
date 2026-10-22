@@ -17,6 +17,7 @@ import {
   getFavorites
 } from '../services/userService'
 import '../styles/MyPolitician.css'
+import Term from './Term'
 
 function MyPolitician() {
   const savedAddress = getUserAddress()
@@ -158,7 +159,7 @@ function MyPolitician() {
       />
       <div className="page-header">
         <h1>Find Your Representatives</h1>
-        <p>Enter your address to find your House Representative and Senators</p>
+        <p>Enter your address to find the three people who represent you in <Term id="congress">Congress</Term>: one House representative for your area and two senators for your state.</p>
       </div>
 
       <div className="address-card">
@@ -273,7 +274,7 @@ function MyPolitician() {
 
           {houseRep && (
             <div className="rep-section">
-              <h3>House of Representatives</h3>
+              <h3><Term id="house">House of Representatives</Term></h3>
               <div className="rep-grid">
                 <PoliticianCard politician={houseRep} showFavorite onFavoriteChange={refreshFavorites} />
               </div>
@@ -281,7 +282,7 @@ function MyPolitician() {
           )}
 
           <div className="rep-section">
-            <h3>U.S. Senate</h3>
+            <h3><Term id="senate">U.S. Senate</Term></h3>
             {loadingSenators ? (
               <div className="senators-loading">
                 <div className="loading-spinner small"></div>

@@ -7,6 +7,7 @@ import {
   getCommitteeSurvival,
 } from '../services/billsDb'
 import { COMMITTEE_GLOSSARY } from '../../etl/data/committees'
+import { InfoDot } from './Term'
 import '../styles/BillRoutingPanel.css'
 
 /**
@@ -165,11 +166,11 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
     <section className="bill-routing-section" id="routing-section">
       <div className="bill-section-label">Where this bill goes</div>
       <h2 className="bill-section-title">
-        Committee path
+        Committee path<InfoDot id="committee" />
       </h2>
 
       {emptyRoutings ? (
-        <p className="bill-routing-empty">This bill bypassed committee referral.</p>
+        <p className="bill-routing-empty">This bill skipped the committee step.</p>
       ) : (
         <ul className="bill-routing-list">
           {routings.map((r, idx) => {

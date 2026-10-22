@@ -4,7 +4,7 @@
 // Where AI is used and where it never is. Same wording as the landing page's
 // "How we use AI" section (src/components/Landing.jsx); change both together.
 export const AI_USES = [
-  'Explain bills from the official summary, with the source beside it',
+  'Explain bills from their official text, with the source beside it',
   'Narrate a member’s voting patterns from numbers we computed first',
   'Answer your AI assistant with cited records through our MCP server',
 ]

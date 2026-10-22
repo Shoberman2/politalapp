@@ -3,6 +3,7 @@ import { getMemberDashboardData } from '../services/supabaseVotes'
 import { computePartyCrossover } from '../services/votingPatterns'
 import { getVotingIdeology } from '../services/voteviewIdeology'
 import '../styles/VotingRecordSummary.css'
+import Term from './Term'
 
 const CORRECTION_URL = 'https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml'
 
@@ -82,10 +83,10 @@ export default function VotingRecordSummary({ bioguideId, party, displayName }) 
         </div>
 
         <dl className="pol-record-stats">
-          <div><dt>Roll calls</dt><dd>{totalVotes || '—'}</dd></div>
-          <div><dt>Participation</dt><dd>{participation == null ? '—' : `${participation}%`}</dd></div>
-          <div><dt>Party-majority match</dt><dd>{stats?.party_loyalty_pct == null ? '—' : `${Math.round(stats.party_loyalty_pct)}%`}</dd></div>
-          <div><dt>Different from party</dt><dd>{crossover.substantiveCount ? `${crossover.crossoverRate}%` : '—'}</dd></div>
+          <div><dt><Term id="rollCall">Recorded votes</Term></dt><dd>{totalVotes || '—'}</dd></div>
+          <div><dt><Term def="The share of recorded votes where this member actually voted yes, no, or present, instead of missing the vote." label="Participation">Participation</Term></dt><dd>{participation == null ? '—' : `${participation}%`}</dd></div>
+          <div><dt><Term id="voteWithParty">Votes with own party</Term></dt><dd>{stats?.party_loyalty_pct == null ? '—' : `${Math.round(stats.party_loyalty_pct)}%`}</dd></div>
+          <div><dt><Term def="How often this member voted the opposite way from most of their own party." label="Different from party">Breaks from party</Term></dt><dd>{crossover.substantiveCount ? `${crossover.crossoverRate}%` : '—'}</dd></div>
         </dl>
       </div>
 

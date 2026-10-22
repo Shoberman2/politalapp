@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getFloorSchedule, SENATE_NOTE } from '../services/floorSchedule'
 import { getRecentFloorVotes, rollCallHref } from '../services/floorVotes'
+import { InfoDot } from './Term'
 import '../styles/ThisWeekOnFloor.css'
 
 // "This week on the floor": what the House has scheduled (from the Majority
@@ -100,7 +101,7 @@ function ScheduledColumn({ schedule, limit }) {
       <p className="twof-empty">
         No floor schedule published for this week
         {thisWeek ? <> (week of <span className="twof-mono">{weekLabel(thisWeek.week)}</span>)</> : null}.
-        {' '}The House may be out of session.{' '}
+        {' '}The House may not be meeting this week.{' '}
         <a href={thisWeek?.sourceUrl || HOUSE_FLOOR_HOME} target="_blank" rel="noopener noreferrer">Check docs.house.gov</a>
       </p>
     )
@@ -193,19 +194,19 @@ export default function ThisWeekOnFloor({ limit = 6, showRecorded = true, showHe
     >
       {showHeader && (
         <header className="twof-header">
-          <p className="twof-kicker">This week on the floor</p>
+          <p className="twof-kicker">This week on the floor<InfoDot id="floor" /></p>
           <h2 id="twof-heading" className="twof-heading">Coming up, and just decided.</h2>
         </header>
       )}
       <div className="twof-grid">
         <div className="twof-col twof-col--scheduled">
-          <h3 className="twof-col-title">Scheduled</h3>
+          <h3 className="twof-col-title">Scheduled<InfoDot def="Bills the House plans to take up this week. Being listed means a vote may happen, not that it will." label="Scheduled" glossaryLink={false} /></h3>
           <ScheduledColumn schedule={schedule} limit={limit} />
           <p className="twof-footnote">{SENATE_NOTE}</p>
         </div>
         {showRecorded && (
           <div className="twof-col twof-col--recorded">
-            <h3 className="twof-col-title">Recorded</h3>
+            <h3 className="twof-col-title">Recorded<InfoDot id="rollCall" label="Recorded votes" /></h3>
             <RecordedColumn votes={votes} limit={limit} />
           </div>
         )}

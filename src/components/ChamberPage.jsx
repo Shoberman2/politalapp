@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import SEO from './SEO'
+import { InfoDot } from './Term'
 import SenateChamberMap from './SenateChamberMap'
 import ChamberScrubber from './ChamberScrubber'
 import DeskLineagePanel from './DeskLineagePanel'
@@ -220,13 +221,14 @@ function ChamberPage() {
         <div className="chamber-eyebrow">BALLOTWATCH</div>
         <h1 className="chamber-title">
           The {chamberView === 'house' ? 'House' : 'Senate'} Chamber
+          <InfoDot id={chamberView === 'house' ? 'house' : 'senate'} />
         </h1>
         <div className="chamber-subtitle">{congressLabel}</div>
 
         {chamberView === 'senate' && (
           <div className="chamber-caption">
             100 desks · {congressMeta?.majority_party_senate
-              ? `${congressMeta.majority_party_senate}-majority`
+              ? `${congressMeta.majority_party_senate} majority`
               : 'composition coming as data loads'}
           </div>
         )}

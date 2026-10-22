@@ -11,6 +11,7 @@ import {
   formatCongressLabel,
 } from '../utils/congressUtil'
 import SponsorFilterPill from './SponsorFilterPill'
+import { InfoDot } from './Term'
 import '../styles/BillsPage.css'
 
 // Feature flag (per outside-voice D16). Off by default; flip
@@ -64,7 +65,7 @@ function getBillStatus(bill) {
 
 const STATUS_FACETS = [
   { key: 'law', label: 'Became law', color: 'var(--success)' },
-  { key: 'both', label: 'Passed both', color: 'var(--accent)' },
+  { key: 'both', label: 'Passed House and Senate', color: 'var(--accent)' },
   { key: 'passed', label: 'Passed one chamber', color: 'var(--info)' },
   { key: 'committee', label: 'In committee', color: 'var(--warning)' },
   { key: 'introduced', label: 'Introduced', color: 'var(--ink-3)' },
@@ -335,6 +336,10 @@ function BillsPage() {
           <span className="pm-kicker kicker">Congressional Index / {formatCongressFilterLabel(congressFilter)}</span>
           <h1 className="pm-title">The Bills Desk</h1>
           <p className="pm-deck">Every bill introduced in the U.S. House and Senate, searchable, sourced and explained in plain English. Updated daily from the official Congress.gov record.</p>
+          <p className="pm-deck pm-primer">
+            New to this? A bill is a proposed law<InfoDot id="bill" />. Its label says where it started:
+            H.R. means the House, S. means the Senate<InfoDot id="billNumber" />. Open any bill to read what it would do.
+          </p>
           <div className="pm-meta">
             <span>{today}</span>
             <span><b>{bills.length.toLocaleString()}</b> bills loaded</span>
@@ -368,8 +373,8 @@ function BillsPage() {
             <option value="s">Senate Bills (S.)</option>
             <option value="hjres">House Joint Resolutions</option>
             <option value="sjres">Senate Joint Resolutions</option>
-            <option value="hres">House Resolutions</option>
-            <option value="sres">Senate Resolutions</option>
+            <option value="hres">House Resolutions (usually not laws)</option>
+            <option value="sres">Senate Resolutions (usually not laws)</option>
           </select>
           {SHOW_SPONSOR_FILTER && (
             <>
@@ -416,7 +421,7 @@ function BillsPage() {
         {/* SIDEBAR */}
         <aside className="refine">
           <div className="facet">
-            <h3>Status</h3>
+            <h3>Status<InfoDot def="How far a bill has gotten on its way to becoming law: introduced, then studied in a committee, then passed by the House or Senate, then passed by both, then signed by the President. Most bills never leave committee." label="Status" glossaryLink={false} /></h3>
             <div className="facet-list">
               <button className={`facet-item ${statusFacet === 'all' ? 'active' : ''}`} onClick={() => setStatusFacet('all')}>
                 <span>All bills</span><span className="c">{bills.length.toLocaleString()}</span>
@@ -436,7 +441,7 @@ function BillsPage() {
 
           {facetData.policy.length > 0 && (
             <div className="facet">
-              <h3>Policy Area</h3>
+              <h3>Topic<InfoDot id="policyArea" /></h3>
               <div className="facet-list">
                 {facetData.policy.map((p) => (
                   <button
@@ -452,7 +457,7 @@ function BillsPage() {
           )}
 
           <div className="facet">
-            <h3>Chamber</h3>
+            <h3>Chamber<InfoDot id="chamber" /></h3>
             <div className="facet-list">
               <button className={`facet-item ${chamberFacet === 'house' ? 'active' : ''}`} onClick={() => setChamberFacet((c) => (c === 'house' ? null : 'house'))}>
                 <span>House of Representatives</span><span className="c">{facetData.chamber.house.toLocaleString()}</span>

@@ -300,3 +300,26 @@
   .info-page .ip-facts > div { grid-template-columns: 1fr; gap: 2px; }
   .info-page .ip-sources > li { grid-template-columns: 1fr; }
 }
+
+/* /glossary: the plain-English term list (GlossaryPage.jsx). */
+.info-page .gl-jump { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 32px; font-size: 14px; }
+.info-page .gl-jump a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.info-page .gl-jump a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.info-page .gl-group { scroll-margin-top: 88px; }
+.info-page .gl-group + .gl-group { margin-top: 40px; }
+.info-page .gl-list { margin: 0; border-top: 1px solid var(--rule); }
+.info-page .gl-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: 4px 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule-light);
+  scroll-margin-top: 88px;
+  transition: background-color 400ms ease-out;
+}
+.info-page .gl-entry.is-target { background: var(--accent-soft); }
+.info-page .gl-entry dt { font-weight: 600; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.info-page .gl-entry dd { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+@media (max-width: 640px) {
+  .info-page .gl-entry { grid-template-columns: minmax(0, 1fr); }
+}

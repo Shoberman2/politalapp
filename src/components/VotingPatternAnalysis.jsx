@@ -28,6 +28,7 @@ import {
 } from '../services/votingPatterns'
 import { narrateVotes } from '../services/votingPatternNarration'
 import '../styles/VotingPatternAnalysis.css'
+import Term, { InfoDot } from './Term'
 
 const MIN_VOTES = 50
 const CACHE_PREFIX = 'vpa_'
@@ -186,8 +187,9 @@ export default function VotingPatternAnalysis({ member }) {
       {!analysis && !loading && !error && (
         <div className="vpa-default">
           <p className="vpa-teaser">
-            Compare this member's votes with party-majority direction, district lean,
-            and donor-industry context. Notable votes are narrated from the recorded data.
+            See how often this member voted the same way as most of their own <Term id="party">party</Term>,
+            how their votes compare with how their <Term id="district">district</Term> voted for president,
+            and how they line up with the industries that gave to their campaign. Notable votes are explained from the recorded data.
           </p>
           <button
             type="button"
@@ -262,7 +264,7 @@ function ScoreBlock({ analysis, onMethodologyClick }) {
     <div className="vpa-score-block">
       <div className="vpa-score-number-row">
         <span className="vpa-score-number" aria-hidden="true">{s.score}%</span>
-        <span className="vpa-score-label">Signal Agreement</span>
+        <span className="vpa-score-label"><Term def="The share of yes-or-no votes where this member voted the way the comparisons predicted: mostly with their party, plus their district's lean and their donors' industries. Higher means more predictable, not better." label="Signal Agreement">Signal Agreement</Term></span>
       </div>
       <p className="vpa-score-caption">
         Share of substantive votes that matched the available comparison signals.
@@ -278,12 +280,12 @@ function ScoreBlock({ analysis, onMethodologyClick }) {
   )
 }
 
-function FlagBar({ label, rate, description, ariaLabel }) {
+function FlagBar({ label, def, rate, description, ariaLabel }) {
   const pct = typeof rate === 'number' ? Math.max(0, Math.min(100, rate)) : null
   return (
     <div className="vpa-flag">
       <div className="vpa-flag-row">
-        <span className="vpa-flag-label">{label}</span>
+        <span className="vpa-flag-label">{label}{def && <InfoDot def={def} label={label} />}</span>
         <span
           className="vpa-flag-track"
           role="progressbar"
@@ -326,18 +328,21 @@ function Flags({ analysis }) {
     <div className="vpa-flags">
       <FlagBar
         label="Donor-industry overlap"
+        def="Of the votes on topics tied to the industries that gave the most to this member's campaign, how many went the way those industries' pattern suggests. Overlap is not proof the money changed a vote."
         rate={money?.available ? money.alignmentRate : null}
         description={moneyDesc}
         ariaLabel={`Donor-industry overlap: ${money?.alignmentRate ?? 'unavailable'}%`}
       />
       <FlagBar
         label="Different from party majority"
+        def="How often this member voted the opposite way from most of their own party."
         rate={crossover?.substantiveCount ? crossover.crossoverRate : null}
         description={crossoverDesc}
         ariaLabel={`Different from party majority: ${crossover?.crossoverRate ?? 'unavailable'}%`}
       />
       <FlagBar
         label="District-lean difference"
+        def="How often this member's vote went against the way their district leaned in the 2024 presidential election."
         rate={mismatch?.available ? mismatch.mismatchRate : null}
         description={mismatchDesc}
         ariaLabel={`District-lean difference: ${mismatch?.mismatchRate ?? 'unavailable'}%`}
