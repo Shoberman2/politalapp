@@ -12,6 +12,8 @@ import { checkRateLimit } from './_lib/rateLimit.js'
 import { clientIp, hashIp, ANON_PER_MINUTE, ANON_PER_DAY } from './_lib/auth.js'
 import { SITE_ORIGIN } from './_lib/site.js'
 import * as tools from './_lib/mcpTools.js'
+import { classifyClient } from '../shared/agents.js'
+import { logAgentEvent } from '../shared/agentLog.js'
 
 export const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.`
 
@@ -68,7 +70,7 @@ export const TOOLS = [
   {
     name: 'explain_bill',
     title: 'Explain bill',
-    description: 'The cached plain-English explanation of a bill, grounded in the official CRS summary. Returns the official summary when no explanation is cached. Never generates text on demand.',
+    description: 'A plain-English explanation of a bill for readers with no background in government: a one-sentence summary, short paragraphs and key points, written by AI from the bill\'s official text (or the CRS summary when the text is not published). Says which text version it read. Nothing is inferred from the title; when Congress.gov has no text yet, plain_english is null.',
     inputSchema: { id: z.string().max(40) },
     run: tools.explainBill,
   },
@@ -94,19 +96,58 @@ function text(obj) {
   return { content: [{ type: 'text', text: JSON.stringify(obj, null, 1) }], isError: Boolean(obj && obj.error) }
 }
 
-export function buildServer() {
+// `onToolCall` (optional) hears every tool call with its outcome, for
+// agent_events.
+export function buildServer({ onToolCall } = {}) {
   const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS })
   for (const t of TOOLS) {
     server.registerTool(t.name, { title: t.title, description: t.description, inputSchema: t.inputSchema }, async (args) => {
+      const started = Date.now()
+      let result
       try {
-        return text(await t.run(args))
+        result = text(await t.run(args))
       } catch (err) {
         console.error(`[mcp] ${t.name} failed:`, err?.message)
-        return text({ error: 'Lookup failed; try again shortly.' })
+        result = text({ error: 'Lookup failed; try again shortly.' })
       }
+      onToolCall?.({ tool: t.name, args, ok: !result.isError, ms: Date.now() - started })
+      return result
     })
   }
   return server
+}
+
+// Short, scalar tool arguments only (ids, dates, queries), so the log shows
+// what agents ask for without storing anything large.
+export function summarizeArgs(args) {
+  const out = {}
+  for (const [k, v] of Object.entries(args || {})) {
+    if (typeof v === 'string') out[k] = v.slice(0, 120)
+    else if (typeof v === 'number' || typeof v === 'boolean') out[k] = v
+  }
+  return out
+}
+
+// agent_events rows for one MCP POST: initialize and tools/list from the
+// body, tools/call from the tool wrapper (it knows the outcome).
+export function mcpEvents(body, toolCalls, { userAgent }) {
+  const messages = Array.isArray(body) ? body : [body]
+  const init = messages.find((m) => m?.method === 'initialize')
+  const clientName = init?.params?.clientInfo?.name
+  const who = classifyClient(userAgent)
+    || (clientName ? { agent: String(clientName).slice(0, 60), operator: null, purpose: 'client' } : { agent: 'browser-like', operator: null, purpose: 'unknown' })
+  const events = []
+  for (const m of messages) {
+    if (m?.method === 'initialize') {
+      events.push({ event: 'mcp_initialize', who, detail: { client: m.params?.clientInfo || null, protocol: m.params?.protocolVersion || null } })
+    } else if (m?.method === 'tools/list') {
+      events.push({ event: 'mcp_list_tools', who, detail: null })
+    }
+  }
+  for (const c of toolCalls) {
+    events.push({ event: 'mcp_tool', who, tool: c.tool, detail: { args: summarizeArgs(c.args), ok: c.ok, ms: c.ms } })
+  }
+  return events
 }
 
 function sendJson(res, status, body, extra = {}) {
@@ -157,7 +198,8 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { jsonrpc: '2.0', error: { code: -32700, message: 'Parse error' }, id: null })
   }
 
-  const server = buildServer()
+  const toolCalls = []
+  const server = buildServer({ onToolCall: (c) => toolCalls.push(c) })
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
   res.on('close', () => { transport.close().catch(() => {}); server.close().catch(() => {}) })
   try {
@@ -167,6 +209,13 @@ export default async function handler(req, res) {
     console.error('[mcp] request failed:', err.message)
     if (!res.headersSent) sendJson(res, 500, { jsonrpc: '2.0', error: { code: -32603, message: 'Internal error' }, id: null })
   }
+
+  // The response has been sent; the function stays up until these writes finish.
+  const userAgent = getHeader(req, 'user-agent')
+  const ip = clientIp(req)
+  const country = getHeader(req, 'x-vercel-ip-country') || null
+  await Promise.all(mcpEvents(body, toolCalls, { userAgent }).map((e) =>
+    logAgentEvent({ ...e, surface: 'mcp', path: '/mcp', userAgent, ip, country })))
 }
 
 export const config = { runtime: 'nodejs', maxDuration: 30 }

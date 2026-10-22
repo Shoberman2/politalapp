@@ -247,7 +247,7 @@ describe('homepage routing', () => {
 
   it('middleware rewrites `/` (and only `/`) to the prerender function', async () => {
     const { default: middleware, config } = await import('../../middleware.js')
-    expect(config.matcher).toBe('/')
+    expect(config.matcher[0]).toBe('/')
     const res = middleware(new Request('https://www.ballotwatch.io/'))
     expect(res.headers.get('x-middleware-rewrite')).toBe('https://www.ballotwatch.io/api/prerender?kind=home')
     expect(middleware(new Request('https://www.ballotwatch.io/assets/index.js'))).toBeUndefined()

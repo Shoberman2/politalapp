@@ -16,6 +16,7 @@
     "data:voteview-ideology": "node scripts/update-voteview-ideology.mjs",
     "etl": "npx tsx etl/run.ts",
     "etl:dry-run": "npx tsx etl/run.ts --dry-run",
+    "agents:report": "node scripts/agent-report.mjs",
     "etl:enrich": "npx tsx etl/run.ts --enrich-only",
     "etl:verbose": "npx tsx etl/run.ts --verbose",
     "alerts:run": "tsx etl/runBillAlerts.ts",
