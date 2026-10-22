@@ -70,6 +70,29 @@ final class AuthStore: ObservableObject {
         Keychain.clearSession()
     }
 
+    /// Permanently delete the account through the `delete-account` Edge
+    /// Function (App Store guideline 5.1.1(v)). The server cascades every
+    /// synced row; local saves stay on the device, as they do when signed out.
+    func deleteAccount() async throws {
+        if session?.isExpired == true { await refresh() }
+        guard let token = session?.accessToken else { throw AuthError.message("Sign in again to delete your account.") }
+        isLoading = true
+        defer { isLoading = false }
+
+        var request = URLRequest(url: Config.functionsURL.appendingPathComponent("delete-account"))
+        request.httpMethod = "POST"
+        request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw AuthError.unknown }
+        guard (200..<300).contains(http.statusCode) else {
+            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            throw AuthError.message((obj?["error"] as? String) ?? Self.errorMessage(from: data, status: http.statusCode))
+        }
+        session = nil
+        Keychain.clearSession()
+    }
+
     /// Ensure PostgREST has a current user token before an RLS-protected sync.
     func prepareDataAccess() async -> AuthUser? {
         if session?.isExpired == true { await refresh() }

@@ -20,7 +20,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Read without sourcing: .env can contain values that a shell would try to
-# expand, and this script only needs four literal strings.
+# expand, and this script only needs two literal strings.
 read_env() {
   local key="$1"
   sed -n "s/^${key}=//p" "$ENV_FILE" | head -1 | sed 's/^["'"'"']//; s/["'"'"']$//'
@@ -28,28 +28,14 @@ read_env() {
 
 SUPABASE_URL="$(read_env VITE_SUPABASE_URL)"
 SUPABASE_ANON_KEY="$(read_env VITE_SUPABASE_ANON_KEY)"
-# Plain names first (the web app reads them server-side); the VITE_ names are
-# legacy fallbacks.
-CONGRESS_API_KEY="$(read_env CONGRESS_API_KEY)"
-[ -n "$CONGRESS_API_KEY" ] || CONGRESS_API_KEY="$(read_env VITE_CONGRESS_API_KEY)"
-FEC_API_KEY="$(read_env FEC_API_KEY)"
-[ -n "$FEC_API_KEY" ] || FEC_API_KEY="$(read_env VITE_FEC_API_KEY)"
 
 if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
   echo "error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set in .env" >&2
   exit 1
 fi
 
-if [ -z "$CONGRESS_API_KEY" ]; then
-  echo "warning: CONGRESS_API_KEY not set — House members will show their" >&2
-  echo "         state instead of a district number. Free key at" >&2
-  echo "         https://api.congress.gov/sign-up/" >&2
-fi
-
-if [ -z "$FEC_API_KEY" ]; then
-  echo "warning: FEC_API_KEY not set — campaign finance will use the" >&2
-  echo "         lower-rate public FEC DEMO_KEY." >&2
-fi
+# Congress.gov and OpenFEC keys stay server-side: the app reaches both
+# through the site proxy (/api/proxy/*), so they are deliberately not copied.
 
 cat > "$OUT" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -61,10 +47,6 @@ cat > "$OUT" <<PLIST
 	<string>${SUPABASE_URL}</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>${SUPABASE_ANON_KEY}</string>
-	<key>CONGRESS_API_KEY</key>
-	<string>${CONGRESS_API_KEY}</string>
-	<key>FEC_API_KEY</key>
-	<string>${FEC_API_KEY}</string>
 </dict>
 </plist>
 PLIST

@@ -7,7 +7,9 @@ import Foundation
 /// totals. The receipt list is intentionally limited to the largest itemized
 /// receipts for the selected candidate's principal campaign committee.
 enum FECService {
-    private static let baseURL = URL(string: "https://api.open.fec.gov/v1")!
+    /// The BallotWatch proxy (`api/proxy/fec.js`) adds the OpenFEC key
+    /// server-side; paths and parameters must be on its allow-list.
+    private static var baseURL: URL { Config.proxyURL(service: "fec") }
 
     enum ServiceError: LocalizedError {
         case invalidURL
@@ -102,11 +104,11 @@ enum FECService {
             .first ?? activeCycle
 
         async let totalsTask: APIResponse<CandidateTotals> = request(
-            path: "candidate/\(candidate.candidateID)/totals/",
+            path: "candidate/\(candidate.candidateID)/totals",
             query: ["cycle": String(selectedCycle), "per_page": "1"]
         )
         async let committeesTask: APIResponse<Committee> = request(
-            path: "candidate/\(candidate.candidateID)/committees/",
+            path: "candidate/\(candidate.candidateID)/committees",
             query: ["cycle": String(selectedCycle), "per_page": "100"]
         )
 
@@ -125,11 +127,11 @@ enum FECService {
                 "two_year_transaction_period": String(selectedCycle),
             ]
             async let peopleTask: APIResponse<Receipt> = request(
-                path: "schedules/schedule_a/",
+                path: "schedules/schedule_a",
                 query: common.merging(["is_individual": "true"], uniquingKeysWith: { _, new in new })
             )
             async let committeesTask: APIResponse<Receipt> = request(
-                path: "schedules/schedule_a/",
+                path: "schedules/schedule_a",
                 query: common.merging(["contributor_type": "committee"], uniquingKeysWith: { _, new in new })
             )
             receipts = try await peopleTask.results + committeesTask.results
@@ -163,7 +165,7 @@ enum FECService {
 
         for variant in variants {
             let response: APIResponse<Candidate> = try await request(
-                path: "candidates/search/",
+                path: "candidates/search",
                 query: ["q": variant, "per_page": "20"]
             )
             if !response.results.isEmpty { return response.results }
@@ -258,18 +260,25 @@ enum FECService {
             url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false
         ) else { throw ServiceError.invalidURL }
         components.queryItems = query
-            .merging(["api_key": Config.fecAPIKey], uniquingKeysWith: { _, new in new })
             .map { URLQueryItem(name: $0.key, value: $0.value) }
         guard let url = components.url else { throw ServiceError.invalidURL }
 
         var request = URLRequest(url: url)
         request.timeoutInterval = 20
         request.cachePolicy = .returnCacheDataElseLoad
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
-            throw ServiceError.requestFailed((response as? HTTPURLResponse)?.statusCode ?? 0)
+        // OpenFEC is slow on an uncached itemized-receipts query and the
+        // proxy answers 504 after 15s; by the second try it has usually
+        // finished, so a 5xx gets one more attempt.
+        for attempt in 0..<2 {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if 200..<300 ~= status {
+                return try JSONDecoder().decode(APIResponse<T>.self, from: data)
+            }
+            if attempt == 0, status >= 500 { continue }
+            throw ServiceError.requestFailed(status)
         }
-        return try JSONDecoder().decode(APIResponse<T>.self, from: data)
+        throw ServiceError.requestFailed(0)
     }
 
     private struct APIResponse<Result: Decodable>: Decodable {

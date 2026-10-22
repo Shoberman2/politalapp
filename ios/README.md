@@ -13,11 +13,11 @@ from the repo-root `.env` first:
 ios/scripts/make-secrets.sh   # writes ios/BallotWatch/Secrets.plist (gitignored)
 ```
 
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` are required. `CONGRESS_API_KEY` is
-optional — without it the app still runs, but House members show their state
-instead of a district number, because the Supabase roster stores `district` as
-NULL and only Congress.gov can fill it in. Free key at
-<https://api.congress.gov/sign-up/>. See `BallotWatch/Secrets.example.plist`.
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` are the only values. Congress.gov and
+OpenFEC are reached through the site's proxy (`https://www.ballotwatch.io/api/proxy/*`,
+`api/_lib/upstreamProxy.js`), so their keys never ship in the app. A new
+upstream call needs an allow-list entry there. See
+`BallotWatch/Secrets.example.plist`.
 
 The Xcode project is generated, not checked in as a hand-edited file. After
 cloning or after adding/removing source files:
@@ -85,9 +85,10 @@ BallotWatch/
   `bill_committee_routings`, `etl_metadata`. Read with the public anon key; all
   read policies are "viewable by everyone" because congressional voting records
   are public record.
-- **Congress.gov** — district numbers for House members. The Supabase roster
-  stores `district` as `NULL` for every House member, so "who holds CA-12" has
-  to come from here.
+- **Congress.gov** (via the site proxy) — district numbers for House members.
+  The Supabase roster stores `district` as `NULL` for every House member, so
+  "who holds CA-12" has to come from here.
+- **OpenFEC** (via the site proxy) — campaign-finance totals and receipts.
 - **US Census Geocoder** — address and coordinate → congressional district.
   (Google's Civic Information Representatives endpoint shut down 2025-04-30.)
 - **Supabase Edge Functions** — `explain-bill`, so the OpenAI key stays
@@ -96,9 +97,9 @@ BallotWatch/
 ### Design system
 
 `Design/Theme.swift` and `Design/Typography.swift` are a direct port of
-`DESIGN.md`. Instrument Serif for display, General Sans for body and UI, Geist
-Mono for anything numeric — all three embedded as app resources rather than
-loaded from a CDN. Warm paper (`#FAFAF7`) and warm near-black (`#111110`) in
+`DESIGN.md`. Inter for everything readable (Inter Display 600 for headlines,
+no serif, no italic accents) and Geist Mono for anything numeric — both
+embedded as app resources rather than loaded from a CDN. Warm paper (`#FAFAF7`) and warm near-black (`#111110`) in
 dark mode; one accent (`#1D4ED8`) used sparingly. Party colors appear only as
 small text tags and thin indicator bars, never as card backgrounds.
 
@@ -142,8 +143,8 @@ run doesn't leak into the next.
 
 ## Known gaps
 
-- Campaign finance (FEC) and district partisan-lean analysis exist on the web
-  but not here — they depend on data files that aren't in Supabase, and
-  approximating them on a transparency tool would be worse than omitting them.
+- District partisan-lean analysis exists on the web but not here — it depends
+  on data files that aren't in Supabase, and approximating it on a
+  transparency tool would be worse than omitting it.
 - The web app's AI Congress simulation, developer portal, and historical chamber
   are not ported.

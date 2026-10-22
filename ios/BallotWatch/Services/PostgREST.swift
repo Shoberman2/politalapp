@@ -272,10 +272,21 @@ actor PostgREST {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         for (k, v) in headers { request.setValue(v, forHTTPHeaderField: k) }
 
-        let data: Data
-        let response: URLResponse
+        var data: Data
+        var response: URLResponse
         do {
             (data, response) = try await session.data(for: request)
+            // A read that hits Postgres' statement timeout (57014, usually a
+            // cold cache or a concurrent ETL load) almost always succeeds on a
+            // second try; retry reads once rather than show an error screen.
+            if method == "GET" || method == "HEAD",
+               let http = response as? HTTPURLResponse, http.statusCode >= 500,
+               String(data: data, encoding: .utf8)?.contains("57014") == true {
+                try await Task.sleep(nanoseconds: 500_000_000)
+                (data, response) = try await session.data(for: request)
+            }
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             throw PostgRESTError.transport(error)
         }

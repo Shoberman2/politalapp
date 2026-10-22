@@ -12,11 +12,10 @@ import Foundation
 /// reaches is protected by row-level security, and the read policies are
 /// deliberately public because congressional voting records are public record.
 /// It's kept out of the repo only so the app has one config path, not two.
-/// The Congress.gov key is a free but rate-limited per-user key, so it should
-/// not be committed anywhere.
 ///
-/// Anything genuinely secret (OpenAI, Stripe, service-role) belongs in a
-/// Supabase Edge Function and never reaches the client, exactly as on the web.
+/// The Congress.gov and OpenFEC keys never ship in the app: both are reached
+/// through the site's proxy (see `proxyURL`). Anything genuinely secret
+/// (OpenAI, Stripe, service-role) belongs server-side, exactly as on the web.
 enum Config {
 
     private static let values: [String: String] = {
@@ -47,26 +46,13 @@ enum Config {
     static var supabaseURL: String { require("SUPABASE_URL") }
     static var supabaseAnonKey: String { require("SUPABASE_ANON_KEY") }
 
-    /// Optional. Without it the app still runs off Supabase; House members just
-    /// show their state instead of their district number, since the roster
-    /// stores `district` as NULL and only Congress.gov can fill it in.
-    static var congressAPIKey: String? {
-        let value = values["CONGRESS_API_KEY"]
-        guard let value, !value.isEmpty, !value.hasPrefix("YOUR_") else { return nil }
-        return value
-    }
+    /// The public site. Congress.gov and OpenFEC are reached through its
+    /// proxy (`/api/proxy/<service>/...`), which holds the api.data.gov keys
+    /// server-side, the same way the web app reaches them.
+    static let siteURL = URL(string: "https://www.ballotwatch.io")!
 
-    static var hasCongressAPIKey: Bool { congressAPIKey != nil }
-
-    /// Optional because OpenFEC supports its public DEMO_KEY for development.
-    /// A project key raises the rate limit and is generated into Secrets.plist
-    /// from FEC_API_KEY (or legacy VITE_FEC_API_KEY) by `ios/scripts/make-secrets.sh`.
-    static var fecAPIKey: String {
-        let value = values["FEC_API_KEY"]
-        guard let value, !value.isEmpty, !value.hasPrefix("YOUR_") else {
-            return "DEMO_KEY"
-        }
-        return value
+    static func proxyURL(service: String) -> URL {
+        siteURL.appendingPathComponent("api/proxy/\(service)")
     }
 
     static var restURL: URL { URL(string: "\(supabaseURL)/rest/v1")! }

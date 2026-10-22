@@ -44,18 +44,38 @@ enum FloorVotes {
     /// The result word, derived only from a tally we trust — and using the real
     /// thresholds, not a blanket majority: cloture needs 60 in the Senate,
     /// suspension of the rules needs two-thirds.
-    static func deriveResult(question: String?, yea: Int?, nay: Int?, chamber: Chamber?) -> String? {
+    /// Port of `deriveResult` in src/services/floorVotes.js (which mirrors
+    /// api/_lib/rollCallResult.js); keep all three in step.
+    ///
+    /// Cloture on a nomination needs only a simple majority, but a cloture
+    /// question alone doesn't say what it's about. So a cloture vote under 60
+    /// reads as invoked only when the question or description names a
+    /// nomination; otherwise, when yea still beat nay, no result is shown
+    /// rather than a guess.
+    static func deriveResult(
+        question: String?, yea: Int?, nay: Int?, chamber: Chamber?, description: String? = nil
+    ) -> String? {
         guard let yea, let nay else { return nil }
         let q = (question ?? "").lowercased()
+        let text = "\(q) \((description ?? "").lowercased())"
+        let total = yea + nay
+        let twoThirds = total > 0 && Double(yea) / Double(total) >= 2.0 / 3.0
+        let mentionsNomination = { (s: String) in s.contains("nominat") || s.contains("confirm") }
 
-        if q.contains("cloture") { return yea >= 60 ? "Cloture invoked" : "Cloture rejected" }
-        if q.contains("nomination") || q.contains("confirmation") {
-            return yea > nay ? "Confirmed" : "Rejected"
+        if q.contains("cloture") {
+            if yea >= 60 { return "Cloture invoked" }
+            if mentionsNomination(text) { return yea > nay ? "Cloture invoked" : "Cloture rejected" }
+            if yea <= nay { return "Cloture rejected" }
+            return nil
         }
-        if q.contains("suspend") {
-            return Double(yea) / Double(yea + nay) >= 2.0 / 3.0 ? "Passed" : "Failed"
+        if q.contains("override") || q.contains("veto") { return twoThirds ? "Veto overridden" : "Veto sustained" }
+        if q.contains("treaty") || q.contains("ratification") { return twoThirds ? "Ratified" : "Not ratified" }
+        if q.contains("suspend") { return twoThirds ? "Passed" : "Failed" }
+        if q.contains("waive") && chamber == .senate { return yea >= 60 ? "Motion agreed to" : "Motion rejected" }
+        if q.range(of: #"\bmotion\b"#, options: .regularExpression) != nil || q.contains("proceed") {
+            return yea > nay ? "Motion agreed to" : "Motion rejected"
         }
-        if q.contains("proceed") { return yea > nay ? "Motion agreed to" : "Motion rejected" }
+        if mentionsNomination(q) { return yea > nay ? "Confirmed" : "Rejected" }
         if yea == nay { return "Failed on a tie" }
         return yea > nay ? "Passed" : "Failed"
     }
@@ -112,7 +132,9 @@ enum FloorVotes {
                 billDisplay: key?.display,
                 yea: yea,
                 nay: nay,
-                result: deriveResult(question: call.question, yea: yea, nay: nay, chamber: chamber),
+                result: deriveResult(
+                    question: call.question, yea: yea, nay: nay, chamber: chamber, description: call.description
+                ),
                 date: call.date
             )
         }
@@ -137,7 +159,8 @@ enum FloorVotes {
                 votes[index].nay = tally.nay
                 votes[index].result = deriveResult(
                     question: votes[index].question,
-                    yea: tally.yea, nay: tally.nay, chamber: votes[index].chamber
+                    yea: tally.yea, nay: tally.nay, chamber: votes[index].chamber,
+                    description: votes[index].description
                 )
             }
         }

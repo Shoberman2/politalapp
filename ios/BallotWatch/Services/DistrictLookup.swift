@@ -46,6 +46,17 @@ enum DistrictLookup {
     /// which matches no sitting member.
     static let atLargeStates: Set<String> = ["AK", "DE", "ND", "SD", "VT", "WY"]
 
+    /// The vintage that names the districts members sit for today. In 2026
+    /// Census "Current_Current" moved to the 120th Congress's maps (the
+    /// November 2026 election), and states that redrew mid-decade then name
+    /// the wrong sitting member. ACS2025_Current still carries the 119th
+    /// districts, so use it until the 120th Congress is sworn in. Same rule as
+    /// shared/censusVintage.js on the web.
+    static func vintage(now: Date = Date()) -> String {
+        let seated = ISO8601DateFormatter().date(from: "2027-01-03T17:00:00Z")!
+        return now < seated ? "ACS2025_Current" : "Current_Current"
+    }
+
     // MARK: - Full address → district (most accurate)
 
     /// Census "onelineaddress" geocoder with the congressional-district layer.
@@ -58,7 +69,7 @@ enum DistrictLookup {
         components.queryItems = [
             .init(name: "address", value: address),
             .init(name: "benchmark", value: "Public_AR_Current"),
-            .init(name: "vintage", value: "Current_Current"),
+            .init(name: "vintage", value: vintage()),
             .init(name: "format", value: "json"),
         ]
         return try await censusLookup(url: components.url!)
@@ -73,7 +84,7 @@ enum DistrictLookup {
             .init(name: "x", value: String(coordinate.longitude)),
             .init(name: "y", value: String(coordinate.latitude)),
             .init(name: "benchmark", value: "Public_AR_Current"),
-            .init(name: "vintage", value: "Current_Current"),
+            .init(name: "vintage", value: vintage()),
             .init(name: "format", value: "json"),
         ]
         return try await censusLookup(url: components.url!)
@@ -119,15 +130,18 @@ enum DistrictLookup {
             throw DistrictLookupError.noMatch
         }
 
-        var district = (entry["CD119"] as? String)
-            ?? (entry["CD118"] as? String)
-            ?? (entry["BASENAME"] as? String)
+        // CDnnn ("04", "00" at-large) when the vintage carries it, else the
+        // GEOID's district digits. BASENAME is display text ("Congressional
+        // District (at Large)"), never a code.
+        let cdKey = entry.keys.first { $0.range(of: #"^CD\d+$"#, options: .regularExpression) != nil }
+        var district = cdKey.flatMap { entry[$0] as? String }
             ?? geoid.map { String($0.dropFirst(2)) }
 
         // At-large districts come back as "00"; normalize to "0".
         if let d = district, let n = Int(d) { district = String(n) }
         // "98"/"ZZ" mark non-voting delegations and unassigned water areas.
         if district == "98" || district == "ZZ" { district = "0" }
+        if let d = district, Int(d) == nil { district = nil }
 
         let city = (result["addressMatches"] as? [[String: Any]])?
             .first.flatMap { $0["matchedAddress"] as? String }

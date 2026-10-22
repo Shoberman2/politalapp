@@ -54,14 +54,24 @@ struct Theme {
     var borderSoft: Color    { dark ? Palette.borderLightDark : Palette.borderLightLight }
 
     /// Background for selected/active states — the accent at 8% per DESIGN.md.
-    var accentSubtle: Color { accent.opacity(dark ? 0.16 : 0.08) }
+    var accentSubtle: Color { accent.opacity(dark ? 0.12 : 0.08) }
 
-    // Semantic. Dark mode reduces saturation per the design system's dark-mode
-    // strategy, so these lighten rather than staying at their light-mode values.
-    var success: Color { dark ? Color(hex: 0x4ADE80) : Color(hex: 0x16A34A) }
-    var warning: Color { dark ? Color(hex: 0xFBBF24) : Color(hex: 0xD97706) }
-    var error: Color   { dark ? Color(hex: 0xF87171) : Color(hex: 0xDC2626) }
-    var info: Color    { dark ? Color(hex: 0x38BDF8) : Color(hex: 0x0284C7) }
+    // Web tokens from src/styles/App.css (:root and [data-theme="dark"]).
+    // The website is the reference: change a value there first, then here.
+    /// `--bg-tint`: the faintly darker paper behind tinted bands.
+    var bgTint: Color { dark ? Color(hex: 0x1A1A18) : Color(hex: 0xF4F2EC) }
+    /// `--fill-soft`: selected toggle and icon-button hover fill.
+    var fillSoft: Color { dark ? Color(hex: 0xE8E6E1).opacity(0.09) : Color(hex: 0x1A1A18).opacity(0.06) }
+    /// `--rule-strong`: the heavy rule under a page head.
+    var ruleStrong: Color { dark ? Color(hex: 0x5C5A54) : Color(hex: 0x1A1A18) }
+    /// `.btn-primary` label: white on light, deep navy on the lighter dark accent.
+    var onAccent: Color { dark ? Color(hex: 0x0B1220) : .white }
+
+    // Semantic (`--success`, `--warning`, `--error`, `--info`).
+    var success: Color { dark ? Color(hex: 0x34C77B) : Color(hex: 0x16A34A) }
+    var warning: Color { dark ? Color(hex: 0xD9962B) : Color(hex: 0xB45309) }
+    var error: Color   { dark ? Color(hex: 0xEF5B5B) : Color(hex: 0xDC2626) }
+    var info: Color    { dark ? Color(hex: 0x3DA8E0) : Color(hex: 0x0284C7) }
 
     /// Party colors. Secondary by design — these are for small text tags and
     /// thin indicator bars, never card background washes.
@@ -129,10 +139,13 @@ enum Space {
 /// Buttons carry a larger radius than everything else on purpose: roundness is
 /// the signal that something is pressable (DESIGN.md § Layout).
 enum Radius {
-    static let button: CGFloat = 10
-    static let sm: CGFloat = 4      // tags, chips, inputs
-    static let md: CGFloat = 8      // cards, panels
-    static let lg: CGFloat = 12     // hero sections, modals
+    // Web: --r-btn, --r-toggle, --r-icon, --r-sm, --r-md, --r-lg.
+    static let button: CGFloat = 12
+    static let toggle: CGFloat = 8
+    static let icon: CGFloat = 10
+    static let sm: CGFloat = 3      // tags, chips
+    static let md: CGFloat = 7      // inputs, panels
+    static let lg: CGFloat = 12     // cards, hero panels
     static let full: CGFloat = 9999 // avatars
 }
 

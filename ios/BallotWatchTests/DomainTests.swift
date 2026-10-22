@@ -34,14 +34,33 @@ final class FloorVoteRulesTests: XCTestCase {
     // MARK: Result derivation
 
     func testClotureNeedsSixty() {
-        // A simple majority is not enough for cloture — this is the case a
-        // naive yea > nay check gets wrong.
-        XCTAssertEqual(
-            FloorVotes.deriveResult(question: "On the Cloture Motion", yea: 50, nay: 44, chamber: .senate),
-            "Cloture rejected"
-        )
+        // A simple majority is not enough for legislative cloture — this is
+        // the case a naive yea > nay check gets wrong.
         XCTAssertEqual(
             FloorVotes.deriveResult(question: "On the Cloture Motion", yea: 60, nay: 40, chamber: .senate),
+            "Cloture invoked"
+        )
+        XCTAssertEqual(
+            FloorVotes.deriveResult(question: "On the Cloture Motion", yea: 44, nay: 50, chamber: .senate),
+            "Cloture rejected"
+        )
+        // Over half but under 60, and nothing says it's a nomination: the
+        // threshold is unknown, so no result (matches the web).
+        XCTAssertNil(
+            FloorVotes.deriveResult(
+                question: "On the Cloture Motion", yea: 53, nay: 47, chamber: .senate,
+                description: "Motion to Invoke Cloture: Keith Sonderling to be Secretary of Labor"
+            )
+        )
+    }
+
+    func testNominationClotureNeedsAMajority() {
+        // Nominations need only a simple majority for cloture since 2013/2017.
+        XCTAssertEqual(
+            FloorVotes.deriveResult(
+                question: "On the Cloture Motion", yea: 52, nay: 46, chamber: .senate,
+                description: "Motion to Invoke Cloture: Executive Calendar #812; Nomination of Jane Doe"
+            ),
             "Cloture invoked"
         )
     }

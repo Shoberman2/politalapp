@@ -40,13 +40,10 @@
 	</array>
 	<key>UIAppFonts</key>
 	<array>
-		<string>InstrumentSerif-Regular.ttf</string>
-		<string>InstrumentSerif-Italic.ttf</string>
-		<string>GeneralSans-Regular.otf</string>
-		<string>GeneralSans-Medium.otf</string>
-		<string>GeneralSans-Semibold.otf</string>
-		<string>GeneralSans-Bold.otf</string>
-		<string>GeneralSans-Italic.otf</string>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
+		<string>InterDisplay-SemiBold.ttf</string>
 		<string>GeistMono-Regular.ttf</string>
 		<string>GeistMono-Medium.ttf</string>
 		<string>GeistMono-SemiBold.ttf</string>
