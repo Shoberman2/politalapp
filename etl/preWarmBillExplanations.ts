@@ -1,256 +1,256 @@
 /**
- * Pre-warm Module - Long-form Bill Explanations
+ * Pre-warm Module - Plain-English Bill Explanations
  *
- * Finds bills that don't yet have a source-grounded row in `bill_explanations`
- * and asks the deployed `explain-bill` Edge Function to cache the official CRS
- * summary. No model call or title-based inference occurs in this path.
+ * Finds bills without an explanation under the current model and prompt
+ * version and writes one from what the bill actually says: the model reads
+ * the bill's newest official text from Congress.gov (plus the CRS summary
+ * when the text is long or missing). Bills with neither yet are skipped and
+ * retried on a later run. Nothing is written from a title alone.
  *
- * Keep MODEL and PROMPT_VERSION in sync with supabase/functions/explain-bill/index.ts.
- * If they drift, the ETL will re-warm rows the function already considers fresh
- * (wasted spend) or miss rows the function already wrote (lazy fill on first view).
+ * The writer is shared/billExplainer.js, the same code the website calls on
+ * demand (api/_lib/explanations.js), so a bill explained here and a bill
+ * explained on first view are indistinguishable.
+ *
+ * Order: bills with a recorded floor vote first (people look them up), then
+ * newest first. Only ETL_EXPLAIN_CONGRESSES (default: the current Congress);
+ * older bills are explained when someone opens them.
+ *
+ * Congress.gov allows 5,000 API calls an hour per key, and the website's proxy
+ * spends the same key, so this run paces itself to CONGRESS_CALLS_PER_HOUR
+ * (default 2,000) and leaves the rest for readers.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { ETLConfig } from './types.js';
 import { logger, sleep } from './utils.js';
+import {
+  explainBill,
+  parseBillKey,
+  EXPLAINER_MODEL,
+  EXPLAINER_PROMPT_VERSION,
+} from '../shared/billExplainer.js';
 
-const MODEL = 'official-crs';
-const PROMPT_VERSION = 1;
-const REQUEST_SPACING_MS = 500;
-// The function makes two parallel Congress.gov reads and one cache write.
-// Anything longer than 30s is stuck and should not hold the ETL phase open.
-const PER_BILL_TIMEOUT_MS = 30_000;
 const PROGRESS_LOG_EVERY = 25;
-// Stop pre-warming if the loop has been running for this long, even if the
-// candidate list isn't drained. Bills we skip get caught by the next day's
-// run (or lazy-loaded on first user view). Tunable via ETL_PREWARM_BUDGET_MS.
+const CONCURRENCY = 4;
+// Stop after this long even if the list isn't drained; the next run picks up.
+// Tunable via ETL_PREWARM_BUDGET_MS.
 const DEFAULT_BUDGET_MS = 20 * 60 * 1000;
+// One text lookup per bill, a summary lookup for some.
+const API_CALLS_PER_BILL = 1.3;
 
 export interface PreWarmResult {
   scanned: number;
   stored: number;
-  cacheHits: number;
+  noSource: number;
+  rejected: number;
+  promptTokens: number;
+  completionTokens: number;
   errors: string[];
 }
 
 interface BillRow {
   id: string;
   title: string;
-  crs_summary: string;
+  crs_summary: string | null;
 }
 
-function shouldStopPrewarmAfterError(message: string): boolean {
-  return (
-    /explain-bill 5\d\d/i.test(message) || /CONGRESS_API_KEY not configured/i.test(message)
-  );
+function shouldStop(message: string): boolean {
+  return /OpenAI (401|403|429)|insufficient_quota|no credits|not configured/i.test(message);
 }
 
-function parseBillId(id: string): { congress: number; billType: string; number: number } | null {
-  const match = /^(\d+)-([a-z]+)-(\d+)$/i.exec(id);
-  if (!match) return null;
-  return {
-    congress: parseInt(match[1], 10),
-    billType: match[2].toLowerCase(),
-    number: parseInt(match[3], 10),
-  };
-}
-
-async function fetchCachedBillKeys(supabase: SupabaseClient): Promise<Set<string>> {
-  const keys = new Set<string>();
-  const PAGE = 1000;
-  let from = 0;
-
-  while (true) {
-    const { data, error } = await supabase
-      .from('bill_explanations')
-      .select('bill_key')
-      .eq('model', MODEL)
-      .eq('prompt_version', PROMPT_VERSION)
-      // bill_key is unique within a (model, prompt_version) pair, so this is a
-      // total order — without one, offset paging can skip already-cached keys
-      // and we re-generate explanations we already have.
-      .order('bill_key', { ascending: true })
-      .range(from, from + PAGE - 1);
-
-    if (error) throw new Error(`Failed to read bill_explanations: ${error.message}`);
-    if (!data || data.length === 0) break;
-
-    for (const row of data) keys.add(row.bill_key);
-    if (data.length < PAGE) break;
-    from += PAGE;
-  }
-
-  return keys;
-}
-
-async function fetchCandidateBills(
+async function pagedIds(
   supabase: SupabaseClient,
-  cachedKeys: Set<string>,
-  maxBills: number
-): Promise<BillRow[]> {
-  const candidates: BillRow[] = [];
-  const PAGE = 500;
-  let from = 0;
-
-  while (candidates.length < maxBills) {
-    const { data, error } = await supabase
-      .from('bills')
-      .select('id, title, crs_summary')
-      .order('introduced_at', { ascending: false, nullsFirst: false })
-      .range(from, from + PAGE - 1);
-
-    if (error) throw new Error(`Failed to read bills: ${error.message}`);
+  build: (from: number, to: number) => PromiseLike<{ data: any[] | null; error: { message: string } | null }>,
+  pick: (row: any) => string
+): Promise<string[]> {
+  const out: string[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
     if (!data || data.length === 0) break;
-
-    for (const row of data) {
-      if (!row.title) continue;
-      if (!row.crs_summary?.trim()) continue;
-      if (cachedKeys.has(row.id.toLowerCase())) continue;
-      candidates.push({ id: row.id, title: row.title, crs_summary: row.crs_summary });
-      if (candidates.length >= maxBills) break;
-    }
-
+    for (const row of data) out.push(pick(row));
     if (data.length < PAGE) break;
-    from += PAGE;
   }
-
-  return candidates;
+  return out;
 }
 
-async function invokeExplainBill(
-  config: ETLConfig,
-  bill: BillRow
-): Promise<{ cached: boolean }> {
-  const parsed = parseBillId(bill.id);
-  if (!parsed) throw new Error(`Unparseable bill id: ${bill.id}`);
+async function fetchCandidates(supabase: SupabaseClient, maxBills: number): Promise<BillRow[]> {
+  const congresses = (process.env.ETL_EXPLAIN_CONGRESSES || '119')
+    .split(',')
+    .map((c) => c.trim())
+    .filter((c) => /^\d+$/.test(c));
 
-  const url = `${config.supabaseUrl}/functions/v1/explain-bill`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), PER_BILL_TIMEOUT_MS);
+  // bill_key is unique within a (model, prompt_version) pair, so ordering by
+  // it is a total order and offset paging cannot skip rows.
+  const done = new Set(
+    await pagedIds(
+      supabase,
+      (from, to) =>
+        supabase
+          .from('bill_explanations')
+          .select('bill_key')
+          .eq('model', EXPLAINER_MODEL)
+          .eq('prompt_version', EXPLAINER_PROMPT_VERSION)
+          .order('bill_key', { ascending: true })
+          .range(from, to),
+      (r) => r.bill_key
+    )
+  );
+  logger.info(`Pre-warm: ${done.size} explanations already written`);
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.supabaseServiceKey}`,
-        apikey: config.supabaseServiceKey,
-      },
-      body: JSON.stringify({
-        congress: parsed.congress,
-        billType: parsed.billType,
-        number: parsed.number,
-        title: bill.title,
-        summary: bill.crs_summary,
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`explain-bill ${res.status}: ${text.slice(0, 200)}`);
-    }
-
-    const body = await res.json();
-    return { cached: Boolean(body.cached) };
-  } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') {
-      throw new Error(`explain-bill timeout after ${PER_BILL_TIMEOUT_MS / 1000}s`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timeout);
+  const voted = new Set<string>();
+  for (const c of congresses) {
+    const ids = await pagedIds(
+      supabase,
+      (from, to) =>
+        supabase
+          .from('roll_calls')
+          .select('bill_id')
+          .like('bill_id', `${c}-%`)
+          .order('id', { ascending: true })
+          .range(from, to),
+      (r) => r.bill_id
+    );
+    for (const id of ids) if (id) voted.add(id.toLowerCase());
   }
+
+  const rows: (BillRow & { voted: boolean; introduced_at: string | null })[] = [];
+  for (const c of congresses) {
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('bills')
+        .select('id, title, crs_summary, introduced_at')
+        .like('id', `${c}-%`)
+        .order('id', { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error(`Failed to read bills: ${error.message}`);
+      if (!data || data.length === 0) break;
+      for (const r of data) {
+        const id = String(r.id).toLowerCase();
+        if (!r.title || done.has(id) || !parseBillKey(id)) continue;
+        rows.push({ id, title: r.title, crs_summary: r.crs_summary, introduced_at: r.introduced_at, voted: voted.has(id) });
+      }
+      if (data.length < PAGE) break;
+    }
+  }
+
+  rows.sort((a, b) =>
+    Number(b.voted) - Number(a.voted) ||
+    String(b.introduced_at || '').localeCompare(String(a.introduced_at || ''))
+  );
+  return rows.slice(0, maxBills);
 }
 
 export async function preWarmBillExplanations(
   config: ETLConfig,
   maxBills?: number
 ): Promise<PreWarmResult> {
-  // Resolution order: explicit arg → ETL_PREWARM_MAX env → 200 (daily default).
-  // The backfill workflow sets the env to a large number to drain the backlog
-  // in a single 6-hour run.
+  // Resolution order: explicit arg → ETL_PREWARM_MAX env → 300 (daily default).
   const effectiveMax =
-    maxBills ?? (parseInt(process.env.ETL_PREWARM_MAX || '200', 10) || 200);
+    maxBills ?? (parseInt(process.env.ETL_PREWARM_MAX || '300', 10) || 300);
 
-  const result: PreWarmResult = { scanned: 0, stored: 0, cacheHits: 0, errors: [] };
+  const result: PreWarmResult = {
+    scanned: 0, stored: 0, noSource: 0, rejected: 0, promptTokens: 0, completionTokens: 0, errors: [],
+  };
+
+  const openaiApiKey = config.openaiApiKey || process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) {
+    logger.warn('Pre-warm: OPENAI_API_KEY not set; skipping explanations');
+    return result;
+  }
 
   const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  let cachedKeys: Set<string>;
-  try {
-    cachedKeys = await fetchCachedBillKeys(supabase);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    result.errors.push(message);
-    return result;
-  }
-
-  logger.info(`Pre-warm: ${cachedKeys.size} explanations already cached`);
-
   let candidates: BillRow[];
   try {
-    candidates = await fetchCandidateBills(supabase, cachedKeys, effectiveMax);
+    candidates = await fetchCandidates(supabase, effectiveMax);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    result.errors.push(message);
+    result.errors.push(err instanceof Error ? err.message : String(err));
     return result;
   }
-
   if (candidates.length === 0) {
-    logger.info('Pre-warm: no bills missing explanations');
+    logger.info('Pre-warm: every bill in scope has an explanation');
     return result;
   }
 
-  const budgetMs =
-    parseInt(process.env.ETL_PREWARM_BUDGET_MS || '', 10) || DEFAULT_BUDGET_MS;
+  const budgetMs = parseInt(process.env.ETL_PREWARM_BUDGET_MS || '', 10) || DEFAULT_BUDGET_MS;
+  const callsPerHour = parseInt(process.env.CONGRESS_CALLS_PER_HOUR || '', 10) || 2000;
+  const spacingMs = Math.ceil((3_600_000 / callsPerHour) * API_CALLS_PER_BILL);
   const startedAt = Date.now();
   logger.info(
-    `Pre-warm: caching up to ${candidates.length} official explanations ` +
-    `(budget ${(budgetMs / 60000).toFixed(0)}m)`
+    `Pre-warm: explaining up to ${candidates.length} bills from their text with ${EXPLAINER_MODEL} ` +
+    `(budget ${(budgetMs / 60000).toFixed(0)}m, one bill every ${spacingMs}ms)`
   );
-  logger.info('Pre-warm: using only official CRS summaries (no model generation)');
 
-  for (const bill of candidates) {
-    if (Date.now() - startedAt > budgetMs) {
-      logger.info(
-        `Pre-warm: budget exhausted after ${result.scanned} bills; ` +
-        `${candidates.length - result.scanned} skipped (will retry next run)`
-      );
-      break;
-    }
-    result.scanned++;
-    try {
-      const { cached } = await invokeExplainBill(config, bill);
-      if (cached) {
-        result.cacheHits++;
-      } else {
-        result.stored++;
-        logger.debug(`Pre-warmed ${bill.id}`);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      result.errors.push(`${bill.id}: ${message}`);
-      if (shouldStopPrewarmAfterError(message)) {
-        logger.warn(`Pre-warm stopped early because generation is not currently available: ${message}`);
+  let next = 0;
+  let nextSlot = Date.now();
+  let stop = false;
+
+  const worker = async () => {
+    while (!stop) {
+      if (Date.now() - startedAt > budgetMs) {
+        stop = true;
         break;
       }
-      logger.error(`Pre-warm failed for ${bill.id}: ${message}`);
+      const bill = candidates[next++];
+      if (!bill) break;
+      // Shared pacing across workers: each bill takes the next free slot.
+      const slot = Math.max(nextSlot, Date.now());
+      nextSlot = slot + spacingMs;
+      await sleep(slot - Date.now());
+
+      result.scanned++;
+      try {
+        const out = await explainBill(
+          { key: parseBillKey(bill.id), title: bill.title, crsSummary: bill.crs_summary },
+          { congressApiKey: config.congressApiKey, openaiApiKey }
+        );
+        for (const u of out.usage || []) {
+          result.promptTokens += u.prompt_tokens || 0;
+          result.completionTokens += u.completion_tokens || 0;
+        }
+        if (out.status === 'no_source') result.noSource++;
+        else if (out.status === 'rejected') {
+          result.rejected++;
+          logger.debug(`Pre-warm rejected ${bill.id}: ${out.reason}`);
+        } else if (config.dryRun) {
+          result.stored++;
+          logger.info(`[dry run] ${bill.id}: ${out.row.explanation}`);
+        } else {
+          const { error } = await supabase.from('bill_explanations').upsert({ ...out.row, generated_by: 'prewarm' });
+          if (error) throw new Error(`write failed: ${error.message}`);
+          result.stored++;
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        result.errors.push(`${bill.id}: ${message}`);
+        if (shouldStop(message)) {
+          logger.warn(`Pre-warm stopped: ${message}`);
+          stop = true;
+          break;
+        }
+        logger.error(`Pre-warm failed for ${bill.id}: ${message}`);
+      }
+      if (result.scanned % PROGRESS_LOG_EVERY === 0) {
+        logger.info(
+          `Pre-warm progress: ${result.scanned}/${candidates.length} (${result.stored} written, ` +
+          `${result.noSource} no text yet, ${result.rejected} rejected, ${result.errors.length} errors, ` +
+          `${result.promptTokens + result.completionTokens} tokens)`
+        );
+      }
     }
-    if (result.scanned % PROGRESS_LOG_EVERY === 0) {
-      logger.info(
-        `Pre-warm progress: ${result.scanned}/${candidates.length} (` +
-        `${result.stored} stored, ${result.cacheHits} cached, ${result.errors.length} errors)`
-      );
-    }
-    await sleep(REQUEST_SPACING_MS);
-  }
+  };
+
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
 
   logger.info(
-    `Pre-warm complete: ${result.stored} stored, ${result.cacheHits} already-cached, ${result.errors.length} errors`
+    `Pre-warm complete: ${result.stored} written, ${result.noSource} without text yet, ` +
+    `${result.rejected} rejected, ${result.errors.length} errors; ` +
+    `${result.promptTokens} prompt + ${result.completionTokens} completion tokens`
   );
-
   return result;
 }

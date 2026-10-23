@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { resolveMemberImageUrl } from '../utils/memberImage'
 import { isAtLargeState, normalizeCensusDistrict } from '../../shared/atLargeStates.js'
+import { censusVintage } from '../../shared/censusVintage.js'
 
 import { CONGRESS_PROXY_BASE, installProxyPaths } from './apiProxy'
 
@@ -528,7 +529,7 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
       state,
       zip,
       benchmark: 'Public_AR_Current',
-      vintage: 'Current_Current',
+      vintage: censusVintage(),
       format: 'jsonp'
     })
 
@@ -553,9 +554,10 @@ export const getCongressionalDistrict = async (street, city, state, zip) => {
 
     // The CDnnn field (e.g. CD119: "04") carries the district code; at-large
     // seats are "00". BASENAME is display text — "4", but "Congressional
-    // District (at Large)" for an at-large seat — so it is only a fallback.
+    // District (at Large)" for an at-large seat — so it is never read. The
+    // vintage comes from shared/censusVintage.js.
     const cdField = Object.keys(cd).find(k => /^CD\d+$/i.test(k))
-    const rawCode = (cdField && cd[cdField]) || cd.GEOID?.substring(2) || cd.BASENAME
+    const rawCode = (cdField && cd[cdField]) || cd.GEOID?.substring(2)
     const district = normalizeCensusDistrict(rawCode)
     if (district == null) {
       return null

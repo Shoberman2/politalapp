@@ -23,6 +23,7 @@ Contents: 1. Site map and citation rules (llms.txt). 2. Open data files and sche
 - A roll call (how every member voted): https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: https://www.ballotwatch.io/vote/119/house/2/295)
 - This week on the floor: https://www.ballotwatch.io/this-week
 - How it works: https://www.ballotwatch.io/how-it-works
+- Glossary (what congressional terms like roll call, cloture and cosponsor mean, in plain English): https://www.ballotwatch.io/glossary
 - Data sources: https://www.ballotwatch.io/data-sources
 - Methodology: https://www.ballotwatch.io/methodology
 
@@ -47,7 +48,7 @@ Contents: 1. Site map and citation rules (llms.txt). 2. Open data files and sche
 - MCP server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json
 - Human page: https://www.ballotwatch.io/open#download
 
-BallotWatch is a civic reference, not a campaign site. Pages read like an editorial broadsheet. Data is the record as ingested; the only derived field is a roll call's result, computed from the tally and the question. Bill explanations are grounded in the official CRS summary and are never generated on demand for anonymous requests.
+BallotWatch is a civic reference, not a campaign site. Pages read like an editorial broadsheet. Data is the record as ingested; the only derived field is a roll call's result, computed from the tally and the question. Bill explanations are written by AI from each bill's official text (or the CRS summary when no text is published), once per bill, and say which text version they read; nothing is inferred from a title.
 
 ## Canonical URLs
 
@@ -65,7 +66,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - Open data and source (bulk downloads, license, API, MCP, methodology): https://www.ballotwatch.io/open
 - For congressional offices (in development): https://www.ballotwatch.io/offices
 
-The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, methodology, data sources, about, open data, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, glossary, methodology, data sources, about, open data, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
 The app pages need a free account in the browser: your representatives, the Bills index, the district map, the shutdown tracker, campaign-finance comparison, AI Congress and committee pages. Member pages, record cards, bill pages, roll calls, This week, the API and the MCP server do not.
 
@@ -368,7 +369,7 @@ Arguments:
 
 ## explain_bill (Explain bill)
 
-The cached plain-English explanation of a bill, grounded in the official CRS summary. Returns the official summary when no explanation is cached. Never generates text on demand.
+A plain-English explanation of a bill for readers with no background in government: a one-sentence summary, short paragraphs and key points, written by AI from the bill's official text (or the CRS summary when the text is not published). Says which text version it read. Nothing is inferred from the title; when Congress.gov has no text yet, plain_english is null.
 Arguments:
   - id (string, required, max length 40)
 

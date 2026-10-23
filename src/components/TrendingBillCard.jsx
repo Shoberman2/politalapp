@@ -1,3 +1,4 @@
+import { formatBillId } from '../utils/billTitle'
 import { useNavigate } from 'react-router-dom'
 
 function TrendingBillCard({ bill }) {
@@ -6,10 +7,10 @@ function TrendingBillCard({ bill }) {
   const getStatusInfo = () => {
     const latestAction = (bill.latestAction?.text || '').toLowerCase()
     if (latestAction.includes('became public law') || latestAction.includes('signed by president')) {
-      return { label: 'Enacted', className: 'status-enacted' }
+      return { label: 'Became law', className: 'status-enacted' }
     }
     if (latestAction.includes('passed house') && latestAction.includes('passed senate')) {
-      return { label: 'Passed Both', className: 'status-passed-both' }
+      return { label: 'Passed House and Senate', className: 'status-passed-both' }
     }
     if (latestAction.includes('passed house') || latestAction.includes('passed senate')) {
       return { label: 'Passed', className: 'status-passed' }
@@ -65,7 +66,7 @@ function TrendingBillCard({ bill }) {
 
       <div className="trending-bill-meta">
         <span className="trending-bill-number">
-          {bill.type?.toUpperCase()}.{bill.number}
+          {formatBillId(bill)}
         </span>
         {bill.latestAction && (
           <span className="trending-bill-action">

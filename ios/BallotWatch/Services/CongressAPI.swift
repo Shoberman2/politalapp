@@ -5,8 +5,12 @@ import Foundation
 /// The Supabase `politicians` roster stores `district` as null for every House
 /// member, so "who represents district CA-12" has to come from here. Everything
 /// else (votes, bills, tallies) comes from Supabase.
+///
+/// Requests go through the BallotWatch proxy (`api/proxy/congress.js`), which
+/// adds the api.data.gov key server-side, so no key ships in the app binary.
+/// A new path needs an allow-list entry in `api/_lib/upstreamProxy.js`.
 enum CongressAPI {
-    private static let base = URL(string: "https://api.congress.gov/v3")!
+    private static var base: URL { Config.proxyURL(service: "congress") }
     static let currentCongress = 119
 
     struct MemberSummary: Decodable, Identifiable, Hashable {
@@ -61,29 +65,17 @@ enum CongressAPI {
 
     private struct MemberListResponse: Decodable { let members: [MemberSummary] }
 
-    /// Thrown when no Congress.gov key is configured. Callers treat this as
-    /// "district numbers unavailable" rather than as a failure — everything
-    /// else in the app comes from Supabase and still works.
-    struct MissingAPIKey: LocalizedError {
-        var errorDescription: String? {
-            "No Congress.gov API key configured, so district numbers are unavailable."
-        }
-    }
-
     /// Members currently serving a given state, optionally narrowed to one
     /// district. `currentMember=true` keeps former members out.
     static func members(state: String, district: Int? = nil) async throws -> [MemberSummary] {
-        guard let apiKey = Config.congressAPIKey else { throw MissingAPIKey() }
         var path = "member/congress/\(currentCongress)/\(state)"
         if let district { path += "/\(district)" }
         var components = URLComponents(
             url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false
         )!
         components.queryItems = [
-            .init(name: "format", value: "json"),
             .init(name: "currentMember", value: "true"),
             .init(name: "limit", value: "250"),
-            .init(name: "api_key", value: apiKey),
         ]
         let (data, response) = try await URLSession.shared.data(from: components.url!)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
@@ -136,16 +128,8 @@ enum CongressAPI {
     private struct MemberDetailResponse: Decodable { let member: MemberDetail }
 
     static func member(bioguideID: String) async throws -> MemberDetail {
-        guard let apiKey = Config.congressAPIKey else { throw MissingAPIKey() }
-        var components = URLComponents(
-            url: base.appendingPathComponent("member/\(bioguideID)"),
-            resolvingAgainstBaseURL: false
-        )!
-        components.queryItems = [
-            .init(name: "format", value: "json"),
-            .init(name: "api_key", value: apiKey),
-        ]
-        let (data, response) = try await URLSession.shared.data(from: components.url!)
+        let url = base.appendingPathComponent("member/\(bioguideID)")
+        let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw PostgRESTError.http(
                 status: (response as? HTTPURLResponse)?.statusCode ?? -1,

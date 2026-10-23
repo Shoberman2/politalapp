@@ -63,19 +63,19 @@ function BillCard({ bill, onSponsorClick }) {
   const getStatusInfo = () => {
     const latestAction = (bill.latestAction?.text || '').toLowerCase()
     if (latestAction.includes('became public law') || latestAction.includes('signed by president')) {
-      return { label: 'Enacted', className: 'status-enacted', desc: 'Signed into law by the President' }
+      return { label: 'Became law', className: 'status-enacted', desc: 'Signed into law by the President' }
     }
     if (latestAction.includes('passed house') && latestAction.includes('passed senate')) {
-      return { label: 'Passed Both', className: 'status-passed-both', desc: 'Passed both the House and Senate' }
+      return { label: 'Passed House and Senate', className: 'status-passed-both', desc: 'Passed both the House and Senate' }
     }
     if (latestAction.includes('passed house') || latestAction.includes('passed senate')) {
-      return { label: 'Passed', className: 'status-passed', desc: 'Passed one chamber, awaiting the other' }
+      return { label: 'Passed one chamber', className: 'status-passed', desc: 'Passed the House or the Senate, still needs the other' }
     }
     if (latestAction.includes('committee')) {
       return { label: 'In Committee', className: 'status-committee', desc: 'Being reviewed by a congressional committee' }
     }
     if (latestAction.includes('introduced')) {
-      return { label: 'Introduced', className: 'status-introduced', desc: 'Newly introduced, not yet assigned to committee' }
+      return { label: 'Introduced', className: 'status-introduced', desc: 'Formally filed, the first step for every bill' }
     }
     return { label: 'In Progress', className: 'status-progress', desc: 'Moving through the legislative process' }
   }
@@ -99,7 +99,7 @@ function BillCard({ bill, onSponsorClick }) {
           {bill.type?.toUpperCase()}
         </span>
         <span className="bill-number" title={typeInfo.name}>
-          {bill.type?.toUpperCase()}.{bill.number}
+          {formatBillId(bill)}
         </span>
         <span className={`bill-status-badge ${status.className}`} title={status.desc}>
           {status.label}
@@ -119,7 +119,7 @@ function BillCard({ bill, onSponsorClick }) {
       <div className="bill-meta">
         {bill.latestAction && (
           <div className="bill-action">
-            <span className="action-label">Latest Action:</span>
+            <span className="action-label">Latest step:</span>
             <span className="action-text">{bill.latestAction.text}</span>
             <span className="action-date">{formatDate(bill.latestAction.actionDate)}</span>
           </div>

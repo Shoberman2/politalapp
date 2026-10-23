@@ -173,8 +173,7 @@ async function runETLPipeline(options: CLIOptions): Promise<ETLRunResult> {
     if (options.backfillExplanations) {
       logger.info('Running explanation backfill only (skipping all other phases)...');
       // Let ETL_PREWARM_MAX override (workflow_dispatch input). Default 100k
-      // means "everything" in practice — we'd never actually have that many
-      // bills in the 100-day window.
+      // means "every bill in ETL_EXPLAIN_CONGRESSES" in practice.
       const envCap = parseInt(process.env.ETL_PREWARM_MAX || '', 10);
       const cap = Number.isFinite(envCap) && envCap > 0 ? envCap : 100_000;
       const prewarmResult = await preWarmBillExplanations(config, cap);

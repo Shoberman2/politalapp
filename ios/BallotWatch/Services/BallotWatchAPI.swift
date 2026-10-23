@@ -322,44 +322,25 @@ enum BallotWatchAPI {
         return "\(query[typeRange].lowercased())-\(query[numRange])"
     }
 
-    // MARK: - AI bill explanation
+    // MARK: - Plain-English bill explanation
 
-    /// Reads the shared explanation cache first. Every user hits the same row,
-    /// so a bill someone else already opened costs one cheap select.
-    static func cachedExplanation(billKey: String) async throws -> BillExplanation? {
-        try await PostgREST.shared.selectOne(
-            "bill_explanations",
-            columns: "bill_key, explanation, model, bill_title",
-            filters: [.eq("bill_key", billKey)],
-            order: [Order("prompt_version", ascending: false)],
-            as: BillExplanation.self
-        )
-    }
-
-    /// Cold path: ask the Edge Function to generate one. The OpenAI key lives
-    /// server-side, so the app never holds it.
-    static func generateExplanation(bill: Bill) async throws -> String? {
-        guard let key = bill.key else { return nil }
-        var request = URLRequest(url: Config.functionsURL.appendingPathComponent("explain-bill"))
-        request.httpMethod = "POST"
-        request.timeoutInterval = 30
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("Bearer \(Config.supabaseAnonKey)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "congress": key.congress,
-            "billType": key.type,
-            "number": key.number,
-            "title": bill.title,
-            "summary": bill.bestSummary ?? "",
-        ])
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            return nil
-        }
-        let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        return (obj?["explanation"] as? String) ?? (obj?["summary"] as? String)
+    /// GET /api/explain on the website: the explanation written by AI from the
+    /// bill's official text, stored once per bill (shared/billExplainer.js).
+    /// The first reader of a bill can wait several seconds while it is written.
+    /// nil when there is none (no text published yet, or the service failed).
+    static func plainEnglish(billID: String) async -> PlainEnglishExplanation? {
+        var components = URLComponents(url: Config.siteURL.appendingPathComponent("api/explain"), resolvingAgainstBaseURL: false)
+        components?.queryItems = [URLQueryItem(name: "bill", value: billID.lowercased())]
+        guard let url = components?.url else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 90
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200,
+              let body = try? JSONDecoder().decode(PlainEnglishResponse.self, from: data),
+              body.status == "ok", let explanation = body.explanation, !explanation.summary.isEmpty
+        else { return nil }
+        return explanation
     }
 
     // MARK: - Committee routing

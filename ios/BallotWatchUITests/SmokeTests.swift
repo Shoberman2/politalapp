@@ -36,49 +36,76 @@ final class SmokeTests: XCTestCase {
     }
 
     func test01_myRepLookup() throws {
-        capture("01-myrep-empty")
+        // The first tab is the representative lookup, not a landing page:
+        // with no saved address it opens on the form.
+        let street = app.textFields["myRepStreet"]
+        XCTAssertTrue(street.waitForExistence(timeout: 10))
+        capture("01-myrep-form")
 
-        let field = app.textFields["ZIP code or street address"]
-        XCTAssertTrue(field.waitForExistence(timeout: 10))
-        field.tap()
-        // An at-large state (Cheyenne, WY) resolves to a district from the ZIP
-        // alone, which exercises the full lookup path without needing a street
-        // address.
-        field.typeText("82001")
-        app.buttons["Find"].tap()
+        // Dover, DE is at-large, so the lookup always resolves to one House
+        // seat. (Montana is not at-large: two districts since 2023.)
+        street.tap()
+        street.typeText("411 Legislative Ave")
+        let zip = app.textFields["myRepZip"]
+        zip.tap()
+        zip.typeText("19901")
+        app.buttons["State, none"].tap()
+        let delaware = app.buttons["DE"]
+        XCTAssertTrue(delaware.waitForExistence(timeout: 5), "State menu did not open")
+        delaware.tap()
+        app.buttons["myRepFind"].tap()
 
-        // The delegation header replaces the hero once a place is saved.
-        let delegation = app.staticTexts["YOUR DELEGATION"]
+        // The representative list replaces the form: House member, then the
+        // two senators. Delaware's one at-large member must be named.
         XCTAssertTrue(
-            delegation.waitForExistence(timeout: 25),
-            "Lookup did not resolve to a delegation"
+            app.staticTexts["Your Representatives"].waitForExistence(timeout: 25),
+            "Representatives did not load"
         )
-        capture("02-myrep-delegation")
-
-        // Wyoming has two senators and one at-large representative. (Montana
-        // is not at-large: it has had two districts since 2023.)
-        // SectionHead renders its title uppercased.
         XCTAssertTrue(
-            app.staticTexts["YOUR SENATORS"].waitForExistence(timeout: 20),
+            app.staticTexts["HOUSE OF REPRESENTATIVES"].waitForExistence(timeout: 20),
+            "House member missing"
+        )
+        XCTAssertTrue(app.buttons["myRepChangeAddress"].exists, "Address row missing")
+        XCTAssertTrue(
+            app.staticTexts["U.S. SENATE"].waitForExistence(timeout: 20),
             "Senators section missing"
         )
         capture("03-myrep-loaded")
+        app.swipeUp(velocity: .slow)
+        capture("03-myrep-loaded-scrolled")
+
+        // Change reopens the form without losing the saved result.
+        app.buttons["myRepChangeAddress"].tap()
+        XCTAssertTrue(app.textFields["myRepStreet"].waitForExistence(timeout: 5))
+        capture("03b-myrep-change")
     }
 
     func test02_floorFeedLoadsRealVotes() throws {
         tapTab("Floor")
 
-        // Every roll call id parses to a chamber, so at least one row must
-        // carry a chamber kicker once the feed loads.
-        let house = app.staticTexts["HOUSE"].firstMatch
-        let senate = app.staticTexts["SENATE"].firstMatch
-        let loaded = house.waitForExistence(timeout: 25) || senate.waitForExistence(timeout: 10)
-        XCTAssertTrue(loaded, "Floor feed showed no roll calls")
+        // Each recorded vote card names its roll call number.
+        let rollLabel = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label BEGINSWITH 'Roll call'")
+        ).firstMatch
+        XCTAssertTrue(rollLabel.waitForExistence(timeout: 30), "Floor feed showed no roll calls")
         capture("04-floor-feed")
+        app.swipeUp()
+        capture("04b-floor-feed-rows")
 
-        // Opening the first row must reach a detail screen, not a dead end.
-        app.scrollViews.firstMatch.tap()
+        // Opening the first row must reach the roll-call page, not a dead end.
+        let firstRow = app.buttons["floorRow"].firstMatch
+        XCTAssertTrue(firstRow.waitForExistence(timeout: 5))
+        firstRow.tap()
+        let heading = app.staticTexts["How each member voted"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 25), "Roll-call page never loaded")
         capture("05-floor-detail")
+        app.swipeUp()
+        capture("05b-floor-detail-members")
+        let nay = app.buttons["Nay"].firstMatch
+        if nay.exists && nay.isHittable {
+            nay.tap()
+            capture("05c-floor-detail-nay")
+        }
     }
 
     func test03_billsSearch() throws {
@@ -90,6 +117,7 @@ final class SmokeTests: XCTestCase {
         XCTAssertTrue(firstBill.waitForExistence(timeout: 25), "Bills list stayed empty")
         capture("06-bills-list")
 
+        // The system search bar under the large title.
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.tap()
@@ -109,13 +137,18 @@ final class SmokeTests: XCTestCase {
     func test04_membersAndDetail() throws {
         tapTab("Members")
 
+        // The system search bar under the large title.
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 25), "Members screen never loaded")
         capture("09-members-list")
+        app.swipeUp()
+        capture("09b-members-cards")
+        app.swipeDown()
+        app.swipeDown()
 
         search.tap()
         search.typeText("Ocasio-Cortez")
-        let member = app.staticTexts.matching(
+        let member = app.buttons.matching(
             NSPredicate(format: "label CONTAINS[c] 'Ocasio-Cortez'")
         ).firstMatch
         XCTAssertTrue(
@@ -139,12 +172,12 @@ final class SmokeTests: XCTestCase {
         capture("11-politician-detail")
 
         // Campaign finance is loaded directly from the current OpenFEC cycle.
+        let financeLabel = app.staticTexts.matching(
+            NSPredicate(format: "label BEGINSWITH 'CAMPAIGN FINANCE'")
+        ).firstMatch
+        XCTAssertTrue(financeLabel.waitForExistence(timeout: 30), "Campaign finance section never rendered")
         XCTAssertTrue(
-            app.staticTexts["CAMPAIGN FINANCE"].waitForExistence(timeout: 30),
-            "Campaign finance section never rendered"
-        )
-        XCTAssertTrue(
-            app.staticTexts["2026 cycle"].waitForExistence(timeout: 30),
+            app.staticTexts["CAMPAIGN FINANCE · 2026 CYCLE"].waitForExistence(timeout: 30),
             "Current FEC cycle did not load"
         )
         let nonZeroCurrency = app.staticTexts.matching(
@@ -152,10 +185,39 @@ final class SmokeTests: XCTestCase {
         ).firstMatch
         XCTAssertTrue(nonZeroCurrency.waitForExistence(timeout: 30), "FEC totals stayed empty")
 
-        for _ in 0..<6 where !app.staticTexts["CAMPAIGN FINANCE"].isHittable {
+        // Walk the profile top to bottom for visual review.
+        for index in 0..<8 {
             app.swipeUp()
+            capture(String(format: "11-detail-%02d", index))
         }
         capture("12-politician-finance")
+
+        // Record-based voting pattern analysis runs on the loaded record.
+        let analyze = app.buttons["Analyze voting patterns"]
+        for _ in 0..<12 where !analyze.isHittable { app.swipeDown() }
+        if analyze.isHittable {
+            analyze.tap()
+            XCTAssertTrue(app.staticTexts["Notable Votes"].waitForExistence(timeout: 10), "Analysis did not render")
+            capture("12b-politician-analysis")
+            app.swipeUp()
+            capture("12c-politician-analysis-notable")
+        }
+
+        // "Record in 60 seconds" opens the record card.
+        let record = app.buttons["Record in 60 seconds"]
+        for _ in 0..<12 where !record.isHittable { app.swipeDown() }
+        record.tap()
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label ENDSWITH 'MOST RECENT RECORDED VOTES'"))
+                .firstMatch.waitForExistence(timeout: 25),
+            "Record card did not load its votes"
+        )
+        capture("13-record")
+        app.swipeUp()
+        capture("13b-record-votes")
+        app.swipeUp()
+        app.swipeUp()
+        capture("13c-record-foot")
     }
 
     func test05_moreAndMethodology() throws {
@@ -169,7 +231,7 @@ final class SmokeTests: XCTestCase {
 
         app.staticTexts["Methodology"].tap()
         XCTAssertTrue(
-            app.staticTexts["VOTE TALLIES"].waitForExistence(timeout: 10),
+            app.staticTexts["Vote tallies"].waitForExistence(timeout: 10),
             "Methodology page did not open"
         )
         capture("14-methodology")
@@ -187,5 +249,32 @@ final class SmokeTests: XCTestCase {
         _ = app.buttons["Senate"].waitForExistence(timeout: 20)
         capture("16-dark-members")
         XCUIDevice.shared.appearance = .light
+    }
+
+    func test07_plainEnglishTerms() throws {
+        // A reader with no political background: the Bills tab says bills are
+        // explained in plain English, and an ⓘ opens a definition.
+        tapTab("Bills")
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'plain English'")).firstMatch
+                .waitForExistence(timeout: 15),
+            "Plain-English line missing on Bills"
+        )
+        let info = app.buttons["info-bill"]
+        XCTAssertTrue(info.waitForExistence(timeout: 15), "Bill ⓘ missing")
+        info.tap()
+        let def = app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'A proposed law'")).firstMatch
+        XCTAssertTrue(def.waitForExistence(timeout: 5), "Definition did not open")
+        capture("17-info-term-bill")
+        // A tap outside closes the bubble (the first tap is spent closing it).
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
+        XCTAssertTrue(def.waitForNonExistence(timeout: 5), "Definition did not close")
+
+        tapTab("More")
+        let glossary = app.buttons["moreGlossary"]
+        XCTAssertTrue(glossary.waitForExistence(timeout: 10), "Glossary link missing")
+        glossary.tap()
+        XCTAssertTrue(app.staticTexts["Congress in one minute"].waitForExistence(timeout: 5))
+        capture("18-glossary")
     }
 }

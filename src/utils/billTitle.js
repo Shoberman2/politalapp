@@ -49,13 +49,20 @@ export function getBillDisplayTitle(bill, billType, number) {
  * Compact bill identifier like "H.R. 1234". Falls back gracefully when
  * either piece is missing.
  */
+// Congress's own labels, so a bill reads "H.R. 9340", not "HR. 9340".
+const BILL_TYPE_LABELS = {
+  HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
+  HJRES: 'H.J.Res.', SJRES: 'S.J.Res.', HCONRES: 'H.Con.Res.', SCONRES: 'S.Con.Res.',
+}
+
 export function formatBillId(bill, billType, number) {
   const t = (bill?.type || billType || '').toString().toUpperCase()
   const n = bill?.number || number || ''
   if (!t && !n) return 'Untitled bill'
   if (!t) return `Bill ${n}`
-  if (!n) return t
-  return `${t}. ${n}`
+  const label = BILL_TYPE_LABELS[t] || `${t}.`
+  if (!n) return label
+  return `${label} ${n}`
 }
 
 function pickTitle(s) {

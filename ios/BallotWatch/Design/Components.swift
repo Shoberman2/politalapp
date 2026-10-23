@@ -68,33 +68,34 @@ struct SectionHead: View {
 
 // MARK: - Party tag
 
-/// Party as a small letter tag. Never a card background — party is metadata,
-/// not identity (DESIGN.md decisions log, 2026-03-24).
+/// Web `.ptag`: the party letter in a thin box of its own color. Never a card
+/// background — party is metadata, not identity. An optional seat ("NY-14")
+/// follows in muted mono, as the web's member rows do.
 struct PartyTag: View {
     let party: Party
     var seat: String?
     @Environment(\.theme) private var theme
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 6) {
             Text(party.letter)
-                .font(Typo.monoSM)
+                .font(Typo.mono(11, 600))
+                .tracking(11 * 0.04)
                 .foregroundStyle(theme.party(party))
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Radius.sm)
+                        .stroke(theme.party(party), lineWidth: 1)
+                )
             if let seat {
-                Text("·")
-                    .font(Typo.monoSM)
-                    .foregroundStyle(theme.textMuted)
                 Text(seat)
-                    .font(Typo.monoSM)
-                    .foregroundStyle(theme.textSecondary)
+                    .font(Typo.mono(11))
+                    .tracking(11 * 0.04)
+                    .foregroundStyle(theme.textMuted)
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
-        .background(
-            RoundedRectangle(cornerRadius: Radius.sm)
-                .fill(theme.party(party).opacity(0.10))
-        )
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(party.label)\(seat.map { ", \($0)" } ?? "")")
     }
 }
@@ -158,45 +159,76 @@ struct Card<Content: View>: View {
 }
 
 // MARK: - Buttons
+//
+// Ported from the web button system in src/styles/App.css: one solid
+// primary per view, a quiet accent text action for everything else, and
+// borderless toggles with a soft fill when selected. No uppercase, tracking
+// or mono on any button.
 
+/// Web `.btn-primary`: solid accent, 15px/500, 44pt tall, 12pt radius.
+/// `fullWidth: false` sizes to the label like the web's inline buttons.
 struct PrimaryButtonStyle: ButtonStyle {
+    var fullWidth = true
+    var small = false
     @Environment(\.theme) private var theme
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Typo.bodySMMedium)
-            .foregroundStyle(Color.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 46)
+            .font(Typo.inter(small ? 14 : 15, 500))
+            .foregroundStyle(theme.onAccent)
+            .padding(.horizontal, small ? 14 : 18)
+            .padding(.vertical, small ? 8 : 11)
+            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: small ? 36 : 44)
             .background(
                 RoundedRectangle(cornerRadius: Radius.button)
-                    .fill(isEnabled ? theme.accent : theme.textMuted.opacity(0.4))
+                    .fill(configuration.isPressed ? theme.accentHover : theme.accent)
             )
-            .opacity(configuration.isPressed ? 0.85 : 1)
+            .opacity(isEnabled ? 1 : 0.55)
+            .contentShape(RoundedRectangle(cornerRadius: Radius.button))
             .animation(Motion.micro, value: configuration.isPressed)
     }
 }
 
+/// Web `.btn-secondary` / `.btn-text`: an accent text action, not a box.
+/// `arrow` adds the trailing → of `.btn-go` for actions that navigate.
 struct SecondaryButtonStyle: ButtonStyle {
+    var arrow = false
+    @Environment(\.theme) private var theme
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 8) {
+            configuration.label
+            if arrow { Text("\u{2192}") }
+        }
+        .font(Typo.inter(15, 500))
+        .foregroundStyle(theme.accent)
+        .underline(configuration.isPressed, color: theme.accent)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+        .opacity(isEnabled ? 1 : 0.55)
+    }
+}
+
+/// Web `.btn-toggle`: filters and segmented choices. Borderless; the selected
+/// item gets the soft fill and 600 weight.
+struct ToggleButtonStyle: ButtonStyle {
+    var isSelected: Bool
     @Environment(\.theme) private var theme
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Typo.bodySMMedium)
-            .foregroundStyle(theme.text)
-            .frame(maxWidth: .infinity)
-            .frame(height: 46)
+            .font(Typo.inter(13.5, isSelected ? 600 : 500))
+            .foregroundStyle(isSelected ? theme.text : theme.textSecondary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .frame(minHeight: 34)
             .background(
-                RoundedRectangle(cornerRadius: Radius.button)
-                    .fill(theme.surface)
+                RoundedRectangle(cornerRadius: Radius.toggle)
+                    .fill(isSelected || configuration.isPressed ? theme.fillSoft : .clear)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.button)
-                    .stroke(theme.border, lineWidth: 1)
-            )
-            .opacity(configuration.isPressed ? 0.7 : 1)
-            .animation(Motion.micro, value: configuration.isPressed)
+            .contentShape(RoundedRectangle(cornerRadius: Radius.toggle))
     }
 }
 
@@ -240,7 +272,7 @@ struct MemberPhoto: View {
 
     private var initials: some View {
         Text(Self.initials(from: name))
-            .font(.system(size: size * 0.34, weight: .medium, design: .serif))
+            .font(.custom(FontFamily.sansMedium, size: size * 0.34))
             .foregroundStyle(theme.textMuted)
     }
 

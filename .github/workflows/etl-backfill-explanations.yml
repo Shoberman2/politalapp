@@ -1,22 +1,25 @@
 # =============================================================================
 # Political Vote Tracker - Long-form Explanation Backfill
 # =============================================================================
-# Drains the bill_explanations backlog in one long run. Invokes the deployed
-# explain-bill Edge Function once per bill that doesn't yet have a cached row,
-# so all bills currently in the `bills` table get a long-form AI explanation
-# users can read on BillDetail.
+# Drains the bill_explanations backlog in one long run: every bill of the
+# current Congress (ETL_EXPLAIN_CONGRESSES) without an explanation gets one,
+# written by AI from the bill's official text (shared/billExplainer.js), so
+# readers never wait for the first one on BillDetail.
 #
 # Trigger: manual only (workflow_dispatch). The daily ETL handles incremental
 # top-up — this workflow is for the initial fill or for re-warming after a
 # MODEL / PROMPT_VERSION bump.
 #
-# Cost note: each uncached bill costs one explain-bill Edge Function invocation
-# (which internally calls OpenAI). ~10k bills × ~$0.001/bill ≈ $10 worst case.
+# Cost note: one OpenAI call per bill (two if the first answer guessed), about
+# 3k-30k input tokens each. Paced to CONGRESS_CALLS_PER_HOUR (default 2,000)
+# so the website's share of the Congress.gov key is never used up; at that
+# pace a run explains about 1,500 bills an hour.
 #
 # Required Secrets (same as daily ETL):
-#   CONGRESS_API_KEY          - present for config validation, unused in this run
+#   CONGRESS_API_KEY          - reads each bill's text versions and summaries
+#   OPENAI_API_KEY            - writes the explanations
 #   SUPABASE_URL              - target Supabase project URL
-#   SUPABASE_SERVICE_ROLE_KEY - service role key (auth's the explain-bill call)
+#   SUPABASE_SERVICE_ROLE_KEY - writes bill_explanations
 
 name: Backfill Bill Explanations
 
@@ -42,8 +45,8 @@ jobs:
   backfill:
     name: Backfill bill_explanations
     runs-on: ubuntu-latest
-    # GitHub Actions max. Sized for ~10k bills × ~1.5 s/call ≈ 4 h, leaving
-    # buffer for cold-start jitter and retries.
+    # GitHub Actions max. About 9,000 bills at the default pace; rerun to
+    # finish a larger backlog (finished bills are skipped).
     timeout-minutes: 360
 
     steps:
@@ -70,4 +73,6 @@ jobs:
           # The --backfill-explanations flag passes maxBills=100000 internally;
           # the input below lets an operator narrow it for testing.
           ETL_PREWARM_MAX: ${{ github.event.inputs.max_bills }}
+          # Use the whole job: stop 10 minutes before the 6-hour limit.
+          ETL_PREWARM_BUDGET_MS: '20400000'
         run: npm run etl -- --backfill-explanations

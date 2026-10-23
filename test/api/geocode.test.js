@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { districtFromGeographies, geocodeAddress, geocodeZip } from '../../api/_lib/geocode.js'
+import { censusVintage } from '../../shared/censusVintage.js'
 
 // Server-side geocoder behind the MCP find_representatives tool. Montana has
 // two districts; Wyoming is at-large (shared/atLargeStates.js).
@@ -22,6 +23,23 @@ describe('districtFromGeographies', () => {
   it('reads MT-02 and WY at-large from live-shaped Census rows', () => {
     expect(districtFromGeographies(geos(MT2))).toMatchObject({ state: 'MT', district: '2' })
     expect(districtFromGeographies(geos(WY))).toMatchObject({ state: 'WY', district: '0' })
+  })
+
+  // ACS2025_Current rows carry the 119th districts but no CD119 field.
+  it('falls back to GEOID when the row has no CDnnn field', () => {
+    const tx = { '119th Congressional Districts': [{ GEOID: '4837', CDSESSN: '119' }] }
+    const de = { '119th Congressional Districts': [{ GEOID: '1000', BASENAME: 'Congressional District (at Large)' }] }
+    expect(districtFromGeographies(tx)).toMatchObject({ state: 'TX', district: '37' })
+    expect(districtFromGeographies(de)).toMatchObject({ state: 'DE', district: '0' })
+  })
+})
+
+describe('censusVintage', () => {
+  // Census "Current" moved to the 120th Congress's maps before those members
+  // are seated; mid-decade redraws (Texas) would name the wrong member.
+  it('asks for the sitting Congress\'s districts until the 120th is sworn in', () => {
+    expect(censusVintage(new Date('2026-10-22T12:00:00Z'))).toBe('ACS2025_Current')
+    expect(censusVintage(new Date('2027-01-03T18:00:00Z'))).toBe('Current_Current')
   })
 })
 

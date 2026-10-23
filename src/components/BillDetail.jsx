@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { getBillDetails, getBillText, getBillActions, getBillCosponsors, getBillCommittees, getVoteTalliesFromActions, explainBillFromOfficialSummary, officialSummaryParagraphs } from '../services/congress'
 import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import { copyTextToClipboard } from '../utils/clipboard'
-import { InfoTip } from './Tooltip'
+import Term, { InfoDot } from './Term'
 import SEO from './SEO'
 import BillRoutingPanel, { StatusPillWithSurvival } from './BillRoutingPanel'
 import MethodologyModal from './MethodologyModal'
@@ -13,6 +13,8 @@ import { YouWroteNotes } from './YouWrote'
 import { billIdFrom } from '../utils/sentMessages'
 import { billRef, congressGovBillUrl, formatDate as formatLongDate } from '../utils/tellYourRepDraft'
 import { SHOW_BILL_ALERTS } from '../config/features'
+import { getPlainEnglishExplanation } from '../services/explanations'
+import { explanationSourceLine } from '../../shared/explanationSource.js'
 import '../styles/BillDetail.css'
 
 // Feature flag (per outside-voice D16). Off by default. Gates:
@@ -68,7 +70,23 @@ function BillDetail() {
     setAiExplanation(null)
     const officialSummaryHtml = bill.summaries?.at(-1)?.text || ''
     const title = getBillDisplayTitle(bill, billType, number)
-    explainBillFromOfficialSummary({ congress, billType, number, title, officialSummaryHtml })
+    // The AI explanation written from the bill's own text comes first. When
+    // there is none (no text published yet, or the service is down), show the
+    // official CRS summary instead. Nothing is ever written from the title.
+    getPlainEnglishExplanation({ congress, billType, number })
+      .then((plain) => {
+        if (plain.status === 'ok') {
+          const e = plain.explanation
+          return {
+            isGenerated: true,
+            explanation: e.summary,
+            paragraphs: [e.summary, ...(e.paragraphs || [])],
+            keyPoints: e.key_points || [],
+            source: e.source,
+          }
+        }
+        return explainBillFromOfficialSummary({ congress, billType, number, title, officialSummaryHtml })
+      })
       .then(result => {
         if (!cancelled) setAiExplanation(result)
       })
@@ -123,15 +141,15 @@ function BillDetail() {
     if (!bill) return { label: 'Loading', cls: 'status-progress' }
     const text = bill.latestAction?.text?.toLowerCase() || ''
     if (text.includes('became public law') || text.includes('signed by president')) {
-      return { label: 'Became Law', cls: 'status-enacted' }
+      return { label: 'Became Law', cls: 'status-enacted', term: 'enacted' }
     }
     if (text.includes('passed house') && text.includes('passed senate')) {
-      return { label: 'Passed Both Chambers · Awaiting Signature', cls: 'status-passed-both' }
+      return { label: 'Passed House and Senate · Awaiting President', cls: 'status-passed-both', term: 'passed' }
     }
-    if (text.includes('passed house')) return { label: 'Passed House · Awaiting Senate', cls: 'status-passed' }
-    if (text.includes('passed senate')) return { label: 'Passed Senate · Awaiting House', cls: 'status-passed' }
-    if (text.includes('committee')) return { label: 'In Committee', cls: 'status-committee' }
-    if (text.includes('introduced')) return { label: 'Introduced', cls: 'status-introduced' }
+    if (text.includes('passed house')) return { label: 'Passed House · Awaiting Senate', cls: 'status-passed', term: 'passed' }
+    if (text.includes('passed senate')) return { label: 'Passed Senate · Awaiting House', cls: 'status-passed', term: 'passed' }
+    if (text.includes('committee')) return { label: 'In Committee', cls: 'status-committee', term: 'committee' }
+    if (text.includes('introduced')) return { label: 'Introduced', cls: 'status-introduced', term: 'introduced' }
     return { label: 'In Progress', cls: 'status-progress' }
   }
 
@@ -226,14 +244,14 @@ function BillDetail() {
       <nav className="bill-crumb">
         <Link to="/">BallotWatch</Link>
         <span className="bill-crumb-sep">/</span>
-        <span>{billType.toUpperCase()}. {number}</span>
+        <span>{formatBillId(bill, billType, number)}</span>
       </nav>
 
       {/* MASTHEAD */}
       <header className="bill-masthead">
         <div className="bill-id-row">
-          <span className="bill-masthead-id">{formatBillId(bill, billType, number)}</span>
-          <span className="bill-masthead-congress">{congress}th Congress</span>
+          <span className="bill-masthead-id">{formatBillId(bill, billType, number)}<InfoDot id="billNumber" /></span>
+          <span className="bill-masthead-congress">{congress}th Congress<InfoDot id="congressNumber" label={`${congress}th Congress`} /></span>
           {SHOW_ROUTING_PANEL && committees.length > 0 ? (
             <StatusPillWithSurvival
               status={status}
@@ -244,8 +262,11 @@ function BillDetail() {
               onOpenMethodology={setMethodologyAnchor}
             />
           ) : (
-            <span className={`bill-status-pill ${status.cls}`}>
-              <span className="bill-status-pill-dot"></span>{status.label}
+            <span className="bill-status-wrap">
+              <span className={`bill-status-pill ${status.cls}`}>
+                <span className="bill-status-pill-dot"></span>{status.label}
+              </span>
+              {status.term && <InfoDot id={status.term} label={status.label} />}
             </span>
           )}
         </div>
@@ -253,7 +274,7 @@ function BillDetail() {
         <p className="bill-masthead-byline">
           {sponsor && (
             <>
-              Sponsored by <Link className="bill-byline-sponsor" to={`/politician/${sponsor.bioguideId}`}>
+              <Term id="sponsor">Sponsored</Term> by <Link className="bill-byline-sponsor" to={`/politician/${sponsor.bioguideId}`}>
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
               </Link>
               <span className={`bill-byline-party ${partyClass(sponsor.party)}`}>
@@ -262,9 +283,9 @@ function BillDetail() {
               {' '}·{' '}
             </>
           )}
-          {bill.introducedDate && <>introduced <span className="bill-byline-mono">{formatDate(bill.introducedDate)}</span></>}
-          {cosponsors.length > 0 && <> · with <strong>{cosponsors.length}</strong> cosponsor{cosponsors.length !== 1 ? 's' : ''}</>}
-          {bill.policyArea?.name && <> · policy area <em>{bill.policyArea.name}</em></>}
+          {bill.introducedDate && <><Term id="introduced">introduced</Term> <span className="bill-byline-mono">{formatDate(bill.introducedDate)}</span></>}
+          {cosponsors.length > 0 && <> · with <strong>{cosponsors.length}</strong> <Term id="cosponsor">{`cosponsor${cosponsors.length !== 1 ? 's' : ''}`}</Term></>}
+          {bill.policyArea?.name && <> · <Term id="policyArea">topic</Term> <em>{bill.policyArea.name}</em></>}
         </p>
         <div className="bill-masthead-actions">
           {textVersions[0]?.formats?.[0]?.url && (
@@ -283,20 +304,32 @@ function BillDetail() {
 
           {/* OFFICIAL EXPLANATION — primary content */}
           <article className="bill-ai-card">
+            {/* Honest labels (audit ISSUE-005): only AI-written text is called AI.
+                The Congressional Research Service summary is labeled as the
+                official summary, never as an AI explanation. */}
             <div className="bill-ai-label">
               <span className="bill-ai-pulse"></span>
-              <InfoTip text="This explanation is written with AI from the official Congress.gov summary. When that source is unavailable, BallotWatch does not infer provisions from the title.">The bill, in plain English</InfoTip>
+              {aiExplanation?.isGenerated
+                ? <Term id="plainEnglish">The bill, in plain English</Term>
+                : <Term id="officialSummary">The bill, in brief</Term>}
             </div>
             <div className="bill-ai-byline">
-              {aiExplanation?.sourceUnavailable
-                ? 'Official summary not yet available · no inferred provisions'
-                : 'AI explanation from the official Congress.gov summary · no inferred provisions'}
+              {aiLoading
+                ? ''
+                : aiExplanation?.sourceUnavailable
+                  ? 'Official summary not yet available · nothing guessed from the title'
+                  : aiExplanation?.isGenerated
+                    ? <>
+                        {explanationSourceLine(aiExplanation.source)}
+                        {aiExplanation.source?.url && <> <a href={aiExplanation.source.url} target="_blank" rel="noopener noreferrer">Read the text ↗</a></>}
+                      </>
+                    : 'Official summary by the Congressional Research Service, Congress’s nonpartisan research office'}
             </div>
             <h2 className="bill-ai-headline">What this bill would do</h2>
             {aiLoading && (
               <div className="bill-ai-loading">
                 <span className="loading-spinner-small"></span>
-                <span>Loading source-grounded explanation...</span>
+                <span>Reading the bill… The first explanation of a bill takes a few seconds.</span>
               </div>
             )}
             {!aiLoading && aiExplanation && (
@@ -306,12 +339,20 @@ function BillDetail() {
                   : <p>{aiExplanation.explanation}</p>}
               </div>
             )}
+            {!aiLoading && aiExplanation?.keyPoints?.length > 0 && (
+              <>
+                <h3 className="bill-ai-points-title">What it does</h3>
+                <ul className="bill-ai-points">
+                  {aiExplanation.keyPoints.map((k, i) => <li key={i}>{k}</li>)}
+                </ul>
+              </>
+            )}
           </article>
 
           {/* OFFICIAL SUMMARY — collapsed */}
-          {latestOfficialParagraphs.length > 0 && (
+          {latestOfficialParagraphs.length > 0 && aiExplanation?.isGenerated && (
             <details className="bill-summary-block">
-              <summary>Show official Congress.gov summary</summary>
+              <summary>Show the official Congress.gov summary</summary>
               <div className="bill-summary-body">
                 {latestOfficialParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
               </div>
@@ -329,8 +370,8 @@ function BillDetail() {
           {/* VOTE TALLIES */}
           {voteTallies.length > 0 && (
             <section className="bill-editorial-section">
-              <div className="bill-section-label">Floor votes</div>
-              <h2 className="bill-section-title">How the chambers voted</h2>
+              <div className="bill-section-label"><Term id="rollCall">Recorded votes</Term></div>
+              <h2 className="bill-section-title">How the House and Senate voted</h2>
               <div className="bill-tally-grid">
                 {voteTallies.map((tally, index) => {
                   const total = (tally.totalYea || 0) + (tally.totalNay || 0) + (tally.totalNotVoting || 0) + (tally.totalPresent || 0)
@@ -342,17 +383,20 @@ function BillDetail() {
                     <div key={index} className="bill-tally-card">
                       <div className="bill-tally-chamber">{tally.chamber || 'Congress'}</div>
                       {tally.date && <div className="bill-tally-date">{formatDate(tally.date)}</div>}
-                      <div className={`bill-tally-result ${passed ? 'passed' : 'failed'}`}>{tally.result || 'N/A'}</div>
+                      <div className="bill-tally-result-row">
+                        <span className={`bill-tally-result ${passed ? 'passed' : 'failed'}`}>{tally.result || 'N/A'}</span>
+                        {index === 0 && tally.result && <InfoDot id="voteResult" label={tally.result} />}
+                      </div>
                       <div className="bill-tally-bar">
                         <div className="bill-tally-bar-yea" style={{ flex: yeaFlex }}></div>
                         <div className="bill-tally-bar-nay" style={{ flex: nayFlex }}></div>
                         {otherFlex > 0 && <div className="bill-tally-bar-other" style={{ flex: otherFlex }}></div>}
                       </div>
                       <div className="bill-tally-counts">
-                        <span>{tally.totalYea || 0} Yea</span>
-                        <span>{tally.totalNay || 0} Nay</span>
+                        <span>{tally.totalYea || 0} Yea (yes){index === 0 && <InfoDot id="yea" />}</span>
+                        <span>{tally.totalNay || 0} Nay (no){index === 0 && <InfoDot id="nay" />}</span>
                         {(tally.totalNotVoting > 0 || tally.totalPresent > 0) && (
-                          <span>{(tally.totalNotVoting || 0) + (tally.totalPresent || 0)} Other</span>
+                          <span>{(tally.totalNotVoting || 0) + (tally.totalPresent || 0)} Other{index === 0 && <InfoDot def="Members who answered Present (there, but not voting yes or no) or did not vote at all." label="Other" glossaryLink={false} />}</span>
                         )}
                       </div>
                     </div>
@@ -377,7 +421,7 @@ function BillDetail() {
           {/* TIMELINE OF ACTIONS */}
           {actions.length > 0 && (
             <section className="bill-editorial-section" id="actions-section">
-              <div className="bill-section-label">Legislative timeline</div>
+              <div className="bill-section-label"><Term id="latestAction">Timeline</Term></div>
               <h2 className="bill-section-title">What's happened so far</h2>
               <div className="bill-timeline">
                 {actions.slice(0, 12).map((action, index) => {
@@ -410,7 +454,7 @@ function BillDetail() {
           )}
           {sponsor && (
             <div className="bill-rail-card bill-sponsor-card">
-              <h3 className="bill-rail-h3">Sponsor</h3>
+              <h3 className="bill-rail-h3"><Term id="sponsor">Sponsor</Term></h3>
               <Link to={`/politician/${sponsor.bioguideId}`} className="bill-sp-name">
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
               </Link>
@@ -422,7 +466,7 @@ function BillDetail() {
 
           {cosponsors.length > 0 && (
             <div className="bill-rail-card" id="sponsors-section">
-              <h3 className="bill-rail-h3">Cosponsors ({cosponsors.length})</h3>
+              <h3 className="bill-rail-h3"><Term id="cosponsor">{`Cosponsors (${cosponsors.length})`}</Term></h3>
               <div className="bill-cosp-breakdown">
                 {cosponsorByParty.dem > 0 && (
                   <div className="bill-cosp-row">
@@ -470,7 +514,7 @@ function BillDetail() {
           {!SHOW_ROUTING_PANEL && (committees.length > 0 || bill.committees?.count > 0) && (
             <div className="bill-rail-card" id="committees-section">
               <h3 className="bill-rail-h3">
-                <InfoTip text="Committees are small groups of Congress members who specialize in specific topics. Bills are sent to relevant committees for detailed review before the full chamber votes.">Committees</InfoTip>
+                <Term id="committee">Committees</Term>
               </h3>
               {committees.length > 0 ? committees.map((c, i) => (
                 <div key={i} className="bill-committee-item">
@@ -479,7 +523,7 @@ function BillDetail() {
                 </div>
               )) : (
                 <div className="bill-committee-item">
-                  <div className="bill-committee-name">{bill.committees.count} referred · see Congress.gov for details</div>
+                  <div className="bill-committee-name">Sent to {bill.committees.count} committee{bill.committees.count !== 1 ? 's' : ''} · see Congress.gov for details</div>
                 </div>
               )}
             </div>

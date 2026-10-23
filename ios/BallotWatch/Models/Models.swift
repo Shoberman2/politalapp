@@ -350,18 +350,76 @@ struct RollCallStats: Codable, Hashable, Sendable {
     var totalNay: Int { (demNay ?? 0) + (repNay ?? 0) + (indNay ?? 0) }
 }
 
-// MARK: - Bill explanation (bill_explanations cache table)
+// MARK: - Plain-English explanation (GET /api/explain)
 
-struct BillExplanation: Codable, Hashable, Sendable {
-    let billKey: String
-    let explanation: String
-    let model: String?
-    let billTitle: String?
+struct PlainEnglishResponse: Decodable, Sendable {
+    let status: String
+    let explanation: PlainEnglishExplanation?
+}
+
+struct PlainEnglishExplanation: Decodable, Hashable, Sendable {
+    struct Source: Decodable, Hashable, Sendable {
+        let kind: String?
+        let label: String?
+        let date: String?
+        let url: String?
+    }
+
+    let summary: String
+    let paragraphs: [String]
+    let keyPoints: [String]
+    let source: Source?
 
     enum CodingKeys: String, CodingKey {
-        case billKey = "bill_key"
-        case explanation, model
-        case billTitle = "bill_title"
+        case summary, paragraphs, source
+        case keyPoints = "key_points"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        summary = try c.decode(String.self, forKey: .summary)
+        paragraphs = (try? c.decode([String].self, forKey: .paragraphs)) ?? []
+        keyPoints = (try? c.decode([String].self, forKey: .keyPoints)) ?? []
+        source = try? c.decode(Source.self, forKey: .source)
+    }
+
+    /// Web `explanationSourceLine` (shared/billExplainer.js): what the model read.
+    var sourceLine: String {
+        guard let kind = source?.kind else {
+            return "Written by AI from official records. Nothing is guessed from the title."
+        }
+        if kind == "crs-summary" {
+            return "Written by AI from the official Congressional Research Service summary. Nothing is guessed from the title."
+        }
+        var version: [String] = []
+        if let label = source?.label, !label.isEmpty { version.append(label) }
+        if let raw = source?.date, let date = Self.isoDate(raw) {
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.timeZone = TimeZone(identifier: "UTC")
+            f.dateFormat = "MMM d, yyyy"
+            version.append(f.string(from: date))
+        }
+        let what = kind == "bill-text-partial"
+            ? "the outline and opening of the bill\u{2019}s official text"
+            : "the bill\u{2019}s official text"
+        let suffix = version.isEmpty ? "" : " (\(version.joined(separator: ", ")))"
+        return "Written by AI from \(what)\(suffix). Nothing is guessed from the title."
+    }
+
+    var sourceURL: URL? { source?.url.flatMap(URL.init(string:)) }
+
+    private static func isoDate(_ raw: String) -> Date? {
+        let full = ISO8601DateFormatter()
+        full.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = full.date(from: raw) { return d }
+        full.formatOptions = [.withInternetDateTime]
+        if let d = full.date(from: raw) { return d }
+        let plain = DateFormatter()
+        plain.locale = Locale(identifier: "en_US_POSIX")
+        plain.timeZone = TimeZone(identifier: "UTC")
+        plain.dateFormat = "yyyy-MM-dd'T'HH:mm:ssXXXXX"
+        return plain.date(from: raw)
     }
 }
 

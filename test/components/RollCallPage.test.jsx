@@ -56,7 +56,7 @@ describe('RollCallPage', { timeout: 30000 }, () => {
     expect(screen.getByText('380 Yea')).toBeTruthy()
     expect(screen.getByText('40 Nay')).toBeTruthy()
     expect(container.querySelector('.rc-result').className).toContain('rc-result-passed')
-    expect(container.querySelector('.rc-party').textContent).toBe('D 200–10 · R 180–30')
+    expect(container.querySelector('.rc-party').textContent).toBe('By party (yes–no): D 200–10 · R 180–30')
     expect(screen.getByRole('link', { name: 'Official record ↗' }).getAttribute('href')).toBe('https://clerk.house.gov/Votes/2026295')
     expect(screen.getByRole('link', { name: 'Nancy Pelosi' }).getAttribute('href')).toBe('/politician/P000197')
     expect(rowNames(container)).toEqual(['Aaron Bean', 'Nancy Pelosi', 'Robert Aderholt'])

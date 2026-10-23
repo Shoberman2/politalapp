@@ -18,6 +18,14 @@ export const STATIC_PAGES = {
     changefreq: 'monthly',
     priority: 0.8,
   },
+  '/glossary': {
+    title: 'Congress, Explained in Plain English',
+    description: 'A plain-English glossary of the words Congress uses, from roll call and cloture to cosponsor and continuing resolution. No background in politics needed.',
+    h1: 'Congress, explained in plain English.',
+    lede: 'No background in politics needed. Here is what every term on this site means, from roll call and cloture to cosponsor and continuing resolution.',
+    changefreq: 'monthly',
+    priority: 0.7,
+  },
   '/methodology': {
     title: 'Methodology',
     description: `Source, cadence, caveat, and code-reference notes for every ${name} feature that computes or explains something.`,
@@ -46,7 +54,7 @@ export const STATIC_PAGES = {
     title: 'This Week on the Floor',
     description: 'What the U.S. House has scheduled for floor consideration this week, from the Majority Leader’s weekly schedule, beside the roll-call votes Congress most recently recorded.',
     h1: 'This week on the floor',
-    lede: 'What the House has scheduled for floor consideration, from the Majority Leader’s weekly schedule on docs.house.gov, beside the roll-call votes Congress has most recently recorded. A listing means a bill may come up that week; it is not a promise of a vote, and the schedule names the week, not the day.',
+    lede: 'What the House plans to take up this week, from the weekly schedule its majority leader publishes on docs.house.gov, next to the votes Congress has just recorded. A listing means a bill may come up that week, not that it will, and the schedule names the week, not the day.',
     changefreq: 'daily',
     priority: 0.9,
   },

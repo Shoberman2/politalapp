@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import SEO from './SEO'
 import MethodologyModal from './MethodologyModal'
+import { InfoDot } from './Term'
 import { COMMITTEE_GLOSSARY } from '../../etl/data/committees'
 import {
   getBillsForCommittee,
@@ -172,21 +173,21 @@ export default function CommitteePage() {
           {chamber === 'house' ? 'HOUSE COMMITTEE' : chamber === 'senate' ? 'SENATE COMMITTEE' : 'CONGRESSIONAL COMMITTEE'}
           {' · '}{CONGRESS_LABEL[congress] || `${congress}th`} CONGRESS
         </div>
-        <h1 className="committee-title">{committeeName}</h1>
+        <h1 className="committee-title">{committeeName}<InfoDot id="committee" /></h1>
         <p className="committee-deck">{deck}</p>
         <div className="committee-stats">
-          <span>{billsReferred} bills referred</span>
+          <span>{billsReferred} bills sent here<InfoDot id="referred" /></span>
           {advancePct != null && (
             <>
               <span className="committee-stats-sep">·</span>
-              <span>{advancePct}% advance rate ({CONGRESS_LABEL[congress] || `${congress}th`} Congress, primary referrals only)</span>
+              <span>{advancePct}% advance rate<InfoDot def="The share of bills sent to this committee that it approved and sent on to the full House or Senate." label="Advance rate" glossaryLink={false} /> ({CONGRESS_LABEL[congress] || `${congress}th`} Congress, primary referrals only)</span>
             </>
           )}
           {advancePct == null && (
             <>
               <span className="committee-stats-sep">·</span>
               <span className="committee-stats-insufficient">
-                Insufficient history yet for advance rate
+                Not enough history yet to show how many bills it moves forward
               </span>
             </>
           )}

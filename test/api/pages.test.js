@@ -171,16 +171,17 @@ describe('pages loaders', () => {
     expect(bill.sponsor).toEqual({ id: 'A000375', name: 'Jodey Arrington', party: 'R', state: 'TX' })
     expect(bill.rollCalls[0]).toEqual({ id: 'house-119-1-190', chamber: 'House', question: 'On Passage', voted_at: '2025-07-03', tally: { yea: 218, nay: 214 }, result: 'Passed', resultKind: 'passed' })
     expect(bill.rollCalls[1]).toMatchObject({ id: 'senate-119-1-262', chamber: 'Senate', tally: null, result: null, resultKind: null })
-    expect(db.ops('bill_explanations', 'eq')).toEqual([['eq', 'bill_key', '119-hr-1'], ['eq', 'model', 'gpt-4o-mini'], ['eq', 'prompt_version', 2]])
+    expect(db.ops('bill_explanations', 'eq')).toEqual([['eq', 'bill_key', '119-hr-1'], ['eq', 'model', 'gpt-5.4-mini'], ['eq', 'prompt_version', 3]])
     expect(db.ops('roll_call_stats', 'in')[0]).toEqual(['in', 'roll_call_id', ['house-119-1-190', 'senate-119-1-262']])
 
     // Same bill, an explanation generated under the current title: kept.
     reset()
     db.responses.bills = { data: { ...billRow, crs_summary: 'Provides for reconciliation.' } }
     db.responses.roll_calls = { data: [] }
-    db.responses.bill_explanations = { data: { paragraphs: ['This Act provides for budget reconciliation.'], bill_title: billRow.title } }
+    db.responses.bill_explanations = { data: { paragraphs: ['This Act provides for budget reconciliation.', 'It changes taxes.'], key_points: ['Cuts taxes'], bill_title: billRow.title, source_kind: 'bill-text', source_label: 'Enrolled Bill', source_date: null, source_url: 'https://www.congress.gov/119/bills/hr1/BILLS-119hr1enr.htm' } }
     const kept = await getBillPage('119-hr-1')
     expect(kept.oneLiner).toBe('This Act provides for budget reconciliation.')
+    expect(kept.explanation).toEqual({ summary: 'This Act provides for budget reconciliation.', paragraphs: ['It changes taxes.'], keyPoints: ['Cuts taxes'], source: { kind: 'bill-text', label: 'Enrolled Bill', date: null, url: 'https://www.congress.gov/119/bills/hr1/BILLS-119hr1enr.htm' } })
     expect(kept.explanationDiscarded).toBe(false)
     expect(kept.summary).toBe('Provides for reconciliation.')
     expect(kept.rollCalls).toEqual([])

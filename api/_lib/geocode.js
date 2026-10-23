@@ -4,10 +4,10 @@
 // client-side workarounds in src/services/district.js.
 
 import { isAtLargeState, normalizeCensusDistrict } from '../../shared/atLargeStates.js'
+import { censusVintage } from '../../shared/censusVintage.js'
 
 const CENSUS = 'https://geocoding.geo.census.gov/geocoder/geographies'
 const BENCHMARK = 'Public_AR_Current'
-const VINTAGE = 'Current_Current'
 
 export const FIPS_TO_STATE = {
   '01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE',
@@ -27,13 +27,15 @@ export function districtFromGeographies(geographies) {
   const key = Object.keys(geographies).find((k) => /Congressional Districts/i.test(k))
   const row = key ? geographies[key]?.[0] : null
   if (!row) return null
+  // CDnnn ("04", "00" at-large) when the vintage has it; otherwise the GEOID
+  // (state FIPS + district). BASENAME is display text, never a code.
   const cdKey = Object.keys(row).find((k) => /^CD\d+$/i.test(k))
-  const raw = cdKey ? String(row[cdKey]) : null
+  const raw = cdKey && row[cdKey] ? String(row[cdKey]) : row.GEOID ? String(row.GEOID).slice(2) : null
   if (!raw) return null
   // 00 = at-large; 98 and 99 = non-voting delegate or resident commissioner.
   const district = normalizeCensusDistrict(raw)
   if (district == null) return null
-  const state = FIPS_TO_STATE[String(row.STATE || '').padStart(2, '0')] || null
+  const state = FIPS_TO_STATE[String(row.STATE || String(row.GEOID || '').slice(0, 2)).padStart(2, '0')] || null
   return { state, district, congressLabel: key }
 }
 
@@ -50,7 +52,7 @@ async function getJson(url, timeoutMs = 8000) {
 }
 
 export async function geocodeAddress(address) {
-  const params = new URLSearchParams({ address, benchmark: BENCHMARK, vintage: VINTAGE, format: 'json' })
+  const params = new URLSearchParams({ address, benchmark: BENCHMARK, vintage: censusVintage(), format: 'json' })
   const data = await getJson(`${CENSUS}/onelineaddress?${params}`)
   const match = data?.result?.addressMatches?.[0]
   if (!match) return null
@@ -79,7 +81,7 @@ export async function geocodeZip(zip) {
   if (isAtLargeState(zipState)) {
     return { state: zipState, district: '0', precision: 'zip', city: p['place name'], note: null }
   }
-  const params = new URLSearchParams({ x: p.longitude, y: p.latitude, benchmark: BENCHMARK, vintage: VINTAGE, format: 'json' })
+  const params = new URLSearchParams({ x: p.longitude, y: p.latitude, benchmark: BENCHMARK, vintage: censusVintage(), format: 'json' })
   const data = await getJson(`${CENSUS}/coordinates?${params}`)
   const d = districtFromGeographies(data?.result?.geographies)
   const state = zipState || d?.state || null

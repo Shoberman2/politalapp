@@ -8,9 +8,11 @@ import { saveUserAddress } from '../services/userService'
 import { findMembersForDistrict } from '../services/myMembers'
 import { displayName } from '../utils/tellYourRepDraft'
 import RecordLink from './RecordLink'
+import Term from './Term'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
+import { CIVICS_PRIMER } from '../data/civicsPrimer'
 import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
 import { voteSourceUrl } from '../../api/_lib/rollCallResult.js'
@@ -803,6 +805,11 @@ function Landing() {
         <div className="hero-inner">
           <h1 className="hero-title">How did your representative vote this week?</h1>
           <p className="hero-mission">{BRAND.mission}</p>
+          <ul className="hero-promise" aria-label="What you get">
+            <li>Every bill explained in plain English</li>
+            <li>Every recorded vote, by name</li>
+            <li>No politics background needed</li>
+          </ul>
 
           {renderLookup('hero')}
         </div>
@@ -859,6 +866,29 @@ function Landing() {
           ) : (
             <p className="mk-unavailable ft-empty">{NO_VOTE}</p>
           )}
+        </div>
+      </section>
+
+      {/* ===== PRIMER: the few facts a first-time visitor needs ===== */}
+      <section className="primer" aria-labelledby="primer-title">
+        <div className="primer-inner">
+          <header className="primer-head">
+            <span className="primer-kicker">New to Congress? Start here</span>
+            <h2 id="primer-title">Congress in one minute.</h2>
+            <p>
+              You don’t need any background in politics to use {BRAND.name}. These five facts are enough, and
+              every confusing word on the site has an ⓘ you can tap for a plain-English explanation.
+            </p>
+            <Link className="btn-text btn-go" to="/glossary">Every term, explained</Link>
+          </header>
+          <ol className="primer-list">
+            {CIVICS_PRIMER.map((p) => (
+              <li key={p.title}>
+                <h3><Term id={p.term}>{p.title}</Term></h3>
+                <p>{p.body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

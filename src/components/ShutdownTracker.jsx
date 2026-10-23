@@ -8,6 +8,7 @@ import {
   fetchAppropriationsBills
 } from '../services/shutdown'
 import { InfoTip } from './Tooltip'
+import Term, { InfoDot } from './Term'
 import SEO from './SEO'
 import '../styles/ShutdownTracker.css'
 
@@ -129,8 +130,8 @@ function ShutdownTracker() {
       <div className="shutdown-tracker__container">
         {/* Header */}
         <header className="shutdown-tracker__header">
-          <h1>Government Shutdown Tracker</h1>
-          <p>Tracking federal funding status and <InfoTip text="Appropriations bills are the 12 annual spending bills Congress must pass to fund the federal government. If they aren't passed by the deadline, the government shuts down.">appropriations</InfoTip> progress for <InfoTip text="Fiscal Year — the federal government's budget year, which runs from October 1 to September 30.">FY{FUNDING_DEADLINES.fiscalYear}</InfoTip></p>
+          <h1>Government Shutdown Tracker<InfoDot id="shutdown" /></h1>
+          <p>Tracking federal funding status and <Term id="appropriations">appropriations</Term> (yearly spending bill) progress for <Term id="fiscalYear" label="Fiscal year">{`FY${FUNDING_DEADLINES.fiscalYear}`}</Term></p>
           {FUNDING_DEADLINES.lastUpdated && (
             <div className="last-updated">
               Last updated: {new Date(FUNDING_DEADLINES.lastUpdated + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -223,7 +224,7 @@ function ShutdownTracker() {
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsCR}</span>
-              <InfoTip tag="span" text="A Continuing Resolution (CR) is a temporary funding measure that keeps the government running at previous spending levels when full appropriations bills haven't been passed by the deadline." className="progress-stat__label">Covered by CR</InfoTip>
+              <span className="progress-stat__label"><Term id="continuingResolution" label="Continuing resolution (CR)">Covered by CR</Term></span>
             </div>
           </div>
           <div className="progress-bar">
@@ -236,7 +237,7 @@ function ShutdownTracker() {
 
         {/* Appropriations Bills Grid */}
         <section className="shutdown-bills">
-          <h2>FY{FUNDING_DEADLINES.fiscalYear} <InfoTip text="The 12 annual spending bills that Congress must pass to fund every federal agency and program.">Appropriations Bills</InfoTip></h2>
+          <h2>FY{FUNDING_DEADLINES.fiscalYear} <Term id="appropriations">Appropriations Bills</Term></h2>
           <div className="approp-bills-grid">
             {bills.map((bill, i) => (
               <div

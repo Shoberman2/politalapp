@@ -854,8 +854,12 @@ async function fetchNotableBills() {
 }
 
 // Strip HTML tags and grab the first meaningful sentence from CRS summary text
-function extractBlurb(html) {
-  const text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+function extractBlurb(html, title) {
+  let text = html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+  // CRS opens with the bill's name, often with no period after it, so it would
+  // run into the first real sentence. Drop it.
+  const name = (title || '').trim().replace(/\.$/, '')
+  if (name && text.toLowerCase().startsWith(name.toLowerCase())) text = text.slice(name.length).replace(/^[.\s]+/, '')
   // Skip the bold title line CRS puts at the start, grab the next sentence
   const sentences = text.split(/(?<=\.)\s+/)
   const meaningful = sentences.find(s => s.length > 30 && !s.startsWith('This bill is titled'))
@@ -865,14 +869,19 @@ function extractBlurb(html) {
 // Build a headline from the bill title — take the short name if present, otherwise truncate
 function buildHeadline(title) {
   if (!title) return ''
-  // Many bills have a short title like "XYZ Act" — extract it
-  const actMatch = title.match(/(?:the\s+)?(.{5,60}?\bAct\b)/i)
+  // A title that already fits is the headline, whole.
+  const whole = title.trim().replace(/\.$/, '')
+  if (whole.length <= 90 && !/^A (bill|resolution|joint resolution|concurrent resolution) /i.test(whole)) return whole
+  // Many bills have a short title like "XYZ Act" — extract it. The match must
+  // start at a word, or a long name loses its first letters ("d Security …").
+  const actMatch = title.match(/(?:^|\s)(?:the\s+)?([A-Z0-9][^,;]{3,58}?\bAct\b)/)
   if (actMatch) return actMatch[1]
   // For resolutions, trim common prefixes
   const cleaned = title
     .replace(/^A (bill|resolution|joint resolution|concurrent resolution) /i, '')
     .replace(/^(Providing|Expressing|Designating|Recognizing|Supporting|Calling) for /i, '$1: ')
-  return cleaned.length > 80 ? cleaned.slice(0, 77) + '...' : cleaned
+  const capped = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  return capped.length > 80 ? capped.slice(0, 77) + '...' : capped
 }
 
 // Template-based "why it matters" from the latest action text
@@ -919,7 +928,7 @@ async function generateBillEditorial(title, latestAction, type, number, congress
     if (summaries.length > 0) {
       // Use the most recent summary
       const latest = summaries[summaries.length - 1]
-      const blurb = extractBlurb(latest.text)
+      const blurb = extractBlurb(latest.text, title)
       if (blurb) {
         const result = { headline, whyItMatters: blurb }
         nbCacheSet(cacheKey, result)

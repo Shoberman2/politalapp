@@ -3,6 +3,19 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.10.0.0] - 2026-10-22
+
+### Added
+
+- Bills are explained from what they actually say. The plain-English explanation on a bill page is now written by AI from the bill's newest official text on Congress.gov (or Congress's official summary when no text is published yet), names the version it was written from with a link to it, and adds a short "What it does" list. Nothing is written from a title alone; explanations that use guessing words are thrown out. The first reader of a bill waits a few seconds; after that it loads instantly. The same explanation appears on the server-rendered bill pages, their Markdown versions and the MCP `explain_bill` tool.
+- Terms with a ⓘ: words like roll call, cloture, district or at-large have a small ⓘ that opens a plain definition, and a new Glossary page collects them, for readers with no political background.
+- BallotWatch now records which AI agents visit and what they use: named AI crawlers and assistants on any page, scripts on the API, MCP and data files, and every MCP tool call. Browser visits are never recorded, and IP addresses are never stored in readable form.
+- The iOS app can delete your account from More > Account, cancelling any active subscription first.
+
+### Fixed
+
+- The representative lookup names the member who holds the seat today. Census started returning the districts drawn for the November 2026 election, which named the wrong representative in states that redrew their maps (Texas, among others), and at-large states like Delaware could come back with no House member. Lookups now use the current Congress's districts until the new one is sworn in on January 3, 2027.
+
 ## [0.9.2.0] - 2026-10-07
 
 ### Changed
