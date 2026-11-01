@@ -16,7 +16,7 @@ final class SmokeTests: XCTestCase {
         app = XCUIApplication()
         // Saved location and watched bills persist across launches, so each
         // test starts from a clean slate rather than inheriting the last run's.
-        app.launchArguments = ["--reset-state"]
+        app.launchArguments = ["--reset-state", "--skip-onboarding"]
         app.launch()
     }
 
