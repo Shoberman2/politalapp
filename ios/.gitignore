@@ -10,3 +10,6 @@ build/
 # Generated from the repo-root .env by ios/scripts/make-secrets.sh.
 # This repo is public — never commit real keys.
 BallotWatch/Secrets.plist
+
+# Real RevenueCat key (see Config/BallotWatch.xcconfig). Never commit.
+Config/Secrets.local.xcconfig

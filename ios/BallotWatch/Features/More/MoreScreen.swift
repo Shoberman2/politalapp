@@ -5,10 +5,11 @@ import SwiftUI
 struct MoreScreen: View {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var userData: UserData
+    @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var pro: ProStore
     @Environment(\.theme) private var theme
-    @State private var showingAuth = false
-    @State private var confirmingDelete = false
-    @State private var deleteError: String?
+    @State private var paywall: ProFeature?
+    @State private var askDome = false
     @State private var lastETLRun: Date?
 
     var body: some View {
@@ -25,91 +26,39 @@ struct MoreScreen: View {
             }
             .paperBackground()
             .tabRoot("More")
-            .sheet(isPresented: $showingAuth) { AuthScreen() }
+            .proPaywall($paywall)
+            .navigationDestination(isPresented: $askDome) { AskDomeScreen() }
             .task { lastETLRun = try? await BallotWatchAPI.lastETLRun() }
         }
     }
 
     // MARK: Account
 
+    /// Account and settings live in a sheet; this row opens it. Pro lives
+    /// right under it so the one paid thing in the app is easy to find.
     private var accountSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            InfoHeading("Account")
-            if let user = auth.user {
-                InfoFacts(rows: [("Signed in", user.email ?? "Your account")])
-                accountSyncStatus(userID: user.id)
-                    .padding(.top, 12)
-                HStack(spacing: 24) {
-                    Button("Sign out") { Task { await auth.signOut() } }
-                        .buttonStyle(SecondaryButtonStyle())
-                    Button("Delete account") { confirmingDelete = true }
-                        .font(Typo.inter(15, 500))
-                        .foregroundStyle(theme.error)
-                        .frame(minHeight: 44)
-                        .disabled(auth.isLoading)
-                        .accessibilityIdentifier("deleteAccountButton")
-                }
-                .padding(.top, 10)
-                if let deleteError {
-                    Text(deleteError)
-                        .font(Typo.inter(14))
-                        .foregroundStyle(theme.error)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            } else {
-                InfoParagraph("Congressional voting records are public, and everything here is free to read. A free account keeps your representatives, saved bills and followed members on every device.")
-                VStack(alignment: .leading, spacing: 4) {
-                    Button("Sign in") { showingAuth = true }
-                        .buttonStyle(PrimaryButtonStyle(fullWidth: false))
-                }
-                .padding(.top, 18)
+            InfoHeading(auth.isSignedIn ? "Your account" : "Account")
+            Button { router.showSettings = true } label: {
+                IndexRow(
+                    title: "Account and settings",
+                    dek: auth.user.map { "Signed in as \($0.email ?? "your Apple ID")." }
+                        ?? "Sign in, appearance, alerts and sources."
+                )
             }
-        }
-        .confirmationDialog(
-            "Delete your account?",
-            isPresented: $confirmingDelete,
-            titleVisibility: .visible
-        ) {
-            Button("Delete account", role: .destructive) {
-                Task {
-                    do {
-                        try await auth.deleteAccount()
-                        deleteError = nil
-                    } catch {
-                        deleteError = error.localizedDescription
-                    }
-                }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("moreSettings")
+            Button { pro.isPro ? (askDome = true) : (paywall = .askDome) } label: {
+                IndexRow(title: "Ask \(DomeCharacter.name)", dek: "Questions about Congress, answered from the record with sources.")
             }
-        } message: {
-            Text("This permanently deletes your account and the bills and members synced to it. Items saved on this device stay here.")
-        }
-    }
-
-    @ViewBuilder
-    private func accountSyncStatus(userID: String) -> some View {
-        switch userData.syncStatus {
-        case .localOnly:
-            InfoMuted("Saved items are stored on this device while account sync starts.")
-        case .syncing:
-            HStack(spacing: Space.xs) {
-                ProgressView().controlSize(.small)
-                InfoMuted("Syncing saved bills and members…")
-            }
-        case .synced:
-            InfoMuted("Your watched bills and followed members sync to this account.")
-        case .failed(let message):
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Saved on this device. Account sync failed: \(message)")
-                    .font(Typo.inter(14))
-                    .foregroundStyle(theme.error)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button("Retry sync") {
-                    Task {
-                        guard await auth.prepareDataAccess() != nil else { return }
-                        await userData.syncAccount(userID: userID)
-                    }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("moreAskDome")
+            if !pro.isPro {
+                Button { paywall = .general } label: {
+                    IndexRow(title: "BallotWatch Pro", dek: "Alerts, Ask \(DomeCharacter.name), district maps and CSV export.")
                 }
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("morePro")
             }
         }
     }

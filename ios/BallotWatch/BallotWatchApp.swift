@@ -2,19 +2,55 @@ import SwiftUI
 
 @main
 struct BallotWatchApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var auth = AuthStore()
     @StateObject private var userData = UserData()
     @StateObject private var router = AppRouter()
+    @StateObject private var settings = AppSettings()
+    @StateObject private var pro = ProStore()
+    @StateObject private var alerts = AlertsStore()
+    @StateObject private var banners = BannerCenter()
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            AppGate()
                 .environmentObject(auth)
                 .environmentObject(userData)
                 .environmentObject(router)
+                .environmentObject(settings)
+                .environmentObject(pro)
+                .environmentObject(alerts)
+                .environmentObject(banners)
                 .themed()
+                .preferredColorScheme(settings.appearance.colorScheme)
                 .tint(Palette.accentLight)
         }
+    }
+}
+
+/// First launch opens on the chat with Dome; after that, straight into the
+/// product. There is no marketing page in the app.
+struct AppGate: View {
+    @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var auth: AuthStore
+    @EnvironmentObject private var pro: ProStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            if settings.hasOnboarded {
+                RootView()
+                    .transition(.opacity)
+            } else {
+                OnboardingChat()
+                    .transition(.opacity)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: settings.hasOnboarded)
+        .bannerHost()
+        // Pro belongs to the account: RevenueCat's appUserID is the Supabase
+        // user ID.
+        .task(id: auth.user?.id) { await pro.identify(userID: auth.user?.id) }
     }
 }
 
@@ -24,6 +60,8 @@ final class AppRouter: ObservableObject {
     enum Tab: Hashable { case home, feed, bills, members, more }
 
     @Published var tab: Tab = .home
+    /// The account and settings sheet, reachable from any tab.
+    @Published var showSettings = false
 }
 
 struct RootView: View {
@@ -55,6 +93,12 @@ struct RootView: View {
                 .tag(AppRouter.Tab.more)
         }
         .tint(theme.accent)
+        .sheet(isPresented: $router.showSettings) {
+            SettingsSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .sheetChrome()
+        }
         .onAppear(perform: styleUIKitChrome)
         .task(id: auth.user?.id) {
             guard let user = await auth.prepareDataAccess() else {
@@ -69,11 +113,7 @@ struct RootView: View {
     /// appearance proxies, so the paper background and Inter have to be
     /// set there too or the chrome reverts to system defaults.
     private func styleUIKitChrome() {
-        let paper = UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0x11/255, green: 0x11/255, blue: 0x10/255, alpha: 1)
-                : UIColor(red: 0xFA/255, green: 0xFA/255, blue: 0xF7/255, alpha: 1)
-        }
+        let paper = Palette.uiPaper
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithDefaultBackground()
@@ -88,11 +128,7 @@ struct RootView: View {
         navAppearance.backgroundColor = paper.withAlphaComponent(0.8)
         let edgeAppearance = UINavigationBarAppearance()
         edgeAppearance.configureWithTransparentBackground()
-        let title = UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(red: 0xE8/255, green: 0xE6/255, blue: 0xE1/255, alpha: 1)
-                : UIColor(red: 0x1A/255, green: 0x1A/255, blue: 0x18/255, alpha: 1)
-        }
+        let title = Palette.uiInk
         navAppearance.titleTextAttributes = [
             .foregroundColor: title,
             .font: UIFont(name: FontFamily.sansSemibold, size: 17) ?? .systemFont(ofSize: 17, weight: .semibold),

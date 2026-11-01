@@ -1,0 +1,12 @@
+// Build settings shared by Debug and Release.
+//
+// REVENUECAT_API_KEY is a PLACEHOLDER. This repository is public: never commit
+// the real key. Put it in Config/Secrets.local.xcconfig (gitignored):
+//
+//     REVENUECAT_API_KEY = appl_xxxxxxxxxxxxxxxxxxxxxxxxx
+//
+// While the placeholder is in place the app talks to StoreKit 2 directly,
+// which is what the simulator's local BallotWatch.storekit file needs.
+REVENUECAT_API_KEY = REVENUECAT_API_KEY_PLACEHOLDER
+
+#include? "Secrets.local.xcconfig"

@@ -53,6 +53,14 @@ struct Theme {
     var border: Color        { dark ? Palette.borderDark : Palette.borderLight }
     var borderSoft: Color    { dark ? Palette.borderLightDark : Palette.borderLightLight }
 
+    /// A raised surface's own outline (never a divider between rows).
+    var cardEdge: Color { dark ? Color(hex: 0x2A2A27) : Color(hex: 0xECEAE5) }
+    /// Soft, rare shadow for floating things (banners). Depth in dark mode
+    /// comes from the lighter surface instead, so the shadow nearly vanishes.
+    var shadow: Color { dark ? Color.black.opacity(0.35) : Color(hex: 0x14140F).opacity(0.08) }
+    /// Quiet fill for inputs and the chat bar (`--surface-dim`).
+    var surfaceDim: Color { dark ? Color(hex: 0x242422) : Color(hex: 0xF4F3EF) }
+
     /// Background for selected/active states — the accent at 8% per DESIGN.md.
     var accentSubtle: Color { accent.opacity(dark ? 0.12 : 0.08) }
 
@@ -72,6 +80,13 @@ struct Theme {
     var warning: Color { dark ? Color(hex: 0xD9962B) : Color(hex: 0xB45309) }
     var error: Color   { dark ? Color(hex: 0xEF5B5B) : Color(hex: 0xDC2626) }
     var info: Color    { dark ? Color(hex: 0x3DA8E0) : Color(hex: 0x0284C7) }
+
+    // Vote badges (`.dash-vote-badge`).
+    var yeaBadgeInk: Color { dark ? Color(hex: 0x6EE7A0) : Color(hex: 0x166534) }
+    var yeaBadgeFill: Color { dark ? Color(hex: 0x16A34A).opacity(0.18) : Color(hex: 0xDCFCE7) }
+    var nayBadgeInk: Color { dark ? Color(hex: 0xFCA5A5) : Color(hex: 0x991B1B) }
+    var nayBadgeFill: Color { dark ? Color(hex: 0xDC2626).opacity(0.2) : Color(hex: 0xFEE2E2) }
+    var neutralBadgeFill: Color { dark ? Color(hex: 0x242422) : Color(hex: 0xF5F5F0) }
 
     /// Party colors. Secondary by design — these are for small text tags and
     /// thin indicator bars, never card background washes.
@@ -157,6 +172,15 @@ enum Motion {
     static let short  = Animation.easeOut(duration: 0.15)
     static let medium = Animation.easeInOut(duration: 0.25)
     static let long   = Animation.easeInOut(duration: 0.4)
+}
+
+// MARK: - UIKit bridges
+
+extension Palette {
+    /// Paper and ink for UIKit appearance proxies, resolved per trait so the
+    /// tab and navigation bars follow light and dark like everything else.
+    static let uiPaper = UIColor { $0.userInterfaceStyle == .dark ? UIColor(bgDark) : UIColor(bgLight) }
+    static let uiInk = UIColor { $0.userInterfaceStyle == .dark ? UIColor(textDark) : UIColor(textLight) }
 }
 
 // MARK: - Color hex helper

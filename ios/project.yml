@@ -1,15 +1,22 @@
 name: BallotWatch
 options:
-  bundleIdPrefix: com.ballotwatch
+  bundleIdPrefix: io.ballotwatch
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
   generateEmptyDirectories: false
 
+packages:
+  # In-app subscriptions (BallotWatch Pro). RevenueCat runs on StoreKit 2.
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios-spm
+    from: 5.0.0
+
 settings:
   base:
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: 772YSVJ4U7
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
 targets:
@@ -25,11 +32,21 @@ targets:
           # template is documentation — neither belongs in the bundle.
           - "Info.plist"
           - "Secrets.example.plist"
+          - "BallotWatch.entitlements"
+          # Local StoreKit testing only; wired through the scheme below.
+          - "BallotWatch.storekit"
+    configFiles:
+      Debug: Config/BallotWatch.xcconfig
+      Release: Config/BallotWatch.xcconfig
+    dependencies:
+      - package: RevenueCat
+        product: RevenueCat
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app
+        PRODUCT_BUNDLE_IDENTIFIER: io.ballotwatch.app
         PRODUCT_NAME: BallotWatch
         INFOPLIST_FILE: BallotWatch/Info.plist
+        CODE_SIGN_ENTITLEMENTS: BallotWatch/BallotWatch.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1,2"
@@ -47,7 +64,7 @@ targets:
       - target: BallotWatch
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: io.ballotwatch.app.tests
         GENERATE_INFOPLIST_FILE: YES
 
   BallotWatchUITests:
@@ -60,6 +77,26 @@ targets:
       - target: BallotWatch
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: io.ballotwatch.app.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: BallotWatch
+
+schemes:
+  BallotWatch:
+    build:
+      targets:
+        BallotWatch: all
+        BallotWatchTests: [test]
+        BallotWatchUITests: [test]
+    run:
+      config: Debug
+      # Simulator purchases run against the local StoreKit file, so the
+      # paywall works before App Store Connect products exist.
+      storeKitConfiguration: BallotWatch/BallotWatch.storekit
+    test:
+      config: Debug
+      targets:
+        - BallotWatchTests
+        - BallotWatchUITests
+    archive:
+      config: Release

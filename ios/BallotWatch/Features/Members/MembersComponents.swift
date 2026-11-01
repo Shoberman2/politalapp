@@ -147,16 +147,16 @@ enum MembersPartyBarImage {
 
 // MARK: - Vote badge
 
-/// Web `.dash-vote-badge`: mono 11px 600, uppercase, pastel fill. The web
-/// hard-codes these colors in both themes, so they are fixed here too.
+/// Web `.dash-vote-badge`: mono 11px 600, uppercase, pastel fill in light
+/// mode; dark mode gets its own deep tints rather than glaring pastels.
 struct MembersVoteBadge: View {
     let position: VotePosition
     @Environment(\.theme) private var theme
 
     private var colors: (fg: Color, bg: Color?) {
         switch position {
-        case .yea: return (Color(hex: 0x166534), Color(hex: 0xDCFCE7))
-        case .nay: return (Color(hex: 0x991B1B), Color(hex: 0xFEE2E2))
+        case .yea: return (theme.yeaBadgeInk, theme.yeaBadgeFill)
+        case .nay: return (theme.nayBadgeInk, theme.nayBadgeFill)
         default: return (theme.textSecondary, nil)
         }
     }
@@ -170,7 +170,7 @@ struct MembersVoteBadge: View {
             .padding(.vertical, 1)
             .background(
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(colors.bg ?? Color(hex: 0xF5F5F0))
+                    .fill(colors.bg ?? theme.neutralBadgeFill)
             )
             .accessibilityLabel("Voted \(position.label)")
     }

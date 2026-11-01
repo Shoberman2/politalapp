@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Supabase GoTrue email auth.
+/// Supabase GoTrue auth: Sign in with Apple and email.
 ///
 /// Content in this app is open — congressional voting records are public
 /// record, and the web app gates nothing behind a login. Signing in only adds
@@ -58,6 +58,16 @@ final class AuthStore: ObservableObject {
         try await authenticate(path: "token?grant_type=password", email: email, password: password)
     }
 
+    /// Sign in with Apple: Apple's identity token is exchanged for a Supabase
+    /// session (`grant_type=id_token`). `nonce` is the raw nonce whose SHA-256
+    /// went into the Apple request. Needs the Apple provider enabled in the
+    /// Supabase dashboard with this bundle ID as an authorized client.
+    func signInWithApple(idToken: String, nonce: String) async throws {
+        try await authenticate(path: "token?grant_type=id_token", body: [
+            "provider": "apple", "id_token": idToken, "nonce": nonce,
+        ])
+    }
+
     func signOut() async {
         if let token = session?.accessToken {
             var request = URLRequest(url: Config.authURL.appendingPathComponent("logout"))
@@ -93,6 +103,13 @@ final class AuthStore: ObservableObject {
         Keychain.clearSession()
     }
 
+    /// A current access token for calls to the site's own API, refreshed
+    /// first when it is about to expire.
+    func validAccessToken() async -> String? {
+        if session?.isExpired == true { await refresh() }
+        return session?.accessToken
+    }
+
     /// Ensure PostgREST has a current user token before an RLS-protected sync.
     func prepareDataAccess() async -> AuthUser? {
         if session?.isExpired == true { await refresh() }
@@ -105,6 +122,10 @@ final class AuthStore: ObservableObject {
     }
 
     private func authenticate(path: String, email: String, password: String) async throws {
+        try await authenticate(path: path, body: ["email": email, "password": password])
+    }
+
+    private func authenticate(path: String, body: [String: String]) async throws {
         isLoading = true
         defer { isLoading = false }
 
@@ -120,9 +141,7 @@ final class AuthStore: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "email": email, "password": password,
-        ])
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AuthError.unknown }
@@ -221,7 +240,7 @@ enum AuthError: LocalizedError {
 /// Session tokens go in the keychain, not UserDefaults — they're credentials.
 private enum Keychain {
     private static let account = "supabase.session"
-    private static let service = "com.ballotwatch.app"
+    private static let service = "com.ballotwatch.app"  // keep: existing installs store the session here
 
     static func saveSession<T: Encodable>(_ session: T) {
         guard let data = try? JSONEncoder().encode(session) else { return }
