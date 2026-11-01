@@ -120,6 +120,13 @@ final class ProStore: ObservableObject {
         defer { isLoadingPlans = false }
         do {
             plans = usesRevenueCat ? try await loadRevenueCatPlans() : try await loadStoreKitPlans()
+            #if DEBUG
+            // Xcode attaches BallotWatch.storekit only to Run, not to UI-test
+            // launches. Screenshot runs show the same plans the file defines.
+            if plans.isEmpty, ProcessInfo.processInfo.arguments.contains("--preview-plans") {
+                plans = Self.previewPlans
+            }
+            #endif
             if plans.isEmpty { lastError = "Plans are not available right now." }
         } catch {
             lastError = error.localizedDescription
@@ -248,6 +255,13 @@ final class ProStore: ObservableObject {
         }
         isPro = active
     }
+
+    #if DEBUG
+    static let previewPlans = [
+        ProPlan(product: .yearly, displayPrice: "$39.99", periodUnit: "year", trial: "1 week free", monthlyEquivalent: "$3.33"),
+        ProPlan(product: .monthly, displayPrice: "$4.99", periodUnit: "month", trial: "1 week free", monthlyEquivalent: nil),
+    ]
+    #endif
 
     // MARK: Formatting
 

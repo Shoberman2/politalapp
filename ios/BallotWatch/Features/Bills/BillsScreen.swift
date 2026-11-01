@@ -96,6 +96,7 @@ struct BillsScreen: View {
                         BillsDeskRow(item: item)
                     }
                     .buttonStyle(BillsRowButtonStyle())
+                    .accessibilityIdentifier("billRow")
                 }
                 if model.hasMore && !model.isSearchMode {
                     Button {

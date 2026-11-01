@@ -52,7 +52,7 @@ struct MyRepScreen: View {
                     addressCard
                         .padding(.bottom, 32)
                 }
-                if !model.favorites.isEmpty {
+                if !otherFavorites.isEmpty {
                     favorites
                         .padding(.bottom, 32)
                 }
@@ -249,6 +249,13 @@ struct MyRepScreen: View {
 
     // MARK: Favorites
 
+    /// Starred members not already listed above as your own representatives,
+    /// so nobody appears twice on the screen.
+    private var otherFavorites: [Politician] {
+        let shown = Set((model.house + model.senate).map(\.id))
+        return model.favorites.filter { !shown.contains($0.id) || userData.place == nil || editingAddress }
+    }
+
     private var favorites: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Following")
@@ -261,7 +268,7 @@ struct MyRepScreen: View {
                 .foregroundStyle(theme.textSecondary)
                 .padding(.bottom, 16)
             VStack(spacing: 12) {
-                ForEach(model.favorites) { member in
+                ForEach(otherFavorites) { member in
                     MyRepCard(politician: member, district: nil)
                 }
             }

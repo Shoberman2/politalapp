@@ -251,6 +251,11 @@ private struct PlanRow: View {
                         .font(Typo.inter(16))
                         .foregroundStyle(theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let trial = plan.trial {
+                        Text(trial.prefix(1).uppercased() + trial.dropFirst())
+                            .font(Typo.inter(16, 500))
+                            .foregroundStyle(theme.success)
+                    }
                 }
                 Spacer(minLength: 8)
                 Text(plan.displayPrice)
@@ -273,10 +278,7 @@ private struct PlanRow: View {
     }
 
     private var subtitle: String {
-        var parts = ["Billed every \(plan.periodUnit)"]
-        if let monthly = plan.monthlyEquivalent { parts = ["\(monthly) a month, billed yearly"] }
-        if let trial = plan.trial { parts.append(trial) }
-        return parts.joined(separator: " · ")
+        plan.monthlyEquivalent.map { "\($0) a month, billed yearly" } ?? "Billed every \(plan.periodUnit)"
     }
 }
 

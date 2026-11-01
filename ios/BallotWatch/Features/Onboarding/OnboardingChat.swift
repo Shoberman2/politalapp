@@ -78,6 +78,10 @@ struct OnboardingChat: View {
                 .background(theme.bg)
         }
         .background(theme.bg.ignoresSafeArea())
+        // Messages scroll under a solid status bar, never behind the clock.
+        .overlay(alignment: .top) {
+            theme.bg.frame(height: 0).ignoresSafeArea(edges: .top)
+        }
         .animation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.4, dampingFraction: 0.92), value: messages)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: step)
         .sensoryFeedback(.impact(weight: .light), trigger: tapCount)

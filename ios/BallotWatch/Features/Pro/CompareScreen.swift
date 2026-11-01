@@ -42,6 +42,7 @@ struct CompareScreen: View {
     @Environment(\.theme) private var theme
     @State private var second: Politician?
     @State private var roster: [Politician] = []
+    @State private var rosterFailed = false
     @State private var query = ""
     @State private var picking = false
     @State private var result: Agreement.Result?
@@ -53,17 +54,18 @@ struct CompareScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 14) {
                     side(first)
-                    Text("and")
-                        .font(Typo.inter(16))
-                        .foregroundStyle(theme.textMuted)
                     if let second {
+                        Text("compared with")
+                            .font(Typo.inter(16))
+                            .foregroundStyle(theme.textMuted)
                         Button { picking = true } label: { side(second) }
                             .buttonStyle(.plain)
+                            .accessibilityHint("Choose another member")
                     } else {
-                        Button("Choose a member") { picking = true }
-                            .buttonStyle(PrimaryButtonStyle(fullWidth: false))
+                        Button("Choose a member to compare") { picking = true }
+                            .buttonStyle(PrimaryButtonStyle())
                             .accessibilityIdentifier("compareChoose")
                     }
                 }
@@ -95,7 +97,7 @@ struct CompareScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $picking) { picker.sheetChrome() }
         .task(id: second?.id) { await load() }
-        .task { roster = (try? await BallotWatchAPI.allPoliticians()) ?? [] }
+        .task { await loadRoster() }
     }
 
     private func side(_ member: Politician) -> some View {
@@ -172,6 +174,33 @@ struct CompareScreen: View {
 
     private var picker: some View {
         NavigationStack {
+            Group {
+                if roster.isEmpty {
+                    VStack(spacing: 12) {
+                        if rosterFailed {
+                            Button("Try again") { Task { await loadRoster() } }
+                                .buttonStyle(SecondaryButtonStyle())
+                        } else {
+                            ProgressView().tint(theme.textMuted)
+                        }
+                        Text(rosterFailed ? "Couldn't load members." : "Loading members")
+                            .font(Typo.inter(16))
+                            .foregroundStyle(theme.textMuted)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    memberList
+                }
+            }
+            .background(theme.bg)
+            .searchable(text: $query, prompt: "Name or state")
+            .navigationTitle("Choose a Member")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private var memberList: some View {
             List(filtered) { member in
                 Button {
                     second = member
@@ -192,12 +221,7 @@ struct CompareScreen: View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(theme.bg)
-            .searchable(text: $query, prompt: "Name or state")
-            .navigationTitle("Choose a Member")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .presentationDetents([.medium, .large])
+            .accessibilityIdentifier("comparePickerList")
     }
 
     private var filtered: [Politician] {
@@ -205,6 +229,11 @@ struct CompareScreen: View {
         let q = query.trimmed.lowercased()
         let matches = q.isEmpty ? pool : pool.filter { $0.name.lowercased().contains(q) || $0.state.lowercased() == q }
         return matches.sorted { $0.name < $1.name }
+    }
+
+    private func loadRoster() async {
+        rosterFailed = false
+        do { roster = try await BallotWatchAPI.allPoliticians() } catch { rosterFailed = true }
     }
 
     private func load() async {
