@@ -12,9 +12,13 @@ struct BillDetailScreen: View {
 
     @StateObject private var model: BillDetailModel
     @EnvironmentObject private var userData: UserData
+    @EnvironmentObject private var pro: ProStore
+    @EnvironmentObject private var alerts: AlertsStore
+    @EnvironmentObject private var banners: BannerCenter
     @Environment(\.theme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
+    @State private var paywall: ProFeature?
 
     @State private var summaryOpen = false
     @State private var showAllCosponsors = false
@@ -63,11 +67,21 @@ struct BillDetailScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     userData.toggleWatch(billID: billID)
+                    banners.show(userData.isWatching(billID: billID) ? "Watching \(display)" : "Removed from Watching")
                 } label: {
                     Image(systemName: userData.isWatching(billID: billID) ? "bookmark.fill" : "bookmark")
                         .foregroundStyle(userData.isWatching(billID: billID) ? theme.accent : theme.textSecondary)
                 }
                 .accessibilityLabel(userData.isWatching(billID: billID) ? "Stop watching bill" : "Watch bill")
+                .accessibilityIdentifier("watchBill")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Task { await toggleAlerts() } } label: {
+                    Image(systemName: alerts.isAlerting(billID: billID) ? "bell.fill" : "bell")
+                        .foregroundStyle(alerts.isAlerting(billID: billID) ? theme.accent : theme.textSecondary)
+                }
+                .accessibilityLabel(alerts.isAlerting(billID: billID) ? "Turn off Bill Watch alerts" : "Bill Watch alerts")
+                .accessibilityIdentifier("billAlerts")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 ShareLink(item: shareURL) {
@@ -76,6 +90,7 @@ struct BillDetailScreen: View {
                 }
             }
         }
+        .proPaywall($paywall)
         .navigationDestination(isPresented: $openSponsor) {
             if let id = model.page?.sponsor?.bioguideID {
                 BillsMemberLoader(bioguideID: id, name: model.page?.sponsor?.name ?? "")
@@ -84,6 +99,19 @@ struct BillDetailScreen: View {
         .task {
             await model.loadIfNeeded()
             userData.noteViewed(billID: billID)
+        }
+    }
+
+    /// Bill Watch (Pro): a push when this bill moves. Turning it on also
+    /// watches the bill, so it shows under Watching.
+    private func toggleAlerts() async {
+        guard pro.isPro else { paywall = .billAlerts; return }
+        switch await alerts.toggle(billID: billID) {
+        case true?:
+            if !userData.isWatching(billID: billID) { userData.toggleWatch(billID: billID) }
+            banners.show("Bill Watch on for \(display)", kind: .info)
+        case false?: banners.show("Bill Watch off")
+        case nil: banners.show("Allow notifications in Settings to get alerts", kind: .error)
         }
     }
 
@@ -126,6 +154,12 @@ struct BillDetailScreen: View {
             if !page.committees.isEmpty || page.committeeCount > 0 { committeeCard(page) }
             if !page.textVersions.isEmpty { textCard(page) }
         }
+        .padding(.top, 32)
+
+        SourceNote(
+            text: "Source: Congress.gov. Votes from the House Clerk and the Senate. The plain-English summary is written by AI from the bill's official text.",
+            link: key?.congressGovURL.map { ("This bill on Congress.gov", $0) }
+        )
         .padding(.top, 32)
     }
 

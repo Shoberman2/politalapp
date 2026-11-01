@@ -13,7 +13,14 @@ struct PoliticianDetailScreen: View {
     @State private var methodOpen = false
     @State private var showVPAMethodology = false
     @EnvironmentObject private var userData: UserData
+    @EnvironmentObject private var pro: ProStore
+    @EnvironmentObject private var alerts: AlertsStore
+    @EnvironmentObject private var banners: BannerCenter
     @Environment(\.theme) private var theme
+    @State private var paywall: ProFeature?
+    @State private var comparing = false
+    @State private var isExporting = false
+    @State private var sharedFile: SharedFile?
 
     /// `.pol` at <=760px: 16px inside the 16px `.main-content` padding.
     private let gutter: CGFloat = 16
@@ -34,6 +41,11 @@ struct PoliticianDetailScreen: View {
                 votesSection
                 financeSection
                 photoAttribution
+                SourceNote(
+                    text: "Sources: Congress.gov, the House Clerk and the Senate for votes; the Federal Election Commission for campaign finance.",
+                    link: URL(string: "https://www.congress.gov/member/\(politician.id)").map { ("This member on Congress.gov", $0) }
+                )
+                .padding(.top, 32)
             }
             .padding(.horizontal, gutter)
             .padding(.top, 12)
@@ -46,6 +58,7 @@ struct PoliticianDetailScreen: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     userData.toggleFollow(memberID: politician.id)
+                    banners.show(userData.isFollowing(memberID: politician.id) ? "Following \(model.displayName)" : "Unfollowed")
                 } label: {
                     Image(systemName: userData.isFollowing(memberID: politician.id) ? "star.fill" : "star")
                         .foregroundStyle(userData.isFollowing(memberID: politician.id) ? theme.warning : theme.textSecondary)
@@ -53,10 +66,61 @@ struct PoliticianDetailScreen: View {
                 .accessibilityLabel(
                     userData.isFollowing(memberID: politician.id) ? "Unfollow member" : "Follow member"
                 )
+                .accessibilityIdentifier("followMember")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { Task { await toggleAlerts() } } label: {
+                    Image(systemName: alerts.isAlerting(memberID: politician.id) ? "bell.fill" : "bell")
+                        .foregroundStyle(alerts.isAlerting(memberID: politician.id) ? theme.accent : theme.textSecondary)
+                }
+                .accessibilityLabel(alerts.isAlerting(memberID: politician.id) ? "Turn off vote alerts" : "Vote alerts")
+                .accessibilityIdentifier("memberAlerts")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button { pro.isPro ? (comparing = true) : (paywall = .compare) } label: {
+                        Label("Compare with another member", systemImage: "person.2")
+                    }
+                    Button { Task { await exportCSV() } } label: {
+                        Label("Export votes as CSV", systemImage: "square.and.arrow.down")
+                    }
+                } label: {
+                    Image(systemName: isExporting ? "hourglass" : "ellipsis.circle")
+                        .foregroundStyle(theme.textSecondary)
+                }
+                .accessibilityLabel("More actions")
+                .accessibilityIdentifier("memberMore")
+            }
+        }
+        .proPaywall($paywall)
+        .navigationDestination(isPresented: $comparing) { CompareScreen(first: politician) }
+        .sheet(item: $sharedFile) { file in
+            ShareSheet(items: [file.url]).presentationDetents([.medium, .large])
         }
         .task { await model.loadIfNeeded() }
         .sheet(isPresented: $showVPAMethodology) { vpaMethodologySheet }
+    }
+
+    // MARK: Pro actions
+
+    private func toggleAlerts() async {
+        guard pro.isPro else { paywall = .memberAlerts; return }
+        switch await alerts.toggle(memberID: politician.id) {
+        case true?: banners.show("Vote alerts on for \(model.displayName)", kind: .info)
+        case false?: banners.show("Vote alerts off")
+        case nil: banners.show("Allow notifications in Settings to get alerts", kind: .error)
+        }
+    }
+
+    private func exportCSV() async {
+        guard pro.isPro else { paywall = .csvExport; return }
+        isExporting = true
+        defer { isExporting = false }
+        do {
+            sharedFile = SharedFile(url: try await VoteCSV.export(member: politician))
+        } catch {
+            banners.show("Couldn't export votes. Try again.", kind: .error)
+        }
     }
 
     // MARK: Masthead

@@ -229,6 +229,9 @@ enum FIPS {
         "56": "WY", "60": "AS", "66": "GU", "69": "MP", "72": "PR", "78": "VI",
     ]
     static func state(_ fips: String) -> String? { map[fips] }
+    static func code(forState abbr: String) -> String? {
+        map.first { $0.value == abbr.uppercased() }?.key
+    }
 }
 
 // MARK: - States

@@ -15,18 +15,33 @@ struct MyRepScreen: View {
 
     @StateObject private var model = MyRepModel()
     @State private var editingAddress = false
+    @State private var paywall: ProFeature?
     @EnvironmentObject private var userData: UserData
+    @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var pro: ProStore
     @Environment(\.theme) private var theme
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("My Reps")
-                    .font(Typo.display)
-                    .foregroundStyle(theme.text)
-                    .accessibilityAddTraits(.isHeader)
-                    .padding(.top, 8)
-                    .padding(.bottom, 12)
+                HStack(alignment: .center) {
+                    Text("My Reps")
+                        .font(Typo.display)
+                        .foregroundStyle(theme.text)
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: 8)
+                    Button { router.showSettings = true } label: {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 24, weight: .regular))
+                            .foregroundStyle(theme.textSecondary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Account and settings")
+                    .accessibilityIdentifier("openSettings")
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 12)
                 if let place = userData.place, !editingAddress {
                     addressRow(place)
                         .padding(.bottom, 28)
@@ -57,6 +72,37 @@ struct MyRepScreen: View {
         }
         .refreshable {
             if let place = userData.place { await model.loadReps(for: place, force: true) }
+        }
+        .proPaywall($paywall)
+    }
+
+    // MARK: District map (Pro)
+
+    @ViewBuilder
+    private func districtMapRow(state: String, district: String) -> some View {
+        let members = (model.house + model.senate).map(\.politician)
+        let label = VStack(alignment: .leading, spacing: 2) {
+            Text("District map")
+                .font(Typo.inter(17, 600))
+                .foregroundStyle(theme.text)
+            Text("Your district's lines, and how your members compare.")
+                .font(Typo.inter(15))
+                .foregroundStyle(theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(theme.surface))
+        .contentShape(Rectangle())
+
+        if pro.isPro {
+            NavigationLink(value: HomeScreen.Route.districtMap(state: state, district: district, members: members)) { label }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("districtMap")
+        } else {
+            Button { paywall = .districtMap } label: { label }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("districtMap")
         }
     }
 
@@ -284,6 +330,11 @@ struct MyRepScreen: View {
                                 MyRepCard(politician: rep.politician, district: nil)
                             }
                         }
+                    }
+
+                    if let district = place.district {
+                        districtMapRow(state: place.state, district: district)
+                            .padding(.top, 8)
                     }
                 }
             }

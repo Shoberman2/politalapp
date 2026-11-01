@@ -6,6 +6,7 @@ import SwiftUI
 struct HomeScreen: View {
     enum Route: Hashable {
         case member(Politician)
+        case districtMap(state: String, district: String, members: [Politician])
     }
 
     @State private var path: [Route] = []
@@ -20,6 +21,8 @@ struct HomeScreen: View {
                     switch route {
                     case .member(let politician):
                         PoliticianDetailScreen(politician: politician)
+                    case .districtMap(let state, let district, let members):
+                        DistrictMapScreen(state: state, district: district, members: members)
                     }
                 }
         }
