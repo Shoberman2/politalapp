@@ -41,9 +41,6 @@ struct CompareScreen: View {
 
     @Environment(\.theme) private var theme
     @State private var second: Politician?
-    @State private var roster: [Politician] = []
-    @State private var rosterFailed = false
-    @State private var query = ""
     @State private var picking = false
     @State private var result: Agreement.Result?
     @State private var votesA: [BallotWatchAPI.VoteWithBill] = []
@@ -95,9 +92,15 @@ struct CompareScreen: View {
         .background(theme.bg.ignoresSafeArea())
         .navigationTitle("Compare")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $picking) { picker.sheetChrome() }
+        .sheet(isPresented: $picking) {
+            MemberPickerSheet(excluding: first) { member in
+                second = member
+                picking = false
+            }
+            .presentationDetents([.medium, .large])
+            .sheetChrome()
+        }
         .task(id: second?.id) { await load() }
-        .task { await loadRoster() }
     }
 
     private func side(_ member: Politician) -> some View {
@@ -172,70 +175,6 @@ struct CompareScreen: View {
         }
     }
 
-    private var picker: some View {
-        NavigationStack {
-            Group {
-                if roster.isEmpty {
-                    VStack(spacing: 12) {
-                        if rosterFailed {
-                            Button("Try again") { Task { await loadRoster() } }
-                                .buttonStyle(SecondaryButtonStyle())
-                        } else {
-                            ProgressView().tint(theme.textMuted)
-                        }
-                        Text(rosterFailed ? "Couldn't load members." : "Loading members")
-                            .font(Typo.inter(16))
-                            .foregroundStyle(theme.textMuted)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    memberList
-                }
-            }
-            .background(theme.bg)
-            .searchable(text: $query, prompt: "Name or state")
-            .navigationTitle("Choose a Member")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .presentationDetents([.medium, .large])
-    }
-
-    private var memberList: some View {
-            List(filtered) { member in
-                Button {
-                    second = member
-                    picking = false
-                } label: {
-                    HStack(spacing: 12) {
-                        MemberPhoto(bioguideID: member.id, name: member.name, size: 36)
-                        Text(member.name)
-                            .font(Typo.inter(17))
-                            .foregroundStyle(theme.text)
-                        Spacer()
-                        PartyTag(party: member.party, seat: member.seatLabel())
-                    }
-                    .frame(minHeight: 44)
-                }
-                .listRowBackground(theme.surface)
-                .listRowSeparator(.hidden)
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .accessibilityIdentifier("comparePickerList")
-    }
-
-    private var filtered: [Politician] {
-        let pool = roster.filter { $0.id != first.id && $0.chamber == first.chamber }
-        let q = query.trimmed.lowercased()
-        let matches = q.isEmpty ? pool : pool.filter { $0.name.lowercased().contains(q) || $0.state.lowercased() == q }
-        return matches.sorted { $0.name < $1.name }
-    }
-
-    private func loadRoster() async {
-        rosterFailed = false
-        do { roster = try await BallotWatchAPI.allPoliticians() } catch { rosterFailed = true }
-    }
-
     private func load() async {
         guard let second else { return }
         isLoading = true
@@ -252,6 +191,73 @@ struct CompareScreen: View {
         } catch {
             failed = true
         }
+    }
+}
+
+/// Pick a member of the same chamber to compare with.
+private struct MemberPickerSheet: View {
+    let excluding: Politician
+    let pick: (Politician) -> Void
+
+    @Environment(\.theme) private var theme
+    @State private var roster: [Politician] = []
+    @State private var failed = false
+    @State private var query = ""
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if roster.isEmpty {
+                    VStack(spacing: 12) {
+                        if failed {
+                            Button("Try again") { Task { await load() } }
+                                .buttonStyle(SecondaryButtonStyle())
+                        } else {
+                            ProgressView().tint(theme.textMuted)
+                        }
+                        Text(failed ? "Couldn't load members." : "Loading members")
+                            .font(Typo.inter(16))
+                            .foregroundStyle(theme.textMuted)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List(filtered) { member in
+                        Button { pick(member) } label: {
+                            HStack(spacing: 12) {
+                                MemberPhoto(bioguideID: member.id, name: member.name, size: 36)
+                                Text(member.name)
+                                    .font(Typo.inter(17))
+                                    .foregroundStyle(theme.text)
+                                Spacer()
+                                PartyTag(party: member.party, seat: member.seatLabel())
+                            }
+                            .frame(minHeight: 44)
+                        }
+                        .listRowBackground(theme.bg)
+                        .listRowSeparator(.hidden)
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .background(theme.bg.ignoresSafeArea())
+            .searchable(text: $query, prompt: "Name or state")
+            .navigationTitle("Choose a Member")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .task { await load() }
+    }
+
+    private var filtered: [Politician] {
+        let pool = roster.filter { $0.id != excluding.id && $0.chamber == excluding.chamber }
+        let q = query.trimmed.lowercased()
+        let matches = q.isEmpty ? pool : pool.filter { $0.name.lowercased().contains(q) || $0.state.lowercased() == q }
+        return matches.sorted { $0.name < $1.name }
+    }
+
+    private func load() async {
+        failed = false
+        do { roster = try await BallotWatchAPI.allPoliticians() } catch { failed = true }
     }
 }
 
