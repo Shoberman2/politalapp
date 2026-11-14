@@ -19,8 +19,8 @@ import { explanationSourceLine } from '../../shared/billExplainer.js'
 
 export const ordinal = congressOrdinal
 
-// The masthead "Find my reps" button, same as Navigation.jsx's DEFAULT_CTA.
-const SIGN_IN_CTA = `/auth?next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
+// The masthead "Find my reps" button: the lookup is public, no sign-in first.
+const SIGN_IN_CTA = DEFAULT_SIGNED_IN_PATH
 
 export function escapeHtml(s) {
   if (s == null) return ''

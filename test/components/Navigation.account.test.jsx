@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 // The masthead lists public pages only. Signed out: a "Sign in" text link that
-// returns to the current page, and "Find my reps" through sign-in. Signed in:
+// returns to the current page, and "Find my reps" straight to the public lookup. Signed in:
 // "Sign out", "My reps", and the theme toggle (never shown signed out).
 
 const state = vi.hoisted(() => ({ user: null, signOut: null }))
@@ -47,17 +47,17 @@ describe('Navigation', () => {
       expect(a.getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/vote/119/house/2/295?x=1')}`)
     })
     expect(cta(container).textContent).toBe('Find my reps')
-    expect(cta(container).getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/my-representative')}`)
+    expect(cta(container).getAttribute('href')).toBe('/my-representative')
   })
 
-  it('on /auth itself, Sign in and the CTA keep the current ?next=', () => {
+  it('on /auth itself, Sign in keeps the current ?next= and the CTA still opens the public lookup', () => {
     const { container } = renderAt('/auth?next=%2Fbills')
     accountLinks(container).forEach((a) => expect(a.getAttribute('href')).toBe('/auth?next=%2Fbills'))
-    expect(cta(container).getAttribute('href')).toBe('/auth?next=%2Fbills')
+    expect(cta(container).getAttribute('href')).toBe('/my-representative')
     cleanup()
     const plain = renderAt('/auth').container
     accountLinks(plain).forEach((a) => expect(a.getAttribute('href')).toBe('/auth'))
-    expect(cta(plain).getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/my-representative')}`)
+    expect(cta(plain).getAttribute('href')).toBe('/my-representative')
   })
 
   it('never shows the theme toggle signed out', () => {

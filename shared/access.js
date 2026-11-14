@@ -1,4 +1,5 @@
-// Which pages need a (free) account. The web app enforces this list in
+// Which pages need a (free) account: only the ones that save something for the
+// reader (alerts, briefings, AI Congress sessions). Browsing never does. The web app enforces this list in
 // src/components/AccessGate.jsx (which wraps every route in src/App.jsx and
 // imports it through src/config/access.js), and api/sitemap.js reads it to
 // keep gated pages out of the sitemap. test/shared/access.test.js and
@@ -10,27 +11,26 @@
 // each segment percent-decoded, repeated slashes collapsed and trailing
 // slashes stripped, so '/%62ills' and '/compare///' are gated too.
 //
-// Everything else is public: the landing, the members list (/all), full member
-// profiles (/politician/:id), record cards (/politician/:id/record), bill pages
-// (/bill/*), roll calls (/vote/*), This week, How it works, For offices, the
-// developer pages, methodology, data sources, legal and contact pages, the
-// blog, the historical chamber and /auth. Member profiles and bill pages stay
-// public because the MCP server, llms.txt, record cards and search results
-// link to them.
+// Everything else is public: the landing, the members list (/all), "my
+// representative" (/my-representative, the address is kept on the device),
+// the Bills index (/bills), full member profiles (/politician/:id), record
+// cards (/politician/:id/record), bill pages (/bill/*), roll calls (/vote/*),
+// the district map (/map), campaign-funding comparison (/compare), committee
+// pages (/committee/:code), the shutdown tracker, This week, How it works, For
+// offices, the developer pages, methodology, data sources, legal and contact
+// pages, the blog, the historical chamber and /auth. Member profiles and bill
+// pages stay public because the MCP server, llms.txt, record cards and search
+// results link to them. Save, watch and alert actions inside public pages ask
+// a signed-out reader to sign in (see BillWatchControl) instead of gating the
+// page.
 
 // Where a reader lands after signing in when no ?next= is given. The app
 // (src/config/access.js) and the server chrome (api/_lib/renderPage.js) read it.
 export const DEFAULT_SIGNED_IN_PATH = '/my-representative'
 
 export const GATED_PATHS = Object.freeze([
-  '/my-representative',
-  '/bills',
-  '/map',
-  '/shutdown-tracker',
-  '/compare',
   '/ai-congress',
   '/ai-congress/:id',
-  '/committee/:code',
   '/briefings',
   '/alerts',
 ])
