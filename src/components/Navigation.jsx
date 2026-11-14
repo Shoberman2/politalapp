@@ -6,8 +6,8 @@ import { BRAND } from '../config/brand'
 import { DEFAULT_SIGNED_IN_PATH } from '../config/access'
 import '../styles/Navigation.css'
 
-// Public pages only. Everything in the main row works without an account; the
-// personal app (your reps, the Bills index and tools) sits behind "Find my reps".
+// Public pages only. Everything in the main row works without an account, and
+// so does "Find my reps"; only saving things (alerts, briefings) needs one.
 const NAV_LINKS = [
   { to: '/how-it-works', label: 'How it works' },
   { to: '/this-week', label: 'This week' },
@@ -15,7 +15,6 @@ const NAV_LINKS = [
   { to: '/offices', label: 'For offices' },
 ]
 
-const DEFAULT_CTA = `/auth?next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
 const isAuthPath = (pathname) => /^\/auth(?:\/|$)/i.test(pathname)
 // The sign-in page itself ('/auth' or '/auth/'), not /auth/callback.
 const isAuthPage = (pathname) => /^\/auth\/?$/i.test(pathname)
@@ -27,10 +26,6 @@ function signInHref(location) {
     return isAuthPage(location.pathname) && location.search ? `/auth${location.search}` : '/auth'
   }
   return `/auth?next=${encodeURIComponent(`${location.pathname}${location.search}${location.hash || ''}`)}`
-}
-
-function ctaHref(location) {
-  return isAuthPage(location.pathname) && new URLSearchParams(location.search).get('next') ? `/auth${location.search}` : DEFAULT_CTA
 }
 
 function Navigation() {
@@ -53,7 +48,7 @@ function Navigation() {
 
   const cta = user
     ? { to: '/my-representative', label: 'My reps' }
-    : { to: ctaHref(location), label: 'Find my reps' }
+    : { to: DEFAULT_SIGNED_IN_PATH, label: 'Find my reps' }
 
   const accountLink = (className) => (user ? (
     <button type="button" className={className} onClick={handleSignOut}>Sign out</button>

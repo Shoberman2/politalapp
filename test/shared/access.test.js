@@ -8,16 +8,22 @@ describe('account gate list', () => {
     expect(isGatedPath).toBe(sharedIsGated)
   })
 
-  it('gates the app surfaces: my reps, the Bills index and tools', () => {
-    for (const p of [
-      '/my-representative', '/bills', '/bills/', '/map', '/shutdown-tracker', '/compare', '/ai-congress',
-      '/ai-congress/abc', '/committee/HSAG', '/briefings', '/alerts',
-    ]) expect(isGatedPath(p), p).toBe(true)
+  it('gates only the pages that save something: AI Congress, briefings, alerts', () => {
+    expect([...APP]).toEqual(['/ai-congress', '/ai-congress/:id', '/briefings', '/alerts'])
+    for (const p of ['/ai-congress', '/ai-congress/abc', '/ai-congress/', '/briefings', '/alerts'])
+      expect(isGatedPath(p), p).toBe(true)
   })
 
   it('matches case-insensitively, like react-router', () => {
-    for (const p of ['/Bills', '/MY-REPRESENTATIVE', '/Map/', '/AI-Congress/abc'])
+    for (const p of ['/Alerts', '/BRIEFINGS', '/Briefings/', '/AI-Congress/abc'])
       expect(isGatedPath(p), p).toBe(true)
+  })
+
+  it('keeps the browse pages public: my reps, the Bills index, map, compare, committees, shutdown tracker', () => {
+    for (const p of [
+      '/my-representative', '/bills', '/bills/', '/map', '/shutdown-tracker', '/compare', '/committee/HSAG',
+      '/Bills', '/MY-REPRESENTATIVE',
+    ]) expect(isGatedPath(p), p).toBe(false)
   })
 
   it('keeps the public record public', () => {

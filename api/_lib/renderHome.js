@@ -86,7 +86,7 @@ export function renderHomeBody(data) {
       <h1 class="hero-title">How did your representative vote this week?</h1>
       <p class="hero-mission">${escapeHtml(BRAND.mission)}</p>
       <p class="home-about">${escapeHtml(HOME_ABOUT)}</p>
-      <p><a class="btn-primary" href="/auth?next=%2Fmy-representative">Find my reps</a></p>
+      <p><a class="btn-primary" href="/my-representative">Find my reps</a></p>
     </div>
   </section>
   ${latest ? latestVoteHtml(latest) : ''}
