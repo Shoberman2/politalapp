@@ -10,21 +10,6 @@
 .bw ::selection { background: var(--accent); color: #fff; }
 
 /* ---- typographic helpers ---- */
-.bw .kicker {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.bw .dateline {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
 .bw .serif-display {
   font-family: var(--display);
   font-weight: 600;
@@ -35,20 +20,22 @@
 
 .bw a { color: inherit; text-decoration: none; }
 
-/* ============ MASTHEAD / NAV ============ */
+/* ============ MASTHEAD / NAV ============
+   Sticky, full width, no rule under it: the page separates itself with
+   space. Links are plain words; the current page is shown by ink and
+   weight, never an underline or a box. */
 .bw .topbar-wrap {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(1.4) blur(14px);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(16px);
+  -webkit-backdrop-filter: saturate(1.4) blur(16px);
 }
 /* Full width: the logo hugs the left edge and the CTA the right edge. */
 .bw .topbar {
   padding: 0 28px;
-  height: 64px;
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 28px;
@@ -63,6 +50,7 @@
   background: none;
   border: none;
   padding: 0;
+  min-height: 44px;
 }
 /* The Capitol mark stands on its own, no tile. The SVG is a mask filled
    with --ink, so it matches the wordmark in both themes; the <img> stays in
@@ -88,7 +76,7 @@
 }
 .bw .brand-name {
   font-family: var(--display);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -97,17 +85,16 @@
 .bw .topnav {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-left: 12px;
+  gap: 28px;
+  margin-left: 16px;
 }
 .bw .topnav a {
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--ink-2);
   letter-spacing: 0;
-  position: relative;
-  padding: 4px 0;
+  padding: 10px 0;
   transition: color .15s ease;
   white-space: nowrap;
   background: none;
@@ -115,172 +102,214 @@
   cursor: pointer;
 }
 .bw .topnav a:hover { color: var(--ink); }
-.bw .topnav a.active { color: var(--ink); }
-.bw .topnav a.active::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -2px;
-  height: 2px;
-  background: var(--accent);
-}
+.bw .topnav a.active { color: var(--ink); font-weight: 600; }
+.bw .topnav-foot { display: none; }
 .bw .topbar-right {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
 }
-.bw .theme-toggle {
-  width: 40px; height: 40px;
-  border: none;
-  border-radius: var(--r-icon);
-  display: grid; place-items: center;
-  color: var(--ink-2);
-  background: none;
-  cursor: pointer;
-  transition: background-color .15s ease, color .15s ease;
-  flex-shrink: 0;
-}
-.bw .theme-toggle:hover { color: var(--ink); background: var(--fill-soft); }
-.bw .theme-toggle svg { width: 17px; height: 17px; }
-.bw .theme-toggle .sun { display: none; }
-[data-theme="dark"] .bw .theme-toggle .sun { display: block; }
-[data-theme="dark"] .bw .theme-toggle .moon { display: none; }
 .bw .nav-account,
 .bw .topnav .topnav-account-mobile {
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.2;
   color: var(--ink-2);
   white-space: nowrap;
   background: none;
   border: none;
-  padding: 4px 0;
+  padding: 10px 0;
   cursor: pointer;
   text-align: left;
   transition: color .15s ease;
 }
 .bw .nav-account:hover, .bw .topnav .topnav-account-mobile:hover { color: var(--ink); }
-.bw .topnav .topnav-account-mobile { display: none; }
+/* `.bw a { color: inherit }` would otherwise beat the text action's accent. */
+.bw a.btn-text, .bw a.btn-secondary, .bw a.btn-ghost, .bw a.btn-tertiary { color: var(--accent); }
+.bw a.btn-text:hover, .bw a.btn-secondary:hover, .bw a.btn-ghost:hover, .bw a.btn-tertiary:hover { color: var(--accent-hover); }
+.bw a.btn-outline { color: var(--ink); }
 /* `.bw a { color: inherit }` would otherwise beat the button's white label. */
 .bw a.btn-primary, .bw a.btn-primary:hover { color: #fff; }
 :root[data-theme="dark"] .bw a.btn-primary,
 :root[data-theme="dark"] .bw a.btn-primary:hover { color: #0B1220; }
 
-/* ============ BUTTONS ============
-   The button system (.btn, .btn-primary, .btn-secondary, .btn-text,
-   .btn-sm, .btn-toggle, .btn-icon) lives unscoped in App.css so every
-   page, broadsheet or not, gets the same buttons. Only the masthead CTA's
-   icon size stays here. */
-.bw .topbar-right .btn-primary svg { width: 15px; height: 15px; }
-
-/* ============ PARTY TAGS ============ */
+/* ============ PARTY TAGS ============
+   Party is a coloured letter, not a boxed chip. */
 .bw .ptag {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 1px 5px;
-  border-radius: var(--r-sm);
-  border: 1px solid currentColor;
   line-height: 1.5;
 }
 .bw .ptag.d { color: var(--dem); }
 .bw .ptag.r { color: var(--rep); }
 .bw .ptag.i { color: var(--ind); }
 
-/* ============ RULES ============ */
-.bw .rule { height: 1px; background: var(--rule); border: none; }
-.bw .rule-strong { height: 2px; background: var(--rule-strong); border: none; }
-
-/* ============ FOOTER ============ */
-.bw .footer {
-  border-top: 1px solid var(--rule);
-  margin-top: 0;
-  background: var(--bg);
+/* ============ SHEETS ============
+   Account and settings open over the page (AccountSheet.jsx). */
+.bw .sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--scrim);
+  animation: sheet-fade .18s ease-out;
 }
-.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 48px 32px 28px; }
+.bw .sheet {
+  width: min(100%, 400px);
+  padding: 32px;
+  border-radius: var(--r-sheet);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-broad-lg);
+  outline: none;
+  animation: sheet-rise .22s cubic-bezier(.2,.6,.2,1);
+}
+.bw .sheet-title { font-size: 26px; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 6px; color: var(--ink); }
+.bw .sheet-line { margin: 0; font-size: 16px; color: var(--ink-2); overflow-wrap: anywhere; }
+.bw .sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; }
+.bw .sheet-label { font-size: 16px; font-weight: 500; color: var(--ink); }
+.bw .sheet-segment { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--surface-dim); }
+.bw .sheet-segment .btn-toggle[aria-pressed="true"] { background: var(--surface); box-shadow: var(--shadow-sm); }
+.bw .sheet-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+@keyframes sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheet-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ============ FOOTER ============
+   A statement and the primary action on top, link columns under it, the
+   small print last. Space separates the three; there are no rules. */
+.bw .footer { margin-top: 0; background: var(--surface-dim); }
+.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 72px 32px 40px; }
+.bw .footer-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px 48px;
+  flex-wrap: wrap;
+  padding-bottom: 64px;
+}
+.bw .footer-wordmark { display: block; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: var(--ink); }
+.bw .footer-tag { margin: 14px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 38ch; }
 .bw .footer-cols {
   display: grid;
-  grid-template-columns: minmax(200px, 1.6fr) repeat(4, minmax(0, 1fr));
-  gap: 32px;
-  padding-bottom: 36px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 40px 32px;
+  padding-bottom: 64px;
 }
-.bw .footer-brand { padding-right: 16px; }
-.bw .footer-wordmark { font-family: var(--display); font-size: 20px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: var(--ink); }
-.bw .footer-tag { margin-top: 12px; font-size: 13.5px; line-height: 1.55; color: var(--ink-3); max-width: 260px; }
 .bw .footer-col h4 {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin: 0 0 12px;
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin: 0 0 10px;
 }
 .bw .footer-col ul { list-style: none; margin: 0; padding: 0; }
 .bw .footer-col a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-2);
-  padding: 4px 0;
   transition: color .15s ease;
 }
-.bw .footer-col a:hover { color: var(--accent); }
+.bw .footer-col a:hover { color: var(--ink); }
 .bw .footer-bottom {
-  border-top: 1px solid var(--rule);
-  padding-top: 18px;
   display: flex;
   justify-content: space-between;
-  gap: 8px 16px;
+  gap: 8px 24px;
   flex-wrap: wrap;
 }
-.bw .footer-bottom p { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--ink-3); }
+.bw .footer-bottom p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-3); }
 
-/* ============ MOBILE NAV ============ */
+/* ============ MOBILE NAV ============
+   Under 940px the links move into a full-screen sheet: big tappable rows,
+   Sign in and the primary action at the bottom. */
 .bw .nav-burger { display: none; }
+body.nav-sheet-open { overflow: hidden; }
 @media (max-width: 940px) {
   .bw .topnav {
     display: none;
-    position: absolute;
-    top: 64px; left: 0; right: 0;
+    position: fixed;
+    top: 68px; left: 0; right: 0; bottom: 0;
+    z-index: 99;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
     margin: 0;
-    padding: 8px 0;
-    border-left: none;
-    border-bottom: 1px solid var(--rule);
+    padding: 16px 24px 28px;
+    overflow-y: auto;
     background: var(--bg);
   }
-  .bw .topnav.open-mobile { display: flex; }
-  .bw .topnav .topnav-account-mobile { display: block; }
+  .bw .topnav.open-mobile { display: flex; animation: sheet-fade .18s ease-out; }
+  /* A blurred ancestor would trap the fixed sheet inside the 68px bar. */
+  .bw .topbar-wrap:has(.topnav.open-mobile) { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
+  .bw .topnav > a {
+    display: flex;
+    align-items: center;
+    min-height: 60px;
+    padding: 0;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .bw .topnav-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 24px;
+  }
+  .bw .topnav .topnav-account-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    font-size: 17px;
+    color: var(--ink);
+  }
+  /* `.bw .topnav a` strips fills and colours; give the pill its own back. */
+  .bw .topnav a.topnav-cta-mobile,
+  .bw .topnav a.topnav-cta-mobile:hover {
+    width: 100%;
+    min-height: 52px;
+    padding: 13px 26px;
+    font-size: 17px;
+    font-weight: 500;
+    background: var(--accent);
+    color: #fff;
+  }
+  :root[data-theme="dark"] .bw .topnav a.topnav-cta-mobile { color: #0B1220; }
   .bw .nav-account { display: none; }
-  .bw .topnav a,
-  .bw .topnav .topnav-account-mobile { padding: 12px 28px; }
-  .bw .topnav a.active::after { display: none; }
   .bw .nav-burger {
     display: grid; place-items: center;
-    width: 40px; height: 40px;
+    width: 44px; height: 44px;
     border: none;
-    border-radius: var(--r-icon);
-    color: var(--ink-2);
+    border-radius: 999px;
+    color: var(--ink);
     background: none;
     cursor: pointer;
   }
-  .bw .nav-burger:hover { color: var(--ink); background: var(--fill-soft); }
-  .bw .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
-  .bw .footer-brand { grid-column: 1 / -1; }
+  .bw .nav-burger:hover { background: var(--fill-soft); }
+  .bw .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .bw .topbar { padding: 0 16px; gap: 10px; }
-  .bw .topnav a,
-  .bw .topnav .topnav-account-mobile { padding-left: 16px; padding-right: 16px; }
-  .bw .topbar-right { gap: 8px; }
-}
-@media (max-width: 560px) {
-  .bw .footer-inner { padding-left: 18px; padding-right: 18px; }
-  .bw .footer-cols { grid-template-columns: 1fr; }
+  .bw .topnav { padding-left: 20px; padding-right: 20px; }
+  .bw .topbar-right { gap: 6px; }
+  .bw .footer-inner { padding: 56px 20px 32px; }
+  .bw .footer-top { flex-direction: column; align-items: flex-start; padding-bottom: 48px; }
+  .bw .footer-col a { min-height: 44px; }
   .bw .footer-bottom { flex-direction: column; }
+}
+@media (max-width: 380px) {
+  .bw .footer-cols { grid-template-columns: 1fr; }
+  .bw .brand-name { font-size: 17px; }
+  .bw .topbar-right .nav-cta { padding-left: 14px; padding-right: 14px; }
 }

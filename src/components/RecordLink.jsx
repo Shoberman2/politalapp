@@ -16,7 +16,7 @@ export default function RecordLink({ bioguideId, name, className = '' }) {
       aria-label={name ? `Record in 60 seconds: ${name}` : undefined}
       onClick={(e) => e.stopPropagation()}
     >
-      Record in 60 seconds →
+      Record in 60 seconds
     </Link>
   )
 }

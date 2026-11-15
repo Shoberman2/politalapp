@@ -13,18 +13,18 @@ import { getBillDisplayTitle, formatBillId } from '../utils/billTitle'
 import '../styles/CommitteePage.css'
 
 /**
- * /committee/:code — committee detail page.
+ * /committee/:code: committee detail page.
  *
  * IA per design-review D1:
  *   1. Masthead: kicker, title, deck (gloss), stats line
- *   2. Section 1: Bills currently in committee (PRIMARY) — last 90 days
- *      Fallback: "Show all-time →"
+ *   2. Section 1: Bills currently in committee (PRIMARY): last 90 days
+ *      Fallback: "Show all-time"
  *   3. Section 2: Members (PoliticianCard reuse)
  *   4. Section 3: Historical activity (Geist Mono stats per Congress)
  *
- * In-app navigation only — no SEO claim (per outside-voice D20).
+ * In-app navigation only: no SEO claim (per outside-voice D20).
  *
- * Behind VITE_BILLS_SHOW_ROUTING_PANEL — the route registration check
+ * Behind VITE_BILLS_SHOW_ROUTING_PANEL: the route registration check
  * happens in App.jsx so unflagged users never see a broken link.
  */
 
@@ -57,7 +57,7 @@ function partyAbbrev(party) {
   return 'I'
 }
 
-// Current Congress — kept simple; we have a real getter elsewhere but for
+// Current Congress: kept simple; we have a real getter elsewhere but for
 // page-level stats this is fine.
 function currentCongress() {
   const year = new Date().getFullYear()
@@ -169,12 +169,12 @@ export default function CommitteePage() {
       </nav>
 
       <header className="committee-masthead">
-        <div className="committee-kicker">
-          {chamber === 'house' ? 'HOUSE COMMITTEE' : chamber === 'senate' ? 'SENATE COMMITTEE' : 'CONGRESSIONAL COMMITTEE'}
-          {' · '}{CONGRESS_LABEL[congress] || `${congress}th`} CONGRESS
-        </div>
         <h1 className="committee-title">{committeeName}<InfoDot id="committee" /></h1>
         <p className="committee-deck">{deck}</p>
+        <p className="committee-meta">
+          {chamber === 'house' ? 'House committee' : chamber === 'senate' ? 'Senate committee' : 'Congressional committee'}
+          {' · '}{CONGRESS_LABEL[congress] || `${congress}th`} Congress
+        </p>
         <div className="committee-stats">
           <span>{billsReferred} bills sent here<InfoDot id="referred" /></span>
           {advancePct != null && (
@@ -194,11 +194,9 @@ export default function CommitteePage() {
         </div>
       </header>
 
-      <hr className="committee-rule" />
-
       {/* SECTION 1: Bills currently in committee */}
       <section className="committee-section">
-        <h2 className="committee-section-title">Bills currently in committee</h2>
+        <h2 className="committee-section-title">Bills Currently In Committee</h2>
         <p className="committee-section-subtitle">
           {showAllTime
             ? 'All-time bills referred to this committee'
@@ -216,8 +214,8 @@ export default function CommitteePage() {
         {!billsLoading && !billsError && bills.length === 0 && !showAllTime && (
           <p className="committee-empty">
             No bills referred in last 90 days.{' '}
-            <button className="committee-link-button" onClick={handleShowAllTime}>
-              Show all-time →
+            <button className="committee-link-button btn-text" onClick={handleShowAllTime}>
+              Show all-time
             </button>
           </p>
         )}
@@ -248,12 +246,10 @@ export default function CommitteePage() {
         )}
       </section>
 
-      <hr className="committee-rule" />
-
-      {/* SECTION 3: Historical activity (Section 2 — members — deferred:
+      {/* SECTION 3: Historical activity (Section 2: members: deferred:
           requires a separate committee_members table we haven't built yet) */}
       <section className="committee-section">
-        <h2 className="committee-section-title">Historical activity</h2>
+        <h2 className="committee-section-title">Historical Activity</h2>
         <p className="committee-section-subtitle">Last 3 Congresses</p>
         <dl className="committee-historical">
           {[117, 118, 119].map((c) => {
@@ -287,14 +283,14 @@ export default function CommitteePage() {
         </dl>
         <a
           href="#methodology"
-          className="committee-methodology-link"
+          className="committee-methodology-link btn-text"
           aria-label="How we compute committee advance rate (opens modal)"
           onClick={(e) => {
             e.preventDefault()
             setMethodologyAnchor('committee-survival')
           }}
         >
-          How we compute advance rate →
+          How we compute advance rate
         </a>
       </section>
 

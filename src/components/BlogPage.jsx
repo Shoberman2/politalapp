@@ -35,24 +35,23 @@ function BlogPage() {
       />
       <div className="blog-header">
         <h1>Blog</h1>
-        <p className="blog-subtitle">Nonpartisan explainers on how Congress works, who represents you, and why it matters</p>
+        <p className="blog-subtitle">Nonpartisan explainers on how Congress works and who represents you.</p>
       </div>
 
       <div className="blog-filters">
         <input
-          type="text"
-          placeholder="Search articles by title, topic, or tag..."
+          type="search"
+          placeholder="Search by title, topic or tag"
+          aria-label="Search articles"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="blog-search-input"
+          className="field blog-search-input"
         />
       </div>
 
-      <div className="blog-results-info">
-        <span className="results-count">
-          {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''}
-        </span>
-      </div>
+      <p className="blog-results-info">
+        {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''}
+      </p>
 
       {filteredArticles.length > 0 ? (
         <div className="blog-grid">
@@ -62,25 +61,19 @@ function BlogPage() {
               to={`/blog/${article.slug}`}
               className="blog-card"
             >
-              <div className="blog-card-tags">
-                {article.tags.map(tag => (
-                  <span key={tag} className="blog-card-tag">{tag}</span>
-                ))}
-              </div>
               <h2 className="blog-card-title">{article.title}</h2>
               <p className="blog-card-excerpt">{article.excerpt}</p>
-              <div className="blog-card-meta">
-                <span className="blog-card-date">{formatDate(article.date)}</span>
-                <span className="blog-card-author">{article.author}</span>
-              </div>
+              <p className="blog-card-meta">
+                {[formatDate(article.date), article.author, article.tags.join(', ')].filter(Boolean).join(' · ')}
+              </p>
             </Link>
           ))}
         </div>
       ) : (
         <div className="no-articles">
-          <p>No articles found matching your search</p>
+          <p>No articles match that search.</p>
           <button className="reset-search-button btn-secondary" onClick={() => setSearchTerm('')}>
-            Clear Search
+            Clear search
           </button>
         </div>
       )}

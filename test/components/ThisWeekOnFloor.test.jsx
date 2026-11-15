@@ -63,7 +63,7 @@ describe('ThisWeekOnFloor', () => {
     services.getFloorSchedule.mockReturnValue(pending())
     services.getRecentFloorVotes.mockReturnValue(pending())
     const { container } = renderIt()
-    expect(screen.getByRole('heading', { name: 'Coming up, and just decided.' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Coming Up, And Just Decided' })).toBeInTheDocument()
     expect(container.querySelectorAll('.twof-row--skeleton').length).toBeGreaterThan(0)
     expect(container.querySelectorAll('.twof-row--scheduled, .twof-row--recorded')).toHaveLength(0)
     expect(screen.getByLabelText('Loading the House floor schedule')).toHaveAttribute('aria-busy', 'true')
@@ -148,7 +148,9 @@ describe('ThisWeekPage', () => {
     )
     const hero = container.querySelector('.info-page.ip-wide .ip-hero')
     expect(hero).not.toBeNull()
-    expect(hero.querySelector('.ip-kicker').textContent).toBe('119th Congress · updated daily')
+    // No label above the headline (house rules, 2026-11-14).
+    expect(hero.querySelector('.ip-kicker')).toBeNull()
+    expect(hero.querySelector('.ip-updated').textContent).toBe('119th Congress · updated daily')
     const h1s = container.querySelectorAll('h1')
     expect(h1s).toHaveLength(1)
     expect(h1s[0].classList.contains('ip-title')).toBe(true)
@@ -157,7 +159,7 @@ describe('ThisWeekPage', () => {
     // The floor component sits outside .info-page so its row type is its own.
     expect(container.querySelector('.info-page .twof')).toBeNull()
     expect(container.querySelector('.twof-page-body .twof')).not.toBeNull()
-    // The page has its own title, so the component's kicker and H2 are off,
+    // The page has its own title, so the component's H2 is off,
     // and the page root is not a second <main>.
     expect(container.querySelector('.twof-kicker, .twof-heading')).toBeNull()
     expect(container.querySelector('main')).toBeNull()

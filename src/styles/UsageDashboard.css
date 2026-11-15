@@ -1,196 +1,160 @@
+/* API usage (/developers/usage). Buttons and the select come from App.css. */
 .usage-page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 40px 24px;
 }
 
 .usage-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 48px;
 }
 
 .usage-header h1 {
-  font-family: var(--serif);
-  font-size: 28px;
-  color: #1A1A18;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink);
   margin: 0;
 }
 
 .usage-subtitle {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: #6B6861;
-  margin-top: 4px;
+  font-size: 16px;
+  color: var(--ink-2);
+  margin-top: 12px;
 }
 
 .usage-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
 }
 
-.usage-period-select {
-  font-family: var(--sans);
-  font-size: 14px;
-  padding: 8px 12px;
-  border: 1px solid #E8E6E1;
-  border-radius: 6px;
-  background: #fff;
-  color: #1A1A18;
+.usage-actions .usage-period-select {
+  width: auto;
+  min-height: 48px;
 }
 
-/* Stats row */
+/* Figures: plain numbers, no boxes. */
 .usage-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 40px;
-}
-
-.usage-stat {
-  background: #fff;
-  border: 1px solid #E8E6E1;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
+  gap: 32px;
+  margin-bottom: 64px;
 }
 
 .usage-stat-value {
   display: block;
   font-family: var(--mono);
-  font-size: 28px;
-  font-weight: 700;
-  color: #1A1A18;
+  font-variant-numeric: tabular-nums;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ink);
   line-height: 1;
 }
 
 .usage-stat-label {
   display: block;
-  font-family: var(--sans);
-  font-size: 12px;
-  color: #9C9789;
-  margin-top: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 15px;
+  color: var(--ink-2);
+  margin-top: 10px;
 }
 
 /* Bar chart */
 .usage-chart-section {
-  margin-bottom: 40px;
+  margin-bottom: 64px;
 }
 
 .usage-chart-section h3 {
-  font-family: var(--sans);
-  font-size: 16px;
+  font-size: clamp(20px, 2vw, 24px);
   font-weight: 600;
-  color: #1A1A18;
-  margin: 0 0 16px;
+  color: var(--ink);
+  margin: 0 0 20px;
 }
 
 .usage-bar-chart {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   gap: 8px;
-  height: 160px;
-  padding: 0 0 24px;
-  border-bottom: 1px solid #E8E6E1;
+  height: 200px;
+  overflow-x: auto;
 }
 
 .usage-bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  justify-content: flex-end;
-  position: relative;
+  flex: 1 0 44px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 6px;
+}
+
+.usage-bar-count {
+  grid-row: 1;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
 .usage-bar-fill {
+  grid-row: 2;
+  align-self: end;
   width: 100%;
   max-width: 40px;
-  background: #1D4ED8;
+  background: var(--accent);
   border-radius: 4px 4px 0 0;
   min-height: 2px;
   transition: height 0.3s ease;
 }
 
 .usage-bar-label {
+  grid-row: 3;
   font-family: var(--mono);
-  font-size: 10px;
-  color: #9C9789;
-  margin-top: 8px;
-  position: absolute;
-  bottom: -20px;
+  font-size: 13px;
+  color: var(--ink-3);
 }
 
-.usage-bar-count {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: #6B6861;
-  margin-bottom: 4px;
-}
-
-/* Endpoint list */
-.usage-endpoint-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: #E8E6E1;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
+/* Requests by endpoint: a data table, hairline between rows. */
 .usage-endpoint-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #fff;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.usage-endpoint-row + .usage-endpoint-row {
+  box-shadow: inset 0 1px 0 var(--rule);
 }
 
 .usage-endpoint-row code {
   font-family: var(--mono);
-  font-size: 13px;
-  color: #1A1A18;
+  font-size: 14px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .usage-endpoint-count {
   font-family: var(--mono);
-  font-size: 13px;
-  color: #6B6861;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--ink-2);
 }
 
 /* Empty state */
-.usage-empty {
-  text-align: center;
-  padding: 60px 20px;
-}
-
 .usage-empty h3 {
-  font-family: var(--serif);
-  font-size: 22px;
-  color: #1A1A18;
-  margin: 0 0 8px;
-}
-
-.usage-empty p {
-  font-family: var(--sans);
-  color: #6B6861;
-  margin-bottom: 24px;
+  font-size: clamp(20px, 2vw, 24px);
+  color: var(--ink);
+  margin: 0 0 20px;
 }
 
 .usage-loading {
-  text-align: center;
-  padding: 60px;
-  color: #9C9789;
-  font-family: var(--sans);
+  padding: 60px 0;
+  color: var(--ink-2);
 }
 
 @media (max-width: 768px) {
-  .usage-header { flex-direction: column; gap: 12px; }
-  .usage-actions { flex-direction: column; align-items: flex-start; }
+  .usage-header { flex-direction: column; gap: 16px; }
   .usage-stats { grid-template-columns: repeat(2, 1fr); }
 }

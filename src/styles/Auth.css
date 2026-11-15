@@ -1,84 +1,78 @@
-/* Auth: a centered 420px card on the paper background. Inter throughout,
-   one primary button, the Google option as a bordered secondary. */
+/* Sign in, sign up and password reset: one centered 380px column on the page
+   background. No card, no tabs, no divider lines. The Capitol mark, a Title
+   Case heading, one line, soft-filled fields and one primary pill. */
 
 .auth-page {
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 68px);
   background: var(--bg);
   display: grid;
   place-items: center;
-  padding: clamp(48px, 9vh, 96px) 24px;
+  padding: clamp(48px, 9vh, 96px) 20px clamp(64px, 12vh, 128px);
 }
 
-.auth-card {
-  width: min(100%, 420px);
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg, 12px);
-  padding: clamp(28px, 5vw, 40px);
-}
-
-.auth-callback-card {
+.auth-column {
+  width: min(100%, 380px);
   display: grid;
-  gap: 18px;
+  gap: 0;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
-.auth-wordmark {
-  margin: 0 0 20px;
-  font-family: var(--display);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  color: var(--ink);
+/* The Capitol mark, drawn in ink with no tile behind it. */
+.auth-mark {
+  display: block;
+  width: 64px;
+  height: 36px;
+  margin: 0 auto 24px;
+  background-color: var(--ink);
+  -webkit-mask: url('/capitol-logo.svg') center / contain no-repeat;
+  mask: url('/capitol-logo.svg') center / contain no-repeat;
+  forced-color-adjust: none;
 }
 
-/* AuthCallback's heading. */
-.auth-logo,
 .auth-title {
   font-family: var(--display);
-  font-size: 28px;
+  font-size: clamp(32px, 6vw, 40px);
   font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
   color: var(--ink);
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 
 .auth-tagline {
-  font-family: var(--sans);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.5;
   color: var(--ink-2);
   margin: 0 auto;
-  max-width: 34ch;
+  max-width: 30ch;
 }
 
+/* Provider sign-in: a soft-filled pill, set apart from the solid primary. */
 .auth-google {
   width: 100%;
-  min-height: 44px;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 1px solid var(--rule);
+  border: none;
   border-radius: var(--r-btn);
-  background: var(--surface);
+  background: var(--surface-dim);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .auth-google:hover:not(:disabled) {
-  border-color: var(--rule-strong);
-  background: var(--bg-tint);
+  background: var(--fill-soft);
+  transform: translateY(-1px);
 }
 
 .auth-google:disabled {
@@ -87,73 +81,45 @@
 }
 
 .auth-google-mark {
-  font-family: var(--sans);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1;
 }
 
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.auth-or {
   margin: 20px 0;
+  text-align: center;
+  font-size: 16px;
   color: var(--ink-3);
-  font-family: var(--sans);
-  font-size: 13px;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--rule);
 }
 
 .auth-form {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .auth-field {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .auth-field label {
-  font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--ink);
 }
 
-.auth-field input {
-  min-height: 44px;
-  padding: 0 12px;
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
+.auth-field .field { border-radius: 16px; }
 
-.auth-field input::placeholder {
+.auth-hint {
+  margin: 0;
+  font-size: 16px;
   color: var(--ink-3);
-}
-
-.auth-field input:focus {
-  border-color: var(--accent);
-  outline: none;
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .auth-error,
 .auth-message {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.45;
   margin: 0;
 }
@@ -163,42 +129,26 @@
 }
 
 .auth-message {
-  padding: 12px 14px;
-  border-radius: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
   background: var(--accent-subtle);
   color: var(--ink);
 }
 
 .auth-submit {
   width: 100%;
+  min-height: 52px;
+  margin-top: 6px;
 }
 
-.auth-switch {
-  margin: 20px 0 0;
-  text-align: center;
-  font-size: 14px;
+.auth-links {
+  margin-top: 24px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font-size: 16px;
   color: var(--ink-2);
 }
 
-.auth-switch .btn-text {
-  font-size: 14px;
-}
-
-.auth-footer {
-  margin-top: 16px;
-  text-align: center;
-}
-
-.auth-footer .btn-text {
-  font-size: 14px;
-  color: var(--ink-2);
-}
-
-.auth-footer .btn-text:hover {
-  color: var(--accent);
-}
-
-@media (max-width: 520px) {
-  .auth-page { padding: 40px 16px; }
-  .auth-card { padding: 28px 20px; }
-}
+.auth-links p { margin: 0; }
+.auth-links .btn-text { font-size: 16px; min-height: 32px; }

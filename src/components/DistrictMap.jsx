@@ -100,20 +100,13 @@ function DistrictMap() {
     return { stateAbbr, district: dist, member }
   }
 
+  // Theme tokens (App.css), so the map follows light and dark.
   const getPartyColor = (member) => {
-    if (!member) return '#E8E6E1'
+    if (!member) return 'var(--rule)'
     const party = (member.partyName || member.party || '').toLowerCase()
-    if (party.includes('democrat') || party === 'd') return '#2563EB'
-    if (party.includes('republican') || party === 'r') return '#DC2626'
-    return '#7C3AED'
-  }
-
-  const getPartyHoverColor = (member) => {
-    if (!member) return '#D4D2CD'
-    const party = (member.partyName || member.party || '').toLowerCase()
-    if (party.includes('democrat') || party === 'd') return '#1D4ED8'
-    if (party.includes('republican') || party === 'r') return '#B91C1C'
-    return '#6D28D9'
+    if (party.includes('democrat') || party === 'd') return 'var(--dem)'
+    if (party.includes('republican') || party === 'r') return 'var(--rep)'
+    return 'var(--ind)'
   }
 
   const handleDistrictClick = (geo) => {
@@ -171,7 +164,7 @@ function DistrictMap() {
 
           <div className="map-controls">
             <button onClick={handleZoomIn} className="map-control-btn" aria-label="Zoom in">+</button>
-            <button onClick={handleZoomOut} className="map-control-btn" aria-label="Zoom out">-</button>
+            <button onClick={handleZoomOut} className="map-control-btn" aria-label="Zoom out">&minus;</button>
             <button onClick={handleReset} className="map-control-btn map-control-reset" aria-label="Reset view">Reset</button>
           </div>
 
@@ -200,10 +193,6 @@ function DistrictMap() {
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={isHovered || isSelected
-                          ? getPartyHoverColor(member)
-                          : getPartyColor(member)}
-                        stroke="#FFFFFF"
                         strokeWidth={isSelected ? 1.2 : 0.2}
                         onClick={() => handleDistrictClick(geo)}
                         onMouseEnter={(e) => {
@@ -214,11 +203,16 @@ function DistrictMap() {
                           setTooltipPos({ x: e.clientX, y: e.clientY })
                         }}
                         onMouseLeave={() => setHoveredDistrict(null)}
-                        style={{
-                          default: { outline: 'none', cursor: 'pointer' },
-                          hover: { outline: 'none', cursor: 'pointer' },
-                          pressed: { outline: 'none' },
-                        }}
+                        style={(() => {
+                          const base = {
+                            outline: 'none',
+                            cursor: 'pointer',
+                            fill: getPartyColor(member),
+                            stroke: 'var(--surface)',
+                            filter: isHovered || isSelected ? 'brightness(0.85)' : 'none',
+                          }
+                          return { default: base, hover: base, pressed: base }
+                        })()}
                       />
                     )
                   })
@@ -274,7 +268,7 @@ function DistrictMap() {
                   ? `, District ${selectedDistrict.district}`
                   : ' (At-Large)'}
               </h2>
-              <button className="panel-close" onClick={() => setSelectedDistrict(null)} aria-label="Close">
+              <button className="panel-close btn-secondary btn-sm" onClick={() => setSelectedDistrict(null)} aria-label="Close">
                 Close
               </button>
             </div>
@@ -282,7 +276,7 @@ function DistrictMap() {
             {/* House Rep */}
             {selectedDistrict.member && (
               <div className="panel-section">
-                <span className="panel-section-label">House Representative</span>
+                <span className="panel-section-label">House representative</span>
                 <button
                   className={`panel-member ${
                     (selectedDistrict.member.partyName || '').toLowerCase().includes('democrat') ? 'member-dem' :
@@ -295,7 +289,7 @@ function DistrictMap() {
                     <span className="member-name">{selectedDistrict.member.name}</span>
                     <span className="member-role">{selectedDistrict.member.partyName || selectedDistrict.member.party}</span>
                   </div>
-                  <span className="member-arrow">View Profile &rsaquo;</span>
+                  <span className="member-arrow">View profile</span>
                 </button>
               </div>
             )}
@@ -318,7 +312,7 @@ function DistrictMap() {
                       <span className="member-name">{sen.name}</span>
                       <span className="member-role">{sen.partyName || sen.party}</span>
                     </div>
-                    <span className="member-arrow">View Profile &rsaquo;</span>
+                    <span className="member-arrow">View profile</span>
                   </button>
                 ))}
               </div>

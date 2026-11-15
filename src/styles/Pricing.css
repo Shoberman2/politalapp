@@ -1,182 +1,50 @@
-/* Pricing — a single focused plan card, modernized to match the landing:
-   soft rounded surface, a hint of depth behind it, editorial serif price,
-   and a clean check list instead of a boxy bordered table. */
+/* /pricing: one plan in one centered column, no card (Pricing.jsx). Only
+   renders when SHOW_BRIEFINGS is on. Tokens only. */
 
 .pricing-page {
-  min-height: calc(100vh - 120px);
-  background:
-    radial-gradient(130% 90% at 50% -10%, var(--accent-soft), transparent 55%),
-    var(--bg);
+  min-height: calc(100vh - 220px);
+  background: var(--bg);
   display: grid;
   place-items: center;
-  padding: clamp(48px, 9vh, 100px) 24px;
+  padding: clamp(48px, 9vh, 100px) 20px;
 }
 
-.pricing-card {
-  width: min(100%, 500px);
-  background: var(--surface);
-  border-radius: 24px;
-  box-shadow: var(--shadow-broad-lg);
-  padding: clamp(32px, 5vw, 48px);
-}
+.pricing-card { width: min(100%, 420px); }
 
-.pricing-header {
-  text-align: center;
-  padding-bottom: 28px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.pricing-label {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  margin-bottom: 18px;
-}
-
+.pricing-header { text-align: center; margin-bottom: 32px; }
 .pricing-header h1 {
+  margin: 0 0 16px;
   font-family: var(--serif);
-  font-size: 2.4rem;
+  font-size: clamp(36px, 5.4vw, 56px);
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   color: var(--ink);
-  margin: 0 0 10px;
 }
-
-.pricing-header p {
-  color: var(--ink-2);
-  font-size: 0.98rem;
-  line-height: 1.55;
-  margin: 0;
-}
+.pricing-header p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
 
 .pricing-amount {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-.pricing-dollar {
-  font-family: var(--serif);
-  font-size: 1.9rem;
-  color: var(--ink-2);
-}
-
-.pricing-number {
-  font-family: var(--serif);
-  font-size: 6rem;
-  font-weight: 600;
-  color: var(--ink);
-  line-height: 0.82;
-  letter-spacing: -0.02em;
-}
-
-.pricing-period {
-  font-family: var(--sans);
-  font-size: 1rem;
-  color: var(--ink-2);
-}
-
-.pricing-tagline {
-  max-width: 380px;
-  margin: 0 auto;
-  color: var(--ink-2);
-  font-size: 1rem;
-  line-height: 1.55;
-}
-
-.pricing-features {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 30px;
-  display: grid;
   gap: 4px;
-}
-
-.pricing-features li {
-  position: relative;
-  padding: 10px 0 10px 32px;
+  margin-bottom: 16px;
+  font-family: var(--mono);
   color: var(--ink);
-  font-size: 1rem;
-  line-height: 1.5;
 }
+.pricing-dollar { font-size: 28px; color: var(--ink-2); }
+.pricing-number { font-size: 72px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
+.pricing-period { font-family: var(--sans); font-size: 17px; color: var(--ink-2); }
 
-.pricing-features li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  top: 9px;
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-}
+.pricing-features { margin: 0 0 32px; padding-left: 22px; display: grid; gap: 10px; }
+.pricing-features li { font-size: 17px; line-height: 1.5; color: var(--ink); }
 
-.pricing-subscribe-btn,
-.pricing-card > .btn {
-  width: 100%;
-}
+.pricing-card .pricing-subscribe-btn,
+.pricing-card > .btn { width: 100%; }
 
-.pricing-note {
-  font-size: 0.82rem;
-  color: var(--ink-3);
-  text-align: center;
-  margin: 16px 0 0;
-}
+.pricing-note { margin: 16px 0 0; font-size: 16px; text-align: center; color: var(--ink-3); }
+.pricing-error { margin-top: 16px; font-size: 16px; font-weight: 600; text-align: center; color: var(--error); }
 
-.pricing-error {
-  margin-top: 14px;
-  padding: 12px 14px;
-  background: var(--error-subtle);
-  border: 1px solid color-mix(in srgb, var(--error) 28%, var(--rule));
-  border-radius: var(--r-md);
-  color: var(--error);
-  font-size: 0.88rem;
-}
-
-.pricing-footer {
-  margin-top: 24px;
-  padding-top: 22px;
-  border-top: 1px solid var(--rule);
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-}
-
-.pricing-email {
-  font-size: 0.82rem;
-  color: var(--ink-2);
-  overflow-wrap: anywhere;
-}
-
-.pricing-signout,
-.pricing-auth-link {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.pricing-signout:hover,
-.pricing-auth-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-@media (max-width: 540px) {
-  .pricing-page { padding: 40px 18px; }
-  .pricing-number { font-size: 4.6rem; }
-}
+.pricing-footer { margin-top: 32px; display: grid; justify-items: center; gap: 8px; }
+.pricing-email { font-size: 16px; color: var(--ink-2); overflow-wrap: anywhere; }
+.pricing-footer .btn-text { min-height: 44px; white-space: normal; }

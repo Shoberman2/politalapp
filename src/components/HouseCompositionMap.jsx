@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
+import { countParties } from '../utils/partyLetter'
 
 /**
- * HouseCompositionMap — honest party-block hemicycle for the U.S. House.
+ * HouseCompositionMap: honest party-block hemicycle for the U.S. House.
  *
  * THIS COMPONENT INTENTIONALLY DOES NOT FAKE INDIVIDUAL SEAT ASSIGNMENTS.
  * The U.S. House of Representatives does not have assigned seats; members
@@ -16,51 +17,38 @@ import { useMemo } from 'react'
  * Per /plan-design-review token table for House composition page.
  *
  * Props:
- *   members       — Array of member_congress_terms rows for this Congress
+ *   members      : Array of member_congress_terms rows for this Congress
  *                    (one per current member, deduped by bioguide_id)
- *   isMobile      — boolean
+ *   isMobile     : boolean
  */
 
 function HouseCompositionMap({ members = [], isMobile = false }) {
-  const counts = useMemo(() => {
-    const c = { D: 0, R: 0, I: 0, V: 0, total: 0 }
-    for (const m of members) {
-      const p = (m.caucus || m.party || '').toUpperCase()
-      if (p === 'D') c.D += 1
-      else if (p === 'R') c.R += 1
-      else if (p === 'I') c.I += 1
-      else c.V += 1
-      c.total += 1
-    }
-    return c
-  }, [members])
+  const counts = useMemo(() => countParties(members), [members])
 
-  // Layout 435 dots in a 30×15 grid (450 slots; ~15 unused for vacancies and
-  // editorial spacing). Per design review Pass 5 token table.
+  // One dot per member who has served in this Congress: D on the left, then
+  // I, then R, then anyone whose party the record does not list. The list
+  // includes non-voting delegates and members who left mid-term, so it can
+  // run past 435; no dot stands for a vacancy, because the record does not
+  // say which seats are empty.
   const cols = isMobile ? 15 : 30
-  const totalSlots = 435
-  const rows = Math.ceil(totalSlots / cols)
 
-  // Order members for grid placement: D on the left, then I, then R on the right.
   const orderedDots = useMemo(() => {
     const dots = []
-    for (let i = 0; i < counts.D; i++) dots.push({ party: 'D', idx: i })
-    for (let i = 0; i < counts.I; i++) dots.push({ party: 'I', idx: i })
-    for (let i = 0; i < counts.R; i++) dots.push({ party: 'R', idx: i })
-    while (dots.length < totalSlots) dots.push({ party: 'V', idx: dots.length })
+    for (let i = 0; i < counts.D; i++) dots.push({ party: 'D', idx: dots.length })
+    for (let i = 0; i < counts.I; i++) dots.push({ party: 'I', idx: dots.length })
+    for (let i = 0; i < counts.R; i++) dots.push({ party: 'R', idx: dots.length })
+    for (let i = 0; i < counts.unlisted; i++) dots.push({ party: 'V', idx: dots.length })
     return dots
   }, [counts])
 
   return (
     <div className={`house-composition-map ${isMobile ? 'is-mobile' : ''}`}>
       {/* Editorial disclosure banner per design review Pass 5 */}
-      <div className="house-composition-disclosure">
-        <em>
-          House seating is open. Representatives sit anywhere within their
-          party's section. The chart shows party composition; positions are
-          illustrative.
-        </em>
-      </div>
+      <p className="house-composition-disclosure">
+        House seating is open. Representatives sit anywhere within their
+        party's section. The chart shows party composition; positions are
+        illustrative.
+      </p>
 
       <div className="house-composition-totals" aria-live="polite">
         <span className="house-composition-total-r">
@@ -76,24 +64,25 @@ function HouseCompositionMap({ members = [], isMobile = false }) {
             <span className="house-composition-total-i">{counts.I} I</span>
           </>
         )}
-        {counts.V > 0 && (
+        {counts.unlisted > 0 && (
           <>
             <span className="house-composition-separator">·</span>
             <span className="house-composition-total-v">
-              {counts.V} vacant
+              {counts.unlisted} party not listed
             </span>
           </>
         )}
-        <span className="house-composition-separator">·</span>
-        <span className="house-composition-total-all">
-          {counts.total} total
-        </span>
       </div>
+      <p className="house-composition-note">
+        {counts.total} members have served in this Congress. That counts
+        non-voting delegates and anyone who left or arrived mid-term, so it
+        can be more than the 435 voting seats.
+      </p>
 
       <div
         className="house-composition-grid"
         role="img"
-        aria-label={`House composition: ${counts.R} Republicans, ${counts.D} Democrats, ${counts.I} Independents, ${counts.V} vacant`}
+        aria-label={`House composition: ${counts.R} Republicans, ${counts.D} Democrats, ${counts.I} Independents${counts.unlisted ? `, ${counts.unlisted} with no party listed` : ''}`}
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${cols}, 1fr)`,

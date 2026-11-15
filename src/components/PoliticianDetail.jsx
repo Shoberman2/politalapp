@@ -26,7 +26,7 @@ import { memberRef } from '../utils/tellYourRepDraft'
 import '../styles/PoliticianDetail.css'
 import Term, { InfoDot } from './Term'
 
-// Same feature flag as the BillsPage filter pills — both surfaces depend on
+// Same feature flag as the BillsPage filter pills: both surfaces depend on
 // the same sponsor data being persisted by migration 006 + Phase A backfill.
 const SHOW_SPONSOR_FILTER = import.meta.env.VITE_BILLS_SHOW_SPONSOR_FILTER === 'true'
 
@@ -74,7 +74,7 @@ function PoliticianDetail() {
       setLoading(false)
       fetchDonations(memberData)
     } catch (err) {
-      setError('Failed to load politician details. Please try again.')
+      setError('We could not load this profile. Try again.')
       console.error('[PoliticianDetail] Error loading member:', err)
       setLoading(false)
     }
@@ -139,9 +139,9 @@ function PoliticianDetail() {
   const partyShort = (party) => {
     if (!party) return ''
     const p = party.toLowerCase()
-    if (p.startsWith('d') || p.includes('democrat')) return 'Dem'
-    if (p.startsWith('r') || p.includes('republican')) return 'Rep'
-    return 'Ind'
+    if (p.startsWith('d') || p.includes('democrat')) return 'Democrat'
+    if (p.startsWith('r') || p.includes('republican')) return 'Republican'
+    return 'Independent'
   }
 
   const getCurrentTerm = (terms) => {
@@ -198,7 +198,7 @@ function PoliticianDetail() {
     return (
       <div className="pol-loading">
         <div className="loading-spinner"></div>
-        <p>Loading politician profile...</p>
+        <p>Loading profile</p>
       </div>
     )
   }
@@ -206,9 +206,9 @@ function PoliticianDetail() {
   if (error || !member) {
     return (
       <div className="pol-error">
-        <div className="error-message">{error || 'Politician not found'}</div>
-        <button className="pol-back-button btn-primary" onClick={() => navigate('/all')}>
-          Back to All Politicians
+        <div className="error-message">{error || 'Member not found'}</div>
+        <button type="button" className="pol-back-button btn-outline" onClick={() => navigate('/all')}>
+          Back to members
         </button>
       </div>
     )
@@ -239,7 +239,7 @@ function PoliticianDetail() {
     const pieces = []
     if (firstTermYear && firstTermYear !== Infinity) {
       const yrs = new Date().getFullYear() - firstTermYear
-      pieces.push(`Serving since ${firstTermYear}${yrs > 0 ? ` — ${yrs} year${yrs !== 1 ? 's' : ''} in Congress` : ''}.`)
+      pieces.push(`Serving since ${firstTermYear}${yrs > 0 ? `, ${yrs} year${yrs !== 1 ? 's' : ''} in Congress` : ''}.`)
     }
     if (chamber?.toLowerCase().includes('senate')) {
       pieces.push(`Represents ${stateName} in the U.S. Senate.`)
@@ -301,7 +301,7 @@ function PoliticianDetail() {
   return (
     <div className="pol">
       <SEO
-        title={`${displayName} — Voting Record`}
+        title={`${displayName} Voting Record`}
         description={`View ${displayName}'s congressional voting record, sponsored legislation, and campaign finance data.`}
         path={`/politician/${bioguideId}`}
         schema={{
@@ -343,7 +343,6 @@ function PoliticianDetail() {
           )}
         </div>
         <div className="pol-lede">
-          <div className="pol-kicker">{title} · {currentTerm?.congress ? `${currentTerm.congress}th Congress` : ''}</div>
           <h1 className="pol-name">
             <span className="pol-name-first">{firstName}</span>
             {restName && ' '}
@@ -351,6 +350,7 @@ function PoliticianDetail() {
             {party && <span className={`pol-party-tag ${partyClass(party)}`}>{partyShort(party)}</span>}
             {party && <InfoDot id="party" />}
           </h1>
+          <div className="pol-kicker">{title}{currentTerm?.congress ? ` · ${currentTerm.congress}th Congress` : ''}</div>
           {standfirst && <p className="pol-standfirst">{standfirst}</p>}
           {SHOW_SPONSOR_FILTER && bioguideId && (
             <SponsorActivityBadge bioguideId={bioguideId} congress={currentTerm?.congress || CONGRESS_MAX} />
@@ -394,17 +394,17 @@ function PoliticianDetail() {
             )}
           </dl>
           <div className="pol-actions">
-            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn btn-secondary btn-sm btn-go">
+            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn btn-outline btn-sm">
               Record in 60 seconds
             </Link>
             {member.officialWebsiteUrl && (
-              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn primary btn-primary btn-sm">
-                Official website ↗
+              <a href={member.officialWebsiteUrl} target="_blank" rel="noopener noreferrer" className="pol-action-btn btn-outline btn-sm">
+                Official website
               </a>
             )}
             {member.url && (
-              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn btn-secondary btn-sm">
-                Congress.gov ↗
+              <a href={member.url} target="_blank" rel="noopener noreferrer" className="pol-action-btn btn-outline btn-sm">
+                Congress.gov
               </a>
             )}
           </div>
@@ -437,7 +437,7 @@ function PoliticianDetail() {
         displayName={displayName}
       />
 
-      {/* VOTING PATTERN ANALYSIS — near the top, before the long vote history. */}
+      {/* VOTING PATTERN ANALYSIS: near the top, before the long vote history. */}
       <section className="pol-editorial pol-analysis-top">
         <VotingPatternAnalysis member={{ ...member, bioguideId, state: stateAbbr, district, party }} />
       </section>
@@ -445,10 +445,10 @@ function PoliticianDetail() {
       {/* TENURE TIMELINE */}
       {tenureItems.length > 0 && (
         <section className="pol-editorial">
-          <div className="pol-section-label">Congress history · since 2001 <InfoDot id="congressNumber" /></div>
-          <h2 className="pol-section-title">
-            {tenureItems.length} record{tenureItems.length !== 1 ? 's' : ''} of service
-          </h2>
+          <h2 className="pol-section-title">Congress History</h2>
+          <p className="pol-section-label">
+            {tenureItems.length} record{tenureItems.length !== 1 ? 's' : ''} of service since 2001 <InfoDot id="congressNumber" />
+          </p>
           <div className="pol-tenure-grid">
             {tenureItems.map((t, i) => (
               <div key={`${t.congress || t.years}-${i}`} className={`pol-tenure-item ${t.isLast ? '' : 'pol-tenure-past'}`}>
@@ -463,23 +463,20 @@ function PoliticianDetail() {
 
       {/* VOTES */}
       <section className="pol-editorial">
-        <div className="pol-section-label">Voting record</div>
-        <h2 className="pol-section-title">How they voted <InfoDot id="rollCall" /></h2>
+        <h2 className="pol-section-title">How They Voted <InfoDot id="rollCall" /></h2>
         <VoteDashboard bioguideId={bioguideId} />
       </section>
 
       {/* CAMPAIGN FINANCE */}
       <section className="pol-editorial">
-        <div className="pol-section-label">
+        <h2 className="pol-section-title">Where The Money Comes From</h2>
+        <p className="pol-section-label">
           <Term id="campaignFinance">Campaign finance</Term> · {donations?.cycle ? `${donations.cycle} election cycle` : 'most recent election cycle'}
-        </div>
-        <h2 className="pol-section-title">
-          Where the money comes from
-        </h2>
+        </p>
         {donationsLoading ? (
           <div className="pol-section-loading">
             <div className="loading-spinner"></div>
-            <p>Loading campaign finance data...</p>
+            <p>Loading campaign finance data</p>
           </div>
         ) : donations ? (
           <div className="pol-money-grid">
@@ -535,7 +532,7 @@ function PoliticianDetail() {
             )}
           </div>
         ) : (
-          <p className="pol-no-data">Campaign finance data not available for this politician.</p>
+          <p className="pol-no-data">Campaign finance data is not available for this member.</p>
         )}
 
         {/* MONEY-VOTES CORRELATION */}
@@ -572,7 +569,7 @@ function PoliticianDetail() {
                     <span className="pol-donor-name">{donor.name}</span>
                     {donor.entityType && donor.entityType !== 'IND' && (
                       <span className={`pol-donor-entity entity-${donor.entityType.toLowerCase()}`}>
-                        {donor.entityType === 'COM' ? 'PAC' : 'ORG'}
+                        {donor.entityType === 'COM' ? 'PAC' : 'Organization'}
                       </span>
                     )}
                     {donor.employer && <span className="pol-donor-employer">{donor.employer}</span>}
@@ -589,7 +586,7 @@ function PoliticianDetail() {
                   is self-reported context, not a corporate contribution.
                 </p>
                 <a href={`https://www.fec.gov/data/candidate/${donations.candidate.id}/`} target="_blank" rel="noopener noreferrer" className="pol-fec-link">
-                  View full FEC records ↗
+                  View full FEC records
                 </a>
                 <InfoDot id="fec" />
               </div>

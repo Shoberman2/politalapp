@@ -1,5 +1,5 @@
+/* Civic briefings (/briefings). Buttons and inputs come from App.css. */
 .civic-briefing {
-  min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
 }
@@ -10,37 +10,28 @@
   padding: 0 32px;
 }
 
-.briefing-hero {
-  border-bottom: 1px solid var(--rule);
-  background: var(--bg);
-}
-
 .briefing-hero-grid {
-  min-height: 360px;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
   gap: 48px;
   align-items: center;
-  padding-top: 56px;
-  padding-bottom: 56px;
+  padding-top: 72px;
 }
 
 .briefing-hero-copy h1 {
   max-width: 760px;
-  font-family: var(--serif);
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: 0;
-  margin: 14px 0 18px;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 20px;
   color: var(--ink);
 }
 
 .briefing-hero-copy p {
   max-width: 660px;
   margin: 0;
-  font-size: 1.08rem;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.6;
   color: var(--ink-2);
 }
 
@@ -53,106 +44,75 @@
   margin-top: 28px;
 }
 
-.briefing-status-panel,
-.briefing-control-panel {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow);
-}
-
-.briefing-status-panel {
-  padding: 24px;
+/* Account status: plain words, no box. */
+.briefing-panel-label {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-2);
 }
 
 .briefing-status-panel strong {
   display: block;
-  margin-top: 6px;
-  font-size: 1.35rem;
+  margin-top: 4px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
 }
 
-.briefing-panel-label,
-.briefing-preview-kicker {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .briefing-status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 18px;
-  margin-top: 18px;
-  border-top: 1px solid var(--rule);
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
 }
 
 .briefing-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 4px 8px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--ink-2);
-  background: var(--bg);
 }
 
-.briefing-pill.ok {
-  color: var(--success);
-  border-color: color-mix(in srgb, var(--success) 36%, var(--rule));
-  background: var(--success-subtle);
-}
+.briefing-pill.ok { color: var(--success); }
+.briefing-pill.locked { color: var(--warning); }
 
-.briefing-pill.locked {
-  color: var(--warning);
-  border-color: color-mix(in srgb, var(--warning) 34%, var(--rule));
-  background: var(--warning-subtle);
-}
-
+.briefing-hero-copy .briefing-status-note,
 .briefing-status-note {
   margin: 14px 0 0;
-  font-size: 0.88rem;
+  font-size: 16px;
   color: var(--ink-2);
   word-break: break-word;
 }
 
 .briefing-workspace {
-  padding: 48px 0 72px;
+  padding: 72px 0 96px;
 }
 
 .briefing-layout {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 32px;
+  gap: 48px;
   align-items: start;
 }
 
+/* The setup form is the one raised surface beside the preview. */
 .briefing-control-panel {
   position: sticky;
-  top: 90px;
-  padding: 24px;
+  top: 92px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
 }
 
 .briefing-panel-heading {
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--rule);
   margin-bottom: 20px;
 }
 
-.briefing-panel-heading h2,
-.briefing-preview-toolbar h2 {
-  margin: 6px 0 0;
-  font-size: 1.55rem;
+.civic-briefing .briefing-panel-heading h2,
+.civic-briefing .briefing-preview-toolbar h2 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 24px);
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 
@@ -163,66 +123,38 @@
 }
 
 .briefing-field span {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--ink);
-}
-
-.briefing-field input,
-.briefing-field select {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
-  background: var(--bg);
-  color: var(--ink);
-  padding: 0 12px;
-  font-size: 0.98rem;
-  outline: none;
-}
-
-.briefing-field input:focus,
-.briefing-field select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .briefing-control-actions {
-  align-items: stretch;
   margin-top: 8px;
-}
-
-.briefing-control-actions .btn {
-  justify-content: center;
-  flex: 1 1 150px;
 }
 
 .briefing-message {
   margin-top: 18px;
-  padding: 12px;
-  border-radius: var(--r-sm);
-  font-size: 0.9rem;
-  line-height: 1.45;
+  padding: 12px 16px;
+  border-radius: var(--r-input);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .briefing-message.success {
   color: var(--success);
   background: var(--success-subtle);
-  border: 1px solid color-mix(in srgb, var(--success) 28%, var(--rule));
 }
 
 .briefing-message.error {
   color: var(--error);
   background: var(--error-subtle);
-  border: 1px solid color-mix(in srgb, var(--error) 28%, var(--rule));
 }
 
 .briefing-meta-list {
   display: grid;
-  gap: 14px;
-  margin: 22px 0 0;
-  padding-top: 20px;
-  border-top: 1px solid var(--rule);
+  gap: 12px;
+  margin: 28px 0 0;
 }
 
 .briefing-meta-list div {
@@ -232,19 +164,17 @@
 }
 
 .briefing-meta-list dt {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  font-size: 15px;
+  color: var(--ink-2);
 }
 
 .briefing-meta-list dd {
   margin: 0;
   max-width: 58%;
   text-align: right;
-  font-size: 0.88rem;
-  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
   overflow-wrap: anywhere;
 }
 
@@ -254,64 +184,49 @@
 
 .briefing-preview-toolbar {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 0 0 18px;
-  border-bottom: 2px solid var(--rule-strong);
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
+/* The email as it will arrive: a sheet with its own outline. */
 .briefing-preview-sheet {
   background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-broad-lg);
-  overflow: hidden;
-}
-
-.briefing-preview-head {
-  padding: 28px 30px 24px;
-  border-top: 4px solid var(--ink);
-  border-bottom: 1px solid var(--rule);
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
+  padding: 36px;
+  display: grid;
+  gap: 36px;
 }
 
 .briefing-preview-head h2 {
-  margin: 10px 0 8px;
-  font-family: var(--serif);
-  font-size: clamp(2rem, 6vw, 3.8rem);
-  font-weight: 600;
-  line-height: 0.98;
-  letter-spacing: 0;
+  margin: 0 0 8px;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   color: var(--ink);
 }
 
 .briefing-preview-head p {
   margin: 0;
   color: var(--ink-2);
-  font-size: 0.92rem;
-}
-
-.briefing-preview-section {
-  padding: 24px 30px;
-  border-bottom: 1px solid var(--rule);
+  font-size: 15px;
 }
 
 .briefing-preview-section h3 {
-  margin: 0 0 14px;
-  font-family: var(--mono);
-  font-size: 12px;
+  margin: 0 0 12px;
+  font-size: 20px;
   font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .briefing-preview-section p {
   margin: 0 0 12px;
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1.6;
-  color: var(--ink);
+  color: var(--ink-2);
+  max-width: 70ch;
 }
 
 .briefing-preview-section p:last-child {
@@ -320,41 +235,32 @@
 
 .briefing-record-list {
   display: grid;
+  gap: 20px;
 }
 
 .briefing-record {
   display: grid;
-  gap: 5px;
-  padding: 15px 0;
-  border-top: 1px solid var(--rule);
+  gap: 4px;
   color: var(--ink);
   text-decoration: none;
 }
 
-.briefing-record:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-
 .briefing-record span {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-2);
 }
 
 .briefing-record strong {
-  font-family: var(--serif);
-  font-size: 1.22rem;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 1.22;
+  line-height: 1.3;
   color: var(--ink);
 }
 
 .briefing-record small {
-  font-size: 0.84rem;
+  font-size: 15px;
   color: var(--ink-2);
 }
 
@@ -369,22 +275,20 @@
 .briefing-preview-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 18px 30px 24px;
+  gap: 8px 24px;
 }
 
 .briefing-preview-footer a {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--accent);
+  text-decoration: none;
 }
 
 @media (max-width: 900px) {
   .briefing-hero-grid,
   .briefing-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .briefing-control-panel {
@@ -394,39 +298,29 @@
 
 @media (max-width: 640px) {
   .briefing-wrap {
-    padding: 0 18px;
+    padding: 0 20px;
   }
 
   .briefing-hero-grid {
-    min-height: auto;
     padding-top: 40px;
-    padding-bottom: 36px;
-    gap: 28px;
+    gap: 32px;
   }
 
   .briefing-workspace {
-    padding: 28px 0 48px;
+    padding: 48px 0 64px;
   }
 
-  .briefing-preview-toolbar {
-    align-items: stretch;
-    flex-direction: column;
+  .briefing-preview-sheet {
+    padding: 24px 20px;
   }
 
-  .briefing-preview-toolbar .btn {
-    justify-content: center;
-  }
-
-  .briefing-preview-head,
-  .briefing-preview-section,
-  .briefing-preview-footer {
-    padding-left: 20px;
-    padding-right: 20px;
+  .briefing-control-panel {
+    padding: 24px 20px;
   }
 
   .briefing-meta-list div {
     display: grid;
-    gap: 4px;
+    gap: 2px;
   }
 
   .briefing-meta-list dd {

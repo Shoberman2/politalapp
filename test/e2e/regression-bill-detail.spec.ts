@@ -19,7 +19,7 @@ test.describe('BillDetail regression — existing sections still render', () => 
 
     // Existing official explanation card (must not be displaced by routing panel).
     await expect(page.locator('.bill-ai-card')).toBeVisible()
-    await expect(page.locator('.bill-ai-headline')).toContainText(/what this bill/i)
+    await expect(page.locator('.bill-ai-label')).toContainText(/the bill, in/i)
 
     // Actions (Read full text / Congress.gov / Share).
     await expect(page.locator('.bill-action-btn').first()).toBeVisible()

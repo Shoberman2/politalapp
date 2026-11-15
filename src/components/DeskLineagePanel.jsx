@@ -1,24 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
+import { partyLetter } from '../utils/partyLetter'
 import { getLineageForDesk } from '../services/senateDesks'
 
 /**
- * DeskLineagePanel — slide-in drawer (desktop) / modal (mobile) showing the
+ * DeskLineagePanel: slide-in drawer (desktop) / modal (mobile) showing the
  * lineage of senators who have held a given desk.
  *
  * Per /plan-design-review D3 (slide-in drawer from right at ≥1024px;
  * centered modal at <1024px) and Pass 5 token table.
  *
  * Props:
- *   desk       — {desk_id, famous_name, ...} or null. When null, panel is closed.
- *   politician — Current senator at this desk (for the "current" row), or null.
- *   onClose    — () => void
- *   isMobile   — boolean
+ *   desk      : {desk_id, famous_name, ...} or null. When null, panel is closed.
+ *   politician: Current senator at this desk (for the "current" row), or null.
+ *   onClose   : () => void
+ *   isMobile  : boolean
  */
 
 function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
   const [lineage, setLineage] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [attempt, setAttempt] = useState(0)
   const panelRef = useRef(null)
   const previouslyFocusedElement = useRef(null)
 
@@ -47,7 +49,7 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
     return () => {
       cancelled = true
     }
-  }, [desk?.desk_id])
+  }, [desk?.desk_id, attempt])
 
   // Focus trap + return-focus on close.
   useEffect(() => {
@@ -93,7 +95,7 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
       >
         <button
           type="button"
-          className="chamber-drawer-close"
+          className="chamber-drawer-close btn-icon"
           onClick={onClose}
           aria-label="Close desk history"
         >
@@ -106,7 +108,7 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
           </h2>
           {desk.famous_name && (
             <div className="chamber-drawer-subtitle">
-              <em>{desk.famous_name}</em>
+              {desk.famous_name}
             </div>
           )}
           {desk.description && (
@@ -122,7 +124,7 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
               <div className="chamber-drawer-row">
                 <div className="chamber-drawer-row-name">{politician.name}</div>
                 <div className="chamber-drawer-row-meta">
-                  {politician.party}-{politician.state}
+                  {partyLetter(politician.party) || politician.party}-{politician.state}
                 </div>
               </div>
             </div>
@@ -136,14 +138,13 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
             )}
             {error && (
               <div className="chamber-drawer-error">
-                Couldn't load lineage. <button onClick={() => { setError(null); }}>Try again</button>
+                Couldn't load lineage.{' '}
+                <button type="button" className="btn-text" onClick={() => setAttempt((n) => n + 1)}>Try again</button>
               </div>
             )}
             {!loading && !error && lineage.length === 0 && (
               <div className="chamber-drawer-empty">
-                <em>
-                  No prior occupants recorded. This desk's history begins with the current senator.
-                </em>
+                No prior occupants recorded. This desk's history begins with the current senator.
               </div>
             )}
             {!loading && !error && lineage.length > 0 && (
@@ -157,9 +158,7 @@ function DeskLineagePanel({ desk, politician, onClose, isMobile = false }) {
                       className={`chamber-drawer-lineage-row ${row.bioguide_id ? '' : 'is-vacancy'}`}
                     >
                       <div className="chamber-drawer-row-name">
-                        {row.occupant_name ?? (
-                          <em>Vacant</em>
-                        )}
+                        {row.occupant_name ?? 'Vacant'}
                       </div>
                       <div className="chamber-drawer-row-years">
                         {row.year_start}{row.year_end ? `–${row.year_end}` : '–present'}

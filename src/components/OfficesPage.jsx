@@ -12,7 +12,7 @@ import '../styles/Offices.css'
 // states its status plainly, and asks only for sponsorship of a review. It
 // never offers a trial, a pilot, or a price. Don't add one without counsel.
 //
-// Layout: a dossier for a chief of staff (Offices.css, scoped under
+// Layout: its own page for a chief of staff (Offices.css, scoped under
 // .offices-page). The hero's inbox visual is decorative (aria-hidden) and is
 // built from the latest real recorded vote; it shows a skeleton while that
 // loads, "Not available" if nothing real comes back, and never puts anything
@@ -113,7 +113,6 @@ function InboxStack() {
         </div>
       </div>
       <div className="of-card of-card--audit">
-        <span className="of-audit-dot" />
         <span>Reviewed and sent by staff · 2 actions logged</span>
       </div>
     </div>
@@ -132,8 +131,7 @@ function OfficesPage() {
       <section className="of-hero">
         <div className="of-wrap of-hero-grid">
           <div className="of-hero-copy">
-            <span className="of-kicker">For congressional offices · In development</span>
-            <h1 className="of-title">Answer constituents from your own record. Receive mail your staff can use.</h1>
+            <h1 className="of-title">Answer Constituents From Your Own Record</h1>
             <p className="of-lede">
               We’re building a channel between constituents, the AI assistants they already use, and your office.
               It answers from sources your office approves, and it never speaks for the Member.
@@ -150,22 +148,21 @@ function OfficesPage() {
 
       <section className="of-section">
         <div className="of-wrap">
-          <h2 className="of-h2">How it would work</h2>
-          <ol className="of-parts">
-            {PARTS.map((p, i) => (
+          <h2 className="of-h2">How It Would Work</h2>
+          <ul className="of-parts">
+            {PARTS.map((p) => (
               <li key={p.title}>
-                <span className="of-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                 <h3>{p.title}</h3>
                 <p>{p.body}</p>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </section>
 
       <section className="of-section">
         <div className="of-wrap">
-          <h2 className="of-h2">What it never does</h2>
+          <h2 className="of-h2">What It Never Does</h2>
           <ul className="of-never">
             {NEVER.map((t) => <li key={t}>{t}</li>)}
           </ul>
@@ -174,7 +171,7 @@ function OfficesPage() {
 
       <section className="of-section">
         <div className="of-wrap">
-          <h2 className="of-h2">Why now</h2>
+          <h2 className="of-h2">Why Now</h2>
           <blockquote className="of-quote">
             <p>“…all Members’ constituent data resides within the proprietary platforms controlled by a very small pool of vendors. … This limits innovation.”</p>
             <footer>
@@ -193,19 +190,19 @@ function OfficesPage() {
       <section className="of-band">
         <div className="of-wrap of-band-grid">
           <div>
-            <h2 className="of-h2">Built on the public record</h2>
+            <h2 className="of-h2">Built On The Public Record</h2>
             <p>
               Constituents already use {BRAND.name} to see how members voted, what’s on the floor this week, and
               what past bills did, every fact linked to its official source. That record is what lets a message
               to your office point to the exact vote it’s about.
             </p>
             <div className="of-links">
-              <Link className="btn-text btn-go" to="/">See the public record</Link>
-              <Link className="btn-text btn-go" to="/data-sources">How we get our data</Link>
+              <Link className="btn-text" to="/">See the public record</Link>
+              <Link className="btn-text" to="/data-sources">How we get our data</Link>
             </div>
           </div>
           <div className="of-sponsor">
-            <h2 className="of-h2">Interested in sponsoring a review?</h2>
+            <h2 className="of-h2">Interested In Sponsoring A Review?</h2>
             {BRAND.officesEmail ? (
               <a className="btn-primary" href={`mailto:${BRAND.officesEmail}?subject=${encodeURIComponent('Sponsoring a review')}`}>
                 Contact us

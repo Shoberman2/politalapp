@@ -20,7 +20,7 @@ import { explanationSourceLine } from '../../shared/billExplainer.js'
 export const ordinal = congressOrdinal
 
 // The masthead "Find my reps" button, same as Navigation.jsx's DEFAULT_CTA.
-const SIGN_IN_CTA = `/auth?next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
+const SIGN_IN_CTA = `/auth?mode=signup&amp;next=${encodeURIComponent(DEFAULT_SIGNED_IN_PATH)}`
 
 export function escapeHtml(s) {
   if (s == null) return ''
@@ -87,14 +87,14 @@ function partyShort(p) {
 // the stage the ETL already classified.
 export function stageStatus(stage) {
   switch (stage) {
-    case 'enacted': return { label: 'Became Law', cls: 'status-enacted' }
-    case 'passed_both': return { label: 'Passed Both Chambers · Awaiting Signature', cls: 'status-passed-both' }
-    case 'passed_house': return { label: 'Passed House · Awaiting Senate', cls: 'status-passed' }
-    case 'passed_senate': return { label: 'Passed Senate · Awaiting House', cls: 'status-passed' }
+    case 'enacted': return { label: 'Became law', cls: 'status-enacted' }
+    case 'passed_both': return { label: 'Passed House and Senate · awaiting President', cls: 'status-passed-both' }
+    case 'passed_house': return { label: 'Passed House · awaiting Senate', cls: 'status-passed' }
+    case 'passed_senate': return { label: 'Passed Senate · awaiting House', cls: 'status-passed' }
     case 'committee':
-    case 'subcommittee': return { label: 'In Committee', cls: 'status-committee' }
+    case 'subcommittee': return { label: 'In committee', cls: 'status-committee' }
     case 'introduced': return { label: 'Introduced', cls: 'status-introduced' }
-    default: return stage ? { label: 'In Progress', cls: 'status-progress' } : null
+    default: return stage ? { label: 'In progress', cls: 'status-progress' } : null
   }
 }
 
@@ -176,17 +176,17 @@ export function renderMemberBody(m) {
   <header class="pol-masthead">
     <div class="pol-photo-wrap">${photoHtml}</div>
     <div class="pol-lede">
-      <div class="pol-kicker">${escapeHtml(memberTitle(m))} · ${escapeHtml(m.party)} · ${escapeHtml(stateName(m.state))}${m.district ? ` district ${escapeHtml(m.district)}` : ''}</div>
       <h1 class="pol-name">${escapeHtml(m.name)}</h1>
+      <div class="pol-kicker">${escapeHtml(memberTitle(m))} · ${escapeHtml(m.party)} · ${escapeHtml(stateName(m.state))}${m.district ? ` district ${escapeHtml(m.district)}` : ''}</div>
       <p class="pol-standfirst">${escapeHtml(meta.description)}</p>
       ${stats ? `<dl class="pol-meta-grid"><dt>Recorded votes</dt><dd><span class="pol-meta-mono">${Number(stats.total_votes) || 0}</span></dd><dt>Yea</dt><dd><span class="pol-meta-mono">${Number(stats.yea_count) || 0}</span></dd><dt>Nay</dt><dd><span class="pol-meta-mono">${Number(stats.nay_count) || 0}</span></dd><dt>Not voting</dt><dd><span class="pol-meta-mono">${Number(stats.not_voting_count) || 0}</span></dd><dt>Votes with party</dt><dd><span class="pol-meta-mono">${Number(stats.party_loyalty_pct) || 0}%</span></dd></dl>` : ''}
-      <div class="pol-actions"><a class="pol-action-btn" href="${escapeHtml(recordPath(m.id))}">Record in 60 seconds</a> <a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov ↗</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide ↗</a></div>
+      <div class="pol-actions"><a class="pol-action-btn" href="${escapeHtml(recordPath(m.id))}">Record in 60 seconds</a> <a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide</a></div>
     </div>
   </header>
-  ${terms ? `<section class="pol-editorial"><div class="pol-section-label">Terms of service</div><h2 class="pol-section-title">Congress history</h2><ul class="pol-terms">${terms}</ul></section>` : ''}
+  ${terms ? `<section class="pol-editorial"><h2 class="pol-section-title">Congress History</h2><ul class="pol-terms">${terms}</ul></section>` : ''}
   <section class="pol-editorial">
+    <h2 class="pol-section-title">How They Voted</h2>
     <div class="pol-section-label">Voting record · ${Number(m.voteCount) || 0} recorded votes${m.votes.length < m.voteCount ? ` · latest ${m.votes.length} shown` : ''}</div>
-    <h2 class="pol-section-title">How they voted</h2>
     <div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Date</th><th>Question</th><th>Bill</th><th>Vote</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>
   <footer class="rc-colophon">Data from Congress.gov, the House Clerk, and the Senate. ${m.updatedAt ? `Updated ${escapeHtml(fmtDate(m.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
@@ -255,7 +255,7 @@ export function renderRecordBody(r) {
     const bill = v.bill ? ` <a class="rec-bill" href="${escapeHtml(v.bill.path)}">${escapeHtml(v.bill.label)}</a>` : ''
     const title = v.bill?.title ? `<div class="rec-vote-title">${escapeHtml(clampText(v.bill.title, 110))}</div>` : ''
     const question = v.path ? `<a href="${escapeHtml(v.path)}">${q}</a>` : q
-    return `<tr><td class="rc-mono">${escapeHtml(recordDate(v.voted_at))}</td><td>${question}${bill}${title}</td><td class="${escapeHtml(positionClass(v.position))}">${escapeHtml(v.position || '')}</td><td class="rec-result">${v.result ? `<span class="rc-result rc-result-${escapeHtml(v.resultKind || '')}">${escapeHtml(v.result)}</span>` : '<span class="rec-muted">Not derived</span>'}</td><td class="rec-src">${safeUrl(v.source_url) ? `<a href="${safeUrl(v.source_url)}" rel="noopener">${v.chamber === 'Senate' ? 'Senate' : 'Clerk'} ↗</a>` : ''}</td></tr>`
+    return `<tr><td class="rc-mono">${escapeHtml(recordDate(v.voted_at))}</td><td>${question}${bill}${title}</td><td class="${escapeHtml(positionClass(v.position))}">${escapeHtml(v.position || '')}</td><td class="rec-result">${v.result ? `<span class="rc-result rc-result-${escapeHtml(v.resultKind || '')}">${escapeHtml(v.result)}</span>` : '<span class="rec-muted">Not derived</span>'}</td><td class="rec-src">${safeUrl(v.source_url) ? `<a href="${safeUrl(v.source_url)}" rel="noopener">${v.chamber === 'Senate' ? 'Senate' : 'Clerk'}</a>` : ''}</td></tr>`
   }).join('')
 
   const votesBlock = r.voteCount === 0
@@ -267,7 +267,6 @@ export function renderRecordBody(r) {
   <header class="rec-head">
     <img class="rec-photo" src="${photo}" alt="${escapeHtml(r.name)}" width="96" height="117" />
     <div class="rec-id">
-      <div class="rec-kicker">Record in 60 seconds${r.congress ? ` · ${escapeHtml(ordinal(r.congress))} Congress` : ''}</div>
       <h1 class="rec-name">${escapeHtml(r.name)}</h1>
       <div class="rec-seat"><span class="rec-party rec-party-${escapeHtml(party.toLowerCase())}">${escapeHtml(party)}</span>${seat} · ${r.chamber === 'senate' ? 'Senate' : 'House'}</div>
       ${r.servingSince && r.congress ? `<div class="rec-since">Serving in the ${escapeHtml(ordinal(r.congress))} Congress since <span class="rc-mono">${escapeHtml(fmtDate(r.servingSince))}</span></div>` : ''}
@@ -278,7 +277,7 @@ export function renderRecordBody(r) {
     <div class="rc-section-label">${r.voteCount ? `${r.recentVotes.length} most recent recorded vote${r.recentVotes.length === 1 ? '' : 's'}` : 'Recorded votes'}</div>
     ${votesBlock}
   </section>
-  <div class="rec-actions"><a class="rc-action-btn" href="/politician/${escapeHtml(r.id)}">Full record →</a><button type="button" class="rc-action-btn" disabled>Copy link</button></div>
+  <div class="rec-actions"><a class="rc-action-btn btn-secondary btn-sm" href="/politician/${escapeHtml(r.id)}">Full record</a><button type="button" class="rc-action-btn btn-secondary btn-sm" disabled>Copy link</button></div>
   <footer class="rec-colophon">
     <p>Every member's card uses this same template and the same facts. The votes listed are the ${RECORD_VOTE_LIMIT} most recent on record, not a selection. Results are derived from the official tally and the question.</p>
     <p>${r.updatedAt ? `Data recorded through ${escapeHtml(fmtDate(r.updatedAt))}. ` : ''}Sources: <a href="${safeUrl(r.sources.congressGov)}" rel="noopener">Congress.gov</a> · <a href="${safeUrl(r.sources.bioguide)}" rel="noopener">Bioguide</a> · <a href="${safeUrl(r.sources.chamberVotes)}" rel="noopener">${r.chamber === 'senate' ? 'Senate.gov roll call votes' : 'House Clerk roll call votes'}</a> · <a href="/methodology">Methodology</a></p>
@@ -346,11 +345,11 @@ export function renderRollCallBody(rc) {
     <h1 class="rc-title">${escapeHtml(rc.question || 'Recorded vote')}${rc.bill && bp ? ` on <a href="${bp}">${escapeHtml(billLabel(rc.bill.id))}</a>` : ''}</h1>
     ${rc.bill?.title ? `<p class="rc-standfirst">${escapeHtml(rc.bill.title)}</p>` : (rc.description ? `<p class="rc-standfirst">${escapeHtml(rc.description)}</p>` : '')}
     ${t ? `<div class="rc-tally"><div class="rc-tally-head"><span class="rc-tally-numbers"><span class="rc-yea">${t.yea} Yea</span> · <span class="rc-nay">${t.nay} Nay</span>${t.present ? ` · ${t.present} Present` : ''}${t.notVoting ? ` · ${t.notVoting} Not voting` : ''}</span>${rc.result ? `<span class="rc-result rc-result-${escapeHtml(rc.resultKind || '')}">${escapeHtml(rc.result)}</span>` : ''}</div><div class="rc-tally-bar" aria-hidden="true"><span class="rc-tally-yea" style="width:${yeaPct.toFixed(1)}%"></span><span class="rc-tally-nay" style="width:${(100 - yeaPct).toFixed(1)}%"></span></div>${rc.party ? `<div class="rc-party">D ${rc.party.dem.yea}–${rc.party.dem.nay} · R ${rc.party.rep.yea}–${rc.party.rep.nay}${rc.party.ind.yea + rc.party.ind.nay ? ` · I ${rc.party.ind.yea}–${rc.party.ind.nay}` : ''}</div>` : ''}</div>` : '<p class="rc-standfirst rc-muted">Tally not yet recorded.</p>'}
-    <div class="rc-actions">${src ? `<a class="rc-action-btn" href="${src}" target="_blank" rel="noopener noreferrer">Official record ↗</a>` : ''}${billSrc ? `<a class="rc-action-btn" href="${billSrc}" target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>` : ''}</div>
+    <div class="rc-actions">${src ? `<a class="rc-action-btn btn-secondary btn-sm" href="${src}" target="_blank" rel="noopener noreferrer">Official record</a>` : ''}${billSrc ? `<a class="rc-action-btn btn-secondary btn-sm" href="${billSrc}" target="_blank" rel="noopener noreferrer">Bill on Congress.gov</a>` : ''}</div>
   </header>
   <section class="rc-section">
+    <h2 class="rc-section-title">How Each Member Voted</h2>
     <div class="rc-section-label">Every member · ${rc.votes.length} recorded</div>
-    <h2 class="rc-section-title">How each member voted</h2>
     ${rows ? `${filter}<div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Member</th><th>Seat</th><th>Vote</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="rc-muted">Member-level votes for this roll call have not been ingested yet.</p>'}
   </section>
   <footer class="rc-colophon">${COLOPHON_RC} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
@@ -400,7 +399,7 @@ function renderExplanation(e) {
   if (!e) return ''
   const src = safeUrl(e.source?.url)
   const points = (e.keyPoints || []).map((k) => `<li>${escapeHtml(k)}</li>`).join('')
-  return `<section class="bill-ai-card"><div class="bill-ai-label">The bill, in plain English</div><p class="bill-ai-byline">${escapeHtml(explanationSourceLine(e.source))}${src ? ` <a href="${src}" target="_blank" rel="noopener noreferrer">Read the text ↗</a>` : ''}</p><div class="bill-ai-prose"><p>${escapeHtml(e.summary)}</p>${(e.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join('')}</div>${points ? `<h3 class="bill-ai-points-title">What it does</h3><ul class="bill-ai-points">${points}</ul>` : ''}</section>`
+  return `<section class="bill-ai-card"><h2 class="bill-ai-label">The Bill, In Plain English</h2><p class="bill-ai-byline">${escapeHtml(explanationSourceLine(e.source))}${src ? ` <a href="${src}" target="_blank" rel="noopener noreferrer">Read the text</a>` : ''}</p><div class="bill-ai-prose"><p>${escapeHtml(e.summary)}</p>${(e.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join('')}</div>${points ? `<h3 class="bill-ai-points-title">What it does</h3><ul class="bill-ai-points">${points}</ul>` : ''}</section>`
 }
 
 export function renderBillBody(b) {
@@ -414,15 +413,15 @@ export function renderBillBody(b) {
   return chrome(`<article class="bill-detail">
   <nav class="bill-crumb"><a href="/">BallotWatch</a><span class="bill-crumb-sep">/</span><span>${escapeHtml(b.label)}</span></nav>
   <header class="bill-masthead">
-    <div class="bill-id-row"><span class="bill-masthead-id">${escapeHtml(b.label)}</span><span class="bill-masthead-congress">${escapeHtml(ordinal(b.congress))} Congress</span>${status ? `<span class="bill-status-pill ${escapeHtml(status.cls)}"><span class="bill-status-pill-dot"></span>${escapeHtml(status.label)}</span>` : ''}</div>
+    <div class="bill-id-row"><span class="bill-masthead-id">${escapeHtml(b.label)}</span><span class="bill-masthead-congress">${escapeHtml(ordinal(b.congress))} Congress</span>${status ? `<span class="bill-status-pill ${escapeHtml(status.cls)}">${escapeHtml(status.label)}</span>` : ''}</div>
     <h1 class="bill-masthead-title">${escapeHtml(b.title)}</h1>
     <p class="bill-masthead-byline">${b.sponsor ? `Sponsored by <a class="bill-byline-sponsor" href="/politician/${escapeHtml(b.sponsor.id)}">${escapeHtml(b.sponsor.name)}</a>${b.sponsor.party ? ` (${escapeHtml(b.sponsor.party)}-${escapeHtml(b.sponsor.state || '')})` : ''}${b.introduced_at ? ', ' : ''}` : ''}${b.introduced_at ? `introduced <span class="bill-byline-mono">${escapeHtml(fmtDate(b.introduced_at))}</span>` : ''}${b.policy_area ? ` · ${escapeHtml(b.policy_area)}` : ''}</p>
-    <div class="bill-masthead-actions">${src ? `<a class="bill-action-btn" href="${src}" target="_blank" rel="noopener noreferrer">Congress.gov ↗</a>` : ''}</div>
+    <div class="bill-masthead-actions">${src ? `<a class="bill-action-btn btn-secondary btn-sm" href="${src}" target="_blank" rel="noopener noreferrer">Congress.gov</a>` : ''}</div>
   </header>
   <div class="bill-layout"><div class="bill-main">
     ${renderExplanation(b.explanation)}
     ${b.summary ? `<section class="bill-editorial-section"><div class="bill-section-label">${b.crs_summary ? 'Official CRS summary' : 'Summary'}</div><div class="bill-summary-body">${escapeHtml(b.summary).split(/\n{2,}/).map((p) => `<p>${p}</p>`).join('')}</div></section>` : ''}
-    <section class="bill-editorial-section"><div class="bill-section-label">Floor votes</div><h2 class="bill-section-title">How the chambers voted</h2>${votes ? `<ul class="bill-tally-grid">${votes}</ul>` : '<p>No recorded floor vote yet.</p>'}</section>
+    <section class="bill-editorial-section"><h2 class="bill-section-title">How The House And Senate Voted</h2>${votes ? `<ul class="bill-tally-grid">${votes}</ul>` : '<p>No recorded floor vote yet.</p>'}</section>
   </div></div>
   <footer class="rc-colophon">Data from Congress.gov. Plain-English explanations are written by AI from the bill’s official text; summaries are the official CRS text. ${b.updatedAt ? `Updated ${escapeHtml(fmtDate(b.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
 </article>`)

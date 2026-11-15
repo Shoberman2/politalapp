@@ -53,7 +53,7 @@ describe('MemberRecord', () => {
     expect(screen.getByRole('link', { name: 'On Passage' }).getAttribute('href')).toBe('/vote/119/house/2/295')
     expect(screen.getByRole('link', { name: 'H.R. 4795' }).getAttribute('href')).toBe('/bill/119/hr/4795')
     expect(screen.getByText('Passed').className).toContain('rc-result-passed')
-    expect(screen.getByRole('link', { name: 'Full record →' }).getAttribute('href')).toBe('/politician/P000197')
+    expect(screen.getByRole('link', { name: 'Full record' }).getAttribute('href')).toBe('/politician/P000197')
     expect(screen.getByRole('link', { name: 'Congress.gov' }).getAttribute('href')).toBe('https://www.congress.gov/member/P000197')
     expect(screen.getByText(/Data recorded through October 2, 2026/)).toBeTruthy()
 

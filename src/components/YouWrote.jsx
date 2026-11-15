@@ -94,7 +94,7 @@ export function SentFollowUp({ send, linkBill = false }) {
       )}
       <button
         type="button"
-        className="yw-forget"
+        className="yw-forget btn-text"
         onClick={() => forgetSend(send.ref, send.member)}
         aria-label={`Forget this: ${wrote}`}
       >
@@ -116,7 +116,6 @@ export function YouWroteNotes({ billId, member }) {
   if (!mine.length) return null
   return (
     <section className="yw" aria-label="Your messages">
-      <div className="yw-kicker">You wrote; they voted</div>
       <ul className="yw-list">
         {mine.map((s) => <SentFollowUp key={sendId(s)} send={s} linkBill={!billId} />)}
       </ul>
@@ -135,8 +134,7 @@ export function YourMessages() {
   const sends = all.slice(0, MESSAGES_SHOWN)
   return (
     <section className="yw yw-page" aria-labelledby="yw-heading">
-      <div className="yw-kicker">You wrote; they voted</div>
-      <h2 id="yw-heading" className="yw-title">Your messages</h2>
+      <h2 id="yw-heading" className="yw-title">Your Messages</h2>
       {sends.length ? (
         <ul className="yw-list">
           {sends.map((s) => <SentFollowUp key={sendId(s)} send={s} linkBill />)}

@@ -2,7 +2,7 @@ import SEO from './SEO'
 import '../styles/Chamber.css'
 
 /**
- * ChamberMethodology — the public methodology page for the chamber feature.
+ * ChamberMethodology: the public methodology page for the chamber feature.
  *
  * Per /plan-ceo-review 4.A: hand-curated moments require a visible
  * methodology page listing criteria + every included moment + why.
@@ -23,18 +23,15 @@ function ChamberMethodology() {
       />
 
       <header className="chamber-header">
-        <div className="chamber-eyebrow">BALLOTWATCH</div>
-        <h1 className="chamber-title">Chamber methodology</h1>
+        <h1 className="chamber-title">Chamber Methodology</h1>
         <div className="chamber-subtitle">
           How we reconstructed 50 years of Senate seating
         </div>
       </header>
 
-      <hr className="chamber-rule" />
-
       <article className="chamber-methodology-body">
         <section>
-          <h2>Data sources</h2>
+          <h2>Data Sources</h2>
           <p>
             The chamber chart is reconstructed from four sources, each with
             different coverage:
@@ -42,13 +39,13 @@ function ChamberMethodology() {
           <dl>
             <dt>Congress.gov member API</dt>
             <dd>
-              Authoritative for current and post-1993 member data — party,
+              Authoritative for current and post-1993 member data: party,
               state, district, chamber. Coverage thins pre-1993 (some members
               have records without sponsors or terms).
             </dd>
             <dt>UCSD Voteview (HSall_members.csv)</dt>
             <dd>
-              Hand-maintained ICPSR ↔ bioguide ID crosswalk used by
+              Hand-maintained ICPSR to bioguide ID crosswalk used by
               political-science researchers since the 1980s. Resolves pre-1993
               identity reconciliation. Freely licensed for research use.
             </dd>
@@ -67,14 +64,14 @@ function ChamberMethodology() {
         </section>
 
         <section>
-          <h2>Fidelity tiers</h2>
+          <h2>Fidelity Tiers</h2>
           <p>
             Every Congress has one of three fidelity tiers, surfaced in the
             chart header:
           </p>
           <dl>
             <dt>
-              <span className="chamber-fidelity-dot-inline" style={{ backgroundColor: '#16A34A' }} />
+              <span className="chamber-fidelity-dot-inline is-tier-full" aria-hidden="true" />
               Full record
             </dt>
             <dd>
@@ -83,7 +80,7 @@ function ChamberMethodology() {
               senator names + party tints.
             </dd>
             <dt>
-              <span className="chamber-fidelity-dot-inline" style={{ backgroundColor: '#D97706' }} />
+              <span className="chamber-fidelity-dot-inline is-tier-partial" aria-hidden="true" />
               Partial record
             </dt>
             <dd>
@@ -91,7 +88,7 @@ function ChamberMethodology() {
               Chart renders what we have with a caveat banner.
             </dd>
             <dt>
-              <span className="chamber-fidelity-dot-inline" style={{ backgroundColor: '#9C9789' }} />
+              <span className="chamber-fidelity-dot-inline is-tier-composition_only" aria-hidden="true" />
               Composition only
             </dt>
             <dd>
@@ -103,31 +100,31 @@ function ChamberMethodology() {
         </section>
 
         <section>
-          <h2>Historic moments curation</h2>
+          <h2>Historic Moments Curation</h2>
           <p>
             The historic moments overlay highlights notable Senate roll-call
             votes that the chamber chart can "freeze on." Selection is
             hand-curated against four criteria:
           </p>
-          <ol>
+          <ul>
             <li>Nationally discussed within 90 days of the vote</li>
             <li>AP/NYT front-page coverage at the time</li>
             <li>Lasting policy impact (measured 12+ months after the vote)</li>
             <li>Cross-decade balance across the Bush, Obama, Trump, and Biden eras</li>
-          </ol>
+          </ul>
           <p>
             We deliberately do <strong>not</strong> use an algorithm to pick
-            moments — the criteria above are editorial, and the list above
+            moments. The criteria above are editorial, and the list above
             is the full disclosure of which votes we included and why.
           </p>
         </section>
 
         <section>
-          <h2>What the chart does not show</h2>
+          <h2>What The Chart Does Not Show</h2>
           <ul>
             <li>
               <strong>House individual seat assignments.</strong> The U.S.
-              House of Representatives does not have assigned seats —
+              House of Representatives does not have assigned seats:
               members sit anywhere within their party's section. Any chart
               showing per-seat House data would be invented. We show party
               composition only, with an explicit disclosure on the House view.
@@ -152,7 +149,7 @@ function ChamberMethodology() {
             Spot a desk assignment that's wrong, a lineage row missing, or a
             historic moment we missed? Open an issue or PR against the public
             repo. Data sources are cited per record in the database, and the
-            <em>{' '}member_reconciliation_log{' '}</em>
+            {' '}<code>member_reconciliation_log</code>{' '}
             table is an open audit of cross-source identity conflicts and how
             we resolved them.
           </p>

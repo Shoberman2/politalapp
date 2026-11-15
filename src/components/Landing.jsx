@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
-import { getRecentBills, getFeaturedMembers, getTrendingBills } from '../services/congress'
+import { getFeaturedMembers, getTrendingBills } from '../services/congress'
 import { getRecentFloorVotes, pickHeadlineVote, inboxFields, rollCallHref, hasSomethingToShow } from '../services/floorVotes'
 import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
@@ -15,28 +15,21 @@ import { LANDING_FAQ as FAQ } from '../data/landingFaq'
 import { CIVICS_PRIMER } from '../data/civicsPrimer'
 import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
-import { voteSourceUrl } from '../../api/_lib/rollCallResult.js'
 import '../styles/Landing.css'
 
-// The line under both ZIP fields (wording from the privacy audit, 2026-10-06).
+// The line under the hero's ZIP field (wording from the privacy audit, 2026-10-06).
 const LOOKUP_HINT = 'No sign-up to look up. Your ZIP code never reaches our servers.'
-
-const ArrowRight = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-)
 
 const BILL_TYPE_LABELS = {
   HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
   HJRES: 'H.J.Res.', SJRES: 'S.J.Res.', HCONRES: 'H.Con.Res.', SCONRES: 'S.Con.Res.',
 }
 
-
-
 const truncate = (str, max) => (str && str.length > max ? `${str.slice(0, max - 1).trimEnd()}…` : str || '')
 
 const stateName = (abbr) => US_STATES.find((s) => s.abbr === abbr)?.name || abbr
 
-// Map a derived result string to a color intent for the result chip.
+// Map a derived result string to a color intent for the result word.
 function resultKindOf(result) {
   if (!result) return 'neutral'
   const r = result.toLowerCase()
@@ -134,23 +127,6 @@ function voteSubject(v, max = 110) {
   return `${head.trimEnd().replace(/[,;:]$/, '')}…`
 }
 
-function fromBill(b) {
-  const type = b.type || ''
-  return {
-    key: `${type}-${b.number}`,
-    chamber: b.originChamber || (type.toUpperCase().startsWith('H') ? 'House' : 'Senate'),
-    rollLabel: null,
-    bill: {
-      display: `${BILL_TYPE_LABELS[type] || type} ${b.number}`,
-      href: `/bill/${b.congress}/${type.toLowerCase()}/${b.number}`,
-    },
-    text: truncate(b.latestAction?.text, 96),
-    tally: null,
-    result: null,
-    resultKind: 'neutral',
-  }
-}
-
 function Landing() {
   const navigate = useNavigate()
   const [zip, setZip] = useState('')
@@ -160,15 +136,12 @@ function Landing() {
   const [lookupPlace, setLookupPlace] = useState('hero')
   // Guards the member fetch against a newer lookup finishing first.
   const lookupSeq = useRef(0)
-  const [floor, setFloor] = useState([])
-  // The raw recorded votes behind the feed; the headline vote is picked from
-  // these with the same rule /offices uses (pickHeadlineVote).
+  // The recorded votes; the headline vote is picked from these with the same
+  // rule /offices uses (pickHeadlineVote).
   const [floorVotes, setFloorVotes] = useState([])
-  // votesReady: the recorded votes have resolved (the hero, agents and offices
-  // cards read only these). floorReady: the feed is final, which may wait for
-  // the bills fallback below.
+  // votesReady: the recorded votes have resolved (or failed), so skeletons
+  // give way to real rows or the one-line fallback.
   const [votesReady, setVotesReady] = useState(false)
-  const [floorReady, setFloorReady] = useState(false)
   const [recordedThrough, setRecordedThrough] = useState(null)
   const reducedMotion = usePrefersReducedMotion()
   // The hero ticker: paused by the reader's Pause control; focused while a
@@ -187,7 +160,7 @@ function Landing() {
   const [recordFailed, setRecordFailed] = useState(false)
   const [billFailed, setBillFailed] = useState(false)
 
-  // Real members for the "Find who represents you" illustration — actual names
+  // Real members for the "Find who represents you" illustration: actual names
   // and headshots instead of blank placeholders. Best-effort; the mock shows
   // a skeleton while this resolves and a one-line fallback if it fails.
   useEffect(() => {
@@ -202,7 +175,7 @@ function Landing() {
     return () => { cancelled = true }
   }, [])
 
-  // The "record in 60 seconds" illustration: the real card for the first
+  // The vote record illustration: the real card for the first
   // featured member. Best-effort; a skeleton while it loads, a one-line
   // fallback if it fails.
   const recordMemberId = featuredMembers[0]?.bioguideId
@@ -220,7 +193,7 @@ function Landing() {
   }, [recordMemberId])
 
   // A real current bill (with a plain-English blurb from its CRS summary) for
-  // the "Understand any bill" step and the "what are they voting on" closer.
+  // the plain-English bills feature.
   useEffect(() => {
     let cancelled = false
     getTrendingBills()
@@ -234,8 +207,9 @@ function Landing() {
   }, [])
 
 
-  // "On the floor" feed: prefer real recorded votes (with tallies), then fall
-  // back to the latest legislative actions, then to static copy.
+  // The latest recorded votes, for the ticker and the mocks built on the
+  // headline vote. Real data only: an empty or failed query shows the one-line
+  // fallback, never invented votes.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -244,33 +218,17 @@ function Landing() {
         const data = await getRecentFloorVotes(16)
         if (cancelled) return
         const all = data?.votes || []
-        // The headline pick (pickHeadlineVote) applies its own rule to all of
-        // them; the feed keeps the rows with something to show.
         setFloorVotes(all)
-        setVotesReady(true)
-        const votes = all.filter(hasSomethingToShow)
-        if (votes.length >= 3) {
-          setFloor(votes.map(fromFloorVote))
-          if (data.recordedThrough) setRecordedThrough(data.recordedThrough)
-          return
-        }
-        const bills = await getRecentBills(8).catch(() => [])
-        if (cancelled) return
-        const items = bills.filter((b) => b.latestAction?.text && b.number).map(fromBill)
-        if (items.length >= 3) setFloor(items)
+        if (all.filter(hasSomethingToShow).length >= 3 && data.recordedThrough) setRecordedThrough(data.recordedThrough)
       } catch {
-        // The service resolves to null on a failed query, so this only runs
-        // if a future change (or a test double) makes it reject: treat that
-        // like an empty feed rather than leaving an unhandled rejection.
+        // Only runs if a future change (or a test double) makes the service
+        // reject: treat that like an empty feed.
       } finally {
-        // Mark the fetch resolved either way so the feed swaps skeletons for
-        // real rows (and never falls back to invented bills).
-        if (!cancelled) { setVotesReady(true); setFloorReady(true) }
+        if (!cancelled) setVotesReady(true)
       }
     })()
     return () => { cancelled = true }
   }, [])
-
 
   const handleLookup = async (e, place) => {
     e.preventDefault()
@@ -349,7 +307,7 @@ function Landing() {
 
   // The one primary action, rendered at both the top of the page and the
   // bottom. The closing section runs the real lookup rather than bouncing the
-  // reader back up to the top — a CTA that only scrolls is a dead end.
+  // reader back up to the top. The privacy line is printed once, in the hero.
   const renderLookup = (place) => (
     <>
       <form className="lookup-form" onSubmit={(e) => handleLookup(e, place)}>
@@ -365,11 +323,10 @@ function Landing() {
           onChange={(e) => setZip(e.target.value)}
         />
         <button type="submit" className="btn-primary" aria-label="Find my representatives">
-          <span className="btn-word">Find my reps</span>
-          <ArrowRight />
+          Find my reps
         </button>
       </form>
-      <p className="lookup-hint">{LOOKUP_HINT}</p>
+      {place === 'hero' && <p className="lookup-hint">{LOOKUP_HINT}</p>}
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -379,7 +336,7 @@ function Landing() {
             {lookup.sub && <small>{lookup.sub}</small>}
           </span>
           {lookup.address && (
-            <button type="button" className="lr-go btn-text btn-go" onClick={handleViewProfiles}>
+            <button type="button" className="lr-go btn-text" onClick={handleViewProfiles}>
               {lookup.houseKnown ? 'View profiles' : 'Add your address'}
             </button>
           )}
@@ -401,7 +358,7 @@ function Landing() {
     </>
   )
 
-  // Step-one illustration built from real members, with a skeleton fallback.
+  // The find feature's illustration, built from real members, with a skeleton fallback.
   const repsRows = featuredMembers.length ? featuredMembers : membersFailed ? [] : [null, null, null]
   const repsVisual = (
     <div className="mock mock-reps" aria-hidden="true">
@@ -421,7 +378,7 @@ function Landing() {
                 loading="lazy"
                 onError={(e) => {
                   // High-res unitedstates portrait failed (e.g. a brand-new
-                  // member) — fall back to the API's own portrait, then hide.
+                  // member): fall back to the API's own portrait, then hide.
                   const el = e.currentTarget
                   const fb = m.photoFallbackUrl
                   if (fb && el.dataset.fb !== '1') { el.dataset.fb = '1'; el.src = fb }
@@ -444,7 +401,7 @@ function Landing() {
     </div>
   )
 
-  // Step-three illustration built from a real current bill (plain-English blurb).
+  // The bills feature's illustration, built from a real current bill.
   const billLabel = (b) => `${BILL_TYPE_LABELS[(b.type || '').toUpperCase()] || (b.type || '').toUpperCase()} ${b.number}`
   const billVisual = (
     <div className="mock mock-explain">
@@ -461,47 +418,11 @@ function Landing() {
           <p>{featuredBill ? truncate(featuredBill.whyItMatters || featuredBill.summary || featuredBill.latestAction?.text || '', 175) : ''}</p>
         </div>
       )}
-      {featuredBill && <span className="mk-src">Source · Congress.gov <ArrowRight /></span>}
+      {featuredBill && <span className="mk-src">Source · Congress.gov</span>}
     </div>
   )
 
-  // Step-two illustration, built from the same live floor votes (real bill
-  // numbers and real yea–nay tallies) so it updates with the feed instead of
-  // showing fixed set copy. Colored by outcome; sourced to the real roll call.
-  // Best rows first — a bill number with a real tally — then top up with any
-  // other real recorded vote. Requiring a tally outright used to leave this
-  // stuck on skeletons whenever the tally data was thin; skeletons should only
-  // ever mean "still loading", never "we had nothing to say".
-  const votesRows = [
-    ...floor.filter((v) => v.bill && v.tally),
-    ...floor.filter((v) => v.bill && !v.tally),
-    ...floor.filter((v) => !v.bill && v.text),
-  ].slice(0, 3)
-  const votesVisual = (
-    <div className="mock mock-votes" aria-hidden="true">
-      {floorReady && !votesRows.length && <p className="mk-unavailable">{NO_VOTE}</p>}
-      {(votesRows.length ? votesRows : floorReady ? [] : [null, null, null]).map((v, i) => (
-        v ? (
-          <div className="mk-vote" key={v.key}>
-            <span className="mk-bill">{v.bill ? v.bill.display : v.rollLabel}</span>
-            <span className="mk-desc">{truncate(v.text, 30)}</span>
-            {v.tally && <span className={`mk-yn ${v.resultKind === 'fail' ? 'nay' : 'yea'}`}>{v.tally}</span>}
-          </div>
-        ) : (
-          <div className="mk-vote" key={`sk-${i}`}>
-            <span className="mk-skel" style={{ width: 46, maxWidth: 'none', height: 11 }} />
-            <span className="mk-skel" style={{ width: '74%', maxWidth: 'none', height: 11 }} />
-            <span className="mk-skel" style={{ width: 40, maxWidth: 'none', height: 16, borderRadius: 6 }} />
-          </div>
-        )
-      ))}
-      {votesRows[0]?.rollLabel && (
-        <div className="mk-src">Source · Congress.gov {votesRows[0].rollLabel} <ArrowRight /></div>
-      )}
-    </div>
-  )
-
-  // The hero's proof, picked by pickHeadlineVote (the same pick as /offices):
+  // The headline vote, picked by pickHeadlineVote (the same pick as /offices):
   // the latest vote with a roll-call page, a bill and a real tally, else the
   // latest vote with a roll-call page and anything to show. Never invented.
   const headlineRaw = pickHeadlineVote(floorVotes)
@@ -600,11 +521,10 @@ function Landing() {
     ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
     : null
 
-  // Feature five: the opening of a real Tell your rep draft, built from the
-  // same latest recorded vote the hero shows.
+  // The opening of a real Tell your rep draft, built from the latest recorded
+  // vote.
   const writeVisual = (
     <div className="mock mock-write" aria-hidden="true">
-      <span className="mk-label">Your message starts with the facts</span>
       {headlineVote ? (
         <p className="mk-letter">
           On {recordedLabel || 'the latest vote'}, the {headlineVote.chamber || 'chamber'} voted on{' '}
@@ -613,7 +533,7 @@ function Landing() {
           <br />
           <span className="mk-yours">[Write your message here, in your own words.]</span>
         </p>
-      ) : floorReady ? (
+      ) : votesReady ? (
         <p className="mk-unavailable">{NO_VOTE}</p>
       ) : (
         <p className="mk-letter">
@@ -625,7 +545,7 @@ function Landing() {
     </div>
   )
 
-  // Feature four: the real one-screen record card for a featured member,
+  // The vote record feature: the real one-screen record card for a featured member,
   // laid out like their profile (photo, seat, totals, latest votes).
   const rs = featuredRecord?.stats
   const recordPhoto = featuredRecord ? (featuredMembers[0]?.imageUrl || featuredRecord.photo_url || featuredMembers[0]?.photoFallbackUrl) : null
@@ -679,7 +599,7 @@ function Landing() {
     </div>
   )
 
-  // Feature six: a two-turn MCP transcript. The question names the real
+  // The assistant feature: a two-turn MCP transcript. The question names the real
   // featured member; the answer lines are that member's real latest votes.
   const mcpVotes = (featuredRecord?.recentVotes || []).slice(0, 3)
   const mcpSource = mcpVotes[0]?.roll != null
@@ -722,42 +642,7 @@ function Landing() {
     </div>
   )
 
-  // Feature seven: the public API's response for the same latest recorded vote
-  // the hero shows, in the endpoint's own field names (GET /api/v1/votes/{id}),
-  // trimmed. Only values the page actually has are printed.
-  const apiJson = headlineVote ? (() => {
-    const data = { roll_call_id: headlineVote.key }
-    if (headlineVote.votedAt) data.voted_at = String(headlineVote.votedAt).slice(0, 10)
-    const src = voteSourceUrl(headlineVote.key, null)
-    if (src) data.source_url = src
-    if (headlineVote.yea != null && headlineVote.nay != null) data.summary = { yea: headlineVote.yea, nay: headlineVote.nay }
-    // The real response carries more (the bill, every member's position); the
-    // ellipsis says so rather than pretending this is the whole body.
-    const inner = JSON.stringify(data, null, 2).replace(/\n\}$/, ',\n  \u2026\n}').replace(/\n/g, '\n  ')
-    return `{\n  "data": ${inner}\n}`
-  })() : null
-  const agentsVisual = (
-    <div className="mock mock-code" aria-hidden="true">
-      {headlineVote ? (
-        <>
-          <code className="mk-req">GET /api/v1/votes/{headlineVote.key}</code>
-          <pre className="mk-json">{apiJson}</pre>
-        </>
-      ) : votesReady ? (
-        <p className="mk-unavailable">{NO_VOTE}</p>
-      ) : (
-        <>
-          <span className="mk-skel" style={{ width: '62%', maxWidth: 'none' }} />
-          <span className="mk-skel" style={{ width: '80%', maxWidth: 'none', marginTop: 14 }} />
-          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
-          <span className="mk-skel" style={{ width: '54%', maxWidth: 'none', marginTop: 8 }} />
-        </>
-      )}
-      <span className="mk-src">No key needed to read · JSON · OpenAPI</span>
-    </div>
-  )
-
-  // Feature eight: one row of an office inbox, built from the same latest
+  // The offices feature: one row of an office inbox, built from the latest
   // recorded vote. Nothing in it speaks in the Member's name.
   // Same fields and the same pick as the /offices inbox (inboxFields).
   const inbox = inboxFields(headlineRaw)
@@ -783,11 +668,11 @@ function Landing() {
   // Headlines and copy come from src/data/homeSeo.js, the same text the
   // server-rendered homepage gives crawlers and AI answer engines.
   const VISUALS = {
-    find: repsVisual, votes: votesVisual, bills: billVisual, record: recordVisual, write: writeVisual,
-    mcp: mcpVisual, agents: agentsVisual, offices: officesVisual,
+    find: repsVisual, bills: billVisual, votes: recordVisual, write: writeVisual,
+    mcp: mcpVisual, offices: officesVisual,
   }
   const LINK_OVERRIDES = {
-    record: { to: recordHref, label: 'See a record' },
+    votes: { to: recordHref, label: 'See a record' },
     write: { to: writeHref, label: 'Write about the latest vote' },
   }
   const FEATURES = HOME_FEATURES.map((f) => ({
@@ -800,16 +685,11 @@ function Landing() {
     <div className="bw landing">
       <SEO fullTitle={HOME_TITLE} description={HOME_DESCRIPTION} path="/" schema={homeJsonLdGraph({ dateModified: null })} />
 
-      {/* ===== HERO: centered question, mission, lookup, and the latest real vote ===== */}
+      {/* ===== HERO: centered question, mission, lookup, and the latest real votes ===== */}
       <section className="hero">
         <div className="hero-inner">
-          <h1 className="hero-title">How did your representative vote this week?</h1>
+          <h1 className="hero-title">How Did Your Representative Vote This Week?</h1>
           <p className="hero-mission">{BRAND.mission}</p>
-          <ul className="hero-promise" aria-label="What you get">
-            <li>Every bill explained in plain English</li>
-            <li>Every recorded vote, by name</li>
-            <li>No politics background needed</li>
-          </ul>
 
           {renderLookup('hero')}
         </div>
@@ -873,22 +753,21 @@ function Landing() {
       <section className="primer" aria-labelledby="primer-title">
         <div className="primer-inner">
           <header className="primer-head">
-            <span className="primer-kicker">New to Congress? Start here</span>
-            <h2 id="primer-title">Congress in one minute.</h2>
+            <h2 id="primer-title">Congress In One Minute</h2>
             <p>
-              You don’t need any background in politics to use {BRAND.name}. These five facts are enough, and
-              every confusing word on the site has an ⓘ you can tap for a plain-English explanation.
+              You don’t need any background in politics. These five facts are enough, and every confusing
+              word on the site has an ⓘ you can tap for a plain-English explanation.
             </p>
-            <Link className="btn-text btn-go" to="/glossary">Every term, explained</Link>
+            <Link className="btn-text" to="/glossary">Every term, explained</Link>
           </header>
-          <ol className="primer-list">
+          <ul className="primer-list">
             {CIVICS_PRIMER.map((p) => (
               <li key={p.title}>
                 <h3><Term id={p.term}>{p.title}</Term></h3>
                 <p>{p.body}</p>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </section>
 
@@ -899,7 +778,7 @@ function Landing() {
             <div className="feature-text">
               <h2>{f.title}</h2>
               <p>{f.body}</p>
-              <Link className="btn-text btn-go feature-link" to={f.link.to}>{f.link.label}</Link>
+              <Link className="btn-text feature-link" to={f.link.to}>{f.link.label}</Link>
             </div>
             <div className="feature-visual">{f.visual}</div>
           </article>
@@ -910,16 +789,15 @@ function Landing() {
       <section className="faq" aria-labelledby="faq-title">
         <div className="faq-inner">
           <header className="faq-head">
-            <h2 id="faq-title">Questions, answered.</h2>
-            <p>Everything people ask before they look up their first vote.</p>
-            <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
+            <h2 id="faq-title">Questions, Answered</h2>
+            <Link className="btn-text" to="/how-it-works">How {BRAND.name} works</Link>
           </header>
           <div className="faq-list">
             {FAQ.map((item) => (
-              <details key={item.q} className="faq-item">
-                <summary>{item.q}</summary>
+              <div key={item.q} className="faq-item">
+                <h3>{item.q}</h3>
                 <p>{item.a}</p>
-              </details>
+              </div>
             ))}
           </div>
         </div>
@@ -928,7 +806,7 @@ function Landing() {
       {/* ===== FINALE ===== */}
       <section className="finale">
         <div className="finale-inner">
-          <h2>Find out who’s speaking for you.</h2>
+          <h2>Start With Your ZIP Code</h2>
           {renderLookup('finale')}
         </div>
       </section>

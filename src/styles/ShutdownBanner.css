@@ -1,107 +1,87 @@
+/* Shutdown risk line (ShutdownBanner.jsx): one quiet line on a soft fill.
+   The level is a coloured word; nothing else carries colour. */
 .shutdown-banner {
   width: 100%;
   z-index: 1001;
-  font-size: 0.85rem;
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-dim);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.4;
 }
 
 .shutdown-banner__content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0.5rem 2rem;
+  padding: 2px 8px 2px 24px;
+  min-height: 48px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.shutdown-banner__icon {
-  font-size: 1rem;
-  flex-shrink: 0;
+  gap: 16px;
 }
 
 .shutdown-banner__text {
   flex: 1;
-  color: inherit;
-  font-family: var(--font-body);
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+}
+
+.shutdown-banner__text strong {
+  font-weight: 600;
 }
 
 .shutdown-banner__countdown {
-  opacity: 0.85;
-  font-family: var(--font-mono);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .shutdown-banner__link {
-  color: inherit;
+  color: var(--accent);
   font-weight: 600;
-  text-decoration: underline;
+  text-decoration: none;
   white-space: nowrap;
-  opacity: 0.9;
-  transition: opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .shutdown-banner__link:hover {
-  opacity: 1;
+  color: var(--accent-hover);
 }
 
 .shutdown-banner__dismiss {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   background: none;
   border: none;
-  color: inherit;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0 0.25rem;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
+  border-radius: var(--r-icon);
+  color: var(--ink-2);
+  font-size: 22px;
   line-height: 1;
+  cursor: pointer;
 }
 
 .shutdown-banner__dismiss:hover {
-  opacity: 1;
+  background: var(--fill-soft);
+  color: var(--ink);
 }
 
-/* Risk level color variants */
-.shutdown-banner--funded {
-  background: var(--success-subtle);
-  color: #166534;
-}
-
-.shutdown-banner--low {
-  background: var(--bg);
-  color: var(--text-primary);
-}
-
-.shutdown-banner--moderate {
-  background: var(--warning-subtle);
-  color: #7c5e20;
-}
-
-.shutdown-banner--high {
-  background: #fdf2ec;
-  color: #8c3a1e;
-}
-
-.shutdown-banner--critical {
-  background: var(--error-subtle);
-  color: #991b1b;
-}
-
-.shutdown-banner--shutdown {
-  background: var(--error);
-  color: #ffffff;
-}
-
-.shutdown-banner--shutdown .shutdown-banner__link {
-  color: #ffffff;
-}
+/* Risk level: the word takes the colour. */
+.shutdown-banner--funded .shutdown-banner__level { color: var(--success); }
+.shutdown-banner--low .shutdown-banner__level { color: var(--ink); }
+.shutdown-banner--moderate .shutdown-banner__level,
+.shutdown-banner--high .shutdown-banner__level { color: var(--warning); }
+.shutdown-banner--critical .shutdown-banner__level,
+.shutdown-banner--shutdown .shutdown-banner__level { color: var(--error); }
 
 @media (max-width: 768px) {
   .shutdown-banner__content {
-    padding: 0.5rem 1rem;
-    font-size: 0.78rem;
-    gap: 0.5rem;
-  }
-
-  .shutdown-banner__countdown {
-    display: none;
+    padding-left: 20px;
+    gap: 8px;
   }
 }

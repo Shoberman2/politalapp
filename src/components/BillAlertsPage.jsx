@@ -125,8 +125,7 @@ export default function BillAlertsPage() {
     <div className="alerts-page">
       <SEO title="Bill alerts" description="Manage the congressional bills BallotWatch is monitoring for you." path="/alerts" />
       <header className="alerts-header">
-        <div className="alerts-kicker">Your watchlist</div>
-        <h1>Bill alerts</h1>
+        <h1>Bill Alerts</h1>
         <p>Follow official committee, floor, and vote activity without repeatedly checking Congress.gov.</p>
         {BILL_ALERT_EMAIL_ENABLED ? (
           <>
@@ -147,16 +146,16 @@ export default function BillAlertsPage() {
       ) : (
         <>
           <section className="alerts-section">
-            <div className="alerts-section-heading"><span>Watching</span><strong>{follows.length}</strong></div>
+            <h2 className="alerts-section-heading">Watching <span>{follows.length}</span></h2>
             {follows.length === 0 ? (
-              <div className="alerts-empty"><h2>No bills watched yet</h2><p>Open any bill and choose “Watch this bill” to start.</p><Link to="/bills">Browse bills →</Link></div>
+              <div className="alerts-empty"><p>No bills watched yet. Open any bill and choose “Watch this bill” to start.</p><Link className="btn-primary btn-sm" to="/bills">Browse bills</Link></div>
             ) : (
               <div className="alerts-follow-list">
                 {follows.map((follow) => (
                   <article className="alerts-follow" key={follow.id}>
                     <div className="alerts-follow-content">
                       <Link className="alerts-bill-id" to={billPath(follow.bill_id)}>{billLabel(follow.bill_id)}</Link>
-                      <h2>{follow.bills?.title || 'Congressional bill'}</h2>
+                      <h3>{follow.bills?.title || 'Congressional bill'}</h3>
                       <div className="alerts-follow-options" aria-label={`Alert types for ${billLabel(follow.bill_id)}`}>
                         <label><input type="checkbox" checked={drafts[follow.bill_id]?.committeeAlerts ?? false} onChange={() => updateDraft(follow.bill_id, 'committeeAlerts')} /> Committee</label>
                         <label><input type="checkbox" checked={drafts[follow.bill_id]?.floorAlerts ?? false} onChange={() => updateDraft(follow.bill_id, 'floorAlerts')} /> Floor</label>
@@ -175,7 +174,7 @@ export default function BillAlertsPage() {
           </section>
 
           <section className="alerts-section">
-            <div className="alerts-section-heading"><span>Recent activity</span><strong>30 days</strong></div>
+            <h2 className="alerts-section-heading">Recent Activity <span>30 days</span></h2>
             {history.length === 0 ? (
               <p className="alerts-muted">New official events for watched bills will appear here.</p>
             ) : (
@@ -184,7 +183,7 @@ export default function BillAlertsPage() {
                   <article key={`${event.event_id}-${event.follow_id}`}>
                     <div className="alerts-history-date">{new Date(event.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
                     <div><Link to={billPath(event.bill_id)}>{billLabel(event.bill_id)}</Link><h3>{event.headline}</h3><p>{eventLabel(event.event_type)}</p></div>
-                    <a href={event.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>
+                    <a href={event.source_url} target="_blank" rel="noopener noreferrer">Source</a>
                   </article>
                 ))}
               </div>

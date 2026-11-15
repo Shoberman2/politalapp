@@ -60,17 +60,17 @@ describe('Pricing checkout', () => {
   it('shows an error and never redirects to a Stripe payment link when checkout fails', async () => {
     mocks.startConsumerCheckout.mockRejectedValue(new Error('checkout down'))
     wrap(<Pricing />)
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe Now' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }))
     expect(await screen.findByText('Subscriptions are not open yet. Everything else on BallotWatch is free.')).toBeInTheDocument()
     expect(hrefSets).toEqual([])
     // The button is usable again, so the reader is not stuck.
-    expect(screen.getByRole('button', { name: 'Subscribe Now' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Subscribe' })).not.toBeDisabled()
   })
 
   it('still sends the reader to the checkout URL the API returns', async () => {
     mocks.startConsumerCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' })
     wrap(<Pricing />)
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe Now' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }))
     await vi.waitFor(() => expect(hrefSets).toEqual(['https://checkout.stripe.com/c/pay/cs_test_1']))
     expect(mocks.startConsumerCheckout).toHaveBeenCalledWith(mocks.auth.session, 'https://www.ballotwatch.io/briefings')
   })

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { BRAND } from '../config/brand'
 import { safeNextPath } from '../utils/safeNextPath'
@@ -13,6 +13,11 @@ const DEFAULT_NEXT = DEFAULT_SIGNED_IN_PATH
 function nextFrom(search) {
   const next = safeNextPath(new URLSearchParams(search).get('next'), DEFAULT_NEXT)
   return /^\/auth(?:[/?#]|$)/i.test(next) ? DEFAULT_NEXT : next
+}
+
+// "Find my reps" links here with ?mode=signup; everything else opens sign-in.
+function modeFrom(search) {
+  return new URLSearchParams(search).get('mode') === 'signup' ? 'signup' : 'signin'
 }
 
 // The Google provider can be switched off in Supabase. Ask the project's public
@@ -35,23 +40,50 @@ function useGoogleEnabled() {
 }
 
 const CONFIRM_EMAIL_MESSAGE = 'Check your email to confirm your account, then sign in.'
+const RESET_SENT_MESSAGE = 'If that email has an account, a reset link is on its way.'
+const GENERIC_ERROR = 'Something went wrong. Please try again.'
+
+// Supabase's own wording is terse or technical; say what to do next instead.
+export function friendlyAuthError(error) {
+  const text = String(error?.message || '')
+  if (/invalid login credentials/i.test(text)) return 'That email and password do not match.'
+  if (/email not confirmed/i.test(text)) return 'Confirm your email first. The link is in your inbox.'
+  if (/already registered|already been registered/i.test(text)) return 'That email already has an account. Sign in instead.'
+  if (/rate limit|too many/i.test(text)) return 'Too many tries. Wait a minute, then try again.'
+  if (/failed to fetch|network/i.test(text)) return 'We could not reach the server. Check your connection and try again.'
+  return text || GENERIC_ERROR
+}
+
+const COPY = {
+  signin: { title: 'Welcome Back', line: 'Sign in to see your representatives.', submit: 'Sign in' },
+  signup: { title: 'Create Your Account', line: 'Free. Your representatives and every bill in plain English.', submit: 'Create account' },
+  forgot: { title: 'Reset Your Password', line: 'Enter your email and we will send a link to set a new one.', submit: 'Send reset link' },
+}
 
 function Auth() {
-  const [isLogin, setIsLogin] = useState(true)
+  const location = useLocation()
+  const [mode, setMode] = useState(() => modeFrom(location.search))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth()
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, resetPassword } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const nextPath = nextFrom(location.search)
   const googleEnabled = useGoogleEnabled()
+  const copy = COPY[mode]
 
-  const switchMode = () => {
-    setIsLogin((v) => !v)
+  // The nav's "Sign in" and "Find my reps" both link here; follow the link's mode.
+  useEffect(() => {
+    setMode(modeFrom(location.search))
+    setError('')
+    setMessage('')
+  }, [location.search, location.key])
+
+  const switchMode = (next) => {
+    setMode(next)
     setError('')
     setMessage('')
   }
@@ -63,29 +95,39 @@ function Auth() {
     setLoading(true)
 
     try {
-      if (isLogin) {
+      if (mode === 'forgot') {
+        const { error } = await resetPassword(email)
+        if (error) {
+          setError(friendlyAuthError(error))
+        } else {
+          // Same answer whether or not the address has an account.
+          setMode('signin')
+          setPassword('')
+          setMessage(RESET_SENT_MESSAGE)
+        }
+      } else if (mode === 'signin') {
         const { error } = await signIn(email, password)
         if (error) {
-          setError(error.message)
+          setError(friendlyAuthError(error))
         } else {
           navigate(nextPath)
         }
       } else {
         const { data, error } = await signUp(email, password, nextPath)
         if (error) {
-          setError(error.message)
+          setError(friendlyAuthError(error))
         } else if (data?.session) {
           navigate(nextPath)
         } else {
           // Email confirmation is on: there is no session until the link is
           // clicked, so sending them into the app would bounce them back here.
-          setIsLogin(true)
+          setMode('signin')
           setPassword('')
           setMessage(CONFIRM_EMAIL_MESSAGE)
         }
       }
     } catch (err) {
-      setError('Something went wrong. Please try again.')
+      setError(GENERIC_ERROR)
     } finally {
       setLoading(false)
     }
@@ -99,7 +141,7 @@ function Auth() {
     try {
       const { error } = await signInWithGoogle(nextPath)
       if (error) {
-        setError(error.message)
+        setError(friendlyAuthError(error))
         setLoading(false)
       }
     } catch (err) {
@@ -113,21 +155,21 @@ function Auth() {
 
   return (
     <div className="bw auth-page">
-      <SEO title="Sign in" description="Sign in to BallotWatch." path="/auth" noindex />
-      <div className="auth-card">
+      <SEO title="Sign in" description={`Sign in to ${BRAND.name}.`} path="/auth" noindex />
+      <div className="auth-column">
         <div className="auth-header">
-          <p className="auth-wordmark">{BRAND.name}</p>
-          <h1 className="auth-title">{isLogin ? 'Sign in' : 'Create your account'}</h1>
-          <p className="auth-tagline">Free. With an account you can keep your representatives on one page and browse bills in plain English.</p>
+          <span className="auth-mark" aria-hidden="true" />
+          <h1 className="auth-title">{copy.title}</h1>
+          <p className="auth-tagline">{copy.line}</p>
         </div>
 
-        {googleEnabled && (
+        {googleEnabled && mode !== 'forgot' && (
           <>
             <button type="button" className="auth-google" onClick={handleGoogleSignIn} disabled={loading}>
               <span className="auth-google-mark" aria-hidden="true">G</span>
               Continue with Google
             </button>
-            <div className="auth-divider"><span>or</span></div>
+            <p className="auth-or">or with email</p>
           </>
         )}
 
@@ -136,46 +178,54 @@ function Auth() {
             <label htmlFor="email">Email</label>
             <input
               id="email"
+              className="field"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
               required
             />
           </div>
 
-          <div className="auth-field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete={isLogin ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={isLogin ? 'Your password' : 'At least 6 characters'}
-              required
-              minLength={6}
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div className="auth-field">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                className="field"
+                type="password"
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                aria-describedby={mode === 'signup' ? 'password-hint' : undefined}
+                required
+                minLength={6}
+              />
+              {mode === 'signup' && <p id="password-hint" className="auth-hint">At least 6 characters.</p>}
+            </div>
+          )}
 
           {error && <div className="auth-error" role="alert">{error}</div>}
           {message && <div className="auth-message" role="status">{message}</div>}
 
           <button type="submit" className="auth-submit btn-primary" disabled={loading}>
-            {loading ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
+            {loading ? 'One moment' : copy.submit}
           </button>
         </form>
 
-        <p className="auth-switch">
-          {isLogin ? 'New here?' : 'Already have an account?'}{' '}
-          <button type="button" className="btn-text" onClick={switchMode}>
-            {isLogin ? 'Create an account' : 'Sign in'}
-          </button>
-        </p>
-
-        <div className="auth-footer">
-          <Link className="btn-text" to="/">Back to home</Link>
+        <div className="auth-links">
+          {mode === 'signin' && (
+            <>
+              <button type="button" className="btn-text" onClick={() => switchMode('forgot')}>Forgot password?</button>
+              <p>New here? <button type="button" className="btn-text" onClick={() => switchMode('signup')}>Sign up</button></p>
+            </>
+          )}
+          {mode === 'signup' && (
+            <p>Have an account? <button type="button" className="btn-text" onClick={() => switchMode('signin')}>Sign in</button></p>
+          )}
+          {mode === 'forgot' && (
+            <button type="button" className="btn-text" onClick={() => switchMode('signin')}>Back to sign in</button>
+          )}
         </div>
       </div>
     </div>

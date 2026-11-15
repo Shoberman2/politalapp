@@ -34,7 +34,7 @@ describe('ProtectedRoute', () => {
   it('shows a loading status, not the page and not a redirect, while the session loads', () => {
     state.loading = true
     renderAt('/bills')
-    expect(screen.getByRole('status').textContent).toMatch('Loading…')
+    expect(screen.getByRole('status')).toHaveAccessibleName('Checking your sign-in')
     expect(screen.queryByText('Secret page')).toBeNull()
     expect(screen.queryByTestId('auth')).toBeNull()
   })

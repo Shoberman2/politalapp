@@ -1,97 +1,56 @@
-/* SponsorFilterPill — inline dropdown filter for selecting a sponsor or
-   cosponsor. Per design-review D2 + Pass 5 token table. Reuses
-   .bills-filter-pill base; this file layers the dropdown chrome + states. */
+/* SponsorFilterPill: a filter control that opens a member search. The
+   control itself is the shared `.btn-toggle` (App.css); this file adds the
+   dropdown and its rows. Tokens only. */
 
-.sponsor-pill-container {
-  position: relative;
-  display: inline-block;
-}
+.sponsor-pill-container { position: relative; display: inline-block; }
 
-.sponsor-pill {
-  cursor: pointer;
-  /* Min 44px tap area for touch accessibility (Pass 6). */
-  min-height: 44px;
-}
+.sponsor-pill-container .sponsor-pill { min-height: 44px; }
 
-.sponsor-pill-active {
-  background: #EFF6FF;
-  border-color: #1D4ED8;
-}
-
-.sponsor-pill-label {
-  color: var(--text-secondary, #6B6861);
-  font-weight: 400;
-}
-
-.sponsor-pill-name {
-  color: var(--text-primary, #1A1A18);
-  font-weight: 500;
-}
-
-.sponsor-pill-placeholder {
-  color: var(--text-primary, #1A1A18);
-  font-weight: 500;
-}
+.sponsor-pill-label { color: var(--ink-2); font-weight: 400; }
+.sponsor-pill-name { color: var(--ink); font-weight: 600; }
 
 .sponsor-pill-clear {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 0 6px;
-  color: var(--text-secondary, #6B6861);
-  font-weight: 600;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px -8px -4px 2px;
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 50%;
   user-select: none;
 }
-.sponsor-pill-clear:hover {
-  color: var(--text-primary, #1A1A18);
-  background: var(--border-light, #F0EEEA);
-}
+.sponsor-pill-clear:hover { color: var(--ink); background: var(--fill-soft); }
 
-/* Dropdown chrome */
+/* Dropdown */
 .sponsor-pill-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 4px;
+  margin-top: 6px;
+  padding: 8px;
   width: 320px;
-  max-width: calc(100vw - 32px);
-  background: #FFFFFF;
-  border: 1px solid #E8E6E1;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  z-index: 50;
-  /* Minimal-functional motion per DESIGN.md */
+  max-width: calc(100vw - 40px);
+  background: var(--surface-raised);
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+  z-index: 60;
   animation: sponsor-pill-fade-in 150ms ease-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sponsor-pill-dropdown { animation: none; }
 }
 @keyframes sponsor-pill-fade-in {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.sponsor-pill-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 0;
-  border-bottom: 1px solid #E8E6E1;
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--text-primary, #1A1A18);
-  background: transparent;
-  outline: none;
-  box-sizing: border-box;
-}
-.sponsor-pill-input::placeholder {
-  color: var(--text-muted, #9C9789);
-}
+.sponsor-pill-dropdown .sponsor-pill-input { min-height: 44px; }
 
 .sponsor-pill-listbox {
   list-style: none;
-  margin: 0;
-  padding: 4px 0;
+  margin: 6px 0 0;
+  padding: 0;
   max-height: 280px;
   overflow-y: auto;
 }
@@ -101,62 +60,41 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  min-height: 40px;
+  min-height: 44px;
+  border-radius: var(--r-input);
   cursor: pointer;
   transition: background 100ms ease-out;
-  border-left: 2px solid transparent;
 }
-.sponsor-pill-row:hover {
-  background: var(--bg, #FAFAF7);
-}
-.sponsor-pill-row-focused {
-  background: var(--bg, #FAFAF7);
-  border-left-color: #1D4ED8;
-}
+.sponsor-pill-row:hover,
+.sponsor-pill-row-focused { background: var(--surface-dim); }
 
 .sponsor-pill-row-name {
-  font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
-  color: var(--text-primary, #1A1A18);
+  color: var(--ink);
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.sponsor-pill-row-party {
-  font-family: var(--font-mono, 'Geist Mono', monospace);
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
+/* Party is a coloured letter. */
+.sponsor-pill-row-party { font-size: 14px; font-weight: 600; }
+.sponsor-pill-row-party.party-tag-dem { color: var(--party-dem); }
+.sponsor-pill-row-party.party-tag-rep { color: var(--party-rep); }
+.sponsor-pill-row-party.party-tag-ind { color: var(--party-ind); }
 
-.sponsor-pill-row-state {
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-secondary, #6B6861);
-}
+.sponsor-pill-row-state { font-size: 14px; color: var(--ink-2); }
 
 /* Non-selectable rows: loading, empty, error */
 .sponsor-pill-loading,
 .sponsor-pill-empty,
 .sponsor-pill-error {
   cursor: default;
-  font-style: italic;
-  color: var(--text-secondary, #6B6861);
-  font-size: 13px;
+  color: var(--ink-2);
+  font-size: 15px;
 }
 .sponsor-pill-loading:hover,
 .sponsor-pill-empty:hover,
-.sponsor-pill-error:hover {
-  background: transparent;
-}
-.sponsor-pill-error {
-  color: #DC2626;
-  font-style: normal;
-}
-
-.sponsor-pill-loading-text {
-  font-style: italic;
-}
+.sponsor-pill-error:hover { background: transparent; }
+.sponsor-pill-error { color: var(--error); }

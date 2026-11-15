@@ -1,150 +1,98 @@
+/* /my-representative. Buttons and `.field` come from App.css; this file is
+   layout. Everything is scoped to the page except `.loading-spinner`, which
+   other pages also use. */
 .my-politician {
-  max-width: 900px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 4px;
 }
 
-.page-header {
+.my-politician .page-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 40px;
 }
 
-.page-header h1 {
-  font-size: 2.5rem;
+.my-politician .page-header h1 {
+  font-size: clamp(36px, 5.4vw, 64px);
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin: 0 0 16px;
   font-family: var(--font-display);
 }
 
-.page-header p {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  margin: 0;
+.my-politician .page-header p {
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1.55;
+  max-width: 60ch;
+  margin: 0 auto;
 }
 
-/* Address Card */
-.address-card {
-  background: var(--surface);
-  border-radius: var(--radius-md);
-  padding: 2rem;
-  border: 1px solid var(--border);
-  margin-bottom: 2rem;
+/* Address form: no box, just the fields. */
+.my-politician .address-card {
+  margin-bottom: 64px;
 }
 
-.address-form {
+.my-politician .address-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 20px;
 }
 
-.form-row {
+.my-politician .form-row {
   display: flex;
-  gap: 1rem;
+  gap: 16px;
 }
 
-.form-group {
+.my-politician .form-group {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
-.form-group.full-width {
-  flex: 1 1 100%;
-}
+.my-politician .form-group.full-width { flex: 1 1 100%; }
+.my-politician .form-group.small { flex: 0 0 140px; }
 
-.form-group.small {
-  flex: 0 0 140px;
-}
-
-.form-group label {
+.my-politician .form-group label {
   font-weight: 500;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  color: var(--ink);
+  font-size: 15px;
 }
 
-.form-input {
-  padding: 0.875rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  transition: border-color 0.15s ease;
-  font-family: inherit;
-  background: var(--surface);
-  color: var(--text-primary);
-}
+.my-politician select.form-input { cursor: pointer; padding-right: 10px; }
 
-.form-input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.form-input::placeholder {
-  color: var(--text-muted);
-}
-
-/* Select styling */
-select.form-input {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231A1A18' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 2.5rem;
-  cursor: pointer;
-}
-
-.form-hint {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.form-hint a {
-  color: var(--accent);
-}
-
-.loading-text {
-  padding: 0.875rem 1rem;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.at-large-notice {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  border: 1px solid var(--accent);
-}
-
-.error-message {
+.my-politician .error-message {
+  max-width: none;
+  margin: 0;
+  padding: 14px 16px;
   background: var(--error-subtle);
   color: var(--error);
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  border: none;
+  border-radius: var(--r-input);
+  font-size: 16px;
+  text-align: left;
 }
 
-.form-actions {
+.my-politician .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 /* Button visuals come from the shared system in App.css. */
-.form-actions .btn-primary { flex: 1; }
+.my-politician .form-actions .btn-primary { flex: 1; }
 
 /* Loading */
-.loading-container {
+.my-politician .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3rem;
-  gap: 1rem;
+  padding: 48px 0;
+  gap: 16px;
 }
 
 .loading-spinner {
@@ -160,49 +108,51 @@ select.form-input {
   to { transform: rotate(360deg); }
 }
 
-.loading-container p {
-  color: var(--text-secondary);
-  font-size: 1rem;
+.my-politician .loading-container p {
+  color: var(--ink-2);
+  font-size: 16px;
 }
 
 /* Results */
-.representatives-results {
+.my-politician .representatives-results,
+.my-politician .favorites-section {
+  margin-bottom: 64px;
   animation: fadeIn 0.4s ease-out;
 }
 
-.representatives-results h2 {
-  font-size: 1.75rem;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
+.my-politician .representatives-results h2,
+.my-politician .favorites-section h2 {
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 8px;
   font-family: var(--font-display);
 }
 
-.results-subtitle {
-  color: var(--text-secondary);
-  margin: 0 0 1.5rem 0;
-  font-size: 0.95rem;
+.my-politician .favorites-section h2 { margin-bottom: 20px; }
+
+.my-politician .results-subtitle {
+  color: var(--ink-2);
+  margin: 0 0 32px;
+  font-size: 16px;
 }
 
-.rep-section {
-  margin-bottom: 2rem;
-}
+.my-politician .rep-section { margin-bottom: 32px; }
 
-.rep-section h3 {
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  margin: 0 0 1rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.my-politician .rep-section > h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 12px;
   font-family: var(--font-body);
-  font-weight: 500;
 }
 
-.rep-grid {
+.my-politician .rep-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 16px;
 }
 
 @keyframes fadeIn {
@@ -210,41 +160,20 @@ select.form-input {
   to { opacity: 1; }
 }
 
-/* Favorites Section */
-.favorites-section {
-  margin-bottom: 2rem;
-  animation: fadeIn 0.4s ease-out;
-}
-
-.favorites-section h2 {
-  font-size: 1.75rem;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-}
-
-.favorites-subtitle {
-  color: var(--text-secondary);
-  margin: 0 0 1.5rem 0;
-  font-size: 0.95rem;
-}
-
 /* Senators loading */
-.senators-loading,
-.senators-loading-standalone {
+.my-politician .senators-loading,
+.my-politician .senators-loading-standalone {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--bg);
-  border: 1px solid var(--border-light);
+  gap: 16px;
+  padding: 16px 0;
 }
 
-.senators-loading p,
-.senators-loading-standalone p {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+.my-politician .senators-loading p,
+.my-politician .senators-loading-standalone p,
+.my-politician .no-senators-message {
+  color: var(--ink-2);
+  font-size: 16px;
   margin: 0;
 }
 
@@ -255,37 +184,9 @@ select.form-input {
   border-width: 2px;
 }
 
-.no-senators-message {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  padding: 1rem 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .page-header h1 {
-    font-size: 1.75rem;
-  }
-
-  .address-card {
-    padding: 1.5rem;
-  }
-
-  .form-row {
-    flex-direction: column;
-  }
-
-  .form-group.small {
-    flex: 1;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .form-actions .btn-secondary {
-    order: 2;
-  }
-
+@media (max-width: 640px) {
+  .my-politician .form-row { flex-wrap: wrap; }
+  .my-politician .form-row .form-group:first-child { flex: 1 1 100%; }
+  .my-politician .form-group.small { flex: 1 1 120px; }
+  .my-politician .form-actions { flex-direction: column; align-items: stretch; }
 }

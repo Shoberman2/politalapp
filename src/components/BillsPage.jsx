@@ -51,16 +51,16 @@ function bumpMetric(name) {
 function getBillStatus(bill) {
   const text = (bill.latestAction?.text || '').toLowerCase()
   if (text.includes('became public law') || text.includes('signed by president')) {
-    return { key: 'law', label: 'Became Law', cls: 'st-law' }
+    return { key: 'law', label: 'Became law', cls: 'st-law' }
   }
   if (text.includes('passed house') && text.includes('passed senate')) {
-    return { key: 'both', label: 'Passed Both', cls: 'st-both' }
+    return { key: 'both', label: 'Passed House and Senate', cls: 'st-both' }
   }
   if (text.includes('passed house')) return { key: 'passed', label: 'Passed House', cls: 'st-passed' }
   if (text.includes('passed senate')) return { key: 'passed', label: 'Passed Senate', cls: 'st-passed' }
-  if (text.includes('committee')) return { key: 'committee', label: 'In Committee', cls: 'st-committee' }
+  if (text.includes('committee')) return { key: 'committee', label: 'In committee', cls: 'st-committee' }
   if (text.includes('introduced')) return { key: 'introduced', label: 'Introduced', cls: 'st-introduced' }
-  return { key: 'progress', label: 'In Progress', cls: 'st-progress' }
+  return { key: 'progress', label: 'In progress', cls: 'st-progress' }
 }
 
 const STATUS_FACETS = [
@@ -281,10 +281,6 @@ function BillsPage() {
     setChamberFacet(null)
   }
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  })
-
   if (loading) {
     return (
       <div className="bills-page-loading">
@@ -298,7 +294,7 @@ function BillsPage() {
     return (
       <div className="bills-page-error">
         <div className="error-message">{error}</div>
-        <button className="retry-button btn-primary" onClick={() => fetchBills(true)}>Try Again</button>
+        <button className="retry-button btn-primary" onClick={() => fetchBills(true)}>Try again</button>
       </div>
     )
   }
@@ -333,18 +329,12 @@ function BillsPage() {
       {/* ===== MASTHEAD ===== */}
       <header className="page-masthead">
         <div className="pm-inner">
-          <span className="pm-kicker kicker">Congressional Index / {formatCongressFilterLabel(congressFilter)}</span>
           <h1 className="pm-title">The Bills Desk</h1>
           <p className="pm-deck">Every bill introduced in the U.S. House and Senate, searchable, sourced and explained in plain English. Updated daily from the official Congress.gov record.</p>
           <p className="pm-deck pm-primer">
             New to this? A bill is a proposed law<InfoDot id="bill" />. Its label says where it started:
             H.R. means the House, S. means the Senate<InfoDot id="billNumber" />. Open any bill to read what it would do.
           </p>
-          <div className="pm-meta">
-            <span>{today}</span>
-            <span><b>{bills.length.toLocaleString()}</b> bills loaded</span>
-            <span>Source: <b>Congress.gov</b></span>
-          </div>
         </div>
       </header>
 
@@ -361,13 +351,13 @@ function BillsPage() {
               placeholder="Search by title, bill number (H.R. 4821), sponsor or keyword..."
             />
           </label>
-          <select className="filter-pill" aria-label="Congress" value={congressFilter} onChange={(e) => setCongressFilter(e.target.value)}>
+          <select className="field filter-select" aria-label="Congress" value={congressFilter} onChange={(e) => setCongressFilter(e.target.value)}>
             {BILL_CONGRESS_OPTIONS.map((congress) => (
               <option key={congress} value={String(congress)}>{formatCongressLabel(congress)}</option>
             ))}
             <option value="all">All Congresses Since 2001</option>
           </select>
-          <select className="filter-pill" aria-label="Bill type" value={billTypeFilter} onChange={(e) => setBillTypeFilter(e.target.value)}>
+          <select className="field filter-select" aria-label="Bill type" value={billTypeFilter} onChange={(e) => setBillTypeFilter(e.target.value)}>
             <option value="all">All bill types</option>
             <option value="hr">House Bills (H.R.)</option>
             <option value="s">Senate Bills (S.)</option>
@@ -423,13 +413,14 @@ function BillsPage() {
           <div className="facet">
             <h3>Status<InfoDot def="How far a bill has gotten on its way to becoming law: introduced, then studied in a committee, then passed by the House or Senate, then passed by both, then signed by the President. Most bills never leave committee." label="Status" glossaryLink={false} /></h3>
             <div className="facet-list">
-              <button className={`facet-item ${statusFacet === 'all' ? 'active' : ''}`} onClick={() => setStatusFacet('all')}>
+              <button className="facet-item btn-toggle" aria-pressed={statusFacet === 'all'} onClick={() => setStatusFacet('all')}>
                 <span>All bills</span><span className="c">{bills.length.toLocaleString()}</span>
               </button>
               {STATUS_FACETS.map((s) => (
                 <button
                   key={s.key}
-                  className={`facet-item ${statusFacet === s.key ? 'active' : ''}`}
+                  className="facet-item btn-toggle"
+                  aria-pressed={statusFacet === s.key}
                   onClick={() => setStatusFacet((cur) => (cur === s.key ? 'all' : s.key))}
                 >
                   <span className="facet-row"><span className="facet-status-dot" style={{ background: s.color }}></span>{s.label}</span>
@@ -446,7 +437,8 @@ function BillsPage() {
                 {facetData.policy.map((p) => (
                   <button
                     key={p.name}
-                    className={`facet-item ${policyFacet === p.name ? 'active' : ''}`}
+                    className="facet-item btn-toggle"
+                    aria-pressed={policyFacet === p.name}
                     onClick={() => setPolicyFacet((cur) => (cur === p.name ? null : p.name))}
                   >
                     <span>{p.name}</span><span className="c">{p.count.toLocaleString()}</span>
@@ -459,10 +451,10 @@ function BillsPage() {
           <div className="facet">
             <h3>Chamber<InfoDot id="chamber" /></h3>
             <div className="facet-list">
-              <button className={`facet-item ${chamberFacet === 'house' ? 'active' : ''}`} onClick={() => setChamberFacet((c) => (c === 'house' ? null : 'house'))}>
+              <button className="facet-item btn-toggle" aria-pressed={chamberFacet === 'house'} onClick={() => setChamberFacet((c) => (c === 'house' ? null : 'house'))}>
                 <span>House of Representatives</span><span className="c">{facetData.chamber.house.toLocaleString()}</span>
               </button>
-              <button className={`facet-item ${chamberFacet === 'senate' ? 'active' : ''}`} onClick={() => setChamberFacet((c) => (c === 'senate' ? null : 'senate'))}>
+              <button className="facet-item btn-toggle" aria-pressed={chamberFacet === 'senate'} onClick={() => setChamberFacet((c) => (c === 'senate' ? null : 'senate'))}>
                 <span>Senate</span><span className="c">{facetData.chamber.senate.toLocaleString()}</span>
               </button>
             </div>
@@ -473,21 +465,21 @@ function BillsPage() {
         <main className="results">
           <div className="results-bar">
             <div className="results-count">
-              Showing <b>{displayedBills.length.toLocaleString()}</b> of <b>{bills.length.toLocaleString()}</b> loaded / <span className="results-congress">{formatCongressFilterLabel(congressFilter)}</span>
+              Showing <b>{displayedBills.length.toLocaleString()}</b> of <b>{bills.length.toLocaleString()}</b> loaded · <span className="results-congress">{formatCongressFilterLabel(congressFilter)}</span>
               {searchTerm && <span className="results-filter"> matching "{searchTerm}"</span>}
               {sponsorFilter && <span className="results-filter"> sponsored by <b>{sponsorFilter.name}</b></span>}
               {cosponsorFilter && <span className="results-filter"> cosponsored by <b>{cosponsorFilter.name}</b></span>}
-              {searching && <span className="results-filter"> / searching...</span>}
+              {searching && <span className="results-filter"> · searching...</span>}
             </div>
-            <div className="results-sort">
+            <label className="results-sort">
               Sort
-              <select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
+              <select className="field" value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
                 <option value="latest">Latest action</option>
                 <option value="cosponsors">Most cosponsors</option>
                 <option value="introduced">Recently introduced</option>
                 <option value="number">Bill number</option>
               </select>
-            </div>
+            </label>
           </div>
 
           {displayedBills.length > 0 ? (
@@ -504,7 +496,7 @@ function BillsPage() {
 
               {hasMore && !isSearching && statusFacet === 'all' && !policyFacet && !chamberFacet && (
                 <div className="load-more">
-                  <button onClick={handleLoadMore} disabled={loadingMore} className="btn btn-ghost">
+                  <button onClick={handleLoadMore} disabled={loadingMore} className="btn-outline">
                     {loadingMore ? (<><span className="loading-spinner-small"></span> Loading...</>) : 'Load more bills'}
                   </button>
                 </div>
@@ -513,7 +505,7 @@ function BillsPage() {
           ) : (
             <div className="bills-empty">
               <p>No bills found matching your criteria</p>
-              <button className="btn btn-ghost" onClick={resetAll}>Reset filters</button>
+              <button className="btn-outline" onClick={resetAll}>Reset filters</button>
             </div>
           )}
         </main>
@@ -547,10 +539,17 @@ function formatDate(d) {
 function BillRow({ bill, onClick }) {
   const status = getBillStatus(bill)
   const sponsor = bill.sponsors?.[0] || bill.sponsor
-  const sponsorName = sponsor
+  const sponsorParty = sponsor?.party
+  const rawSponsorName = sponsor
     ? (sponsor.fullName || sponsor.name || `${sponsor.firstName || ''} ${sponsor.lastName || ''}`.trim())
     : null
-  const sponsorParty = sponsor?.party
+  // Congress.gov names end in "[D-CO]" or "[R-OK-4]". Print that once, as the
+  // coloured party tag beside the name (district kept).
+  const bracket = rawSponsorName && sponsorParty
+    ? rawSponsorName.match(/\s*\[([A-Z]{1,3}-[A-Z]{2}(?:-[^\]]*)?)\]\s*$/)
+    : null
+  const sponsorName = bracket ? rawSponsorName.slice(0, bracket.index) : rawSponsorName
+  const sponsorTag = bracket ? bracket[1] : null
   const sponsorState = sponsor?.state
   const cosponsorCount = bill.cosponsors?.count
 
@@ -567,11 +566,11 @@ function BillRow({ bill, onClick }) {
             Sponsored by <span className="sp">{sponsorName}</span>
             {sponsorParty && (
               <span className={`ptag ${partyClass(sponsorParty)}`}>
-                {partyAbbrev(sponsorParty)}{sponsorState ? `-${sponsorState}` : ''}
+                {sponsorTag || `${partyAbbrev(sponsorParty)}${sponsorState ? `-${sponsorState}` : ''}`}
               </span>
             )}
-            {cosponsorCount > 0 && <> / with {cosponsorCount} cosponsor{cosponsorCount !== 1 ? 's' : ''}</>}
-            {bill.introducedDate && <> / introduced {formatDate(bill.introducedDate)}</>}
+            {cosponsorCount > 0 && <> · with {cosponsorCount} cosponsor{cosponsorCount !== 1 ? 's' : ''}</>}
+            {bill.introducedDate && <> · introduced {formatDate(bill.introducedDate)}</>}
           </div>
         )}
         {bill.latestAction?.text && (
@@ -579,11 +578,9 @@ function BillRow({ bill, onClick }) {
         )}
       </div>
       <div className="bill-side">
-        <span className={`bill-status ${status.cls}`}>
-          <span className="dot"></span>{status.label}
-        </span>
+        <span className={`bill-status ${status.cls}`}>{status.label}</span>
         {bill.latestAction?.actionDate && (
-          <div className="bill-lastaction">Last action<b>{formatDate(bill.latestAction.actionDate)}</b></div>
+          <div className="bill-lastaction">Last action {formatDate(bill.latestAction.actionDate)}</div>
         )}
       </div>
     </button>

@@ -30,8 +30,7 @@ function DataSourcesPage() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">Data sources</span>
-          <h1 className="ip-title">How we get our data</h1>
+          <h1 className="ip-title">How We Get Our Data</h1>
           <p className="ip-lede">
             Everything on {BRAND.name} comes from official public sources, shown as published and linked back to
             where it came from.
@@ -41,7 +40,7 @@ function DataSourcesPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Where it comes from</h2>
+          <h2>Where It Comes From</h2>
           <ul className="ip-sources">
             {DATA_SOURCES.map((s) => (
               <li key={s.name}>
@@ -52,7 +51,7 @@ function DataSourcesPage() {
                 <div className="ip-source-meta">
                   <span className="ip-cadence">{s.cadence}</span>
                   {s.cadenceNote && <span className="ip-cadence-note">{s.cadenceNote}</span>}
-                  <a className="btn-text btn-go" href={s.url} target="_blank" rel="noopener noreferrer">
+                  <a className="btn-text" href={s.url} target="_blank" rel="noopener noreferrer">
                     {s.linkLabel}
                   </a>
                 </div>
@@ -68,7 +67,7 @@ function DataSourcesPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>What we compute</h2>
+          <h2>What We Compute</h2>
           <ul className="ip-list">
             {COMPUTED.map((t) => <li key={t}>{t}</li>)}
           </ul>
@@ -78,40 +77,40 @@ function DataSourcesPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Take all of it</h2>
+          <h2>Take All Of It</h2>
           <p>
             Every member, bill, roll call and vote we hold is published every day as CSV and NDJSON files you can
             download in one go. The files are in the public domain (CC0 1.0): use them for anything.
           </p>
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/open#download">Download the full record</Link>
+            <Link className="btn-text" to="/open#download">Download the full record</Link>
           </div>
         </div>
       </section>
 
       <section>
         <div className="ip-inner">
-          <h2>What AI does here</h2>
+          <h2>What AI Does Here</h2>
           <ul className="ip-list">
             {AI.map((t) => <li key={t}>{t}</li>)}
           </ul>
           <p className="ip-muted ip-after">Procedural terms such as cloture are explained from a glossary we wrote, not by AI.</p>
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/methodology/ai-explanations">How AI explanations are made</Link>
+            <Link className="btn-text" to="/methodology/ai-explanations">How AI explanations are made</Link>
           </div>
         </div>
       </section>
 
       <section>
         <div className="ip-inner">
-          <h2>Spot an error?</h2>
+          <h2>Spot An Error?</h2>
           <p>
             Official records are sometimes corrected after they are published. If something here doesn’t match the
             source, tell us with a link to the source that shows it.
           </p>
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/methodology/corrections">Send a correction</Link>
-            <Link className="btn-text btn-go" to="/methodology">Methodology</Link>
+            <Link className="btn-text" to="/methodology/corrections">Send a correction</Link>
+            <Link className="btn-text" to="/methodology">Methodology</Link>
           </div>
         </div>
       </section>

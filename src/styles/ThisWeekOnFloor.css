@@ -1,68 +1,49 @@
-/* ThisWeekOnFloor: "Coming up, and just decided."
-   Broadsheet treatment per DESIGN.md: display-face heading, body face
-   body, Geist Mono for bill numbers / dates / tallies, thin rules, one accent.
-   Amber (#D97706) marks upcoming items; text uses the --warning token, which
-   App.css darkens for contrast on paper. Tokens come from App.css. */
+/* ThisWeekOnFloor: what the House has scheduled beside what Congress just
+   recorded. Inter for words, Geist Mono for bill numbers, dates and tallies.
+   Space separates rows; tokens come from App.css. */
 
 .twof {
-  --twof-amber: #D97706;
   font-family: var(--sans);
   color: var(--ink);
-  border-top: 1px solid var(--rule-strong);
-  padding-top: var(--space-5);
 }
 
-.twof-header { margin-bottom: var(--space-5); }
-
-.twof-kicker {
-  margin: 0 0 var(--space-2);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
+.twof-header { margin-bottom: var(--space-6); }
 
 .twof-heading {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--display);
   font-weight: 600;
-  font-size: 2.25rem;
-  line-height: 1.05;
-  letter-spacing: -0.025em;
+  font-size: clamp(30px, 4.4vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
 }
 
 .twof-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-6);
+  gap: var(--space-8) 72px;
 }
 .twof--single .twof-grid { grid-template-columns: minmax(0, 1fr); }
 
 .twof-col { min-width: 0; }
 
 .twof-col-title {
-  margin: 0 0 var(--space-3);
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--rule);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  margin: 0 0 var(--space-4);
+  font-family: var(--display);
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* Which week a group of scheduled items belongs to. */
+.twof-week-label {
+  margin: var(--space-5) 0 var(--space-1);
+  font-size: 15px;
+  font-weight: 600;
   color: var(--ink-2);
 }
-.twof-col--scheduled .twof-col-title { color: var(--warning); }
-
-.twof-dateline {
-  margin: var(--space-3) 0 var(--space-1);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
+.twof-week:first-of-type .twof-week-label { margin-top: 0; }
 
 .twof-mono { font-family: var(--mono); }
 
@@ -72,68 +53,59 @@
   padding: 0;
 }
 
-.twof-row {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--rule-light);
-}
-.twof-row:last-child { border-bottom: 0; }
-
-.twof-row--scheduled {
-  border-left: 2px solid var(--twof-amber);
-  padding-left: var(--space-3);
-}
+.twof-row { padding: 14px 0; }
 
 .twof-row-head,
 .twof-row-foot {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
+  gap: 2px var(--space-4);
 }
 
 .twof-num,
 .twof-bill {
   font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--accent);
   text-decoration: none;
   font-variant-numeric: tabular-nums;
 }
-.twof-bill { color: var(--ink-2); }
+/* `.bw a` (broadsheet.css) resets link colour; these win it back. */
+.twof a.twof-num, .twof a.twof-tell, .twof a.twof-more, .twof .twof-empty a, .twof .twof-note a { color: var(--accent); }
+.twof a.twof-src { color: var(--ink-3); }
+.twof-bill, .twof a.twof-bill { color: var(--ink-2); font-weight: 500; }
 .twof-num--plain { color: var(--ink); }
-a.twof-num:hover,
-a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
+.twof a.twof-num:hover,
+.twof a.twof-bill:hover,
+.twof a.twof-tell:hover,
+.twof a.twof-more:hover { color: var(--accent-hover); text-decoration: underline; }
 
-.twof-cat {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--warning);
-}
+.twof-cat { font-size: 14px; color: var(--ink-2); }
 
 .twof-title {
-  margin: var(--space-1) 0;
-  font-size: 0.9375rem;
-  line-height: 1.4;
+  margin: 4px 0;
+  font-size: 16px;
+  line-height: 1.45;
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.twof-row-foot { font-size: 0.8125rem; }
+.twof-row-foot { font-size: 14px; }
 
 .twof-tell {
   color: var(--accent);
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   text-decoration: none;
 }
-.twof-tell:hover { color: var(--accent-hover); text-decoration: underline; }
+.twof-tell:hover { color: var(--accent-hover); }
 
 .twof-src {
-  font-family: var(--mono);
-  font-size: 11px;
+  font-size: 14px;
   color: var(--ink-3);
   text-decoration: none;
 }
@@ -141,45 +113,43 @@ a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
 
 .twof-tally {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
-.twof-result {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--ink-2);
-}
+/* The result is a coloured word. */
+.twof-result { font-size: 15px; font-weight: 600; color: var(--ink-2); }
 .twof-result--pass { color: var(--success); }
 .twof-result--fail { color: var(--error); }
 
 .twof-empty,
 .twof-note {
-  margin: var(--space-3) 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  margin: 0 0 var(--space-3);
+  font-size: 16px;
+  line-height: 1.55;
   color: var(--ink-2);
+  max-width: 60ch;
 }
 .twof-empty a,
 .twof-note a { color: var(--accent); }
 
 .twof-more {
-  display: inline-block;
-  margin-top: var(--space-2);
-  font-family: var(--mono);
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--accent);
   text-decoration: none;
 }
-.twof-more:hover { text-decoration: underline; }
+.twof-week + .twof-more, .twof-more + .twof-more { display: flex; width: fit-content; }
+.twof-more:hover { color: var(--accent-hover); }
 
 .twof-footnote {
   margin: var(--space-4) 0 0;
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--rule-light);
-  font-size: 0.75rem;
+  font-size: 14px;
+  line-height: 1.5;
   color: var(--ink-3);
 }
 
@@ -190,13 +160,13 @@ a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
 }
 .twof-skel {
   display: block;
-  height: 10px;
-  border-radius: var(--radius-sm);
-  background: var(--rule-light);
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-dim);
   animation: twof-pulse 1.4s ease-in-out infinite;
 }
 .twof-skel--num { width: 72px; }
-.twof-skel--text { width: 88%; height: 12px; }
+.twof-skel--text { width: 88%; height: 14px; }
 .twof-skel--meta { width: 40%; }
 
 @keyframes twof-pulse {
@@ -204,28 +174,22 @@ a.twof-bill:hover { color: var(--accent-hover); text-decoration: underline; }
   50% { opacity: 0.55; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .twof-skel { animation: none; }
-}
-
 @media (max-width: 760px) {
-  .twof-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
-  .twof-heading { font-size: 1.75rem; }
+  .twof-grid { grid-template-columns: minmax(0, 1fr); }
+  .twof-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 }
 
-/* Page wrapper for /this-week. The hero, kicker, H1 and lede come from the
-   shared info-page system (InfoPage.css, `.ip-wide` column, `--maxw`). The
-   floor component sits in its own body below, outside `.info-page`, on the
-   same `--maxw` column. */
+/* Page wrapper for /this-week. The hero, H1 and lede come from the shared
+   info-page system (InfoPage.css, `.ip-wide` column, `--maxw`). The floor
+   component sits in its own body below, outside `.info-page`, on the same
+   `--maxw` column. */
 .twof-page { background: var(--bg); }
 .twof-page .ip-hero .ip-lede { max-width: 44rem; }
-.twof-page .info-page .ip-hero { border-bottom: 1px solid var(--rule); }
 .twof-page-body {
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: clamp(32px, 5vh, 48px) 24px clamp(48px, 8vh, 80px);
+  padding: 8px 32px 0;
 }
-.twof-page-body > .twof { border-top: 0; padding-top: 0; }
 @media (max-width: 640px) {
-  .twof-page-body { padding-left: 16px; padding-right: 16px; }
+  .twof-page-body { padding-left: 20px; padding-right: 20px; }
 }

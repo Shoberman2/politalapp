@@ -91,8 +91,11 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
           {showFavorite && (
             <button
-              className={`favorite-btn ${favorited ? 'active' : ''}`}
+              className={`favorite-btn btn-icon ${favorited ? 'active' : ''}`}
               onClick={handleFavoriteClick}
+              type="button"
+              aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+              aria-pressed={favorited}
               title={favorited ? 'Remove from favorites' : 'Add to favorites'}
             >
               <svg viewBox="0 0 24 24" fill={favorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">

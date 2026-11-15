@@ -10,7 +10,7 @@ import '../styles/InfoPage.css'
 // reviewed by counsel. Have counsel review it before relying on it, and update
 // it whenever data handling changes.
 
-const LAST_UPDATED = 'October 6, 2026'
+const LAST_UPDATED = 'November 14, 2026'
 const REPO_URL = 'https://github.com/Shoberman2/politalapp'
 
 function ContactLine() {
@@ -31,8 +31,7 @@ function PrivacyPage() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">Privacy</span>
-          <h1 className="ip-title">Privacy notice</h1>
+          <h1 className="ip-title">Privacy Notice</h1>
           <p className="ip-lede">
             Member profiles, record cards, bills, roll call votes, this week’s votes and the members list need no
             account. The app’s tools (your representatives, the bills browser, the district map, the shutdown
@@ -45,7 +44,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>The short version</h2>
+          <h2>The Short Version</h2>
           <ul className="ip-bullets">
             <li>
               Reading record cards, votes and the members list requires no account. The site sets no tracking or
@@ -64,7 +63,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Finding your representatives</h2>
+          <h2>Finding Your Representatives</h2>
           <p>
             When you look up a ZIP code, your browser sends it to the free Zippopotam.us service to find your state.
             When you enter a street address, your browser sends it to the U.S. Census Bureau’s public geocoder to find
@@ -77,7 +76,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Tell your rep</h2>
+          <h2>Tell Your Rep</h2>
           <p>
             The Tell your rep panel prefills a factual outline of a vote or bill. You write the message, copy it, and
             open your representative’s official contact page to send it. The text you write stays in your browser:
@@ -106,7 +105,8 @@ function PrivacyPage() {
             tracker, campaign-finance comparison and AI Congress) and for an API
             key; member profiles, record cards, bills, votes and the members list don’t need one. Accounts are handled by Supabase
             Auth. It stores your email address and a hash of your password, never the password itself, and we keep a
-            profile record linked to it. Your signed-in session is kept in your browser’s local storage.
+            profile record linked to it. If you ask to reset your password, a one-time link is emailed to your
+            account address. Your signed-in session is kept in your browser’s local storage.
           </p>
           {SHOW_BRIEFINGS && (
             <p>
@@ -120,7 +120,7 @@ function PrivacyPage() {
       {SHOW_BILL_ALERTS && (
       <section>
         <div className="ip-inner">
-          <h2>Bill alerts</h2>
+          <h2>Bill Alerts</h2>
           <p>
             If you watch a bill, we store which bills you follow and your alert settings, linked to your account. If
             you turn on email alerts, we send them to your account email address through Resend, our email delivery
@@ -134,7 +134,7 @@ function PrivacyPage() {
       {SHOW_BRIEFINGS && (
       <section>
         <div className="ip-inner">
-          <h2>Civic briefings and Gmail</h2>
+          <h2>Civic Briefings And Gmail</h2>
           <p>
             Civic briefings are an optional paid feature that emails you a summary about a member or district you
             choose. If you connect Gmail to deliver them, we ask Google only for your email address and permission
@@ -167,7 +167,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>The API and MCP server</h2>
+          <h2>The API And MCP Server</h2>
           <p>
             The public API and MCP server work without a key. To enforce rate limits, we compute a keyed hash of the
             caller’s IP address (a salted HMAC, so the address can’t be recovered from it) and keep short-lived
@@ -184,7 +184,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Cookies and local storage</h2>
+          <h2>Cookies And Local Storage</h2>
           <p>
             We don’t set advertising or tracking cookies. Everything below stays in your browser; you can remove it
             at any time by clearing this site’s data. The site’s local storage holds:
@@ -195,7 +195,7 @@ function PrivacyPage() {
               <code>wrote:v1</code>: the messages you marked as sent: the member, the bill, vote, or member page it was
               about, and when you marked it. Never the message text. Up to 200 entries.
             </li>
-            <li><code>bw-theme</code>: your light or dark theme choice.</li>
+            <li><code>bw-theme</code>: your light or dark theme choice, set under Account when you are signed in.</li>
             <li><code>chamber_scrubber_taught_v1</code>: that you have seen the chamber chart hint.</li>
             <li>Your signed-in session (Supabase’s <code>sb-…-auth-token</code>), only if you sign in.</li>
             <li>
@@ -206,18 +206,18 @@ function PrivacyPage() {
           </ul>
           <p>
             Session storage (cleared when you close the tab) remembers whether you dismissed the shutdown banner
-            (<code>shutdownBannerDismissed</code>). Google and Stripe may set their own cookies on their pages when you
-            sign in with Google or pay.
+            (<code>shutdownBannerDismissed</code>). Stripe may set its own cookies on its pages when you pay. Google may do the same if Google sign-in is
+            offered and you use it.
           </p>
         </div>
       </section>
 
       <section>
         <div className="ip-inner">
-          <h2>Who we share data with</h2>
+          <h2>Who We Share Data With</h2>
           <p>
             Only the service providers that run the features above: Supabase (accounts and database), Vercel
-            (hosting and analytics), Resend (alert email), Stripe (payments), Google (sign-in and Gmail delivery, if
+            (hosting and analytics), Resend (alert email), Stripe (payments), Google (Gmail delivery and, where it is offered, sign-in, if
             you use them), and Upstash (rate-limit counters, where enabled). Bill text and public summaries are sent to an AI
             provider to write explanations; no personal information is included. We may disclose information if the
             law requires it.
@@ -227,7 +227,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Retention and deletion</h2>
+          <h2>Retention And Deletion</h2>
           <p>
             Account data is kept while your account exists. Alert delivery records are deleted on the schedule
             above. API usage logs are kept to operate and secure the API. To delete your account and the data linked
@@ -250,7 +250,7 @@ function PrivacyPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Changes and contact</h2>
+          <h2>Changes And Contact</h2>
           <p>
             If we change how we handle information, we’ll update this page and the date at the top. Because the code
             is open source, you can also check what the site does on{' '}
@@ -258,8 +258,8 @@ function PrivacyPage() {
             Questions about this notice: <ContactLine />.
           </p>
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/terms">Terms of use</Link>
-            <Link className="btn-text btn-go" to="/contact">Contact</Link>
+            <Link className="btn-text" to="/terms">Terms of use</Link>
+            <Link className="btn-text" to="/contact">Contact</Link>
           </div>
         </div>
       </section>

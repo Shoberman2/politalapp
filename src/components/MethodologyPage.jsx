@@ -3,6 +3,7 @@ import SEO from './SEO'
 import InfoIndex from './InfoIndex'
 import { BRAND } from '../config/brand'
 import { METHODOLOGY_PAGES } from '../data/openSource'
+import { titleCase } from '../data/infoPages'
 import '../styles/InfoPage.css'
 
 const REPO_BLOB = 'https://github.com/Shoberman2/politalapp/blob/main/'
@@ -24,8 +25,7 @@ function MethodologyIndex() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">Methodology</span>
-          <h1 className="ip-title">How each number is made</h1>
+          <h1 className="ip-title">How Each Number Is Made</h1>
           <p className="ip-lede">
             For every feature that computes or explains something: the source behind it, how often it updates, and
             the caveat that belongs beside it.
@@ -37,7 +37,7 @@ function MethodologyIndex() {
         <div className="ip-inner">
           <InfoIndex items={items} />
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/data-sources">How we get our data</Link>
+            <Link className="btn-text" to="/data-sources">How we get our data</Link>
           </div>
         </div>
       </section>
@@ -56,9 +56,7 @@ function MethodologyDetail({ page }) {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <Link className="btn-text ip-back" to="/methodology">Back to methodology</Link>
-          <span className="ip-kicker">Methodology</span>
-          <h1 className="ip-title">{page.title}</h1>
+          <h1 className="ip-title">{titleCase(page.title)}</h1>
           <p className="ip-lede">{page.dek}</p>
         </div>
       </section>
@@ -87,14 +85,14 @@ function MethodologyDetail({ page }) {
           <ul className="ip-list">
             {page.sections.map((section) => (
               <li key={section.heading}>
-                <h2>{section.heading}</h2>
+                <h2>{titleCase(section.heading)}</h2>
                 <p>{section.body}</p>
               </li>
             ))}
           </ul>
           {page.related && (
             <div className="ip-links">
-              <Link className="btn-text btn-go" to={page.related.to}>{page.related.label}</Link>
+              <Link className="btn-text" to={page.related.to}>{page.related.label}</Link>
             </div>
           )}
         </div>
@@ -102,7 +100,7 @@ function MethodologyDetail({ page }) {
 
       <section>
         <div className="ip-inner">
-          <h2>In the code</h2>
+          <h2>In The Code</h2>
           <ul className="ip-list ip-code-list">
             {page.codeRefs.map((ref) => (
               <li key={ref}>
@@ -111,7 +109,7 @@ function MethodologyDetail({ page }) {
             ))}
           </ul>
           <div className="ip-links">
-            <Link className="btn-text ip-back" to="/methodology">Back to methodology</Link>
+            <Link className="btn-text" to="/methodology">Back to methodology</Link>
           </div>
         </div>
       </section>

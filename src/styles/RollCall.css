@@ -1,6 +1,7 @@
 /* Roll-call page (/vote/…) and the shared record tables used by the
-   server-rendered member pages. Editorial: type carries the hierarchy, thin
-   rules divide, color is reserved for yea/nay and the accent. */
+   server-rendered member pages (api/_lib/renderPage.js renders these class
+   names too: restyle in place, do not rename). Type carries the hierarchy,
+   space separates; a hairline sits only between rows of the vote table. */
 
 .rc {
   width: 100%;
@@ -10,90 +11,101 @@
 }
 .rc-loading, .rc-error {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 80px 24px; text-align: center; color: var(--text-secondary);
+  padding: 80px 24px; text-align: center; color: var(--ink-2);
 }
-.rc-loading p { font-family: var(--sans); color: var(--text-secondary); margin-top: 16px; }
-.rc-error h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.75rem; margin-bottom: 8px; }
+.rc-loading p { color: var(--ink-2); margin-top: 16px; }
+.rc-error h1 { font-family: var(--display); font-weight: 600; font-size: clamp(36px, 5.4vw, 64px); letter-spacing: -0.04em; line-height: 1; margin-bottom: 16px; }
+.rc-error a { color: var(--accent); }
 
 .rc-crumb {
-  display: flex; gap: 12px; flex-wrap: wrap;
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: 48px;
+  display: flex; gap: 10px; flex-wrap: wrap;
+  font-size: 14px; color: var(--ink-3); margin-bottom: 32px;
 }
 .rc-crumb a { color: var(--accent); text-decoration: none; }
 .rc-crumb a:hover { text-decoration: underline; }
-.rc-crumb-sep { color: var(--border); }
+.rc-crumb-sep { color: var(--ink-3); }
 
-.rc-masthead { padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
-.rc-kicker {
-  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--text-secondary); margin-bottom: 16px;
-}
+/* The question leads; where and when it was asked sits under it. `order`
+   keeps that true for the server-rendered markup as well. */
+.rc-masthead { display: flex; flex-direction: column; margin-bottom: 56px; }
+.rc-title { order: 1; }
+.rc-standfirst { order: 2; }
+.rc-kicker { order: 3; }
+.rc-tally, .rc-standfirst.rc-muted { order: 4; }
+.rc-actions { order: 5; }
+
+.rc-kicker { font-size: 15px; line-height: 1.5; color: var(--ink-2); }
 .rc-title {
-  font-family: var(--font-display); font-weight: 600; font-size: clamp(1.75rem, 4vw, 2.75rem);
-  line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--text-primary);
+  font-family: var(--display); font-weight: 600; font-size: clamp(32px, 4.6vw, 56px);
+  line-height: 1.05; letter-spacing: -0.035em; margin: 0 0 16px; color: var(--ink);
+  max-width: 24ch; overflow-wrap: anywhere;
 }
-.rc-title a { color: var(--accent); text-decoration: none; font-family: var(--sans); font-weight: inherit; }
+.rc-title a { color: var(--accent); text-decoration: none; }
 .rc-title a:hover { text-decoration: underline; }
-.rc-standfirst { font-size: 1.125rem; line-height: 1.5; color: var(--text-secondary); max-width: 72ch; margin: 0 0 24px; }
-.rc-muted { color: var(--text-muted); }
+.rc-standfirst { font-size: 18px; line-height: 1.5; color: var(--ink-2); max-width: 70ch; margin: 0 0 12px; }
+.rc-muted { color: var(--ink-3); }
 
-.rc-tally { border-top: 2px solid var(--rule-strong); padding-top: 16px; margin: 24px 0; max-width: 720px; }
-.rc-tally-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 12px; }
-.rc-tally-numbers { font-family: var(--font-mono); font-size: 1.125rem; }
-.rc-yea { color: var(--success); }
-.rc-nay { color: var(--error); }
-.rc-result { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.rc-tally { margin: 32px 0 20px; max-width: 720px; width: 100%; }
+.rc-tally-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; }
+.rc-tally-numbers { font-family: var(--mono); font-size: 18px; }
+.rc-yea { color: var(--success); font-weight: 600; }
+.rc-nay { color: var(--error); font-weight: 600; }
+/* The result is a coloured word. */
+.rc-result { font-size: 16px; font-weight: 600; }
+.rc-table .rc-result { font-size: 15px; }
 .rc-result-passed { color: var(--success); }
 .rc-result-failed { color: var(--error); }
-.rc-tally-bar { display: flex; height: 8px; margin-top: 12px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.rc-tally-bar { display: flex; height: 8px; margin-top: 12px; background: var(--surface-dim); border-radius: 4px; overflow: hidden; }
 .rc-tally-yea { background: var(--success); display: block; }
 .rc-tally-nay { background: var(--error); display: block; }
-.rc-party { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+.rc-party { font-family: var(--mono); font-size: 13px; color: var(--ink-3); margin-top: 12px; }
 
-.rc-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.rc-actions { display: flex; gap: 4px 24px; flex-wrap: wrap; }
 
-.rc-section { margin-bottom: 48px; }
-.rc-section-label {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: 12px;
-}
-.rc-section-title { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 24px; }
+/* The heading leads; the count sits under it (server markup has it first). */
+.rc-section { display: flex; flex-direction: column; margin: 56px 0; }
+.rc-section-title { order: -1; font-family: var(--display); font-weight: 600; font-size: clamp(24px, 2.8vw, 32px); line-height: 1.1; letter-spacing: -0.025em; margin: 0 0 8px; color: var(--ink); }
+.rc-section-label { font-size: 15px; color: var(--ink-2); margin-bottom: 20px; }
 
 .rc-filter { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+/* Matches `.field` in App.css (the server-rendered input carries no class). */
 .rc-filter input {
-  flex: 1 1 240px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface); color: var(--text-primary); font: inherit; font-size: 14px;
+  flex: 1 1 240px; min-width: 0; min-height: 52px; padding: 0 16px; border: none; border-radius: var(--r-input);
+  background: var(--surface-dim); color: var(--ink); font-family: var(--sans); font-size: 16px; outline: none;
+  transition: box-shadow .15s ease;
 }
+.rc-filter input::placeholder { color: var(--ink-3); }
+.rc-filter input:focus { box-shadow: 0 0 0 2px var(--accent); }
 .rc-filter-positions { display: flex; gap: 4px; flex-wrap: wrap; }
 
-.rc-table-wrap { overflow-x: auto; border-top: 1px solid var(--rule-strong); }
-.rc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rc-table-wrap { overflow-x: auto; }
+.rc-table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .rc-table th {
-  text-align: left; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted); font-weight: 500; padding: 12px 12px 8px 0; border-bottom: 1px solid var(--border);
+  text-align: left; font-size: 13px; color: var(--ink-3); font-weight: 600;
+  padding: 12px 12px 8px 0; border-bottom: 1px solid var(--rule);
 }
-.rc-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+.rc-table td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule-light); vertical-align: top; }
 .rc-table a { color: var(--accent); text-decoration: none; }
 .rc-table a:hover { text-decoration: underline; }
-.rc-mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
-.rc-position { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; }
+.rc-mono { font-family: var(--mono); font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.rc-position { font-size: 15px; font-weight: 600; white-space: nowrap; }
 .rc-position-yea { color: var(--success); }
 .rc-position-nay { color: var(--error); }
-.rc-position-present, .rc-position-not-voting { color: var(--text-muted); }
+.rc-position-present, .rc-position-not-voting { color: var(--ink-3); }
 
-.rc-colophon { font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 16px; }
-.rc-colophon a { color: var(--text-secondary); }
+.rc-colophon { font-size: 14px; line-height: 1.6; color: var(--ink-3); max-width: 80ch; }
+.rc-colophon a { color: var(--ink-2); }
 
 /* Server-rendered member page: terms list */
-.pol-terms { list-style: none; padding: 0; margin: 0; font-size: 14px; color: var(--text-secondary); }
-.pol-terms li { padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+.pol-terms { list-style: none; padding: 0; margin: 0; font-size: 16px; color: var(--ink-2); }
+.pol-terms li { padding: 6px 0; }
 
 @media (max-width: 640px) {
-  .rc { padding: 24px 16px 64px; }
+  .rc { padding: 24px 20px 64px; }
   .rc-crumb { margin-bottom: 24px; }
-  .rc-masthead { margin-bottom: 32px; }
+  .rc-masthead { margin-bottom: 40px; }
+  .rc-filter-positions .btn-toggle { padding-left: 12px; padding-right: 12px; }
 }
 
-/* The result chip followed by its ⓘ (Term.jsx). */
+/* The result word followed by its ⓘ (Term.jsx). */
 .rc-result-wrap { display: inline-flex; align-items: center; gap: 4px; }

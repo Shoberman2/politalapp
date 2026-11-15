@@ -48,7 +48,7 @@ function AiCongress() {
       <div className="ai-disclaimer">
         This is an AI simulation of legislative debate, not a rating of real members.
         These are not real votes or legislation.{' '}
-        <Link to="/all">See real Congressional votes &rarr;</Link>
+        <Link to="/all">See real Congressional votes</Link>
       </div>
 
       <div className="ai-congress-header">
@@ -60,8 +60,7 @@ function AiCongress() {
 
       {sessions.length === 0 ? (
         <div className="ai-empty-state">
-          <h2>AI Congress hasn't convened yet.</h2>
-          <p>The first session is coming soon.</p>
+          <h2>AI Congress Hasn't Convened Yet</h2>
         </div>
       ) : (
         <div className="ai-sessions-list">
@@ -88,13 +87,6 @@ function AiCongress() {
                 )}
               </div>
               <div className="ai-session-meta">
-                {session.status === 'failed' ? (
-                  <span className="ai-session-failed-tag">(incomplete)</span>
-                ) : (
-                  <span className="ai-session-score">
-                    {session.bills_passed}/{session.total_bills}
-                  </span>
-                )}
                 <span className="ai-session-date">
                   {formatDate(session.created_at)}
                 </span>

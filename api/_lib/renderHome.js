@@ -42,7 +42,7 @@ function latestVoteHtml(v) {
     : ''
   const standfirst = v.bill?.title || (v.description && v.description !== v.question ? v.description : '')
   return `<section class="home-latest" aria-labelledby="home-latest-h">
-      <h2 id="home-latest-h">The latest recorded vote</h2>
+      <h2 id="home-latest-h">The Latest Recorded Vote</h2>
       <p class="home-vote-meta">${escapeHtml(v.chamber)} roll call ${v.roll} · ${escapeHtml(ordinal(v.congress))} Congress${v.voted_at ? ` · ${escapeHtml(fmtDate(v.voted_at))}` : ''}</p>
       <p class="home-vote-question"><a href="${path}">${escapeHtml(voteHeading(v))}</a>${bill}</p>
       ${standfirst ? `<p class="home-vote-standfirst">${escapeHtml(clampText(standfirst, 220))}</p>` : ''}
@@ -59,7 +59,7 @@ function recentVotesHtml(list) {
     return `<li><a href="${path}">${escapeHtml(v.chamber)} roll call ${v.roll}: ${escapeHtml(voteHeading(v))}</a>${bill}${v.voted_at ? ` · ${escapeHtml(fmtDate(v.voted_at))}` : ''}${summary ? ` · ${escapeHtml(summary)}` : ''}</li>`
   }).join('')
   return `<section class="home-recent" aria-labelledby="home-recent-h">
-      <h2 id="home-recent-h">Recent roll calls</h2>
+      <h2 id="home-recent-h">Recent Roll Calls</h2>
       <ol>${items}</ol>
       <p><a href="/this-week">This week on the floor</a></p>
     </section>`
@@ -83,25 +83,25 @@ export function renderHomeBody(data) {
   return chrome(`<div class="bw landing">
   <section class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title">How did your representative vote this week?</h1>
+      <h1 class="hero-title">How Did Your Representative Vote This Week?</h1>
       <p class="hero-mission">${escapeHtml(BRAND.mission)}</p>
       <p class="home-about">${escapeHtml(HOME_ABOUT)}</p>
-      <p><a class="btn-primary" href="/auth?next=%2Fmy-representative">Find my reps</a></p>
+      <p><a class="btn-primary" href="/auth?mode=signup&amp;next=%2Fmy-representative">Find my reps</a></p>
     </div>
   </section>
   ${latest ? latestVoteHtml(latest) : ''}
   ${recent.length ? recentVotesHtml(recent) : ''}
   <section class="home-primer" aria-labelledby="home-primer-h">
-    <h2 id="home-primer-h">Congress in one minute</h2>
+    <h2 id="home-primer-h">Congress In One Minute</h2>
     <p>No background in politics needed. Every bill is explained in plain English, and every term is defined in the <a href="/glossary">glossary</a>.</p>
     <ol>${primer}</ol>
   </section>
   <section class="home-features" aria-labelledby="home-features-h">
-    <h2 id="home-features-h">What you can do on ${escapeHtml(BRAND.name)}</h2>
+    <h2 id="home-features-h">What You Can Do On ${escapeHtml(BRAND.name)}</h2>
     <ul>${features}</ul>
   </section>
   <section class="home-faq" aria-labelledby="home-faq-h">
-    <h2 id="home-faq-h">Questions</h2>
+    <h2 id="home-faq-h">Questions, Answered</h2>
     ${faq}
   </section>
   <footer class="home-links">${links} · <a href="/llms.txt">For agents</a>${recorded ? `<p class="home-updated">Data updated ${escapeHtml(recorded)}.</p>` : ''}</footer>

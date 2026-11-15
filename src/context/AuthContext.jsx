@@ -136,6 +136,19 @@ export function AuthProvider({ children }) {
     return { data, error }
   }
 
+  // Emails a link that lands on /auth/reset (through /auth/callback, which
+  // turns the link's code into a session) so the reader can set a new password.
+  const resetPassword = async (email) => {
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent('/auth/reset')}`
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    return { data, error }
+  }
+
+  const updatePassword = async (password) => {
+    const { data, error } = await supabase.auth.updateUser({ password })
+    return { data, error }
+  }
+
   // Sign this device out even when the network call fails: on an error, fall
   // back to a local-only sign-out; if that fails too, remove the stored
   // session by hand. The in-memory session is cleared either way.
@@ -184,6 +197,8 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signInWithGoogle,
+    resetPassword,
+    updatePassword,
     signOut,
     refreshProfile
   }

@@ -1,89 +1,81 @@
 /* The one layout for every explanatory page: /how-it-works, /data-sources,
-   /methodology (+ topics), /about, /contact, /privacy, /terms, and the
-   /this-week hero.
-   Editorial and quiet (DESIGN.md): one reading column, a hero with an optional
-   mono kicker, one display H1 (.ip-title) and a one-sentence lede, sections split
-   by thin rules, and links as `.btn-text .btn-go` arrow actions from App.css.
-   Type follows the Inter scale (display 600, tight tracking, no italic accents).
-   Fonts come only from the --serif / --sans / --mono tokens. Pages should not
-   need their own stylesheet; add a pattern here instead. (/offices is the one
-   exception: it has its own dossier layout in Offices.css.) */
+   /methodology (+ topics), /about, /contact, /privacy, /terms, /glossary and
+   the /this-week hero.
+   House rules (DESIGN.md, 2026-11-14): a centered hero with one Title Case H1
+   (.ip-title) and a one-sentence lede, then a left-aligned reading column.
+   Sections are separated by space, never by a line. No labels above
+   headlines, no numbered steps, no arrows. Links are `.btn-text` actions from
+   App.css. Fonts come only from the --serif / --sans / --mono tokens. Pages
+   should not need their own stylesheet; add a pattern here instead.
+   (/offices is the one exception: it has its own layout in Offices.css.) */
 
 .info-page { color: var(--ink); background: var(--bg); }
-.info-page section { border-bottom: 1px solid var(--rule); }
-.info-page section:last-child { border-bottom: 0; }
 .info-page .ip-inner {
   max-width: 720px;
   margin: 0 auto;
-  padding: clamp(40px, 7vh, 64px) 24px;
+  padding: calc(var(--section-y) / 2) 24px;
 }
+/* The closing band (or the footer) brings its own space above it. */
+.info-page section:last-child:not(.ip-hero) .ip-inner { padding-bottom: 0; }
 /* Wider column for pages that carry a data component (/this-week). */
 .info-page.ip-wide .ip-inner { max-width: var(--maxw); }
 
 /* ---------- Hero ---------- */
-.info-page .ip-hero .ip-inner { padding-top: clamp(56px, 10vh, 104px); padding-bottom: clamp(40px, 7vh, 64px); }
-.info-page .ip-kicker {
-  display: block;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  margin: 0 0 16px;
+.info-page .ip-hero .ip-inner {
+  max-width: 920px;
+  padding-top: clamp(64px, 9vw, 120px);
+  text-align: center;
 }
+.info-page.ip-wide .ip-hero .ip-inner { max-width: var(--maxw); }
 .info-page .ip-title {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: clamp(36px, 5vw, 52px);
-  line-height: 1.04;
-  letter-spacing: -0.035em;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   text-wrap: balance;
   color: var(--ink);
-  margin: 0;
+  margin: 0 auto;
+  max-width: 18ch;
 }
 .info-page .ip-lede {
-  margin-top: 18px;
-  font-size: clamp(17px, 1.6vw, 18px);
+  margin: 24px auto 0;
+  font-size: clamp(17px, 1.6vw, 19px);
   line-height: 1.55;
   color: var(--ink-2);
-  max-width: 36rem;
+  max-width: 40rem;
   text-wrap: pretty;
 }
 .info-page .ip-updated {
-  margin-top: 18px;
-  font-family: var(--mono);
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
+  margin-top: 20px;
+  font-size: 15px;
   color: var(--ink-3);
 }
-.info-page .ip-back { font-size: 14px; }
-.info-page .ip-hero .ip-back { display: inline-flex; margin-bottom: 28px; }
-.info-page .ip-back::before { content: "\2190"; }
 
 /* ---------- Type ---------- */
 .info-page h2 {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: clamp(28px, 3.4vw, 40px);
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  font-size: clamp(30px, 3.6vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
   text-wrap: balance;
   color: var(--ink);
-  margin: 0 0 20px;
+  margin: 0 0 24px;
 }
 .info-page h3 {
   font-family: var(--sans);
-  font-size: 20px;
+  font-size: clamp(20px, 2vw, 24px);
   font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  margin: 0 0 6px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
   color: var(--ink);
 }
 .info-page p,
-.info-page li { font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.info-page li { font-size: 17px; line-height: 1.6; color: var(--ink-2); }
 .info-page p { margin: 0; }
-.info-page p + p { margin-top: 12px; }
+.info-page p + p { margin-top: 14px; }
 .info-page strong { color: var(--ink); font-weight: 600; }
 .info-page p a,
 .info-page li > a:not([class]) { color: var(--accent); text-decoration: none; }
@@ -92,234 +84,169 @@
 .info-page code {
   font-family: var(--mono);
   font-size: 0.86em;
-  padding: 1px 5px;
-  border-radius: var(--r-sm, 4px);
-  background: var(--bg-tint);
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--surface-dim);
+  overflow-wrap: anywhere;
 }
-.info-page .ip-muted { font-size: 14px; color: var(--ink-3); }
-.info-page .ip-after { margin-top: 18px; }
+.info-page .ip-muted { color: var(--ink-3); }
+.info-page .ip-after { margin-top: 20px; }
 
-/* Row of arrow links under a block. Anchors carry `.btn-text .btn-go`. */
-.info-page .ip-links { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 18px; }
+/* Row of text links under a block. Anchors carry `.btn-text`. */
+.info-page .ip-links { display: flex; flex-wrap: wrap; gap: 4px 28px; margin-top: 20px; }
+.info-page .ip-links .btn-text { min-height: 44px; white-space: normal; text-align: left; }
 
 /* ---------- Lists ---------- */
-/* Plain list, thin rules between items. */
-.info-page .ip-list { list-style: none; margin: 0; padding: 0; }
-.info-page .ip-list > li { padding: 16px 0; border-top: 1px solid var(--rule-light); }
-.info-page .ip-list > li:first-child { border-top: 0; padding-top: 0; }
-.info-page .ip-list > li:last-child { padding-bottom: 0; }
+/* Plain list: items apart, no rules. */
+.info-page .ip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
 .info-page .ip-list > li > p { margin-top: 4px; }
-.info-page .ip-list > li > h2 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 6px; }
-.info-page .ip-list > li:has(> h2) { padding: 24px 0; }
-.info-page .ip-list > li:has(> h2):first-child { padding-top: 0; }
-.info-page .ip-list > li:has(> h2):last-child { padding-bottom: 0; }
-.info-page .ip-code-list > li { padding: 8px 0; }
-.info-page .ip-code-list a { color: var(--ink-2); text-decoration: none; }
-.info-page .ip-code-list a:hover { color: var(--accent); }
+.info-page .ip-list:has(> li > h2) { gap: 56px; }
+.info-page .ip-list > li > h2 { font-size: clamp(24px, 2.6vw, 30px); letter-spacing: -0.025em; margin-bottom: 10px; }
+.info-page .ip-code-list { gap: 0; }
+.info-page .ip-code-list a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-decoration: none; }
+.info-page .ip-code-list a:hover { color: var(--accent-hover); }
+.info-page .ip-code-list code { font-size: 15px; background: none; padding: 0; }
 
 /* Bulleted prose list (legal pages). */
-.info-page .ip-bullets { margin: 12px 0 0; padding-left: 20px; }
-.info-page .ip-bullets li + li { margin-top: 6px; }
+.info-page .ip-bullets { margin: 14px 0 0; padding-left: 22px; }
+.info-page .ip-bullets li + li { margin-top: 8px; }
 
-/* Index of links: title + one line + arrow. The whole row is the link. */
-.info-page .ip-index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
-.info-page .ip-index li { border-bottom: 1px solid var(--rule); }
+/* Index of links: a title and one line. The whole row is the link. */
+.info-page .ip-index { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .info-page .ip-index a {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 4px 24px;
-  padding: 20px 0;
+  gap: 4px;
+  padding: 10px 0;
   color: inherit;
   text-decoration: none;
 }
-.info-page .ip-index .ip-index-title { font-family: var(--serif); font-weight: 600; font-size: 20px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); }
-.info-page .ip-index .ip-index-dek { grid-column: 1; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
-.info-page .ip-index .ip-index-go {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  color: var(--accent);
-  font-size: 18px;
-  transition: transform .15s ease;
-}
-.info-page .ip-index a:hover .ip-index-title { color: var(--accent); }
-.info-page .ip-index a:hover .ip-index-go { transform: translateX(3px); }
-.info-page .ip-index a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-toggle); }
+.info-page .ip-index .ip-index-title { font-family: var(--serif); font-weight: 600; font-size: clamp(20px, 2vw, 24px); line-height: 1.25; letter-spacing: -0.015em; color: var(--accent); }
+.info-page .ip-index .ip-index-dek { font-size: 17px; line-height: 1.5; color: var(--ink-2); }
+.info-page .ip-index a:hover .ip-index-title { color: var(--accent-hover); }
+.info-page .ip-index a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+.info-page .ip-index + .ip-links { margin-top: 32px; }
 
-/* Short definition rows: mono label, plain value. */
-.info-page .ip-facts { margin: 0; }
+/* Short definition rows: a label, then its value. */
+.info-page .ip-facts { margin: 0; display: grid; gap: 20px; }
 .info-page .ip-facts > div {
   display: grid;
   grid-template-columns: 112px 1fr;
   gap: 16px;
-  padding: 12px 0;
-  border-top: 1px solid var(--rule-light);
+  align-items: baseline;
 }
-.info-page .ip-facts > div:first-child { border-top: 0; padding-top: 0; }
-.info-page .ip-facts dt {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  padding-top: 4px;
-}
-.info-page .ip-facts dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.info-page .ip-facts dt { font-size: 17px; font-weight: 600; color: var(--ink); }
+.info-page .ip-facts dd { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
 
 /* ---------- Concept patterns ---------- */
-/* Numbered steps: a 2x2 grid of plain cards (one column under 720px), each
-   one sentence and one link, with a mono step number. */
+/* A sequence as a plain flow: two columns of short headed paragraphs (one
+   column under 720px). No numbers, no boxes. */
 .info-page .ip-steps {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  counter-reset: ip-step;
+  gap: 40px 56px;
 }
 @media (min-width: 720px) {
   .info-page .ip-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-.info-page .ip-steps > li {
-  counter-increment: ip-step;
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  background: var(--surface);
-}
-.info-page .ip-steps > li::before {
-  content: counter(ip-step, decimal-leading-zero);
-  display: block;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  color: var(--accent);
-  margin-bottom: 16px;
-}
-.info-page .ip-steps h3 { font-family: var(--serif); font-weight: 600; font-size: 20px; line-height: 1.25; letter-spacing: -0.01em; margin-bottom: 8px; }
-.info-page .ip-steps .ip-links:last-child { margin-top: auto; padding-top: 12px; }
-.info-page .ip-steps p { font-size: 16px; }
-.info-page .ip-steps .ip-links { margin-top: 12px; }
-.info-page .ip-steps .ip-tag { margin: 0 0 8px; }
-.info-page .ip-loop { margin-top: 36px; font-size: 14px; color: var(--ink-3); }
+.info-page .ip-steps > li { display: flex; flex-direction: column; }
+.info-page .ip-steps .ip-links { margin-top: 6px; }
+.info-page .ip-loop { margin-top: 40px; color: var(--ink-3); }
 
-/* Status tag ("Where we're headed"): small mono text, warning amber. */
-.info-page .ip-tag {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--warning);
-}
+/* Status word ("Where we're headed"): a coloured word, not a chip. */
+.info-page .ip-tag { margin: 0 0 -8px; font-size: 16px; font-weight: 600; color: var(--warning); }
 
-/* Compact two-column checklist ("What's live today"). */
+/* Compact two-column list of links ("What's live today"). */
 .info-page .ip-checks {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 32px;
+  gap: 0 40px;
 }
-.info-page .ip-checks li {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 10px 0;
-  border-top: 1px solid var(--rule-light);
-  font-size: 15px;
-  color: var(--ink);
+.info-page .ip-checks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
 }
-.info-page .ip-checks li::before { content: "\2713"; color: var(--success); font-size: 13px; }
-.info-page .ip-checks a { color: var(--ink); text-decoration: none; }
-.info-page .ip-checks a:hover { color: var(--accent); }
+.info-page .ip-checks a:hover { color: var(--accent-hover); }
 
-/* Two lists side by side with left-rule marginalia (AI uses / never). */
-.info-page .ip-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-.info-page .ip-pair > div { padding-left: 16px; border-left: 2px solid var(--rule-strong); }
-.info-page .ip-pair > .ip-pair-info { border-left-color: var(--info); }
-.info-page .ip-pair h3 { margin-bottom: 8px; }
-.info-page .ip-pair ul { list-style: none; margin: 0; padding: 0; }
-.info-page .ip-pair li { padding: 5px 0; font-size: 16px; line-height: 1.5; }
+/* Two lists side by side (AI uses / never). */
+.info-page .ip-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.info-page .ip-pair h3 { margin-bottom: 12px; }
+.info-page .ip-pair ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.info-page .ip-pair li { line-height: 1.5; }
 
 /* Source rows: name + what we take, then cadence and a link. */
-.info-page .ip-sources { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.info-page .ip-sources { list-style: none; margin: 0; padding: 0; display: grid; gap: 44px; }
 .info-page .ip-sources > li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px;
-  gap: 8px 32px;
-  padding: 22px 0;
-  border-bottom: 1px solid var(--rule);
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 8px 40px;
 }
-.info-page .ip-sources p { font-size: 16px; line-height: 1.55; }
-.info-page .ip-sources .ip-source-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.info-page .ip-sources .ip-cadence {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-}
-.info-page .ip-sources .ip-cadence-note { font-size: 13px; line-height: 1.45; color: var(--ink-3); }
-.info-page .ip-sources .btn-text { font-size: 14px; white-space: normal; }
+.info-page .ip-sources p { line-height: 1.55; }
+.info-page .ip-sources .ip-source-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 4px; }
+.info-page .ip-sources .ip-cadence { font-size: 16px; font-weight: 600; color: var(--ink); }
+.info-page .ip-sources .ip-cadence-note { font-size: 15px; line-height: 1.45; color: var(--ink-3); }
+.info-page .ip-sources .btn-text { min-height: 44px; white-space: normal; text-align: left; overflow-wrap: anywhere; }
 
-/* Pull quote (About mission, Offices testimony). */
-.info-page .ip-quote { margin: 0; padding-left: 18px; border-left: 2px solid var(--accent); }
+/* A big quoted statement (About mission). */
+.info-page .ip-quote { margin: 0; }
 .info-page .ip-quote p {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: clamp(20px, 2.3vw, 24px);
+  font-size: clamp(20px, 2.3vw, 26px);
   line-height: 1.35;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: var(--ink);
+  text-wrap: balance;
 }
-.info-page .ip-quote footer {
-  margin-top: 12px;
-  font-family: var(--mono);
-  font-size: 11.5px;
-  line-height: 1.6;
-  color: var(--ink-3);
-}
-.info-page .ip-quote footer a { color: var(--accent); }
-.info-page .ip-hero .ip-quote { margin-top: 24px; max-width: 36rem; }
+.info-page .ip-hero .ip-quote { margin: 28px auto 0; max-width: 40rem; }
 
-/* Long notices (privacy, terms): tighter section rhythm so they stay scannable. */
-.info-page.ip-compact section:not(.ip-hero) .ip-inner { padding-top: 32px; padding-bottom: 32px; }
-.info-page.ip-compact h2 { font-size: clamp(22px, 2.4vw, 26px); letter-spacing: -0.02em; margin-bottom: 10px; }
+/* Long notices (privacy, terms): tighter rhythm so they stay scannable, and
+   they end on the footer (no closing band), so they keep their own foot. */
+.info-page.ip-compact section:not(.ip-hero) .ip-inner { padding-top: 28px; padding-bottom: 28px; }
+.info-page.ip-compact section:last-child:not(.ip-hero) .ip-inner { padding-bottom: var(--section-y); }
+.info-page.ip-compact h2 { font-size: clamp(22px, 2.4vw, 28px); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 12px; }
+.info-page.ip-compact .ip-lede { max-width: 44rem; }
 
 @media (max-width: 640px) {
-  .info-page .ip-inner { padding-left: 16px; padding-right: 16px; }
+  .info-page .ip-inner { padding-left: 20px; padding-right: 20px; }
   .info-page .ip-checks,
   .info-page .ip-pair { grid-template-columns: 1fr; }
-  .info-page .ip-steps > li { padding: 20px; }
-  .info-page .ip-pair { gap: 24px; }
+  .info-page .ip-pair { gap: 32px; }
   .info-page .ip-facts > div { grid-template-columns: 1fr; gap: 2px; }
   .info-page .ip-sources > li { grid-template-columns: 1fr; }
+  /* A long legal lede reads better left-aligned on a phone. */
+  .info-page.ip-compact .ip-lede { text-align: left; }
 }
 
 /* /glossary: the plain-English term list (GlossaryPage.jsx). */
-.info-page .gl-jump { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 32px; font-size: 14px; }
-.info-page .gl-jump a { color: var(--accent); text-decoration: none; font-weight: 500; }
-.info-page .gl-jump a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.info-page .gl-jump { display: flex; flex-wrap: wrap; gap: 0 24px; margin-bottom: 40px; }
+.info-page .gl-jump a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; color: var(--accent); text-decoration: none; font-weight: 500; }
+.info-page .gl-jump a:hover { color: var(--accent-hover); }
 .info-page .gl-group { scroll-margin-top: 88px; }
-.info-page .gl-group + .gl-group { margin-top: 40px; }
-.info-page .gl-list { margin: 0; border-top: 1px solid var(--rule); }
+.info-page .gl-group + .gl-group { margin-top: 64px; }
+.info-page .gl-list { margin: 0; display: grid; gap: 4px; }
 .info-page .gl-entry {
   display: grid;
   grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
   gap: 4px 24px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--rule-light);
+  margin: 0 -12px;
+  padding: 12px;
+  border-radius: var(--r-input);
   scroll-margin-top: 88px;
   transition: background-color 400ms ease-out;
 }
 .info-page .gl-entry.is-target { background: var(--accent-soft); }
-.info-page .gl-entry dt { font-weight: 600; font-size: 16px; line-height: 1.5; color: var(--ink); }
-.info-page .gl-entry dd { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.info-page .gl-entry dt { font-weight: 600; font-size: 17px; line-height: 1.5; color: var(--ink); }
+.info-page .gl-entry dd { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
 @media (max-width: 640px) {
   .info-page .gl-entry { grid-template-columns: minmax(0, 1fr); }
 }

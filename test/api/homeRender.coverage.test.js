@@ -90,7 +90,7 @@ describe('renderHomeBody fallbacks and escaping', () => {
   it('points the Tell your rep feature at /how-it-works when there is no latest vote', () => {
     const html = renderHomeBody({ votes: null, updatedAt: null })
     expect(html).not.toContain('#tell-your-rep')
-    expect(html).toMatch(/Then write to the person who cast it\.<\/h3><p>[^<]*<\/p><a href="\/how-it-works">/)
+    expect(html).toMatch(/Then Write To The Person Who Cast It<\/h3><p>[^<]*<\/p><a href="\/how-it-works">/)
     expect(html).not.toContain('home-recent')
   })
 })

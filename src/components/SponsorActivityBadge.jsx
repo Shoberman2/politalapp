@@ -10,7 +10,7 @@ import { InfoDot } from './Term'
  * per outside-voice D17: count + chamber median, no percentile).
  *
  * Position: top stats block, single line directly below identity row.
- * Behind VITE_BILLS_SHOW_SPONSOR_FILTER (same flag as the BillsPage pills —
+ * Behind VITE_BILLS_SHOW_SPONSOR_FILTER (same flag as the BillsPage pills :
  * both surfaces depend on the same sponsor data being persisted).
  */
 export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_MAX }) {
@@ -49,7 +49,7 @@ export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_M
     )
   }
   if (error || !data) {
-    // Silent failure — don't show a broken-looking badge.
+    // Silent failure: don't show a broken-looking badge.
     return null
   }
 
@@ -98,7 +98,7 @@ export default function SponsorActivityBadge({ bioguideId, congress = CONGRESS_M
       </small>
       {isFreshman && (
         <small className="sponsor-badge-methodology">
-          Comparison hidden — fewer than 30 days served.
+          Comparison hidden: fewer than 30 days served.
         </small>
       )}
     </div>

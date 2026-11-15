@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import '../styles/ApiKeyManager.css'
 
 function ApiKeyManager() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [org, setOrg] = useState(null)
   const [keys, setKeys] = useState([])
@@ -56,12 +56,15 @@ function ApiKeyManager() {
   }, [user])
 
   useEffect(() => {
+    // Wait for the session before deciding: a signed-in reader opening this
+    // URL directly is not signed out, the session just has not loaded yet.
+    if (authLoading) return
     if (!user) {
-      navigate('/auth')
+      navigate(`/auth?next=${encodeURIComponent('/developers/keys')}`, { replace: true })
       return
     }
     loadData()
-  }, [user, navigate, loadData])
+  }, [user, authLoading, navigate, loadData])
 
   async function createKey() {
     if (!org || creating) return
@@ -167,15 +170,14 @@ function ApiKeyManager() {
         <div>
           <h1>API Keys</h1>
           <p className="api-keys-subtitle">
-            Manage your BallotWatch API keys.{' '}
             {org?.subscription_status === 'active'
               ? <span className="api-keys-plan-badge">{org.plan} plan</span>
               : <span className="api-keys-plan-inactive">No active subscription</span>
             }
           </p>
         </div>
-        <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/usage')}>
-          View Usage
+        <button className="btn-secondary" onClick={() => navigate('/developers/usage')}>
+          View usage
         </button>
       </div>
 
@@ -190,7 +192,7 @@ function ApiKeyManager() {
             <div className="api-keys-modal-key">
               <code>{showNewKey}</code>
               <button onClick={copyKey} className="btn-copy btn-secondary btn-sm">
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
             <p className="api-keys-modal-usage">
@@ -210,6 +212,8 @@ function ApiKeyManager() {
       <div className="api-keys-create">
         <input
           type="text"
+          className="field"
+          aria-label="Key name"
           placeholder="Key name (e.g., production, staging)"
           value={newKeyName}
           onChange={e => setNewKeyName(e.target.value)}
@@ -220,14 +224,14 @@ function ApiKeyManager() {
           onClick={createKey}
           disabled={creating || keys.filter(k => k.active).length >= 5}
         >
-          {creating ? 'Creating...' : 'Create API Key'}
+          {creating ? 'Creating...' : 'Create API key'}
         </button>
       </div>
 
       {/* Key list */}
       <div className="api-keys-list">
         {keys.length === 0 ? (
-          <p className="api-keys-empty">No API keys yet. Create one to get started.</p>
+          <p className="api-keys-empty">No API keys yet.</p>
         ) : (
           keys.map(key => (
             <div key={key.id} className={`api-key-row ${!key.active ? 'api-key-revoked' : ''}`}>
@@ -261,10 +265,10 @@ function ApiKeyManager() {
             600 per minute, no payment required. Paid plans add monthly volume and support.
           </p>
           <div className="api-keys-activate-actions">
-            <button className="btn-primary" onClick={claimFreeKey} disabled={claiming}>
+            <button className="btn-outline" onClick={claimFreeKey} disabled={claiming}>
               {claiming ? 'Activating…' : 'Get a free key'}
             </button>
-            <button className="btn-tertiary btn-go" onClick={() => navigate('/developers#pricing')}>
+            <button className="btn-secondary" onClick={() => navigate('/developers#pricing')}>
               View paid plans
             </button>
           </div>

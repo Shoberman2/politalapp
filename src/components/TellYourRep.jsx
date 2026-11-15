@@ -300,6 +300,7 @@ export default function TellYourRep({ context, members }) {
             <div className="tyr-field">
               <label htmlFor={zipId}>ZIP code</label>
               <input
+                className="field"
                 id={zipId}
                 ref={zipRef}
                 type="text"
@@ -314,6 +315,7 @@ export default function TellYourRep({ context, members }) {
             <div className="tyr-field tyr-field-wide">
               <label htmlFor={streetId}>Street address <span className="tyr-optional">(optional, finds your House member)</span></label>
               <input
+                className="field"
                 id={streetId}
                 type="text"
                 autoComplete="address-line1"
@@ -346,13 +348,13 @@ export default function TellYourRep({ context, members }) {
     } else if (contact.kind === 'contact') {
       primary = (
         <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
-          Open {possessive} official contact page ↗
+          Open {possessive} official contact page
         </a>
       )
     } else if (contact.kind === 'website') {
       primary = (
         <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={contact.url} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
-          Open {possessive} official website ↗
+          Open {possessive} official website
         </a>
       )
     } else if (contact.kind === 'phone') {
@@ -364,14 +366,14 @@ export default function TellYourRep({ context, members }) {
     } else {
       primary = (
         <a className="tyr-btn tyr-btn-primary btn-primary btn-sm" href={`https://www.congress.gov/member/${merged.bioguideId}`} target="_blank" rel="noopener noreferrer" onClick={onOpen}>
-          Find {possessive} office on Congress.gov ↗
+          Find {possessive} office on Congress.gov
         </a>
       )
     }
     return (
       <>
         <div className="tyr-actions">
-          <button type="button" className="tyr-btn btn-secondary btn-sm" onClick={handleCopy}>
+          <button type="button" className="tyr-btn btn-outline btn-sm" onClick={handleCopy}>
             {copyState === 'copied' ? 'Copied' : 'Copy message'}
           </button>
           {primary}
@@ -434,7 +436,7 @@ export default function TellYourRep({ context, members }) {
     }
     return (
       <div className="tyr-sent">
-        <button type="button" className="tyr-btn btn-secondary btn-sm" onClick={confirm}>
+        <button type="button" className="tyr-btn btn-outline btn-sm" onClick={confirm}>
           I sent my message to {name}
         </button>
         <p className="tyr-fineprint">
@@ -446,11 +448,10 @@ export default function TellYourRep({ context, members }) {
 
   return (
     <section className="tyr" id="tell-your-rep" aria-label="Tell your representative">
-      <div className="tyr-kicker">Tell your rep</div>
       <button
         ref={toggleRef}
         type="button"
-        className="tyr-toggle btn-secondary"
+        className="tyr-toggle btn-outline"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
@@ -461,7 +462,7 @@ export default function TellYourRep({ context, members }) {
       <div id={panelId} className="tyr-panel" role="region" aria-labelledby={headingId} hidden={!open}>
         <div className="tyr-panel-head">
           <h2 id={headingId} ref={headingRef} tabIndex={-1} className="tyr-title">
-            Write it yourself, send it yourself
+            Write It Yourself, Send It Yourself
           </h2>
           <button type="button" className="tyr-link-btn btn-text btn-sm" onClick={() => setOpen(false)}>Close</button>
         </div>
@@ -472,20 +473,20 @@ export default function TellYourRep({ context, members }) {
 
         <ol className="tyr-steps">
           <li className="tyr-step">
-            <div className="tyr-step-label">1 · Who you're writing to</div>
+            <div className="tyr-step-label">Who you're writing to</div>
             {renderWho()}
           </li>
 
           {selected && (
             <li className="tyr-step">
-              <label className="tyr-step-label" htmlFor={textareaId}>2 · Your message</label>
+              <label className="tyr-step-label" htmlFor={textareaId}>Your message</label>
               <p id={hintId} className="tyr-fineprint">
                 We filled in only the facts from the public record. Replace the bracketed lines with your own words.
               </p>
               <textarea
                 id={textareaId}
                 ref={textareaRef}
-                className="tyr-textarea"
+                className="tyr-textarea field"
                 value={text}
                 onChange={(e) => { setText(e.target.value); setCopyState('idle') }}
                 aria-describedby={hintId}
@@ -500,7 +501,7 @@ export default function TellYourRep({ context, members }) {
 
           {selected && (
             <li className="tyr-step">
-              <div className="tyr-step-label">3 · Send it yourself</div>
+              <div className="tyr-step-label">Send it yourself</div>
               {renderSend()}
             </li>
           )}

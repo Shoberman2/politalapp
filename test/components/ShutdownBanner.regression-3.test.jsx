@@ -33,7 +33,20 @@ describe('ShutdownBanner request regression', () => {
       </MemoryRouter>
     )
 
-    expect(await screen.findByText(/Gov't Shutdown Risk: Low/)).toBeInTheDocument()
+    expect((await screen.findByText('low')).closest('strong').textContent).toBe('Shutdown risk: low')
     expect(fetchAppropriationsBills).not.toHaveBeenCalled()
+  })
+
+  it('says nothing once the hand-kept deadline has passed (the list is stale)', async () => {
+    const shutdown = await import('../../src/services/shutdown')
+    shutdown.calculateShutdownRisk.mockReturnValueOnce({ level: 'shutdown', nextDeadline: { date: '2026-09-30' } })
+    shutdown.getCountdown.mockReturnValue({ expired: true })
+    const { container } = render(
+      <MemoryRouter>
+        <ShutdownBanner />
+      </MemoryRouter>
+    )
+    expect(container.querySelector('.shutdown-banner')).toBeNull()
+    shutdown.getCountdown.mockReset()
   })
 })

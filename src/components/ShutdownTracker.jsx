@@ -75,28 +75,21 @@ function ShutdownTracker() {
     passed_one: 'Passed either the House or Senate. Still needs to pass the other chamber.',
     committee: 'Being reviewed by a congressional committee before a full vote.',
     introduced: 'Formally submitted to Congress but not yet reviewed by a committee.',
-    cr: 'Covered by a Continuing Resolution — a temporary measure that funds the government at last year\'s spending levels.',
+    cr: 'Covered by a Continuing Resolution, a temporary measure that funds the government at last year\'s spending levels.',
     not_introduced: 'No bill has been introduced yet for this area of spending.',
     lapsed: 'Funding has expired. This part of the government is unfunded.'
   }
 
-  const statusColors = {
-    signed: '#16a34a',
-    passed_both: '#2563eb',
-    passed_one: '#7c3aed',
-    committee: '#d97706',
-    introduced: '#6b7280',
-    cr: '#0891b2',
-    not_introduced: '#9ca3af',
-    lapsed: '#dc2626'
-  }
+  // The deadline descriptions are hand-kept data (services/shutdown.js).
+  // Print them with a colon where the data has a long dash.
+  const plain = (text) => (text || '').replace(/\s*\u2014\s*/g, ': ')
 
   if (loading) {
     return (
       <div className="shutdown-tracker">
         <div className="shutdown-loading">
           <div className="loading-spinner"></div>
-          <p>Loading shutdown tracker...</p>
+          <p>Loading shutdown tracker</p>
         </div>
       </div>
     )
@@ -119,6 +112,7 @@ function ShutdownTracker() {
   const billsPassedOne = bills.filter(b => b.status === 'passed_one').length
 
   const billsCR = bills.filter(b => b.status === 'cr').length
+  const stale = Boolean(countdown?.expired)
 
   return (
     <div className="shutdown-tracker fadeInUp">
@@ -134,13 +128,21 @@ function ShutdownTracker() {
           <p>Tracking federal funding status and <Term id="appropriations">appropriations</Term> (yearly spending bill) progress for <Term id="fiscalYear" label="Fiscal year">{`FY${FUNDING_DEADLINES.fiscalYear}`}</Term></p>
           {FUNDING_DEADLINES.lastUpdated && (
             <div className="last-updated">
-              Last updated: {new Date(FUNDING_DEADLINES.lastUpdated + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              Last updated {new Date(FUNDING_DEADLINES.lastUpdated + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </div>
           )}
         </header>
 
+        {/* The deadlines are kept by hand. Once the last one has passed the
+            list is stale: say so, and make no claim about today's status. */}
+        {stale && (
+          <p className="shutdown-stale" role="note">
+            Every deadline listed here has passed, so this page cannot say what the funding status is today. It is updated by hand.
+          </p>
+        )}
+
         {/* Countdown */}
-        {countdown && risk?.nextDeadline && (
+        {!stale && countdown && risk?.nextDeadline && (
           <section className="shutdown-countdown">
             <h2>Next Funding Deadline</h2>
             <div className="countdown__display">
@@ -168,16 +170,16 @@ function ShutdownTracker() {
             <p className="countdown__description">
               <strong>{new Date(risk.nextDeadline.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong>
               <br />
-              {risk.nextDeadline.description}
+              {plain(risk.nextDeadline.description)}
             </p>
             <div className="countdown__explainer">
-              A funding deadline is the date by which Congress must pass spending bills or a continuing resolution to keep the federal government open. If no funding legislation is enacted by this date, federal agencies that haven't been funded must cease non-essential operations — a government shutdown. Essential services like the military and law enforcement continue, but hundreds of thousands of federal workers may be furloughed or forced to work without pay until Congress acts.
+              A funding deadline is the date by which Congress must pass spending bills or a continuing resolution to keep the federal government open. If no funding legislation is enacted by this date, federal agencies that haven't been funded must cease non-essential operations: a government shutdown. Essential services like the military and law enforcement continue, but hundreds of thousands of federal workers may be furloughed or forced to work without pay until Congress acts.
             </div>
           </section>
         )}
 
         {/* Status Card */}
-        {risk && (
+        {!stale && risk && (
           <section className="shutdown-status-card">
             <div className="status-card__header">
               <h2>Current Status</h2>
@@ -194,8 +196,8 @@ function ShutdownTracker() {
                 ></div>
               </div>
               <div className="risk-meter__labels">
-                <span>Low Risk</span>
-                <span>High Risk</span>
+                <span>Low risk</span>
+                <span>High risk</span>
               </div>
             </div>
             {RISK_EXPLAINERS[risk.level] && (
@@ -212,15 +214,15 @@ function ShutdownTracker() {
           <div className="progress-stats">
             <div className="progress-stat">
               <span className="progress-stat__number">{billsSigned}</span>
-              <span className="progress-stat__label">of 12 Signed into Law</span>
+              <span className="progress-stat__label">of 12 signed into law</span>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedBoth}</span>
-              <InfoTip tag="span" text="The House of Representatives and the Senate are the two chambers of Congress. A bill must pass both to become law." className="progress-stat__label">Passed Both Chambers</InfoTip>
+              <InfoTip tag="span" text="The House of Representatives and the Senate are the two chambers of Congress. A bill must pass both to become law." className="progress-stat__label">Passed both chambers</InfoTip>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsPassedOne}</span>
-              <InfoTip tag="span" text="This bill has passed either the House or the Senate, but still needs to pass the other chamber." className="progress-stat__label">Passed One Chamber</InfoTip>
+              <InfoTip tag="span" text="This bill has passed either the House or the Senate, but still needs to pass the other chamber." className="progress-stat__label">Passed one chamber</InfoTip>
             </div>
             <div className="progress-stat">
               <span className="progress-stat__number">{billsCR}</span>
@@ -231,7 +233,6 @@ function ShutdownTracker() {
             <div className="progress-bar__track">
               <div className="progress-bar__fill" style={{ width: `${(billsSigned / 12) * 100}%` }}></div>
             </div>
-            <span className="progress-bar__label">{billsSigned}/12 bills signed</span>
           </div>
         </section>
 
@@ -248,8 +249,7 @@ function ShutdownTracker() {
                 <div className="approp-bill-card__header">
                   <h3 className="approp-bill-card__short">{bill.shortName}</h3>
                   <span
-                    className="approp-bill-card__status"
-                    style={{ background: statusColors[bill.status] || '#9ca3af' }}
+                    className={`approp-bill-card__status approp-bill-card__status--${bill.status}`}
                     title={statusTooltips[bill.status] || ''}
                   >
                     {statusLabels[bill.status] || bill.status}
@@ -260,7 +260,7 @@ function ShutdownTracker() {
                   <div className="approp-bill-card__details">
                     {bill.fundingAmount && (
                       <div className="approp-bill-card__funding">
-                        <span className="approp-bill-card__funding-label">FY{FUNDING_DEADLINES.fiscalYear} Funding</span>
+                        <span className="approp-bill-card__funding-label">FY{FUNDING_DEADLINES.fiscalYear} funding</span>
                         <span className="approp-bill-card__funding-amount">{bill.fundingAmount}</span>
                       </div>
                     )}
@@ -269,7 +269,9 @@ function ShutdownTracker() {
                     )}
                   </div>
                 )}
-                <span className={`approp-bill-card__toggle ${expandedBill === i ? 'approp-bill-card__toggle--open' : ''}`}>&#9662;</span>
+                <button type="button" className="approp-bill-card__toggle btn-text" aria-expanded={expandedBill === i}>
+                  {expandedBill === i ? 'Hide details' : 'Show details'}
+                </button>
               </div>
             ))}
           </div>
@@ -298,10 +300,6 @@ function ShutdownTracker() {
           <div className="deadlines-timeline">
             {FUNDING_DEADLINES.deadlines.map((deadline, i) => (
               <div key={i} className={`deadline-item deadline-item--${deadline.status}`}>
-                <div className="deadline-connector">
-                  <div className={`deadline-dot deadline-dot--${deadline.status}`}></div>
-                  {i < FUNDING_DEADLINES.deadlines.length - 1 && <div className="deadline-line"></div>}
-                </div>
                 <div className="deadline-content">
                   <span className="deadline-date">
                     {new Date(deadline.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -309,7 +307,7 @@ function ShutdownTracker() {
                   <span className={`deadline-status-tag deadline-status-tag--${deadline.status}`}>
                     {deadline.status === 'passed' ? 'Passed' : deadline.status === 'active' ? 'Active' : 'Upcoming'}
                   </span>
-                  <p className="deadline-desc">{deadline.description}</p>
+                  <p className="deadline-desc">{plain(deadline.description)}</p>
                 </div>
               </div>
             ))}
@@ -327,10 +325,6 @@ function ShutdownTracker() {
               const isLong = shutdown.durationDays >= 10
               return (
                 <div key={i} className={`timeline-item ${isLong ? 'timeline-item--major' : ''}`}>
-                  <div className="timeline-connector">
-                    <div className={`timeline-dot ${isLong ? 'timeline-dot--major' : ''}`}></div>
-                    {i < SHUTDOWN_HISTORY.length - 1 && <div className="timeline-line"></div>}
-                  </div>
                   <div className="timeline-content">
                     <div className="timeline-dates">
                       {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

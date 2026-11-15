@@ -57,11 +57,11 @@ describe('AccessGate', () => {
   it('shows a loading status on a gated path while the session resolves, never on a public one', () => {
     state.loading = true
     renderAt('/bills')
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(document.querySelector('.gate-loading')).toBeInTheDocument()
     expect(screen.queryByTestId('where')).toBeNull()
     cleanup()
     renderAt('/bill/119/hr/1')
-    expect(screen.queryByText('Loading…')).toBeNull()
+    expect(document.querySelector('.gate-loading')).toBeNull()
     expect(screen.getByTestId('where').textContent).toBe('/bill/119/hr/1')
   })
 
@@ -77,7 +77,7 @@ describe('AccessGate', () => {
       </MemoryRouter>
     )
     const { rerender } = render(tree())
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(document.querySelector('.gate-loading')).toBeInTheDocument()
     state.loading = false
     state.user = null
     rerender(tree())
@@ -108,7 +108,7 @@ describe('AccessGate', () => {
     const { rerender } = render(tree())
     expect(screen.getByTestId('where').textContent).toBe('/all')
     fireEvent.click(screen.getByRole('button', { name: 'go' }))
-    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(document.querySelector('.gate-loading')).toBeInTheDocument()
     expect(screen.queryByTestId('where')).toBeNull()
     state.loading = false
     rerender(tree())

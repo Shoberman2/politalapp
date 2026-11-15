@@ -13,20 +13,6 @@ import {
 } from '../services/civicBriefing'
 import '../styles/CivicBriefing.css'
 
-
-const ArrowRight = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-    <path d="M5 12h14M12 5l7 7-7 7" />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-    <path d="M4 6h16v12H4z" />
-    <path d="m4 7 8 6 8-6" />
-  </svg>
-)
-
 const SAMPLE_BRIEFING = {
   generatedAt: new Date().toISOString(),
   tone: 'Neutral, source-based',
@@ -94,7 +80,6 @@ function BriefingPreview({ briefing }) {
   return (
     <article className="briefing-preview-sheet">
       <header className="briefing-preview-head">
-        <span className="briefing-preview-kicker">BallotWatch Civic Briefing</span>
         <h2>{briefing.target.name}</h2>
         <p>{formatDate(briefing.generatedAt)} / {briefing.target.party} / Neutral, source-based</p>
       </header>
@@ -348,16 +333,15 @@ function CivicBriefing() {
       <section className="briefing-hero">
         <div className="briefing-wrap briefing-hero-grid">
           <div className="briefing-hero-copy">
-            <span className="kicker">BallotWatch Pro</span>
             <h1>Civic Briefing Agent</h1>
             <p>Enter a district or member of Congress and receive a neutral, source-linked briefing on recent votes, bills, and observed positions.</p>
             <p className="briefing-status-note">Email briefings are not open yet. You can generate the free sample below; sending and subscriptions will need a free account and BallotWatch Pro.</p>
             <div className="briefing-hero-actions">
               <button className="btn btn-primary" onClick={handlePreview} disabled={busy === 'preview'}>
-                {busy === 'preview' ? 'Generating...' : 'Generate briefing'} <ArrowRight />
+                {busy === 'preview' ? 'Generating...' : 'Generate briefing'}
               </button>
-              <button className="btn btn-ghost" onClick={handleSendNow} disabled={busy === 'send'}>
-                <MailIcon /> {busy === 'send' ? 'Sending...' : 'Send to Gmail'}
+              <button className="btn btn-outline" onClick={handleSendNow} disabled={busy === 'send'}>
+                {busy === 'send' ? 'Sending...' : 'Send to Gmail'}
               </button>
             </div>
           </div>
@@ -381,13 +365,13 @@ function CivicBriefing() {
         <div className="briefing-wrap briefing-layout">
           <aside className="briefing-control-panel">
             <div className="briefing-panel-heading">
-              <span className="briefing-panel-label">Briefing Setup</span>
               <h2>Delivery</h2>
             </div>
 
             <label className="briefing-field">
               <span>District or candidate</span>
               <input
+                className="field"
                 value={target}
                 onChange={(event) => setTarget(event.target.value)}
                 placeholder="CA-11 or Nancy Pelosi"
@@ -396,14 +380,14 @@ function CivicBriefing() {
 
             <label className="briefing-field">
               <span>Email cadence</span>
-              <select value={frequency} onChange={(event) => setFrequency(event.target.value)}>
+              <select className="field" value={frequency} onChange={(event) => setFrequency(event.target.value)}>
                 <option value="weekly">Weekly</option>
                 <option value="daily">Daily</option>
               </select>
             </label>
 
             <div className="briefing-control-actions">
-              <button className="btn btn-primary" onClick={handleSave} disabled={busy === 'save' || authLoading}>
+              <button className="btn btn-outline" onClick={handleSave} disabled={busy === 'save' || authLoading}>
                 {busy === 'save' ? 'Saving...' : 'Save briefing'}
               </button>
               {isSubscribed ? (
@@ -447,10 +431,7 @@ function CivicBriefing() {
 
           <div className="briefing-preview-column">
             <div className="briefing-preview-toolbar">
-              <div>
-                <span className="briefing-panel-label">Email Preview</span>
-                <h2>Modern civic update</h2>
-              </div>
+              <h2>Email Preview</h2>
               <button className="btn btn-sm btn-ghost" onClick={handlePreview} disabled={busy === 'preview'}>
                 Refresh
               </button>

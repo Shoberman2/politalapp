@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { CONGRESS_MIN, CONGRESS_MAX } from '../utils/congressUtil'
-import { fidelityDotColor } from '../../shared/fidelity'
 
 /**
- * ChamberScrubber — horizontal slider over Congresses 93rd-119th.
+ * ChamberScrubber: horizontal slider over Congresses 93rd-119th.
  *
  * Per /plan-design-review D4 (inline editorial hint that auto-dismisses)
  * and Pass 6 (responsive + accessibility).
  *
  * Props:
- *   congress              — currently-selected Congress number
- *   onCongressChange      — (newCongress) => void
- *   metadataByCongress    — Map<congress, {fidelity_tier, ...}> for tick coloring
- *   isMobile              — boolean
+ *   congress             : currently-selected Congress number
+ *   onCongressChange     : (newCongress) => void
+ *   metadataByCongress   : Map<congress, {fidelity_tier, ...}> for tick coloring
+ *   isMobile             : boolean
  */
 
 const SCRUBBER_HINT_STORAGE_KEY = 'chamber_scrubber_taught_v1'
@@ -36,7 +35,7 @@ function ChamberScrubber({
         setShowHint(true)
       }
     } catch {
-      // localStorage unavailable (private browsing) — leave the hint hidden.
+      // localStorage unavailable (private browsing): leave the hint hidden.
     }
   }, [])
 
@@ -127,12 +126,34 @@ function ChamberScrubber({
   for (let c = CONGRESS_MIN; c <= CONGRESS_MAX; c += 4) {
     ticks.push(c)
   }
-  if (ticks[ticks.length - 1] !== CONGRESS_MAX) ticks.push(CONGRESS_MAX)
+  if (ticks[ticks.length - 1] !== CONGRESS_MAX) {
+    // On a phone the last regular tick would collide with the end label.
+    if (isMobile && CONGRESS_MAX - ticks[ticks.length - 1] < 4) ticks.pop()
+    ticks.push(CONGRESS_MAX)
+  }
 
   return (
     <div className={`chamber-scrubber ${isMobile ? 'is-mobile' : ''}`}>
-      <div className="chamber-scrubber-caption">
-        <em>Scrub years</em>
+      <div className="chamber-scrubber-head">
+        <span className="chamber-scrubber-caption">Congress</span>
+        <span className="chamber-scrubber-steps">
+          <button
+            type="button"
+            className="btn-toggle"
+            disabled={congress <= CONGRESS_MIN}
+            onClick={() => handleCongressChange(congress - 1)}
+          >
+            Earlier
+          </button>
+          <button
+            type="button"
+            className="btn-toggle"
+            disabled={congress >= CONGRESS_MAX}
+            onClick={() => handleCongressChange(congress + 1)}
+          >
+            Later
+          </button>
+        </span>
       </div>
       <div
         ref={trackRef}
@@ -160,11 +181,8 @@ function ChamberScrubber({
             return (
               <span
                 key={c}
-                className="chamber-scrubber-fidelity-dot"
-                style={{
-                  left: `${(idx / range) * 100}%`,
-                  backgroundColor: fidelityDotColor(tier),
-                }}
+                className={`chamber-scrubber-fidelity-dot is-tier-${tier}`}
+                style={{ left: `${(idx / range) * 100}%` }}
                 title={`${c}th Congress: ${tier.replace('_', ' ')}`}
               />
             )
@@ -194,13 +212,13 @@ function ChamberScrubber({
         </div>
       </div>
 
-      {/* Inline editorial hint — auto-dismisses after first interaction */}
+      {/* Inline editorial hint: auto-dismisses after first interaction */}
       {showHint && (
         <div
           className={`chamber-scrubber-hint ${hintFadingOut ? 'is-fading-out' : ''}`}
           aria-hidden="true"
         >
-          <em>Drag the marker to change Congress, or click any year.</em>
+          Drag the marker, or click anywhere on the line.
         </div>
       )}
     </div>

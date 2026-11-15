@@ -115,59 +115,24 @@ describe('Landing — "See every vote" step', () => {
 
     const buttons = await screen.findAllByRole('button', { name: 'Find my representatives' })
     expect(buttons).toHaveLength(2)
-    buttons.forEach((button) => expect(button).toHaveAttribute('aria-label', 'Find my representatives'))
+    buttons.forEach((button) => {
+      expect(button).toHaveAttribute('aria-label', 'Find my representatives')
+      // A word button on every screen size: no arrow-only state.
+      expect(button.textContent).toBe('Find my reps')
+      expect(button.querySelector('svg')).toBeNull()
+    })
   })
 
-  it('shows tallied votes even when they sit past the feed cut-off', async () => {
-    // Five untallied roll calls first, then the tallied ones. The old code kept
-    // only the first five and so never saw a single tally.
-    services.getRecentFloorVotes.mockResolvedValue({
-      votes: [
-        ...[207, 208, 209, 206, 205].map(untallied),
-        tallied(281, '8800', 216, 214),
-        tallied(280, '7008', 232, 198),
-        tallied(278, '6001', 216, 212),
-      ],
-      recordedThrough: '2026-07-24',
-    })
-
+  it('shows the vote record feature as a member record card, not a second list of the ticker’s votes', () => {
+    // 2026-11-14: the three-row vote list repeated the hero ticker, and the
+    // "Any record in 60 seconds" section repeated this one. They are one
+    // section now, illustrated by the record card (skeleton until it loads).
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-
-    await waitFor(() => {
-      expect(container.querySelector('.mock-votes .mk-yn')).not.toBeNull()
-    })
-
-    const mock = container.querySelector('.mock-votes')
-    const tallies = [...mock.querySelectorAll('.mk-yn')].map((n) => n.textContent)
-    expect(tallies).toEqual(['216–214', '232–198', '216–212'])
-    expect(within(mock).getByText('H.R. 8800')).toBeTruthy()
-    // The whole point: no skeleton bars once the fetch has resolved.
-    expect(mock.querySelectorAll('.mk-skel').length).toBe(0)
-  })
-
-  it('falls back to real bill rows rather than skeletons when no tally exists', async () => {
-    services.getRecentFloorVotes.mockResolvedValue({
-      votes: [
-        { ...untallied(207), bill: { display: 'S.J.Res. 180', href: '/bill/119/sjres/180' } },
-        untallied(208),
-        untallied(209),
-      ],
-      recordedThrough: '2026-07-24',
-    })
-
-    const { container } = renderLanding()
-
-    await waitFor(() => {
-      expect(container.querySelector('.mock-votes .mk-vote')).not.toBeNull()
-    })
-
-    const mock = container.querySelector('.mock-votes')
-    await waitFor(() => {
-      expect(mock.querySelectorAll('.mk-skel').length).toBe(0)
-    })
-    // Real records, just without a tally chip — never invented numbers.
-    expect(within(mock).getByText('S.J.Res. 180')).toBeTruthy()
-    expect(mock.querySelectorAll('.mk-yn').length).toBe(0)
+    expect(container.querySelector('.mock-votes')).toBeNull()
+    const card = container.querySelector('.feature-votes .mock-record')
+    expect(card).not.toBeNull()
+    expect(card.querySelectorAll('.mk-skel').length).toBeGreaterThan(0)
   })
 
   it('renders a lookup result beside the field that was actually used', async () => {
@@ -213,21 +178,28 @@ describe('Landing — "See every vote" step', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const features = container.querySelectorAll('.features .feature')
-    expect(features.length).toBe(8)
+    expect(features.length).toBe(6)
     expect([...features].map((f) => f.className.replace('feature feature-', ''))).toEqual(
-      ['find', 'bills', 'votes', 'record', 'write', 'mcp', 'agents', 'offices'])
+      ['find', 'bills', 'votes', 'write', 'mcp', 'offices'])
     expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
-      expect(f.querySelector('a.btn-text.btn-go')).not.toBeNull()
+      const link = f.querySelector('a.btn-text')
+      expect(link).not.toBeNull()
+      // Word links: no arrow class, no arrow glyph, no icon.
+      expect(link.className).not.toMatch(/btn-go/)
+      expect(link.textContent).not.toMatch(/[→↗›]/)
+      expect(link.querySelector('svg')).toBeNull()
     })
-    expect(container.querySelector('.features a[href="/this-week"]')).not.toBeNull()
   })
 
   it('answers common questions in an FAQ', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    expect(container.querySelectorAll('.faq details').length).toBeGreaterThanOrEqual(5)
+    // Plain question and answer pairs, all readable without a click.
+    expect(container.querySelectorAll('.faq details').length).toBe(0)
+    expect(container.querySelectorAll('.faq .faq-item h3').length).toBeGreaterThanOrEqual(5)
+    expect(container.querySelectorAll('.faq .faq-item p').length).toBeGreaterThanOrEqual(5)
     expect(container.querySelector('.faq').textContent).toMatch(/Does BallotWatch send messages for me\?/)
   })
 })
@@ -287,19 +259,18 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     expect(container.textContent).not.toMatch(/what we’re building toward/i)
   })
 
-  it('puts the privacy line under both lookups', () => {
+  it('prints the privacy line once, under the hero lookup', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const hints = [...container.querySelectorAll('.lookup-hint')].map((p) => p.textContent)
-    expect(hints).toEqual([
-      'No sign-up to look up. Your ZIP code never reaches our servers.',
-      'No sign-up to look up. Your ZIP code never reaches our servers.',
-    ])
+    expect(hints).toEqual(['No sign-up to look up. Your ZIP code never reaches our servers.'])
+    expect(container.querySelector('.hero .lookup-hint')).not.toBeNull()
   })
 
   it('has no small labels above the feature headlines', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     expect(container.querySelectorAll('.features .section-kicker').length).toBe(0)
+    expect(container.querySelector('.primer-kicker')).toBeNull()
   })
 })

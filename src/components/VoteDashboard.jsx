@@ -250,7 +250,6 @@ function VoteDashboard({ bioguideId }) {
   if (loading) {
     return (
       <section className="vote-dashboard">
-        <h2 className="dash-section-title">Voting Record</h2>
         <div className="dash-loading">
           <div className="dash-skeleton-stats"></div>
           <div className="dash-skeleton-card"></div>
@@ -268,8 +267,6 @@ function VoteDashboard({ bioguideId }) {
 
     return (
       <section className="vote-dashboard" ref={containerRef}>
-        <h2 className="dash-section-title">Voting Record</h2>
-
         {isStale && (
           <div className="dash-stale-banner">
             Data last updated {lastRun ? formatDate(lastRun.toISOString()) : 'unknown'}.
@@ -284,7 +281,7 @@ function VoteDashboard({ bioguideId }) {
               <span className={`dash-stat-number ${statsAnimated ? 'animated' : ''}`}>
                 {stats.party_loyalty_pct}%
               </span>
-              <span className="dash-stat-label">Party-Majority Match</span>
+              <span className="dash-stat-label">Party-majority match</span>
               <div className="dash-loyalty-bar">
                 <div
                   className="dash-loyalty-fill"
@@ -298,7 +295,7 @@ function VoteDashboard({ bioguideId }) {
                 {stats.yea_count + stats.nay_count + stats.present_count}
               </span>
               <span className="dash-stat-label">
-                of {stats.total_votes} Votes Cast
+                of {stats.total_votes} votes cast
               </span>
               <span className="dash-stat-detail">
                 {Math.round(((stats.yea_count + stats.nay_count + stats.present_count) / stats.total_votes) * 100)}% attendance
@@ -370,7 +367,7 @@ function VoteDashboard({ bioguideId }) {
                       procedural votes use roll_call.description if present. */}
                   {description ? (
                     <p className="dash-bill-desc">
-                      {description.length > 200 ? description.slice(0, 200) + '...' : description}
+                      {description.length > 200 ? description.slice(0, 200) + '…' : description}
                     </p>
                   ) : isProcedural && vote.roll_call?.description ? (
                     <p className="dash-bill-desc">{vote.roll_call.description}</p>
@@ -380,7 +377,8 @@ function VoteDashboard({ bioguideId }) {
                 {/* Official-summary explanation expand for bill votes. */}
                 {vote.bill && (
                   <button
-                    className="dash-explain-btn"
+                    type="button"
+                    className="dash-explain-btn btn-text"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleExpandBill(parsed, billTitle, index)
@@ -401,7 +399,7 @@ function VoteDashboard({ bioguideId }) {
                     ) : (
                       <div className="dash-explanation-loading">
                         <div className="loading-spinner-small"></div>
-                        <span>Loading official summary...</span>
+                        <span>Loading official summary</span>
                       </div>
                     )}
                   </div>
@@ -421,7 +419,8 @@ function VoteDashboard({ bioguideId }) {
         {/* Load more */}
         {votes.length > visibleCount && (
           <button
-            className="dash-load-more btn-secondary btn-sm"
+            type="button"
+            className="dash-load-more btn-outline btn-sm"
             onClick={() => setVisibleCount(prev => prev + 20)}
           >
             Show more votes ({votes.length - visibleCount} remaining)
@@ -435,8 +434,6 @@ function VoteDashboard({ bioguideId }) {
   if (fallbackVotes) {
     return (
       <section className="vote-dashboard">
-        <h2 className="dash-section-title">Voting Record</h2>
-
         {usingFallback && (
           <div className="dash-stale-banner">
             Loading from Congress.gov (may be slow). Pre-computed data not yet available.

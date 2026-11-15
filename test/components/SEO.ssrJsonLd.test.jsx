@@ -95,7 +95,7 @@ describe('SEO and server-rendered JSON-LD', () => {
         </MemoryRouter>
       </HelmetProvider>
     )
-    await waitFor(() => expect(container.querySelector('h1').textContent).toBe('How each number is made'))
+    await waitFor(() => expect(container.querySelector('h1').textContent).toBe('How Each Number Is Made'))
     expect(container.querySelectorAll('.ip-index a').length).toBeGreaterThan(0)
   })
 })

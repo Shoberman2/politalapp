@@ -38,8 +38,7 @@ function OpenSourcePage() {
 
       <section className="open-hero">
         <div className="open-hero-copy">
-          <span className="open-kicker">Open BallotWatch</span>
-          <h1>Congressional records you can download, inspect and reuse.</h1>
+          <h1>Congressional Records You Can Download, Inspect And Reuse</h1>
           <p>
             Every member, bill, roll call and vote BallotWatch has, as daily bulk
             files dedicated to the public domain. The API, MCP server, methodology
@@ -56,35 +55,34 @@ function OpenSourcePage() {
               View GitHub
             </a>
           </div>
+          <aside className="open-ledger" aria-label="Open-source status">
+            <div>
+              <span>Data license</span>
+              <strong>CC0 1.0</strong>
+            </div>
+            <div>
+              <span>Code license</span>
+              <strong>MIT</strong>
+            </div>
+            <div>
+              <span>Bulk files</span>
+              <strong>Daily</strong>
+            </div>
+            <div>
+              <span>API contract</span>
+              <strong>OpenAPI 3.1</strong>
+            </div>
+            <div>
+              <span>Corrections</span>
+              <strong>Source-backed</strong>
+            </div>
+          </aside>
         </div>
-        <aside className="open-ledger" aria-label="Open-source status">
-          <div>
-            <span>Data license</span>
-            <strong>CC0 1.0</strong>
-          </div>
-          <div>
-            <span>Code license</span>
-            <strong>MIT</strong>
-          </div>
-          <div>
-            <span>Bulk files</span>
-            <strong>Daily</strong>
-          </div>
-          <div>
-            <span>API contract</span>
-            <strong>OpenAPI 3.1</strong>
-          </div>
-          <div>
-            <span>Corrections</span>
-            <strong>Source-backed</strong>
-          </div>
-        </aside>
       </section>
 
-      <section className="open-band open-band-ruled" id="download" aria-labelledby="download-title">
+      <section className="open-band" id="download" aria-labelledby="download-title">
         <div className="open-section-heading">
-          <span className="open-kicker">Open data</span>
-          <h2 id="download-title">Download the full record</h2>
+          <h2 id="download-title">Download The Full Record</h2>
           <p className="open-section-lede">
             Every table below, as gzip CSV and gzip NDJSON: the full archive, and
             the {congress}th Congress on its own. Ids match the site, the API and
@@ -110,13 +108,13 @@ function OpenSourcePage() {
                     <code className="open-data-key">{t.table}</code>
                   </td>
                   <td>{t.description}</td>
-                  <td>
+                  <td data-label="Full archive">
                     <span className="open-data-files">
                       <a href={fileHref(fileName(t.table, 'all', congress, 'csv'))} download>CSV</a>
                       <a href={fileHref(fileName(t.table, 'all', congress, 'ndjson'))} download>NDJSON</a>
                     </span>
                   </td>
-                  <td>
+                  <td data-label={`${congress}th Congress`}>
                     {t.scopes.includes('congress') ? (
                       <span className="open-data-files">
                         <a href={fileHref(fileName(t.table, 'congress', congress, 'csv'))} download>CSV</a>
@@ -177,8 +175,7 @@ function OpenSourcePage() {
 
       <section className="open-band">
         <div className="open-section-heading">
-          <span className="open-kicker">Public workbench</span>
-          <h2>Four ways into the public record</h2>
+          <h2>Four Ways Into The Public Record</h2>
         </div>
         <div className="open-track-grid">
           {OPEN_TRACKS.map(track => (
@@ -199,10 +196,9 @@ function OpenSourcePage() {
         </div>
       </section>
 
-      <section className="open-band open-band-ruled">
+      <section className="open-band">
         <div className="open-section-heading">
-          <span className="open-kicker">Readable features</span>
-          <h2>Every feature explains its source and next action.</h2>
+          <h2>Every Feature Explains Its Source And Next Action</h2>
         </div>
         <div className="open-feature-table-wrap">
           <table className="open-feature-table">
@@ -219,8 +215,8 @@ function OpenSourcePage() {
                 <tr key={item.feature}>
                   <td>{item.feature}</td>
                   <td>{item.question}</td>
-                  <td>{item.source}</td>
-                  <td>{item.action}</td>
+                  <td data-label="Source">{item.source}</td>
+                  <td data-label="Action">{item.action}</td>
                 </tr>
               ))}
             </tbody>
@@ -230,8 +226,7 @@ function OpenSourcePage() {
 
       <section className="open-band">
         <div className="open-section-heading">
-          <span className="open-kicker">Methodology</span>
-          <h2>Inspect the parts that need trust.</h2>
+          <h2>Inspect The Parts That Need Trust</h2>
         </div>
         <div className="open-method-grid">
           {METHODOLOGY_PAGES.map(page => (
@@ -243,10 +238,9 @@ function OpenSourcePage() {
         </div>
       </section>
 
-      <section className="open-band open-split">
+      <section className="open-band open-split open-build">
         <div>
-          <span className="open-kicker">Build with it</span>
-          <h2>Start without an API key.</h2>
+          <h2>Start Without An API Key</h2>
           <p>
             Small sample files show the shape of member, bill, roll call, and
             committee data at a glance. For everything, use the full download
@@ -266,12 +260,12 @@ function OpenSourcePage() {
       </section>
 
       <section className="open-callout">
-        <h2>Found a factual issue?</h2>
+        <h2>Found A Factual Issue?</h2>
         <p>
           Report it with the BallotWatch page or record, the field that appears
           wrong, the expected value, and a public source URL.
         </p>
-        <a className="btn-primary" href="https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml">
+        <a className="btn-outline" href="https://github.com/Shoberman2/politalapp/issues/new?template=data_correction.yml">
           Report a source-linked correction
         </a>
       </section>

@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import '../styles/UsageDashboard.css'
 
 function UsageDashboard() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [org, setOrg] = useState(null)
   const [usage, setUsage] = useState([])
@@ -15,12 +15,15 @@ function UsageDashboard() {
   const [period, setPeriod] = useState('month') // 'week' or 'month'
 
   useEffect(() => {
+    // Wait for the session before deciding: a signed-in reader opening this
+    // URL directly is not signed out, the session just has not loaded yet.
+    if (authLoading) return
     if (!user) {
-      navigate('/auth')
+      navigate(`/auth?next=${encodeURIComponent('/developers/usage')}`, { replace: true })
       return
     }
     loadUsage()
-  }, [user, period])
+  }, [user, authLoading, period])
 
   async function loadUsage() {
     setLoading(true)
@@ -120,12 +123,12 @@ function UsageDashboard() {
           </p>
         </div>
         <div className="usage-actions">
-          <select value={period} onChange={e => setPeriod(e.target.value)} className="usage-period-select">
+          <select value={period} onChange={e => setPeriod(e.target.value)} className="usage-period-select field" aria-label="Period">
             <option value="week">Last 7 days</option>
             <option value="month">This month</option>
           </select>
-          <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/keys')}>
-            Manage Keys
+          <button className="btn-secondary" onClick={() => navigate('/developers/keys')}>
+            Manage keys
           </button>
         </div>
       </div>
@@ -138,11 +141,11 @@ function UsageDashboard() {
           <div className="usage-stats">
             <div className="usage-stat">
               <span className="usage-stat-value">{totalThisMonth.toLocaleString()}</span>
-              <span className="usage-stat-label">Total Requests</span>
+              <span className="usage-stat-label">Total requests</span>
             </div>
             <div className="usage-stat">
               <span className="usage-stat-value">{avgResponseMs}ms</span>
-              <span className="usage-stat-label">Avg Response</span>
+              <span className="usage-stat-label">Average response</span>
             </div>
             <div className="usage-stat">
               <span className="usage-stat-value">{errorCount}</span>
@@ -153,7 +156,7 @@ function UsageDashboard() {
                 <span className="usage-stat-value">
                   {Math.round((totalThisMonth / org.monthly_limit) * 100)}%
                 </span>
-                <span className="usage-stat-label">Quota Used</span>
+                <span className="usage-stat-label">Quota used</span>
               </div>
             )}
           </div>
@@ -196,9 +199,8 @@ function UsageDashboard() {
           {usage.length === 0 && (
             <div className="usage-empty">
               <h3>No API requests yet</h3>
-              <p>Make your first API call to see usage data here.</p>
               <button className="btn-primary" onClick={() => navigate('/developers/docs')}>
-                Read the Docs
+                Read the docs
               </button>
             </div>
           )}

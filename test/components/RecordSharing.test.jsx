@@ -145,7 +145,7 @@ describe('record links on member cards', () => {
     renderAt('/my-representative', <PoliticianCard politician={{ bioguideId: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic' }} />)
     const link = screen.getByRole('link', { name: 'Record in 60 seconds: Nancy Pelosi' })
     expect(link.getAttribute('href')).toBe('/politician/P000197/record')
-    expect(link.textContent).toBe('Record in 60 seconds →')
+    expect(link.textContent).toBe('Record in 60 seconds')
     fireEvent.click(link)
     expect(screen.getByTestId('where').textContent).toBe('/politician/P000197/record')
   })
