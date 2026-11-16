@@ -49,6 +49,24 @@ xcodebuild -project BallotWatch.xcodeproj -scheme BallotWatch \
   DEVELOPMENT_TEAM=<team-id> -allowProvisioningUpdates build
 ```
 
+## Xcode Cloud
+
+The Xcode project is not in git. Xcode Cloud must generate it after clone, or
+the build fails looking for `ios/BallotWatch.xcodeproj`. The hook at
+`ci_scripts/ci_post_clone.sh` installs XcodeGen if needed, runs
+`xcodegen generate` in `ios/`, and writes the gitignored `Secrets.plist`.
+
+In the Default workflow, add these Environment variables (same names as
+`ios/scripts/make-secrets.sh` and the repo-root `.env.example`). Mark them
+secret, and do not commit them:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` are accepted as aliases. Confirm the
+workflow Project is `ios/BallotWatch.xcodeproj` and the Scheme is `BallotWatch`.
+Local development still uses `ios/scripts/make-secrets.sh`.
+
 ## What's in it
 
 | Tab | What it does |
