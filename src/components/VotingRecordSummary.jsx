@@ -56,15 +56,13 @@ export default function VotingRecordSummary({ bioguideId, party, displayName }) 
 
   return (
     <section className="pol-record-summary" aria-labelledby="record-summary-title">
-      <div className="pol-section-label">Voting history · at a glance</div>
       <div className="pol-record-heading-row">
-        <h2 id="record-summary-title" className="pol-section-title">The record, up front</h2>
+        <h2 id="record-summary-title" className="pol-section-title">The Record, Up Front</h2>
         {ideology?.congress && <span className="pol-record-congress">{ideology.congress}th Congress</span>}
       </div>
 
       <div className="pol-record-grid">
         <div className="pol-ideology-summary">
-          <span className="pol-record-eyebrow">Voting record most closely aligns with</span>
           <strong className="pol-ideology-label">
             {ideology?.label || 'Ideology estimate unavailable'}
           </strong>
@@ -83,10 +81,10 @@ export default function VotingRecordSummary({ bioguideId, party, displayName }) 
         </div>
 
         <dl className="pol-record-stats">
-          <div><dt><Term id="rollCall">Recorded votes</Term></dt><dd>{totalVotes || '—'}</dd></div>
-          <div><dt><Term def="The share of recorded votes where this member actually voted yes, no, or present, instead of missing the vote." label="Participation">Participation</Term></dt><dd>{participation == null ? '—' : `${participation}%`}</dd></div>
-          <div><dt><Term id="voteWithParty">Votes with own party</Term></dt><dd>{stats?.party_loyalty_pct == null ? '—' : `${Math.round(stats.party_loyalty_pct)}%`}</dd></div>
-          <div><dt><Term def="How often this member voted the opposite way from most of their own party." label="Different from party">Breaks from party</Term></dt><dd>{crossover.substantiveCount ? `${crossover.crossoverRate}%` : '—'}</dd></div>
+          <div><dt><Term id="rollCall">Recorded votes</Term></dt><dd>{totalVotes || 'Not listed'}</dd></div>
+          <div><dt><Term def="The share of recorded votes where this member actually voted yes, no, or present, instead of missing the vote." label="Participation">Participation</Term></dt><dd>{participation == null ? 'Not listed' : `${participation}%`}</dd></div>
+          <div><dt><Term id="voteWithParty">Votes with own party</Term></dt><dd>{stats?.party_loyalty_pct == null ? 'Not listed' : `${Math.round(stats.party_loyalty_pct)}%`}</dd></div>
+          <div><dt><Term def="How often this member voted the opposite way from most of their own party." label="Different from party">Breaks from party</Term></dt><dd>{crossover.substantiveCount ? `${crossover.crossoverRate}%` : 'Not listed'}</dd></div>
         </dl>
       </div>
 
@@ -104,9 +102,9 @@ export default function VotingRecordSummary({ bioguideId, party, displayName }) 
             alone because this model does not measure those ideas reliably.
           </p>
           <p>
-            <a href={ideology?.methodologyUrl || 'https://voteview.com/articles/data_help_members'} target="_blank" rel="noopener noreferrer">Read the Voteview methodology ↗</a>
+            <a href={ideology?.methodologyUrl || 'https://voteview.com/articles/data_help_members'} target="_blank" rel="noopener noreferrer">Read the Voteview methodology</a>
             {' · '}
-            <a href={CORRECTION_URL} target="_blank" rel="noopener noreferrer">Request a source-linked correction ↗</a>
+            <a href={CORRECTION_URL} target="_blank" rel="noopener noreferrer">Request a source-linked correction</a>
           </p>
         </div>
       </details>

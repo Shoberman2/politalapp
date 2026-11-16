@@ -34,28 +34,19 @@ function ShutdownBanner() {
 
   if (dismissed || !risk) return null
 
-  const levelIcons = {
-    funded: '\u2705',
-    low: '\u2139\uFE0F',
-    moderate: '\u26A0\uFE0F',
-    high: '\u26A0\uFE0F',
-    critical: '\uD83D\uDEA8',
-    shutdown: '\uD83D\uDED1'
-  }
+  // The deadlines are a hand-kept list (services/shutdown.js). Once the last
+  // one has passed the list is stale, and the banner would announce a shutdown
+  // it cannot know about. Say nothing instead.
+  if (countdown?.expired) return null
 
-  const countdownText = countdown && !countdown.expired
-    ? `${countdown.days}d ${countdown.hours}h until deadline`
-    : countdown?.expired
-      ? 'Deadline has passed'
-      : ''
+  const countdownText = countdown ? `${countdown.days}d ${countdown.hours}h until the funding deadline` : ''
 
   return (
     <div className={`shutdown-banner shutdown-banner--${risk.level}`}>
       <div className="shutdown-banner__content">
-        <span className="shutdown-banner__icon">{levelIcons[risk.level] || '\u2139\uFE0F'}</span>
         <span className="shutdown-banner__text">
-          <strong title="A government shutdown happens when Congress fails to pass funding bills by the deadline, forcing federal agencies to close or reduce operations.">Gov't Shutdown Risk: {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)}</strong>
-          {countdownText && <span className="shutdown-banner__countdown"> &mdash; {countdownText}</span>}
+          <strong title="A government shutdown happens when Congress fails to pass funding bills by the deadline, forcing federal agencies to close or reduce operations.">Shutdown risk: <span className="shutdown-banner__level">{risk.level}</span></strong>
+          {countdownText && <span className="shutdown-banner__countdown">{countdownText}</span>}
         </span>
         <Link to="/shutdown-tracker" className="shutdown-banner__link">Details</Link>
         <button className="shutdown-banner__dismiss" onClick={handleDismiss} aria-label="Dismiss banner">&times;</button>

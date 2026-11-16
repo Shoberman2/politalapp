@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import SEO from './SEO'
 import { safeNextPath } from '../utils/safeNextPath'
 import { DEFAULT_SIGNED_IN_PATH } from '../config/access'
+import { markRecovery } from '../utils/recovery'
 import '../styles/Auth.css'
 
 // The client uses the PKCE flow, so the only valid callback carries ?code=.
@@ -14,6 +15,8 @@ import '../styles/Auth.css'
 // confirmation email on another device leaves it missing; the email is still
 // confirmed, so the reader only needs to sign in here.
 const VERIFIER_RE = /verifier|pkce/i
+
+const isResetPath = (path) => /^\/auth\/reset(?:[/?#]|$)/i.test(path)
 
 function hashParams(value) {
   return new URLSearchParams(String(value || '').replace(/^#/, ''))
@@ -29,7 +32,7 @@ function AuthCallback() {
   const [error, setError] = useState('')
   const [needsSignIn, setNeedsSignIn] = useState(false)
   const next = safeNextPath(new URLSearchParams(location.search).get('next'), DEFAULT_SIGNED_IN_PATH)
-  const signInHref = `/auth?next=${encodeURIComponent(next)}`
+  const signInHref = /^\/auth(?:[/?#]|$)/i.test(next) ? '/auth' : `/auth?next=${encodeURIComponent(next)}`
 
   useEffect(() => {
     let cancelled = false
@@ -53,7 +56,9 @@ function AuthCallback() {
               // (a reload, or React StrictMode's second run), just continue.
               const { data: { session: existing } } = await supabase.auth.getSession()
               if (cancelled) return
-              if (existing) { navigate(next, { replace: true }); return }
+              // Never for a password reset: the session here may belong to
+              // someone else, and the reset page would change their password.
+              if (existing && !isResetPath(next)) { navigate(next, { replace: true }); return }
               setNeedsSignIn(true)
               return
             }
@@ -63,15 +68,20 @@ function AuthCallback() {
 
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         if (sessionError) throw sessionError
-        if (!session) throw new Error('Google sign-in did not return a session.')
-        if (!cancelled) navigate(next, { replace: true })
+        if (!session) throw new Error('Sign-in did not finish. Please try again.')
+        if (cancelled) return
+        // Only a reset link that signed the reader in here opens the password form.
+        if (code && isResetPath(next)) markRecovery()
+        navigate(next, { replace: true })
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Google sign-in could not be completed.')
+        if (!cancelled) setError(err.message || 'Sign-in could not be completed.')
       }
     })()
 
     return () => { cancelled = true }
   }, [location.search, location.hash, navigate, next])
+
+  const isReset = isResetPath(next)
 
   return (
     <div className="bw auth-page">
@@ -81,23 +91,27 @@ function AuthCallback() {
         path="/auth/callback"
         noindex
       />
-      <div className="auth-card auth-callback-card">
+      <div className="auth-column">
         <div className="auth-header">
-          <h1 className="auth-logo">BallotWatch</h1>
-          <p className="auth-tagline">Completing sign in</p>
+          <span className="auth-mark" aria-hidden="true" />
+          <h1 className="auth-title">{needsSignIn || error ? 'Almost There' : 'Signing You In'}</h1>
         </div>
         {needsSignIn ? (
           <>
-            <div className="auth-message">Your email is confirmed. Sign in on this device to continue.</div>
-            <Link className="auth-submit btn-primary" to={signInHref}>Sign in</Link>
+            <div className="auth-message">
+              {isReset
+                ? 'Open the reset link in the browser where you asked for it, or ask for a new link.'
+                : 'Your email is confirmed. Sign in on this device to continue.'}
+            </div>
+            <Link className="auth-submit btn-primary" to={isReset ? '/auth' : signInHref}>{isReset ? 'Back to sign in' : 'Sign in'}</Link>
           </>
         ) : error ? (
           <>
-            <div className="auth-error">{error}</div>
+            <div className="auth-error" role="alert">{error}</div>
             <button className="auth-submit btn-primary" onClick={() => navigate(signInHref)}>Back to sign in</button>
           </>
         ) : (
-          <div className="auth-message">Checking your Google session...</div>
+          <div className="auth-message" role="status">Checking your session.</div>
         )}
       </div>
     </div>

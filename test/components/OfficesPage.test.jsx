@@ -78,7 +78,9 @@ describe('OfficesPage', () => {
     expect(container.querySelector('.offices-page')).not.toBeNull()
     expect(container.querySelector('.info-page')).toBeNull()
     expect(container.querySelectorAll('h1')).toHaveLength(1)
-    expect([...container.querySelectorAll('.of-num')].map((n) => n.textContent)).toEqual(['01', '02', '03'])
+    // Three plain columns: no numbering, no label above the headline.
+    expect(container.querySelectorAll('.of-parts > li')).toHaveLength(3)
+    expect(container.querySelector('.of-num, .of-kicker')).toBeNull()
     expect(container.querySelectorAll('.of-never > li')).toHaveLength(5)
     expect(container.querySelector('h1 em, h2 em, h3 em')).toBeNull()
   })

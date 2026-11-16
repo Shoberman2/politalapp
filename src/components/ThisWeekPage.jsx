@@ -22,14 +22,14 @@ export default function ThisWeekPage() {
       <div className="info-page ip-wide">
         <section className="ip-hero">
           <div className="ip-inner">
-            <span className="ip-kicker">{ordinalCongress(currentCongress())} Congress<InfoDot id="congressNumber" label={`${ordinalCongress(currentCongress())} Congress`} /> · updated daily</span>
-            <h1 className="ip-title">This week on the floor<InfoDot id="floor" /></h1>
+            <h1 className="ip-title">This Week On The Floor<InfoDot id="floor" /></h1>
             <p className="ip-lede">
               What the House plans to take up this week, from the weekly schedule its majority
               leader publishes on docs.house.gov, next to the votes Congress has just recorded.
               A listing means a bill may come up that week, not that it will, and the schedule
               names the week, not the day.
             </p>
+            <p className="ip-updated">{ordinalCongress(currentCongress())} Congress<InfoDot id="congressNumber" label={`${ordinalCongress(currentCongress())} Congress`} /> · updated daily</p>
           </div>
         </section>
       </div>

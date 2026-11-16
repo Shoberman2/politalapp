@@ -40,7 +40,7 @@ function SkeletonRows({ count }) {
 }
 
 function ScheduledRow({ item }) {
-  const number = item.label || '—'
+  const number = item.label || 'No number'
   return (
     <li className="twof-row twof-row--scheduled">
       <div className="twof-row-head">
@@ -124,7 +124,7 @@ function ScheduledColumn({ schedule, limit }) {
       )}
       {groups.map(({ week, shown, hidden }) => (
         <div className="twof-week" key={week.week}>
-          <p className="twof-dateline">
+          <p className="twof-week-label">
             {week === nextWeek ? 'Next week' : 'This week'} · week of <span className="twof-mono">{weekLabel(week.week)}</span>
           </p>
           <ul className="twof-list">
@@ -160,7 +160,7 @@ function RecordedColumn({ votes, limit }) {
   )
 }
 
-// `showHeader={false}` drops the kicker and H2 when the page already has its
+// `showHeader={false}` drops the H2 when the page already has its
 // own title (the /this-week hero).
 export default function ThisWeekOnFloor({ limit = 6, showRecorded = true, showHeader = true }) {
   // undefined = loading, null = failed/none, otherwise data.
@@ -194,8 +194,7 @@ export default function ThisWeekOnFloor({ limit = 6, showRecorded = true, showHe
     >
       {showHeader && (
         <header className="twof-header">
-          <p className="twof-kicker">This week on the floor<InfoDot id="floor" /></p>
-          <h2 id="twof-heading" className="twof-heading">Coming up, and just decided.</h2>
+          <h2 id="twof-heading" className="twof-heading">Coming Up, And Just Decided</h2>
         </header>
       )}
       <div className="twof-grid">

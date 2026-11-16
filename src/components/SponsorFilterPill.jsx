@@ -6,12 +6,12 @@ import '../styles/SponsorFilterPill.css'
  * Inline dropdown filter pill for selecting a sponsor (or cosponsor).
  *
  * Per design-review D2:
- *   - Pill clicked → 320px dropdown opens below the pill
+ *   - Control clicked: 320px dropdown opens below the pill
  *   - Typeahead filters politicians (150ms debounce)
- *   - ↑↓ navigate rows, Enter selects, Esc dismisses
+ *   - Up/Down navigate rows, Enter selects, Esc dismisses
  *   - Click outside dismisses
- *   - Empty: "No politicians match '{q}'." italic row
- *   - Active filter: pill turns pale blue + ✕ to clear
+ *   - Empty: "No politicians match '{q}'." row
+ *   - Active filter: soft fill (.btn-toggle.is-active) + × to clear
  *
  * Used by BillsPage for both sponsor and cosponsor filtering.
  */
@@ -68,7 +68,7 @@ export default function SponsorFilterPill({
     }
   }, [open])
 
-  // Debounced search (150ms — faster than bills-search 300ms; politicians is N=540)
+  // Debounced search (150ms: faster than bills-search 300ms; politicians is N=540)
   useEffect(() => {
     if (!open) return
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -146,7 +146,7 @@ export default function SponsorFilterPill({
     <div className="sponsor-pill-container" ref={containerRef}>
       <button
         type="button"
-        className={`bills-filter-pill sponsor-pill ${isActive ? 'sponsor-pill-active' : ''}`}
+        className={`btn-toggle sponsor-pill${isActive ? ' is-active' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={isActive ? `${label}: ${selected.name}. Press to change.` : label}
@@ -187,7 +187,7 @@ export default function SponsorFilterPill({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a name…"
-            className="sponsor-pill-input"
+            className="field sponsor-pill-input"
             aria-label={`Search politicians to filter ${label.toLowerCase()}`}
           />
 

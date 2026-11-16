@@ -1,5 +1,4 @@
-/* SponsorActivityBadge — single-line stat block on PoliticianDetail
-   top stats. Per design-review Pass 5 + D5 token table. */
+/* SponsorActivityBadge: one stat line on PoliticianDetail. Tokens only. */
 
 .sponsor-badge {
   margin-top: 8px;
@@ -7,58 +6,36 @@
   flex-direction: column;
   gap: 4px;
 }
-
-.sponsor-badge-dl {
-  margin: 0;
-}
+.sponsor-badge-dl { margin: 0; }
 
 .sponsor-badge-stat {
   margin: 0;
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--text-primary, #1A1A18);
+  font-size: 16px;
+  color: var(--ink);
   line-height: 1.5;
 }
-
 .sponsor-badge-number {
-  font-family: var(--font-mono, 'Geist Mono', monospace);
+  font-family: var(--mono);
   font-size: 18px;
-  font-weight: 500;
-  color: var(--text-primary, #1A1A18);
+  font-weight: 600;
+  color: var(--ink);
   padding: 0 2px;
 }
 .sponsor-badge-number-small {
-  font-family: var(--font-mono, 'Geist Mono', monospace);
-  font-weight: 500;
-  color: var(--text-primary, #1A1A18);
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--ink);
 }
+.sponsor-badge-median { font-size: 15px; color: var(--ink-2); }
 
-.sponsor-badge-median {
-  font-size: 13px;
-  color: var(--text-secondary, #6B6861);
-}
-
-.sponsor-badge-empty {
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--text-secondary, #6B6861);
-  margin: 0;
-}
+.sponsor-badge-empty { font-size: 16px; color: var(--ink-2); margin: 0; }
 
 .sponsor-badge-methodology {
   display: inline-block;
-  font-family: var(--font-body);
-  font-style: italic;
-  font-size: 12px;
-  color: var(--text-muted, #9C9789);
+  font-size: 14px;
+  color: var(--ink-3);
 }
-
-.sponsor-badge-loading {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--text-muted, #9C9789);
-  font-style: italic;
-}
+.sponsor-badge-loading { font-size: 15px; color: var(--ink-3); }
 
 .visually-hidden {
   position: absolute;

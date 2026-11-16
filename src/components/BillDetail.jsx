@@ -21,7 +21,38 @@ import '../styles/BillDetail.css'
 //  - "Where this bill goes" section
 //  - Smart status pill survival popover (default pill stays a plain label)
 const SHOW_ROUTING_PANEL = import.meta.env.VITE_BILLS_SHOW_ROUTING_PANEL === 'true'
+
+// How much of a long official summary shows before "Show the full summary".
+const SUMMARY_PREVIEW_CHARS = 1200
+
+// Returns { shown, clamped }. `clamped` is true whenever the full text is
+// longer than the preview, open or not, so the toggle stays on the page.
+// A cut lands on a paragraph break, or on a sentence end inside a paragraph
+// that is itself longer than the preview.
+export function clampProse(paragraphs, { clamp }) {
+  const total = paragraphs.reduce((n, p) => n + p.length, 0)
+  const long = total > SUMMARY_PREVIEW_CHARS * 1.5
+  if (!long || !clamp) return { shown: paragraphs, clamped: long }
+  const shown = []
+  let used = 0
+  for (const p of paragraphs) {
+    if (used + p.length <= SUMMARY_PREVIEW_CHARS) {
+      shown.push(p)
+      used += p.length
+      continue
+    }
+    if (shown.length === 0) {
+      const head = p.slice(0, SUMMARY_PREVIEW_CHARS)
+      const end = Math.max(head.lastIndexOf('. '), head.lastIndexOf('; '))
+      shown.push(end > 200 ? head.slice(0, end + 1) : head)
+    }
+    break
+  }
+  return { shown, clamped: true }
+}
+
 function BillDetail() {
+  const [summaryOpen, setSummaryOpen] = useState(false)
   const { congress, billType, number } = useParams()
   const navigate = useNavigate()
 
@@ -39,12 +70,12 @@ function BillDetail() {
 
   const [aiExplanation, setAiExplanation] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
-  const [shareLabel, setShareLabel] = useState('Share ↗')
+  const [shareLabel, setShareLabel] = useState('Share')
   const [methodologyAnchor, setMethodologyAnchor] = useState(null)
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/s/bill/${congress}/${billType}/${number}`
-    const shareTitle = `${billType.toUpperCase()}. ${number} — BallotWatch`
+    const shareTitle = `${billType.toUpperCase()}. ${number} · BallotWatch`
     if (navigator.share) {
       try {
         await navigator.share({ title: shareTitle, url: shareUrl })
@@ -56,7 +87,7 @@ function BillDetail() {
 
     const copied = await copyTextToClipboard(shareUrl)
     setShareLabel(copied ? 'Link copied' : 'Copy failed')
-    setTimeout(() => setShareLabel('Share ↗'), 2000)
+    setTimeout(() => setShareLabel('Share'), 2000)
   }
 
   useEffect(() => {
@@ -141,16 +172,16 @@ function BillDetail() {
     if (!bill) return { label: 'Loading', cls: 'status-progress' }
     const text = bill.latestAction?.text?.toLowerCase() || ''
     if (text.includes('became public law') || text.includes('signed by president')) {
-      return { label: 'Became Law', cls: 'status-enacted', term: 'enacted' }
+      return { label: 'Became law', cls: 'status-enacted', term: 'enacted' }
     }
     if (text.includes('passed house') && text.includes('passed senate')) {
-      return { label: 'Passed House and Senate · Awaiting President', cls: 'status-passed-both', term: 'passed' }
+      return { label: 'Passed House and Senate · awaiting President', cls: 'status-passed-both', term: 'passed' }
     }
-    if (text.includes('passed house')) return { label: 'Passed House · Awaiting Senate', cls: 'status-passed', term: 'passed' }
-    if (text.includes('passed senate')) return { label: 'Passed Senate · Awaiting House', cls: 'status-passed', term: 'passed' }
-    if (text.includes('committee')) return { label: 'In Committee', cls: 'status-committee', term: 'committee' }
+    if (text.includes('passed house')) return { label: 'Passed House · awaiting Senate', cls: 'status-passed', term: 'passed' }
+    if (text.includes('passed senate')) return { label: 'Passed Senate · awaiting House', cls: 'status-passed', term: 'passed' }
+    if (text.includes('committee')) return { label: 'In committee', cls: 'status-committee', term: 'committee' }
     if (text.includes('introduced')) return { label: 'Introduced', cls: 'status-introduced', term: 'introduced' }
-    return { label: 'In Progress', cls: 'status-progress' }
+    return { label: 'In progress', cls: 'status-progress' }
   }
 
   const partyClass = (party) => {
@@ -182,7 +213,7 @@ function BillDetail() {
     return (
       <div className="bill-detail-error">
         <div className="error-message">{error || 'Bill not found'}</div>
-        <button className="bill-back-button btn-primary" onClick={() => navigate('/bills')}>Back to Bills</button>
+        <button className="bill-back-button btn-primary" onClick={() => navigate('/bills')}>Back to bills</button>
       </div>
     )
   }
@@ -190,6 +221,14 @@ function BillDetail() {
   const sponsor = bill.sponsors?.[0]
   const status = getStatusInfo()
   const displayTitle = getBillDisplayTitle(bill, billType, number)
+  // An official summary can run to hundreds of paragraphs (H.R. 1 is one).
+  // Open on the first few and let the reader ask for the rest. An AI
+  // explanation is short by design and always shows whole.
+  const prose = clampProse(
+    aiExplanation?.paragraphs?.length ? aiExplanation.paragraphs : [aiExplanation?.explanation].filter(Boolean),
+    { clamp: Boolean(aiExplanation) && !aiExplanation.isGenerated && !summaryOpen },
+  )
+
   const latestOfficialSummary = bill.summaries?.at(-1)
   const latestOfficialParagraphs = latestOfficialSummary
     ? officialSummaryParagraphs(latestOfficialSummary.text, displayTitle)
@@ -220,7 +259,7 @@ function BillDetail() {
     <div className="bill-detail">
       <SEO
         title={displayTitle}
-        description={`${displayTitle} — ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
+        description={`${displayTitle}: ${bill.latestAction?.text || 'View bill details, sponsors, and voting history.'}`}
         path={`/bill/${congress}/${billType}/${number}`}
         schema={{
           '@type': 'Legislation',
@@ -249,6 +288,7 @@ function BillDetail() {
 
       {/* MASTHEAD */}
       <header className="bill-masthead">
+        <h1 className="bill-masthead-title">{displayTitle}</h1>
         <div className="bill-id-row">
           <span className="bill-masthead-id">{formatBillId(bill, billType, number)}<InfoDot id="billNumber" /></span>
           <span className="bill-masthead-congress">{congress}th Congress<InfoDot id="congressNumber" label={`${congress}th Congress`} /></span>
@@ -263,14 +303,11 @@ function BillDetail() {
             />
           ) : (
             <span className="bill-status-wrap">
-              <span className={`bill-status-pill ${status.cls}`}>
-                <span className="bill-status-pill-dot"></span>{status.label}
-              </span>
+              <span className={`bill-status-pill ${status.cls}`}>{status.label}</span>
               {status.term && <InfoDot id={status.term} label={status.label} />}
             </span>
           )}
         </div>
-        <h1 className="bill-masthead-title">{displayTitle}</h1>
         <p className="bill-masthead-byline">
           {sponsor && (
             <>
@@ -285,14 +322,14 @@ function BillDetail() {
           )}
           {bill.introducedDate && <><Term id="introduced">introduced</Term> <span className="bill-byline-mono">{formatDate(bill.introducedDate)}</span></>}
           {cosponsors.length > 0 && <> · with <strong>{cosponsors.length}</strong> <Term id="cosponsor">{`cosponsor${cosponsors.length !== 1 ? 's' : ''}`}</Term></>}
-          {bill.policyArea?.name && <> · <Term id="policyArea">topic</Term> <em>{bill.policyArea.name}</em></>}
+          {bill.policyArea?.name && <> · <Term id="policyArea">topic</Term> {bill.policyArea.name}</>}
         </p>
         <div className="bill-masthead-actions">
           {textVersions[0]?.formats?.[0]?.url && (
-            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Read full text ↗</a>
+            <a href={textVersions[0].formats[0].url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Read full text</a>
           )}
           {bill.url && (
-            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Congress.gov ↗</a>
+            <a href={bill.url} target="_blank" rel="noopener noreferrer" className="bill-action-btn btn-secondary btn-sm">Congress.gov</a>
           )}
           <button type="button" onClick={handleShare} className="bill-action-btn btn-secondary btn-sm">{shareLabel}</button>
         </div>
@@ -302,17 +339,16 @@ function BillDetail() {
       <div className="bill-layout">
         <div className="bill-main">
 
-          {/* OFFICIAL EXPLANATION — primary content */}
+          {/* OFFICIAL EXPLANATION: primary content */}
           <article className="bill-ai-card">
             {/* Honest labels (audit ISSUE-005): only AI-written text is called AI.
                 The Congressional Research Service summary is labeled as the
                 official summary, never as an AI explanation. */}
-            <div className="bill-ai-label">
-              <span className="bill-ai-pulse"></span>
+            <h2 className="bill-ai-label">
               {aiExplanation?.isGenerated
-                ? <Term id="plainEnglish">The bill, in plain English</Term>
-                : <Term id="officialSummary">The bill, in brief</Term>}
-            </div>
+                ? <>The Bill, In Plain English<InfoDot id="plainEnglish" /></>
+                : <>The Bill, In Brief<InfoDot id="officialSummary" /></>}
+            </h2>
             <div className="bill-ai-byline">
               {aiLoading
                 ? ''
@@ -321,11 +357,10 @@ function BillDetail() {
                   : aiExplanation?.isGenerated
                     ? <>
                         {explanationSourceLine(aiExplanation.source)}
-                        {aiExplanation.source?.url && <> <a href={aiExplanation.source.url} target="_blank" rel="noopener noreferrer">Read the text ↗</a></>}
+                        {aiExplanation.source?.url && <> <a href={aiExplanation.source.url} target="_blank" rel="noopener noreferrer">Read the text</a></>}
                       </>
                     : 'Official summary by the Congressional Research Service, Congress’s nonpartisan research office'}
             </div>
-            <h2 className="bill-ai-headline">What this bill would do</h2>
             {aiLoading && (
               <div className="bill-ai-loading">
                 <span className="loading-spinner-small"></span>
@@ -333,11 +368,20 @@ function BillDetail() {
               </div>
             )}
             {!aiLoading && aiExplanation && (
-              <div className="bill-ai-prose">
-                {aiExplanation.paragraphs?.length
-                  ? aiExplanation.paragraphs.map((p, i) => <p key={i}>{p}</p>)
-                  : <p>{aiExplanation.explanation}</p>}
+              <div className="bill-ai-prose" id="bill-explanation-prose">
+                {prose.shown.map((p, i) => <p key={i}>{p}</p>)}
               </div>
+            )}
+            {!aiLoading && aiExplanation && prose.clamped && (
+              <button
+                type="button"
+                className="btn-text bill-summary-more"
+                aria-expanded={summaryOpen}
+                aria-controls="bill-explanation-prose"
+                onClick={() => setSummaryOpen((open) => !open)}
+              >
+                {summaryOpen ? 'Show less' : 'Show the full summary'}
+              </button>
             )}
             {!aiLoading && aiExplanation?.keyPoints?.length > 0 && (
               <>
@@ -349,7 +393,7 @@ function BillDetail() {
             )}
           </article>
 
-          {/* OFFICIAL SUMMARY — collapsed */}
+          {/* OFFICIAL SUMMARY: collapsed */}
           {latestOfficialParagraphs.length > 0 && aiExplanation?.isGenerated && (
             <details className="bill-summary-block">
               <summary>Show the official Congress.gov summary</summary>
@@ -359,7 +403,7 @@ function BillDetail() {
             </details>
           )}
 
-          {/* "WHERE THIS BILL GOES" — routing panel + AI narrative (behind flag) */}
+          {/* "WHERE THIS BILL GOES": routing panel + AI narrative (behind flag) */}
           {SHOW_ROUTING_PANEL && (
             <BillRoutingPanel
               billId={`${congress}-${billType.toLowerCase()}-${number}`}
@@ -370,8 +414,7 @@ function BillDetail() {
           {/* VOTE TALLIES */}
           {voteTallies.length > 0 && (
             <section className="bill-editorial-section">
-              <div className="bill-section-label"><Term id="rollCall">Recorded votes</Term></div>
-              <h2 className="bill-section-title">How the House and Senate voted</h2>
+              <h2 className="bill-section-title">How The House And Senate Voted<InfoDot id="rollCall" /></h2>
               <div className="bill-tally-grid">
                 {voteTallies.map((tally, index) => {
                   const total = (tally.totalYea || 0) + (tally.totalNay || 0) + (tally.totalNotVoting || 0) + (tally.totalPresent || 0)
@@ -421,8 +464,7 @@ function BillDetail() {
           {/* TIMELINE OF ACTIONS */}
           {actions.length > 0 && (
             <section className="bill-editorial-section" id="actions-section">
-              <div className="bill-section-label"><Term id="latestAction">Timeline</Term></div>
-              <h2 className="bill-section-title">What's happened so far</h2>
+              <h2 className="bill-section-title">What's Happened So Far<InfoDot id="latestAction" /></h2>
               <div className="bill-timeline">
                 {actions.slice(0, 12).map((action, index) => {
                   const text = (action.text || '').toLowerCase()
@@ -488,10 +530,10 @@ function BillDetail() {
                 )}
               </div>
               <button
-                className="bill-cosp-toggle"
+                className="bill-cosp-toggle btn-text"
                 onClick={() => setShowAllCosponsors(!showAllCosponsors)}
               >
-                {showAllCosponsors ? 'Hide list' : `View all ${cosponsors.length} →`}
+                {showAllCosponsors ? 'Hide list' : `View all ${cosponsors.length}`}
               </button>
               {showAllCosponsors && (
                 <div className="bill-cosp-list">
@@ -508,7 +550,7 @@ function BillDetail() {
             </div>
           )}
 
-          {/* Flat committee list — only shown when the new routing panel is
+          {/* Flat committee list: only shown when the new routing panel is
               OFF. When the flag is on, the richer "Where this bill goes"
               section in the main column covers it. */}
           {!SHOW_ROUTING_PANEL && (committees.length > 0 || bill.committees?.count > 0) && (
@@ -543,7 +585,7 @@ function BillDetail() {
         </aside>
       </div>
 
-      {/* Methodology modal — anchor-driven; opened by routing-panel /
+      {/* Methodology modal: anchor-driven; opened by routing-panel /
           status-popover "How we compute this" links. */}
       <MethodologyModal
         open={!!methodologyAnchor}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-// A list of links for the info pages: title, one line, arrow. The whole row is
+// A list of links for the info pages: a title and one line. The whole row is
 // the link. Styled by `.ip-index` in InfoPage.css.
 function InfoIndex({ items }) {
   return (
@@ -10,7 +10,6 @@ function InfoIndex({ items }) {
           <Link to={item.to}>
             <span className="ip-index-title">{item.title}</span>
             <span className="ip-index-dek">{item.dek}</span>
-            <span className="ip-index-go" aria-hidden="true">&rarr;</span>
           </Link>
         </li>
       ))}

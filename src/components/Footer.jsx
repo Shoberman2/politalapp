@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BRAND } from '../config/brand'
 import { SHOW_BILL_ALERTS } from '../config/features'
+import { CTA_HREF, CTA_LABEL } from '../config/cta'
 
 // The one site-wide footer, rendered once by App after <Routes>. It wraps
 // itself in `.bw` so the .bw-scoped footer styles in broadsheet.css apply on
@@ -23,7 +24,7 @@ const COLUMNS = [
     ],
   },
   {
-    title: 'How it works',
+    title: 'Learn',
     links: [
       { label: 'How it works', to: '/how-it-works' },
       { label: 'Glossary', to: '/glossary' },
@@ -69,13 +70,14 @@ function Footer() {
     <div className="bw bw-footer">
       <footer className="footer">
         <div className="footer-inner">
-          <div className="footer-cols">
+          <div className="footer-top">
             <div className="footer-brand">
               <span className="footer-wordmark">{BRAND.name}</span>
-              <p className="footer-tag">
-                The congressional record, source-linked, and a direct line to the people who represent you.
-              </p>
+              <p className="footer-tag">How Congress voted, in plain English, linked to the official record.</p>
             </div>
+            <Link className="btn-primary" to={CTA_HREF}>{CTA_LABEL}</Link>
+          </div>
+          <div className="footer-cols">
             {COLUMNS.map((col) => (
               <nav className="footer-col" key={col.title} aria-label={col.title}>
                 <h4>{col.title}</h4>
@@ -88,7 +90,7 @@ function Footer() {
             ))}
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2026 {BRAND.name}. Code MIT licensed; source data terms vary by provider.</p>
+            <p>&copy; {new Date().getFullYear()} {BRAND.name}. Code MIT licensed. Source data terms vary by provider.</p>
             <p>Not affiliated with the U.S. Congress.</p>
           </div>
         </div>

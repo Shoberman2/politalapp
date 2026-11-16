@@ -77,7 +77,7 @@ describe('prerender kind=home', () => {
     const html = res.body
     const text = rootText(html)
 
-    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How did your representative vote this week\?<\/h1>/)
+    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How Did Your Representative Vote This Week\?<\/h1>/)
     expect(html.match(/<h1[\s>]/g)).toHaveLength(1)
     expect(text).toContain(BRAND.mission)
     expect(text).toContain('free, open-source, nonpartisan record of the U.S. Congress')
@@ -185,7 +185,7 @@ describe('prerender kind=home', () => {
     expect(res.getHeader('x-ballotwatch-prerender')).toBe('index:no-votes')
     expect(res.body).not.toContain('home-latest')
     expect(res.body).not.toContain('Recent roll calls')
-    expect(res.body).toContain('How did your representative vote')
+    expect(res.body).toContain('How Did Your Representative Vote')
     expect(rootText(res.body)).toContain(LANDING_FAQ[0].q)
   })
 
@@ -211,7 +211,7 @@ describe('prerender kind=home', () => {
     expect(res.getHeader('cache-control')).toBe('public, s-maxage=3600, stale-while-revalidate=86400')
     expect(res.body).toContain('<title>How It Works | BallotWatch</title>')
     expect(res.body).toContain('<link rel="canonical" href="https://www.ballotwatch.io/how-it-works" />')
-    expect(res.body).toMatch(/<div id="root">[\s\S]*<h1>Read the record\. Reach the people in it\.<\/h1>/)
+    expect(res.body).toMatch(/<div id="root">[\s\S]*<h1>Read The Record\. Reach The People In It\.<\/h1>/)
     expect(ldBlocks(res.body).map((b) => b['@type'])).toEqual(['WebPage'])
 
     const md = makeRes()

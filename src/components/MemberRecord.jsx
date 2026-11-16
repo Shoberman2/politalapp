@@ -99,7 +99,7 @@ export default function MemberRecord() {
         <h1>{failed ? 'The record could not be loaded' : 'Member not found'}</h1>
         <p>
           {failed
-            ? 'Please try again in a moment.'
+            ? 'Try again in a moment.'
             : <>We don't hold a member with the id {id}. <Link to="/all">Browse members</Link>.</>}
         </p>
       </div>
@@ -158,7 +158,6 @@ export default function MemberRecord() {
           <div className="rec-photo rec-photo-empty" aria-hidden="true">{r.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</div>
         )}
         <div className="rec-id">
-          <div className="rec-kicker">Record in 60 seconds{r.congress ? ` · ${ordinalCongress(r.congress)} Congress` : ''}</div>
           <h1 className="rec-name">{r.name}</h1>
           <div className="rec-seat">
             <span className={`rec-party rec-party-${party.toLowerCase()}`}>{party}</span>
@@ -210,7 +209,7 @@ export default function MemberRecord() {
                       </td>
                       <td className="rec-src">
                         {v.source_url && /^https?:\/\//i.test(v.source_url) && (
-                          <a href={v.source_url} target="_blank" rel="noopener noreferrer">{v.chamber === 'Senate' ? 'Senate' : 'Clerk'} ↗</a>
+                          <a href={v.source_url} target="_blank" rel="noopener noreferrer">{v.chamber === 'Senate' ? 'Senate' : 'Clerk'}</a>
                         )}
                       </td>
                     </tr>
@@ -223,9 +222,9 @@ export default function MemberRecord() {
       </section>
 
       <div className="rec-actions">
-        <Link className="rc-action-btn btn-secondary btn-sm" to={`/politician/${r.id}`}>Full record →</Link>
-        {nativeShare && <button type="button" className="rc-action-btn btn-secondary btn-sm" onClick={share}>Share</button>}
-        <button type="button" className="rc-action-btn btn-secondary btn-sm" onClick={copy}>Copy link</button>
+        <Link className="rc-action-btn btn-outline btn-sm" to={`/politician/${r.id}`}>Full record</Link>
+        {nativeShare && <button type="button" className="rc-action-btn btn-outline btn-sm" onClick={share}>Share</button>}
+        <button type="button" className="rc-action-btn btn-outline btn-sm" onClick={copy}>Copy link</button>
         <span className="rec-copied" role="status" aria-live="polite">{copied || ''}</span>
       </div>
       <nav className="rec-share" aria-label="Share this record">

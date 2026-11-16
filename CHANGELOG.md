@@ -3,6 +3,42 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.11.0.0] - 2026-11-15
+
+### Added
+
+- Forgot your password: the sign-in page can email a reset link, and the link opens a page to set a new one. The form only opens from a reset link in the same browser tab, so a signed-in session alone can never change a password.
+- "Find my reps" opens the create-account form directly, and "Sign in" opens sign-in. Sign-in errors are written in plain words.
+- Account sheet: when you are signed in, "Account" in the top bar opens a sheet with your email, a Light or Dark choice and Sign out.
+- The Senate chamber shows all 100 desks of the 119th Congress with each senator's name and party colour, drawn from the Senate's own floor plans. The named desks are the real ones. They are the Daniel Webster desk (29), the Jefferson Davis desk (60) and the candy desk (49).
+- Public pages end with one "Find my reps" call to action, and the footer carries the same one.
+- Long bill summaries open on a short preview with "Show the full summary".
+
+### Changed
+
+- One look across the site: pill buttons, no divider lines, no small labels above headlines, no numbered steps, Title Case headlines, larger body text, and space between sections. The server-rendered pages match. DESIGN.md records the rules as applied here.
+- The top bar is simpler and has no dividing line. On phones the menu opens as a full-screen sheet and closes on Escape.
+- The site opens light for everyone. Dark is a choice in the account sheet, and signing out returns to light.
+- House and Senate party counts are counted from the member list, one dot per member, with no invented vacancies.
+- The key and usage pages wait for your session before deciding you are signed out, and return you to the page you asked for after sign-in.
+- Local development reads the public API from the live site unless `DEV_API_ORIGIN` is set.
+
+### Fixed
+
+- Bill rows printed a sponsor's party twice ("[D-CO]" in the name and again as a tag). It prints once.
+- The shutdown banner no longer shows a deadline that has already passed, and the tracker says its dates are out of date.
+- Senate desks sit on their own side of the centre aisle when the two sides hold different numbers of desks.
+- Wording corrected: the FAQ and Terms say AI explanations come from a bill's official text or summary, and the Privacy page says Google sign-in is offered "where it is offered".
+
+### Removed
+
+- The theme toggle in the top bar (the choice moved to the account sheet).
+- Landing page: the three-row list of recent votes and the recent-bills fallback beside it, the sample API response, and the separate "record" and "agents" feature sections (eight feature sections became six, because they repeated the ticker and each other).
+- Developer page: the per-plan request numbers ("10,000", "100,000", "Unlimited"), the "Most Popular" badge and the closing key call to action.
+- The shutdown banner's expired state. Once every deadline on file has passed the banner shows nothing.
+- Unused components that no page rendered: VotingHistory, BillCard, TrendingBills and TrendingBillCard, with their styles and one test file.
+- The three sample Senate desk assignments and ten invented desk-history rows in the database, replaced by the Senate's floor-plan data. The earlier rows are saved in `docs/data-backups/senate-desks-before-2026-11-14/`.
+
 ## [0.10.0.0] - 2026-10-22
 
 ### Added

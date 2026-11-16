@@ -91,7 +91,7 @@ describe('Auth: email and password', () => {
     auth.user = { id: 'u1' }
     auth.loading = true
     renderAt('/auth?next=%2Fbills')
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Sign in')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Welcome Back')
   })
 
   it('tells search engines not to index the sign-in page', async () => {
@@ -104,7 +104,7 @@ describe('Auth: email and password', () => {
     renderAt('/auth')
     fill()
     submit()
-    expect((await screen.findByRole('alert')).textContent).toBe('Invalid login credentials')
+    expect((await screen.findByRole('alert')).textContent).toBe('That email and password do not match.')
     expect(screen.queryByTestId('where')).toBeNull()
     expect(screen.getByRole('button', { name: 'Sign in' })).not.toBeDisabled()
   })
@@ -120,14 +120,14 @@ describe('Auth: email and password', () => {
   it('sign-up without a session asks the reader to confirm by email and does not navigate', async () => {
     auth.signUp.mockResolvedValue({ data: { user: { id: 'u1' }, session: null }, error: null })
     renderAt('/auth?next=%2Fbills')
-    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }))
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Create your account')
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up' }))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Create Your Account')
     fill('new@b.co', 'secret2')
     submit()
     expect((await screen.findByRole('status')).textContent).toBe('Check your email to confirm your account, then sign in.')
     expect(screen.queryByTestId('where')).toBeNull()
     // Back in sign-in mode with the password cleared.
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Sign in')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Welcome Back')
     expect(screen.getByLabelText(/password/i).value).toBe('')
     expect(auth.signUp).toHaveBeenCalledWith('new@b.co', 'secret2', '/bills')
   })
@@ -135,7 +135,7 @@ describe('Auth: email and password', () => {
   it('sign-up with a session goes straight to ?next=', async () => {
     auth.signUp.mockResolvedValue({ data: { session: { access_token: 't' } }, error: null })
     renderAt('/auth?next=%2Fbills')
-    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up' }))
     fill()
     submit()
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/bills'))
@@ -147,8 +147,41 @@ describe('Auth: email and password', () => {
     fill()
     submit()
     await screen.findByRole('alert')
-    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up' }))
     expect(screen.queryByRole('alert')).toBeNull()
+  })
+})
+
+describe('Auth: sign-up link and password reset', () => {
+  it('opens the create-account form from ?mode=signup and keeps ?next=', async () => {
+    auth.signUp.mockResolvedValue({ data: { session: { access_token: 't' } }, error: null })
+    renderAt('/auth?mode=signup&next=%2Fbills')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Create Your Account')
+    fill('new@b.co', 'secret2')
+    submit()
+    await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/bills'))
+    expect(auth.signUp).toHaveBeenCalledWith('new@b.co', 'secret2', '/bills')
+  })
+
+  it('emails a reset link and answers the same whether or not the address has an account', async () => {
+    auth.resetPassword = vi.fn().mockResolvedValue({ error: null })
+    renderAt('/auth')
+    fireEvent.click(screen.getByRole('button', { name: 'Forgot password?' }))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reset Your Password')
+    expect(screen.queryByLabelText(/password/i)).toBeNull()
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a@b.co' } })
+    submit()
+    expect((await screen.findByRole('status')).textContent).toBe('If that email has an account, a reset link is on its way.')
+    expect(auth.resetPassword).toHaveBeenCalledWith('a@b.co')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Welcome Back')
+  })
+
+  it('tells someone who signs up twice to sign in instead', async () => {
+    auth.signUp.mockResolvedValue({ data: null, error: { message: 'User already registered' } })
+    renderAt('/auth?mode=signup')
+    fill()
+    submit()
+    expect((await screen.findByRole('alert')).textContent).toBe('That email already has an account. Sign in instead.')
   })
 })
 

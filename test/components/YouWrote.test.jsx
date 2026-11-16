@@ -91,7 +91,7 @@ describe('YouWroteNotes', { timeout: 20000 }, () => {
 describe('YourMessages', { timeout: 20000 }, () => {
   it('explains itself when empty, and says where the data lives', () => {
     renderIn(<YourMessages />)
-    expect(screen.getByRole('heading', { name: 'Your messages' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Your Messages' })).toBeTruthy()
     expect(screen.getByText(/mark it sent/)).toBeTruthy()
     expect(screen.getByText(/Saved on this device only\./)).toBeTruthy()
   })

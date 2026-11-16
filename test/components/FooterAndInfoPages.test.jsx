@@ -62,14 +62,14 @@ describe('site-wide footer', () => {
 
 describe('information pages', () => {
   const pages = [
-    ['/how-it-works', HowItWorksPage, /Read the record/],
-    ['/data-sources', DataSourcesPage, /How we get our data/],
-    ['/methodology', MethodologyPage, /How each number is made/],
+    ['/how-it-works', HowItWorksPage, /Read The Record/],
+    ['/data-sources', DataSourcesPage, /How We Get Our Data/],
+    ['/methodology', MethodologyPage, /How Each Number Is Made/],
     ['/methodology/corrections', MethodologyPage, /Corrections/],
-    ['/about', AboutPage, /nonpartisan record of Congress/],
-    ['/contact', ContactPage, /How to reach us/],
-    ['/privacy', PrivacyPage, /Privacy notice/],
-    ['/terms', TermsPage, /Terms of use/],
+    ['/about', AboutPage, /Nonpartisan Record Of Congress/],
+    ['/contact', ContactPage, /How To Reach Us/],
+    ['/privacy', PrivacyPage, /Privacy Notice/],
+    ['/terms', TermsPage, /Terms Of Use/],
   ]
 
   // Methodology reads its slug from the route, so render it through Routes.
@@ -100,7 +100,7 @@ describe('information pages', () => {
     expect(container.querySelector('.offices-page')).not.toBeNull()
     const h1s = container.querySelectorAll('h1')
     expect(h1s).toHaveLength(1)
-    expect(h1s[0].textContent).toMatch(/Answer constituents/)
+    expect(h1s[0].textContent).toMatch(/Answer Constituents/)
     expect(container.textContent).not.toMatch(/plainfloor/i)
   })
 
@@ -118,7 +118,9 @@ describe('information pages', () => {
     const steps = container.querySelectorAll('.ip-steps > li')
     expect(steps).toHaveLength(4)
     expect(steps[2].textContent).toMatch(/Where we’re headed/)
-    for (const step of steps) expect(step.querySelector('a.btn-text.btn-go')).not.toBeNull()
+    for (const step of steps) expect(step.querySelector('a.btn-text')).not.toBeNull()
+    // A plain flow: no arrow class and no numbering.
+    expect(container.querySelector('.btn-go')).toBeNull()
     expect(container.querySelector('a[href="/data-sources"]')).not.toBeNull()
   })
 
@@ -134,14 +136,14 @@ describe('information pages', () => {
       expect(row.querySelector('.ip-cadence').textContent).toMatch(/^(Daily|Live|On request)$/)
       expect(row.querySelector('a[href^="https://"]')).not.toBeNull()
     }
-    expect(text).toMatch(/What we compute/)
-    expect(text).toMatch(/What AI does here/)
+    expect(text).toMatch(/What We Compute/)
+    expect(text).toMatch(/What AI Does Here/)
     expect(container.querySelector('a[href="/methodology/corrections"]')).not.toBeNull()
   })
 
   it('the /data-sources route is registered in the app', () => {
     const { container } = renderAt('/data-sources')
-    expect(container.querySelector('h1.ip-title').textContent).toMatch(/How we get our data/)
+    expect(container.querySelector('h1.ip-title').textContent).toMatch(/How We Get Our Data/)
   })
 
   it('methodology index lists every topic and topic pages link back', () => {
@@ -161,7 +163,7 @@ describe('information pages', () => {
   it('privacy notice says Tell your rep text is not sent or stored', () => {
     const { container } = renderAt('/privacy', <PrivacyPage />)
     expect(container.textContent).toMatch(/Tell your rep messages are never sent to or stored by us/)
-    expect(container.textContent).toMatch(/Last updated: October 6, 2026/)
+    expect(container.textContent).toMatch(/Last updated: November 14, 2026/)
   })
 
   it('privacy notice is accurate about accounts and the ZIP lookup', () => {

@@ -28,9 +28,9 @@ function ArticlePage() {
     return (
       <div className="article-not-found">
         <h1>Article Not Found</h1>
-        <p>The article you're looking for doesn't exist or may have been moved.</p>
-        <button className="back-button btn-primary" onClick={() => navigate('/blog')}>
-          Back to Blog
+        <p>This article doesn’t exist or has moved.</p>
+        <button className="back-button btn-outline" onClick={() => navigate('/blog')}>
+          Back to blog
         </button>
       </div>
     )
@@ -50,23 +50,12 @@ function ArticlePage() {
           description: article.excerpt
         }}
       />
-      <button className="back-link" onClick={() => navigate('/blog')}>
-        ← Back to Blog
-      </button>
-
       <article className="article-content">
         <header className="article-header">
-          <div className="article-tags">
-            {article.tags.map(tag => (
-              <span key={tag} className="article-tag">{tag}</span>
-            ))}
-          </div>
           <h1 className="article-title">{article.title}</h1>
-          <div className="article-meta">
-            <span className="article-date">{formatDate(article.date)}</span>
-            <span className="article-meta-divider">·</span>
-            <span className="article-author">{article.author}</span>
-          </div>
+          <p className="article-meta">
+            {[formatDate(article.date), article.author, article.tags.join(', ')].filter(Boolean).join(' · ')}
+          </p>
         </header>
 
         <div className="article-body">
@@ -75,6 +64,10 @@ function ArticlePage() {
           ))}
         </div>
       </article>
+
+      <button className="article-back btn-text" onClick={() => navigate('/blog')}>
+        Back to blog
+      </button>
     </div>
   )
 }

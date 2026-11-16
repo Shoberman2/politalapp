@@ -66,7 +66,6 @@ export default function BillWatchControl({ billId }) {
   if (!user) {
     return (
       <div className="bill-rail-card bill-watch-card">
-        <div className="bill-watch-kicker">Bill alerts</div>
         <h3>Get the next update</h3>
         <p>Sign in with a free account to watch this bill and see official committee, floor, and recorded-vote updates.</p>
         <button
@@ -83,7 +82,6 @@ export default function BillWatchControl({ billId }) {
   if (!follow) {
     return (
       <div className="bill-rail-card bill-watch-card">
-        <div className="bill-watch-kicker">Bill alerts</div>
         <h3>Watch this bill</h3>
         <p>BallotWatch will monitor official committee, floor, and recorded-vote updates for this bill.</p>
         <button
@@ -106,7 +104,7 @@ export default function BillWatchControl({ billId }) {
 
   return (
     <div className="bill-rail-card bill-watch-card bill-watch-card--active">
-      <div className="bill-watch-status"><span /> Watching this bill</div>
+      <h3 className="bill-watch-status">Watching this bill</h3>
       <p>Choose which official updates should appear in your watchlist.</p>
       <div className="bill-watch-options">
         <label><input type="checkbox" checked={options.committeeAlerts} onChange={() => toggle('committeeAlerts')} /> Committee activity</label>

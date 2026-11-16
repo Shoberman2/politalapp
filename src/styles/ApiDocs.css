@@ -1,124 +1,103 @@
+/* API reference (/developers/docs). Buttons and toggles come from App.css. */
 .api-docs {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 24px;
 }
 
-.api-docs-header {
-  margin-bottom: 32px;
-}
-
-.api-docs-header h1 {
-  font-family: var(--serif);
-  font-size: 28px;
-  color: var(--text-primary);
-  margin: 0 0 8px;
-}
-
-.api-docs-header p {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 4px 0;
-}
-
-.api-docs-header a {
+.api-docs a {
   color: var(--accent);
   text-decoration: none;
 }
 
-.api-docs-header code {
+.api-docs a:hover {
+  color: var(--accent-hover);
+}
+
+.api-docs-header {
+  margin-bottom: 48px;
+}
+
+.api-docs-header h1 {
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin: 0 0 20px;
+}
+
+.api-docs-header p {
+  font-size: 16px;
+  color: var(--ink-2);
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.api-docs code {
   font-family: var(--mono);
-  font-size: 13px;
-  background: var(--bg-tint);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--ink);
 }
 
 /* Layout */
 .api-docs-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 32px;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 48px;
 }
 
-/* Nav */
+/* Endpoint picker */
 .api-docs-nav {
   position: sticky;
-  top: 80px;
+  top: 92px;
   align-self: start;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.api-docs-nav h3 {
-  font-family: var(--sans);
-  font-size: 12px;
+.api-docs-nav-title {
+  font-size: 15px;
   font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 12px;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin: 0 0 8px;
+  padding: 0 16px;
 }
 
-.api-docs-nav-item {
-  display: flex;
-  align-items: center;
+.api-docs-nav .api-docs-nav-item {
+  justify-content: flex-start;
   gap: 8px;
   width: 100%;
+  min-height: 44px;
   text-align: left;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: var(--sans);
-  font-size: 13px;
-  color: var(--text-secondary);
-  transition: background 0.15s;
-}
-
-.api-docs-nav-item:hover {
-  background: var(--bg-tint);
-}
-
-.api-docs-nav-item.active {
-  background: rgba(29, 78, 216, 0.08);
-  color: var(--accent);
+  min-width: 0;
 }
 
 .api-docs-method {
   font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--success);
-  background: var(--success-subtle);
-  padding: 2px 4px;
-  border-radius: 3px;
   flex-shrink: 0;
 }
 
 .api-docs-path {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.api-docs-nav-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 12px 0;
+.api-docs-nav .api-docs-nav-cta {
+  margin-top: 20px;
+  justify-self: start;
 }
 
-.api-docs-nav-cta {
-  width: 100%;
+.api-docs-nav .api-docs-nav-secondary {
+  justify-self: start;
+  margin-left: 16px;
 }
-
-.api-docs-nav-secondary {
-  width: 100%;
-  margin-top: 4px;
-}
-
 
 /* Content */
 .api-docs-content {
@@ -126,115 +105,112 @@
 }
 
 .api-docs-endpoint {
-  margin-bottom: 48px;
+  margin-bottom: 72px;
 }
 
 .api-docs-endpoint-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   margin-bottom: 12px;
 }
 
 .api-docs-method-badge {
   font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--success);
-  background: var(--success-subtle);
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
-.api-docs-endpoint-path {
-  font-family: var(--mono);
-  font-size: 16px;
-  color: var(--text-primary);
+.api-docs .api-docs-endpoint-path {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .api-docs-endpoint-desc {
-  font-family: var(--sans);
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin-bottom: 24px;
+  font-size: 16px;
+  color: var(--ink-2);
+  line-height: 1.6;
+  margin-bottom: 32px;
+  max-width: 70ch;
 }
 
 .api-docs-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .api-docs-section h3 {
-  font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink);
   margin: 0 0 12px;
 }
 
-/* Params table */
+/* Data tables: a hairline between rows, their own scroll on a phone. */
+.api-docs-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .api-docs-params-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
-  font-family: var(--sans);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .api-docs-params-table th {
   text-align: left;
   font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  color: var(--ink-2);
+  font-size: 13px;
+  padding: 8px 16px 8px 0;
 }
 
 .api-docs-params-table td {
-  padding: 10px 12px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-light);
+  padding: 12px 16px 12px 0;
+  color: var(--ink-2);
+  vertical-align: top;
+}
+
+.api-docs-params-table tbody tr + tr td {
+  box-shadow: inset 0 1px 0 var(--rule);
 }
 
 .api-docs-params-table code {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .api-docs-required {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--error);
   font-weight: 600;
-  margin-left: 4px;
+  margin-left: 8px;
 }
 
 /* Code block */
 .api-docs-code {
   font-family: var(--mono);
-  font-size: 13px;
-  background: #1A1A18;
-  color: #E8E6E1;
+  font-size: 14px;
+  background: var(--surface-dim);
+  color: var(--ink);
   padding: 16px 20px;
-  border-radius: 8px;
+  border-radius: var(--r-card);
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre;
+  max-width: 100%;
 }
 
-/* Auth section */
-.api-docs-auth-section {
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
-}
-
+/* Authentication, open data, limits, errors */
 .api-docs-auth-section h3 {
-  font-family: var(--sans);
-  font-size: 16px;
+  font-size: clamp(20px, 2vw, 24px);
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 24px 0 12px;
+  color: var(--ink);
+  margin: 56px 0 12px;
 }
 
 .api-docs-auth-section h3:first-child {
@@ -242,20 +218,17 @@
 }
 
 .api-docs-auth-section p {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  font-size: 16px;
+  color: var(--ink-2);
+  line-height: 1.6;
+  max-width: 70ch;
+  margin: 12px 0;
 }
 
-.api-docs-auth-section a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .api-docs-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
   }
   .api-docs-nav {
     position: static;
@@ -263,6 +236,8 @@
     flex-wrap: wrap;
     gap: 4px;
   }
-  .api-docs-nav h3 { width: 100%; }
-  .api-docs-nav-item { flex: 0 0 auto; }
+  .api-docs-nav-title { width: 100%; padding: 0; }
+  .api-docs-nav .api-docs-nav-item { width: auto; max-width: 100%; }
+  .api-docs-nav .api-docs-nav-cta { margin-top: 16px; }
+  .api-docs-nav .api-docs-nav-secondary { margin: 16px 0 0 12px; }
 }

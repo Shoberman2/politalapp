@@ -9,7 +9,6 @@ const TIERS = [
     price: 50,
     limit: '10,000',
     features: [
-      '10,000 API requests/month',
       'All endpoints (members, bills, votes, stats)',
       'Pagination & filtering',
       'Up to 5 API keys',
@@ -20,9 +19,7 @@ const TIERS = [
     name: 'Pro',
     price: 200,
     limit: '100,000',
-    popular: true,
     features: [
-      '100,000 API requests/month',
       'Everything in Starter',
       'Priority support',
       'Source-linked bill summaries included',
@@ -34,7 +31,6 @@ const TIERS = [
     price: 500,
     limit: 'Unlimited',
     features: [
-      'Unlimited API requests',
       'Everything in Pro',
       'Dedicated support',
       'SLA guarantee',
@@ -56,34 +52,32 @@ function DeveloperPortal() {
       />
 
       <section className="dev-hero">
-        <span className="dev-label">BallotWatch API and Open Data</span>
-        <h1>Build on source-linked congressional data</h1>
+        <h1>Build On Source-Linked Congressional Data</h1>
         <p className="dev-hero-subtitle">
-          Every GET endpoint is open without a key. Read the OpenAPI contract, point an
-          agent at <code>/llms.txt</code> or the MCP server, and claim a free key when you
-          need more than 60 requests a minute.
+          Every GET endpoint is open without a key. Read the OpenAPI contract, or point an
+          agent at <code>/llms.txt</code> or the MCP server.
         </p>
         <div className="dev-hero-actions">
-          <button className="btn-secondary btn-go dev-open-button" onClick={() => navigate('/open')}>
-            Explore Open Data
-          </button>
           {user ? (
             <button className="btn-primary" onClick={() => navigate('/developers/keys')}>
-              Get Your API Key
+              Get your API key
             </button>
           ) : (
             <button className="btn-primary" onClick={() => navigate('/auth?next=/developers/keys')}>
               Get a free key
             </button>
           )}
-          <button className="btn-tertiary btn-go" onClick={() => navigate('/developers/docs')}>
-            Read the Docs
+          <button className="btn-outline" onClick={() => navigate('/developers/docs')}>
+            Read the docs
+          </button>
+          <button className="btn-secondary" onClick={() => navigate('/open')}>
+            Explore open data
           </button>
         </div>
       </section>
 
       <section className="dev-endpoints">
-        <h2>What you can build</h2>
+        <h2>What You Can Build</h2>
         <div className="dev-endpoint-grid">
           <div className="dev-endpoint-card">
             <code>GET /api/v1/members</code>
@@ -114,8 +108,7 @@ function DeveloperPortal() {
 
       <section className="dev-agents" id="mcp">
         <div className="dev-open-data-copy">
-          <span className="dev-label">No key needed</span>
-          <h2>For developers and AI agents</h2>
+          <h2>For Developers And AI Agents</h2>
           <p>
             Sixty requests a minute and five thousand a day per IP, no signup. Every
             response carries <code>data_updated_at</code> and the official source URL.
@@ -133,13 +126,11 @@ function DeveloperPortal() {
 
       <section className="dev-open-data">
         <div className="dev-open-data-copy">
-          <span className="dev-label">Open first</span>
-          <h2>Download the record before you need a key</h2>
+          <h2>Download The Full Record</h2>
           <p>
             BallotWatch publishes every member, bill, roll call and vote as
             daily CC0 bulk files, plus schema samples and an OpenAPI spec, so
             civic hackers, classrooms, and newsrooms can build without a plan.
-            Hosted API plans cover live queries, volume, and support.
           </p>
         </div>
         <div className="dev-open-data-links">
@@ -154,12 +145,11 @@ function DeveloperPortal() {
       </section>
 
       <section className="dev-pricing" id="pricing">
-        <h2>Hosted API plans</h2>
-        <p className="dev-pricing-subtitle">The live API is open without a key (60 requests a minute per IP). A free key raises that to 600 a minute. Paid plans add monthly volume and support.</p>
+        <h2>Hosted API Plans</h2>
+        <p className="dev-pricing-subtitle">A free key raises the limit from 60 requests a minute to 600. Paid plans add monthly volume and support.</p>
         <div className="dev-tier-grid">
           {TIERS.map(tier => (
-            <div key={tier.name} className={`dev-tier-card ${tier.popular ? 'dev-tier-popular' : ''}`}>
-              {tier.popular && <span className="dev-tier-badge">Most Popular</span>}
+            <div key={tier.name} className="dev-tier-card">
               <h3>{tier.name}</h3>
               <div className="dev-tier-price">
                 <span className="dev-tier-dollar">$</span>
@@ -171,22 +161,14 @@ function DeveloperPortal() {
                 {tier.features.map(f => <li key={f}>{f}</li>)}
               </ul>
               <button
-                className={tier.popular ? 'btn-primary' : 'btn-secondary'}
+                className="btn-outline"
                 onClick={() => user ? navigate('/developers/keys') : navigate('/auth?next=/developers/keys')}
               >
-                Get Started
+                Get started
               </button>
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="dev-cta">
-        <h2>Ready to build on the live API?</h2>
-        <p>Use the open API today with no key. Sign in for a free key when you need more than 60 requests a minute.</p>
-        <button className="btn-primary" onClick={() => user ? navigate('/developers/keys') : navigate('/auth?next=/developers/keys')}>
-          {user ? 'Go to API Keys' : 'Get a free key'}
-        </button>
       </section>
     </div>
   )

@@ -4,22 +4,16 @@ import { isGatedPath } from '../config/access'
 
 // The account gate for the whole app. It wraps <Routes> once in src/App.jsx
 // and checks the current path against the list in shared/access.js (imported
-// through src/config/access.js): a gated path shows a spinner while the
+// through src/config/access.js): a gated path shows a skeleton while the
 // session resolves, then sends a signed-out reader to /auth with the full
 // path (query and hash included) in ?next=. Every other path renders as is.
 
 export function GateLoading() {
   return (
-    <div className="protected-route-loading" role="status" style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '60vh',
-      gap: '1rem',
-    }}>
-      <div className="loading-spinner"></div>
-      <p style={{ color: 'var(--ink-3)' }}>Loading…</p>
+    <div className="gate-loading" role="status" aria-label="Checking your sign-in">
+      <span className="skeleton gate-loading-title" />
+      <span className="skeleton gate-loading-line" />
+      <span className="skeleton gate-loading-line short" />
     </div>
   )
 }

@@ -24,6 +24,6 @@ export const LANDING_FAQ = [
   },
   {
     q: 'How is AI used?',
-    a: 'Only to explain: bills from their official summaries and what procedural votes decided, always labeled as AI. It never writes as your representative or decides anything for you.',
+    a: 'Only to explain: bills from their official text (or the official summary when the text is too long or not yet published) and what procedural votes decided, always labeled as AI. It never writes as your representative or decides anything for you.',
   },
 ]

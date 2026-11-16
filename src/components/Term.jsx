@@ -36,14 +36,14 @@ export function InfoDot({ id, def, label, glossaryLink = true }) {
     const pop = popRef.current
     if (!btn || !pop) return
     const b = btn.getBoundingClientRect()
-    const w = Math.min(300, window.innerWidth - GUTTER * 2)
+    const w = Math.min(340, window.innerWidth - GUTTER * 2)
     const h = pop.offsetHeight
     let left = b.left + b.width / 2 - w / 2
     left = Math.max(GUTTER, Math.min(left, window.innerWidth - GUTTER - w))
     const below = b.bottom + GAP
     const fitsBelow = below + h <= window.innerHeight - GUTTER
     const top = fitsBelow || b.top - GAP - h < GUTTER ? below : b.top - GAP - h
-    setPos({ top, left, width: w, arrow: b.left + b.width / 2 - left, above: top < b.top })
+    setPos({ top, left, width: w })
   }, [])
 
   useLayoutEffect(() => { if (open) place() }, [open, place])
@@ -109,8 +109,8 @@ export function InfoDot({ id, def, label, glossaryLink = true }) {
           ref={popRef}
           id={popId}
           role="tooltip"
-          className={`term-pop${pos?.above ? ' is-above' : ''}`}
-          style={pos ? { top: pos.top, left: pos.left, width: pos.width, '--arrow-x': `${pos.arrow}px` } : { visibility: 'hidden', top: 0, left: 0 }}
+          className="term-pop"
+          style={pos ? { top: pos.top, left: pos.left, width: pos.width } : { visibility: 'hidden', top: 0, left: 0 }}
           onPointerEnter={(e) => { if (e.pointerType === 'mouse') clearTimeout(hoverTimer.current) }}
           onPointerLeave={hoverOut}
         >

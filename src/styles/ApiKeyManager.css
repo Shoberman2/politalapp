@@ -1,126 +1,107 @@
+/* API keys (/developers/keys). Buttons and the input come from App.css. */
 .api-keys-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 40px 24px;
 }
 
 .api-keys-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 40px;
 }
 
 .api-keys-header h1 {
-  font-family: var(--serif);
-  font-size: 28px;
-  color: #1A1A18;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink);
   margin: 0;
 }
 
 .api-keys-subtitle {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: #6B6861;
-  margin-top: 4px;
+  font-size: 16px;
+  color: var(--ink-2);
+  margin-top: 12px;
 }
 
 .api-keys-plan-badge {
-  background: rgba(29, 78, 216, 0.08);
-  color: #1D4ED8;
+  color: var(--success);
   font-weight: 600;
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
+}
+
+.api-keys-plan-badge::first-letter {
   text-transform: capitalize;
 }
 
 .api-keys-plan-inactive {
-  color: #D97706;
-  font-weight: 500;
+  color: var(--warning);
+  font-weight: 600;
 }
 
 /* Create key */
 .api-keys-create {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
-.api-keys-create input {
+.api-keys-create .field {
   flex: 1;
-  font-family: var(--sans);
-  font-size: 16px;
-  padding: 10px 12px;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--ink);
+  min-width: 0;
 }
 
-.api-keys-create input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-color: var(--accent);
-}
-
-/* Key list */
+/* Key list: space between keys, no rules. */
 .api-keys-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: #E8E6E1;
-  border-radius: 8px;
-  overflow: hidden;
+  display: grid;
+  gap: 28px;
 }
 
 .api-key-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #fff;
+  gap: 16px;
 }
 
 .api-key-revoked {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .api-key-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .api-key-name {
-  font-family: var(--sans);
   font-weight: 600;
-  font-size: 14px;
-  color: #1A1A18;
+  font-size: 16px;
+  color: var(--ink);
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  overflow-wrap: anywhere;
 }
 
 .api-key-revoked-badge {
-  font-size: 11px;
-  font-weight: 500;
-  color: #DC2626;
-  background: rgba(220, 38, 38, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--error);
 }
 
 .api-key-prefix {
   font-family: var(--mono);
-  font-size: 13px;
-  color: #6B6861;
+  font-size: 14px;
+  color: var(--ink-2);
 }
 
 .api-key-meta {
-  font-family: var(--sans);
-  font-size: 12px;
-  color: #9C9789;
+  font-size: 14px;
+  color: var(--ink-3);
 }
 
 /* Revoke: a quiet text action (shared .btn-secondary .btn-sm) in error red. */
@@ -128,72 +109,67 @@
 .btn-secondary.btn-danger-sm:hover:not(:disabled) { color: var(--error); }
 
 .api-keys-empty {
-  font-family: var(--sans);
-  color: #9C9789;
-  text-align: center;
-  padding: 40px;
-  background: #fff;
+  font-size: 16px;
+  color: var(--ink-2);
 }
 
 .api-keys-error {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: #DC2626;
-  background: rgba(220, 38, 38, 0.08);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--error);
+  background: var(--error-subtle);
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: var(--r-input);
   margin-bottom: 16px;
 }
 
-/* Modal */
+/* New-key sheet */
 .api-keys-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
   z-index: 1000;
 }
 
 .api-keys-modal {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--surface);
+  border-radius: var(--r-sheet);
   padding: 32px;
   max-width: 560px;
-  width: 90%;
+  width: 100%;
 }
 
 .api-keys-modal h3 {
-  font-family: var(--serif);
-  font-size: 22px;
-  color: #1A1A18;
+  font-size: 24px;
+  color: var(--ink);
   margin: 0 0 8px;
 }
 
 .api-keys-modal-warning {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: #D97706;
-  font-weight: 500;
-  margin-bottom: 16px;
+  font-size: 16px;
+  color: var(--warning);
+  font-weight: 600;
+  margin-bottom: 20px;
 }
 
 .api-keys-modal-key {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #FAFAF7;
-  border: 1px solid #E8E6E1;
-  border-radius: 8px;
+  gap: 12px;
+  background: var(--surface-dim);
+  border-radius: var(--r-input);
   padding: 12px 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .api-keys-modal-key code {
   font-family: var(--mono);
-  font-size: 13px;
-  color: #1A1A18;
+  font-size: 14px;
+  color: var(--ink);
   flex: 1;
   word-break: break-all;
 }
@@ -202,58 +178,55 @@
 .btn-copy { flex-shrink: 0; }
 
 .api-keys-modal-usage {
-  font-family: var(--sans);
-  font-size: 13px;
-  color: #6B6861;
-  margin-bottom: 24px;
+  font-size: 16px;
+  color: var(--ink-2);
+  margin-bottom: 28px;
 }
 
 .api-keys-modal-usage code {
   font-family: var(--mono);
-  font-size: 12px;
-  color: #1A1A18;
+  font-size: 13px;
+  color: var(--ink);
   display: block;
   margin-top: 8px;
-  background: #FAFAF7;
-  padding: 8px 12px;
-  border-radius: 4px;
+  background: var(--surface-dim);
+  padding: 12px 16px;
+  border-radius: var(--r-input);
+  word-break: break-all;
 }
 
-/* Subscribe prompt */
+/* Activation prompt */
 .api-keys-subscribe-prompt {
-  margin-top: 32px;
-  padding: 24px;
-  background: rgba(29, 78, 216, 0.04);
-  border: 1px solid rgba(29, 78, 216, 0.15);
-  border-radius: 12px;
-  text-align: center;
+  margin-top: 72px;
 }
 
 .api-keys-subscribe-prompt h3 {
-  font-family: var(--serif);
-  font-size: 18px;
-  color: #1A1A18;
+  font-size: clamp(20px, 2vw, 24px);
+  color: var(--ink);
   margin: 0 0 8px;
 }
 
 .api-keys-subscribe-prompt p {
-  font-family: var(--sans);
-  font-size: 14px;
-  color: #6B6861;
-  margin-bottom: 16px;
+  font-size: 16px;
+  color: var(--ink-2);
+  max-width: 70ch;
 }
 
 .api-keys-loading {
-  text-align: center;
-  padding: 60px;
-  color: #9C9789;
-  font-family: var(--sans);
+  padding: 60px 0;
+  color: var(--ink-2);
+}
+
+.api-keys-activate-actions {
+  display: flex;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 20px;
 }
 
 @media (max-width: 768px) {
-  .api-keys-header { flex-direction: column; gap: 12px; }
+  .api-keys-header { flex-direction: column; gap: 4px; }
   .api-keys-create { flex-direction: column; }
+  .api-keys-create .btn-primary { align-self: flex-start; }
 }
-
-.api-keys-activate-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
-.api-keys-activate-actions .btn-primary { flex: 0 0 auto; }

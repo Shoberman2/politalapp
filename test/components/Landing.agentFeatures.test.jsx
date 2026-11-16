@@ -56,11 +56,10 @@ describe('Landing: agent and office features', () => {
   it('shows skeletons, not invented data, while nothing has loaded', () => {
     services.getRecentFloorVotes.mockReturnValue(new Promise(() => {}))
     const { container } = renderLanding()
-    for (const id of ['mcp', 'agents', 'offices']) {
+    for (const id of ['mcp', 'offices']) {
       const f = container.querySelector(`.feature-${id}`)
       expect(f.querySelectorAll('.mk-skel').length).toBeGreaterThan(0)
     }
-    expect(container.querySelector('.feature-agents .mk-json')).toBeNull()
     expect(container.querySelector('.feature-mcp .mk-answer li')).toBeNull()
   })
 
@@ -77,18 +76,13 @@ describe('Landing: agent and office features', () => {
     expect(mcp.querySelector('.mk-src').textContent).toBe('Source · BallotWatch MCP · House roll call 281')
   })
 
-  it('prints the API response and the inbox row from the latest recorded vote', async () => {
+  it('prints the inbox row from the latest recorded vote', async () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [vote(281), vote(280), vote(279)], recordedThrough: '2026-07-24' })
     const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-agents .mk-json')).not.toBeNull())
-
-    const code = container.querySelector('.feature-agents .mock-code')
-    expect(code.querySelector('.mk-req').textContent).toBe('GET /api/v1/votes/house-119-2-281')
-    const json = code.querySelector('.mk-json').textContent
-    expect(json).toMatch('"roll_call_id": "house-119-2-281"')
-    expect(json).toMatch('"voted_at": "2026-07-24"')
-    expect(json).toMatch(/"yea": 216,\s*"nay": 214/)
-    expect(json).toMatch('"source_url": "https://clerk.house.gov/Votes/2026281"')
+    await waitFor(() => expect(container.querySelector('.feature-offices .mk-fields .mk-skel')).toBeNull())
+    // The API and MCP sections are one section now (2026-11-14); the JSON card is gone.
+    expect(container.querySelector('.feature-agents')).toBeNull()
+    expect(container.querySelector('.feature-mcp').textContent).toMatch(/no key needed to read/)
 
     const inbox = container.querySelector('.feature-offices .mock-inbox')
     const fields = Object.fromEntries([...inbox.querySelectorAll('.mk-fields > div')].map((d) => [d.querySelector('dt').textContent, d.querySelector('dd').textContent]))
@@ -101,9 +95,8 @@ describe('Landing: agent and office features', () => {
     const { container } = renderLanding()
     await waitFor(() => expect(container.querySelector('.feature-offices .mk-unavailable')).not.toBeNull())
     expect(container.querySelector('.feature-mcp .mk-unavailable').textContent).toBe('The record could not be loaded right now.')
-    expect(container.querySelector('.feature-agents .mk-unavailable').textContent).toBe('No recorded vote available right now.')
     expect(container.querySelector('.feature-offices .mk-unavailable').textContent).toBe('No recorded vote available right now.')
-    for (const id of ['mcp', 'agents', 'offices', 'record', 'write', 'votes', 'find']) {
+    for (const id of ['mcp', 'offices', 'write', 'votes', 'find']) {
       expect(container.querySelectorAll(`.feature-${id} .mk-skel`), id).toHaveLength(0)
     }
   })

@@ -100,9 +100,6 @@ function RollCallPage() {
       </nav>
 
       <header className="rc-masthead">
-        <div className="rc-kicker">
-          {rc.chamber} · Roll call {rc.number}<InfoDot id="rollCall" label="Roll call" /> · Session {rc.session}<InfoDot id="session" /> · {ORD(rc.congress)} Congress{rc.votedAt ? ` · ${fmtDate(rc.votedAt)}` : ''}
-        </div>
         <h1 className="rc-title">
           {rc.question || 'Recorded vote'}
           {questionTerm ? <InfoDot id={questionTerm} /> : <InfoDot id="question" label="What this vote decided" />}
@@ -111,6 +108,9 @@ function RollCallPage() {
         {rc.bill?.title
           ? <p className="rc-standfirst">{rc.bill.title}</p>
           : rc.description ? <p className="rc-standfirst">{rc.description}</p> : null}
+        <div className="rc-kicker">
+          {rc.chamber} · Roll call {rc.number}<InfoDot id="rollCall" label="Roll call" /> · Session {rc.session}<InfoDot id="session" /> · {ORD(rc.congress)} Congress{rc.votedAt ? ` · ${fmtDate(rc.votedAt)}` : ''}
+        </div>
 
         {rc.tally ? (
           <div className="rc-tally">
@@ -144,16 +144,16 @@ function RollCallPage() {
         )}
 
         <div className="rc-actions">
-          {rc.sourceUrl && <a className="rc-action-btn btn-secondary btn-sm" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record ↗</a>}
-          {rc.bill?.source_url && <a className="rc-action-btn btn-secondary btn-sm" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov ↗</a>}
+          {rc.sourceUrl && <a className="rc-action-btn btn-secondary btn-sm" href={rc.sourceUrl} target="_blank" rel="noopener noreferrer">Official record</a>}
+          {rc.bill?.source_url && <a className="rc-action-btn btn-secondary btn-sm" href={rc.bill.source_url} target="_blank" rel="noopener noreferrer">Bill on Congress.gov</a>}
         </div>
       </header>
 
       <TellYourRep context={tellContext} />
 
       <section className="rc-section">
+        <h2 className="rc-section-title">How Each Member Voted</h2>
         <div className="rc-section-label">Every member · {rc.votes.length} recorded</div>
-        <h2 className="rc-section-title">How each member voted</h2>
         {rc.votes.length ? (
           <>
             <div className="rc-filter">

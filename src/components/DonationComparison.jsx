@@ -39,10 +39,10 @@ function DonationComparison() {
       else setIndustryB([])
 
       if (!resultA && !resultB) {
-        setError('No campaign finance data found for either politician.')
+        setError('No campaign finance data found for either member.')
       }
     } catch (err) {
-      setError('Failed to load comparison data. Please try again.')
+      setError('We could not load the comparison. Try again.')
       console.error('[DonationComparison] Error:', err)
     } finally {
       setLoading(false)
@@ -69,19 +69,21 @@ function DonationComparison() {
     <div className="donation-comparison">
       <SEO
         title="Compare Campaign Funding"
-        description="Compare campaign finance data between two politicians. See which industries fund each."
+        description="Compare campaign finance data between two members of Congress. See which industries fund each."
         path="/compare"
       />
 
       <h1>Compare Campaign Funding</h1>
       <p className="comparison-subtitle">
-        See which industries give money to each member's campaign (<Term id="campaignFinance">campaign finance</Term>). Enter two names to compare.
+        See which industries give money to each member's campaign (<span style={{ whiteSpace: 'nowrap' }}><Term id="campaignFinance">campaign finance</Term>).</span> Enter two names to compare.
       </p>
 
       <div className="comparison-inputs">
         <div className="comparison-input-group">
-          <label>Politician A</label>
+          <label htmlFor="compare-a">First member</label>
           <input
+            id="compare-a"
+            className="field"
             type="text"
             value={nameA}
             onChange={e => setNameA(e.target.value)}
@@ -91,8 +93,10 @@ function DonationComparison() {
         </div>
         <span className="comparison-vs">vs</span>
         <div className="comparison-input-group">
-          <label>Politician B</label>
+          <label htmlFor="compare-b">Second member</label>
           <input
+            id="compare-b"
+            className="field"
             type="text"
             value={nameB}
             onChange={e => setNameB(e.target.value)}
@@ -101,11 +105,12 @@ function DonationComparison() {
           />
         </div>
         <button
+          type="button"
           className="btn-primary"
           onClick={handleCompare}
           disabled={loading || !nameA.trim() || !nameB.trim()}
         >
-          {loading ? 'Comparing...' : 'Compare'}
+          {loading ? 'Comparing' : 'Compare'}
         </button>
       </div>
 
@@ -141,7 +146,7 @@ function DonationComparison() {
                       style={{ width: `${(amtA / maxAmount) * 100}%` }}
                     />
                   </div>
-                  <span className="comparison-amount">{amtA > 0 ? formatCurrency(amtA) : '-'}</span>
+                  <span className="comparison-amount">{amtA > 0 ? formatCurrency(amtA) : 'None'}</span>
                 </div>
                 <div className="comparison-col">
                   <div className="comparison-bar-track">
@@ -150,7 +155,7 @@ function DonationComparison() {
                       style={{ width: `${(amtB / maxAmount) * 100}%` }}
                     />
                   </div>
-                  <span className="comparison-amount">{amtB > 0 ? formatCurrency(amtB) : '-'}</span>
+                  <span className="comparison-amount">{amtB > 0 ? formatCurrency(amtB) : 'None'}</span>
                 </div>
               </div>
             )

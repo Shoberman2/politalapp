@@ -26,6 +26,7 @@ describe('Navigation sign out', () => {
       </MemoryRouter>,
     )
     fireEvent.click(container.querySelector('button.topnav-account-mobile'))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
     expect(state.signOut).toHaveBeenCalledTimes(1)
   })
@@ -40,6 +41,7 @@ describe('Navigation sign out', () => {
       </MemoryRouter>,
     )
     fireEvent.click(container.querySelector('button.nav-account'))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'))
     expect(state.signOut).toHaveBeenCalledTimes(1)
     finish({ error: null })

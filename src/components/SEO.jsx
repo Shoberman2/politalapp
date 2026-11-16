@@ -31,7 +31,7 @@ function useDropStaleServerJsonLd(path) {
 // `noindex` keeps a page (sign-in, its callback) out of search results.
 function SEO({ title, fullTitle: fullTitleProp, description, path = '/', type = 'website', image, article, schema, noindex = false }) {
   useDropStaleServerJsonLd(path)
-  const fullTitle = fullTitleProp || (title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Congressional Voting Records, Bill Tracker & Representative Lookup`)
+  const fullTitle = fullTitleProp || (title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Congressional Voting Records, Bill Tracker & Representative Lookup`)
   const desc = description || DEFAULT_DESCRIPTION
   const url = `${BASE_URL}${path}`
   const img = image || DEFAULT_IMAGE

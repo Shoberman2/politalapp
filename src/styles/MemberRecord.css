@@ -1,7 +1,7 @@
 /* "Record in 60 seconds" (/politician/:id/record). One narrow column that
    fits a phone screen: identity, three counts, ten votes, sources. Shares the
-   roll-call table styles in RollCall.css. Party color appears only in the
-   small party tag. */
+   roll-call table styles in RollCall.css. Party colour appears only in the
+   party letter. api/_lib/renderPage.js renders the same class names. */
 
 .rec {
   width: 100%;
@@ -16,150 +16,143 @@
   display: flex;
   gap: 24px;
   align-items: flex-start;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border);
 }
+
 .rec-photo {
   flex: 0 0 96px;
   width: 96px;
   height: 117px;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  background: var(--border-light);
+  border-radius: var(--r-card);
+  background: var(--surface-dim);
   display: block;
 }
+
 .rec-photo-empty {
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-size: 32px;
-  color: var(--text-muted);
+  color: var(--ink-3);
 }
-.rec-id { min-width: 0; flex: 1; }
+
+/* The name leads. `order` keeps that true for the server-rendered markup,
+   which still prints a line above it. */
+.rec-id { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.rec-name { order: -1; }
+
 .rec-kicker {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--ink-3);
+  margin-bottom: 6px;
 }
+
 .rec-name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 2.25rem;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  font-size: clamp(32px, 5.4vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   margin: 0 0 12px;
-  color: var(--text-primary);
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
+
 .rec-seat {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
 }
+
+/* Party is a coloured letter, not a chip. */
 .rec-party {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 1px 6px;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 .rec-party-d { color: var(--party-dem); }
 .rec-party-r { color: var(--party-rep); }
 .rec-party-i { color: var(--party-ind); }
-.rec-since { margin-top: 8px; font-size: 0.8125rem; color: var(--text-muted); }
+
+.rec-since { margin-top: 6px; font-size: 15px; color: var(--ink-3); }
 
 .rec-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px;
   margin: 0;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 40px 0 16px;
 }
-.rec-facts > div { min-width: 0; }
+.rec-facts > div { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
 .rec-facts dt {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 4px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ink-3);
+  margin-bottom: 6px;
 }
 .rec-facts dd {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 1.75rem;
+  font-size: 30px;
   line-height: 1.1;
-  color: var(--text-primary);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.rec-facts-sub { font-size: 0.875rem; color: var(--text-secondary); }
+.rec-facts-sub { font-size: 15px; color: var(--ink-2); }
 
-.rec-section { padding: 24px 0; }
-.rec-note { font-size: 0.875rem; color: var(--text-secondary); margin: 0 0 12px; }
-.rec-muted { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
-
-.rec-table td { font-size: 0.8125rem; }
+.rec-section { padding: 32px 0 24px; }
+.rec-section .rc-section-label { font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.rec-note { font-size: 16px; color: var(--ink-2); margin: 0 0 12px; max-width: 70ch; }
+.rec > .rec-note { padding-top: 32px; }
+.rec-muted { color: var(--ink-3); font-size: 13px; }
+.rec-table td { font-size: 15px; }
 .rec-table .rec-bill {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
-.rec-vote-title { color: var(--text-secondary); font-size: 0.8125rem; margin-top: 2px; line-height: 1.4; }
+.rec-vote-title { color: var(--ink-2); font-size: 14px; margin-top: 2px; line-height: 1.4; }
 .rec-result { white-space: nowrap; }
-.rec-src { white-space: nowrap; font-size: 12px; }
+.rec-src { white-space: nowrap; font-size: 14px; }
 
 .rec-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 8px 0 24px;
+  padding: 8px 0 20px;
 }
-.rec-copied { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+.rec-copied { font-size: 14px; color: var(--ink-3); }
 
 /* Plain share links: text, not branded buttons, so the card stays neutral. */
 .rec-share {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px 12px;
-  margin-top: -8px;
-  padding: 0 0 24px;
-  font-size: 0.8125rem;
+  gap: 4px 16px;
+  padding: 0 0 40px;
+  font-size: 16px;
 }
-.rec-share-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.rec-share ul { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; }
-.rec-share a { color: var(--accent); text-decoration: none; }
-.rec-share a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+.rec-share-label { color: var(--ink-3); }
+.rec-share ul { display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; list-style: none; }
+.rec-share a { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.rec-share a:hover { color: var(--accent-hover); }
 
 .rec-colophon {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 70ch;
 }
 .rec-colophon p { margin: 0 0 8px; }
-.rec-colophon a { color: var(--text-secondary); }
+.rec-colophon a { color: var(--ink-2); }
 
 /* Loading skeleton: shape only, never placeholder content. */
 .rec-skel {
-  background: var(--border-light);
-  border-radius: var(--radius-sm);
+  background: var(--surface-dim);
+  border-radius: 8px;
   animation: rec-pulse 1.4s ease-in-out infinite;
 }
 .rec-skel-line { height: 12px; margin-bottom: 12px; }
@@ -170,11 +163,39 @@
 @media (prefers-reduced-motion: reduce) { .rec-skel { animation: none; } }
 
 @media (max-width: 640px) {
-  .rec { padding: 24px 16px 64px; }
+  /* .main-content already gives a 16px gutter here. */
+  .rec { padding: 8px 4px 48px; }
   .rec-head { gap: 16px; }
   .rec-photo { flex-basis: 72px; width: 72px; height: 88px; }
-  .rec-name { font-size: 1.75rem; }
   .rec-facts { gap: 12px; }
-  .rec-facts dd { font-size: 1.375rem; }
-  .rec-facts dt { font-size: 10px; }
+  .rec-facts dd { font-size: 24px; }
+  .rec-facts dt { font-size: 13px; }
+
+  /* The table becomes one block per vote: date, question, then the vote,
+     the result and the source on one line. No sideways scroll. */
+  .rec-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .rec-table, .rec-table tbody { display: block; }
+  .rec-table tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-light);
+  }
+  .rec-table td { display: block; padding: 0; border: 0; }
+  .rec-table td:nth-child(1),
+  .rec-table td:nth-child(2) { flex: 1 1 100%; }
+  .rec-table td:nth-child(2) { font-size: 16px; }
+  .rec-table td:nth-child(3)::before,
+  .rec-table td:nth-child(4)::before { font-weight: 400; color: var(--ink-3); }
+  .rec-table td:nth-child(3)::before { content: "Voted "; }
+  .rec-table td:nth-child(4)::before { content: "Result: "; }
+  .rec-table .rec-src { margin-left: auto; }
 }

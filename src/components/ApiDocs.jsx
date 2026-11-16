@@ -179,7 +179,6 @@ function ApiDocs() {
       <div className="api-docs-header">
         <h1>API Reference</h1>
         <p>Base URL: <code>https://www.ballotwatch.io</code></p>
-        <p>Authentication: <code>Authorization: Bearer bw_live_xxx</code></p>
         <p>
           OpenAPI spec: <a href="/openapi.yaml">/openapi.yaml</a> · agents start at <a href="/llms.txt">/llms.txt</a>
           {' '} · Full data (CC0, daily): <a href="/data/full/manifest.json">/data/full/manifest.json</a>
@@ -189,23 +188,22 @@ function ApiDocs() {
       <div className="api-docs-layout">
         {/* Sidebar */}
         <nav className="api-docs-nav">
-          <h3>Endpoints</h3>
+          <h3 className="api-docs-nav-title">Endpoints</h3>
           {ENDPOINTS.map((ep, i) => (
             <button
               key={i}
-              className={`api-docs-nav-item ${i === activeEndpoint ? 'active' : ''}`}
+              className={`api-docs-nav-item btn-toggle ${i === activeEndpoint ? 'active' : ''}`}
               onClick={() => setActiveEndpoint(i)}
             >
               <span className="api-docs-method">{ep.method}</span>
               <span className="api-docs-path">{ep.path}</span>
             </button>
           ))}
-          <div className="api-docs-nav-divider" />
           <button className="api-docs-nav-cta btn-primary btn-sm" onClick={() => navigate('/developers/keys')}>
-            Get API Key
+            Get API key
           </button>
-          <button className="api-docs-nav-secondary btn-secondary btn-sm btn-go" onClick={() => navigate('/open')}>
-            Open Data
+          <button className="api-docs-nav-secondary btn-secondary btn-sm" onClick={() => navigate('/open')}>
+            Open data
           </button>
         </nav>
 
@@ -222,7 +220,7 @@ function ApiDocs() {
             {endpoint.params.length > 0 && (
               <div className="api-docs-section">
                 <h3>Parameters</h3>
-                <table className="api-docs-params-table">
+                <div className="api-docs-table-wrap"><table className="api-docs-params-table">
                   <thead>
                     <tr>
                       <th>Name</th>
@@ -239,7 +237,7 @@ function ApiDocs() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
 
@@ -282,7 +280,7 @@ function ApiDocs() {
             </p>
 
             <h3>Rate Limits</h3>
-            <table className="api-docs-params-table">
+            <div className="api-docs-table-wrap"><table className="api-docs-params-table">
               <thead>
                 <tr><th>Access</th><th>Limit</th><th>Price</th></tr>
               </thead>
@@ -293,17 +291,17 @@ function ApiDocs() {
                 <tr><td>Pro</td><td>100,000 requests per month</td><td>$200/mo</td></tr>
                 <tr><td>Enterprise</td><td>Unlimited</td><td>$500/mo</td></tr>
               </tbody>
-            </table>
+            </table></div>
             <p>
-              Over the limit, the API returns <code>429 Too Many Requests</code> with <code>Retry-After</code>,
-              <code>X-RateLimit-Limit</code>, and <code>X-RateLimit-Remaining</code> headers; the body's
+              Over the limit, the API returns <code>429 Too Many Requests</code> with <code>Retry-After</code>,{' '}
+              <code>X-RateLimit-Limit</code>, and <code>X-RateLimit-Remaining</code> headers; the body's{' '}
               <code>error.window</code> says whether the minute, day, or month window was hit. Responses to
-              requests without a key are cached at the edge for five minutes. Every response carries
+              requests without a key are cached at the edge for five minutes. Every response carries{' '}
               <code>meta.data_updated_at</code>; single records add a <code>Link: &lt;official source&gt;; rel="canonical"</code> header.
             </p>
 
             <h3>Error Codes</h3>
-            <table className="api-docs-params-table">
+            <div className="api-docs-table-wrap"><table className="api-docs-params-table">
               <thead>
                 <tr><th>Status</th><th>Code</th><th>Description</th></tr>
               </thead>
@@ -315,7 +313,7 @@ function ApiDocs() {
                 <tr><td>429</td><td>RATE_LIMIT_EXCEEDED</td><td>Per-minute, per-day, or monthly limit reached</td></tr>
                 <tr><td>503</td><td>SERVICE_UNAVAILABLE</td><td>Temporary outage, retry later</td></tr>
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       </div>

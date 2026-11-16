@@ -5,6 +5,7 @@ import { BRAND } from '../config/brand'
 import { InfoDot } from './Term'
 import { GLOSSARY, GLOSSARY_GROUPS } from '../../shared/glossary.js'
 import { CIVICS_PRIMER } from '../data/civicsPrimer'
+import { titleCase } from '../data/infoPages'
 import '../styles/InfoPage.css'
 
 // Every term the site marks with an ⓘ, in plain English, for a reader with no
@@ -38,8 +39,7 @@ function GlossaryPage() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">Glossary</span>
-          <h1 className="ip-title">Congress, explained in plain English.</h1>
+          <h1 className="ip-title">Congress, Explained In Plain English</h1>
           <p className="ip-lede">
             No background in politics needed. Here is what every term on this site means. Anywhere you see
             the <InfoDot def="Like this. Tap or click any ⓘ on the site to see what the word next to it means." label="ⓘ" glossaryLink={false} /> icon,
@@ -50,7 +50,7 @@ function GlossaryPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Congress in one minute</h2>
+          <h2>Congress In One Minute</h2>
           <ol className="ip-steps gl-primer">
             {CIVICS_PRIMER.map((p) => (
               <li key={p.title}>
@@ -69,7 +69,7 @@ function GlossaryPage() {
           </nav>
           {GLOSSARY_GROUPS.map((g) => (
             <div className="gl-group" key={g.id} id={`group-${g.id}`}>
-              <h2>{g.title}</h2>
+              <h2>{titleCase(g.title)}</h2>
               <dl className="gl-list">
                 {ENTRIES.filter(([, e]) => e.group === g.id).map(([id, e]) => (
                   <div className="gl-entry" id={id} key={id}>
@@ -81,8 +81,8 @@ function GlossaryPage() {
             </div>
           ))}
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/this-week">See this week’s votes</Link>
-            <Link className="btn-text btn-go" to="/how-it-works">How {BRAND.name} works</Link>
+            <Link className="btn-text" to="/this-week">See this week’s votes</Link>
+            <Link className="btn-text" to="/how-it-works">How {BRAND.name} works</Link>
           </div>
         </div>
       </section>

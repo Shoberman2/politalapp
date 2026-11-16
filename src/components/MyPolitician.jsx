@@ -57,7 +57,7 @@ function MyPolitician() {
   const findRepresentatives = async (addressData) => {
     const data = addressData || formData
     if (!data.street || !data.state) {
-      setError('Please enter your street address and select a state')
+      setError('Enter your street address and select a state.')
       return
     }
 
@@ -92,7 +92,7 @@ function MyPolitician() {
           if (districts.length === 1) {
             resolvedDistrict = districts[0]
           } else {
-            // Can't determine district — just load senators
+            // Can't determine district: just load senators
             resolvedDistrict = null
             setLoadingHouse(false)
             setError(`We couldn't determine your House district from your address. Visit house.gov/representatives/find-your-representative to find your district number.`)
@@ -127,7 +127,7 @@ function MyPolitician() {
 
     } catch (err) {
       console.error('[MyPolitician] Error:', err)
-      setError('Error finding representatives. Please check your address and try again.')
+      setError('We could not find your representatives. Check your address and try again.')
       setLoadingHouse(false)
       setLoadingSenators(false)
     }
@@ -159,13 +159,13 @@ function MyPolitician() {
       />
       <div className="page-header">
         <h1>Find Your Representatives</h1>
-        <p>Enter your address to find the three people who represent you in <Term id="congress">Congress</Term>: one House representative for your area and two senators for your state.</p>
+        <p>Enter your address to find the three people who represent you in <span style={{ whiteSpace: 'nowrap' }}><Term id="congress">Congress</Term>:</span> one House representative for your area and two senators for your state.</p>
       </div>
 
       <div className="address-card">
         <form onSubmit={handleSubmit} className="address-form">
           <div className="form-group full-width">
-            <label htmlFor="street">Street Address</label>
+            <label htmlFor="street">Street address</label>
             <input
               id="street"
               name="street"
@@ -173,7 +173,7 @@ function MyPolitician() {
               value={formData.street}
               onChange={handleChange}
               placeholder="123 Main St"
-              className="form-input"
+              className="form-input field"
               autoComplete="address-line1"
             />
           </div>
@@ -188,7 +188,7 @@ function MyPolitician() {
                 value={formData.city}
                 onChange={handleChange}
                 placeholder="City"
-                className="form-input"
+                className="form-input field"
                 autoComplete="address-level2"
               />
             </div>
@@ -200,10 +200,10 @@ function MyPolitician() {
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                className="form-input"
+                className="form-input field"
                 autoComplete="address-level1"
               >
-                <option value="">--</option>
+                <option value="">State</option>
                 {US_STATES.map(s => (
                   <option key={s.abbr} value={s.abbr}>{s.abbr}</option>
                 ))}
@@ -211,7 +211,7 @@ function MyPolitician() {
             </div>
 
             <div className="form-group small">
-              <label htmlFor="zip">Zip Code</label>
+              <label htmlFor="zip">ZIP code</label>
               <input
                 id="zip"
                 name="zip"
@@ -219,7 +219,7 @@ function MyPolitician() {
                 value={formData.zip}
                 onChange={handleChange}
                 placeholder="12345"
-                className="form-input"
+                className="form-input field"
                 maxLength={5}
                 autoComplete="postal-code"
               />
@@ -230,10 +230,10 @@ function MyPolitician() {
 
           <div className="form-actions">
             <button type="submit" className="btn-primary" disabled={isLoading || !formData.street.trim() || !formData.state}>
-              {isLoading ? 'Finding...' : 'Find My Representatives'}
+              {isLoading ? 'Finding' : 'Find my reps'}
             </button>
             {hasSearched && (
-              <button type="button" className="btn-secondary" onClick={handleReset}>
+              <button type="button" className="btn-outline" onClick={handleReset}>
                 Clear
               </button>
             )}
@@ -244,7 +244,6 @@ function MyPolitician() {
       {favorites.length > 0 && (
         <div className="favorites-section">
           <h2>Your Favorites</h2>
-          <p className="favorites-subtitle">Politicians you're following</p>
           <div className="rep-grid">
             {favorites.map(fav => (
               <PoliticianCard
@@ -261,7 +260,7 @@ function MyPolitician() {
       {loadingHouse && !houseRep && senators.length === 0 && (
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Finding your representatives...</p>
+          <p>Finding your representatives</p>
         </div>
       )}
 
@@ -286,7 +285,7 @@ function MyPolitician() {
             {loadingSenators ? (
               <div className="senators-loading">
                 <div className="loading-spinner small"></div>
-                <p>Loading senators — this can take a minute...</p>
+                <p>Loading senators. This can take a minute.</p>
               </div>
             ) : senators.length > 0 ? (
               <div className="rep-grid">
@@ -304,7 +303,7 @@ function MyPolitician() {
       {loadingSenators && houseRep && (
         <div className="senators-loading-standalone">
           <div className="loading-spinner small"></div>
-          <p>Loading senators — this can take a minute...</p>
+          <p>Loading senators. This can take a minute.</p>
         </div>
       )}
 

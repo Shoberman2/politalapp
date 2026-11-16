@@ -1,33 +1,19 @@
-/* "Tell your rep" hand-off. Editorial: a thin rule above, a mono kicker, a
-   serif headline, and the one civic-blue accent reserved for the single
-   primary action (opening the office's own contact page). */
-
+/* "Tell your rep" hand-off. Buttons and `.field` come from App.css (the
+   contact hand-off is the one .btn-primary); only layout lives here. */
 .tyr {
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
-  margin: 32px 0 48px;
+  margin: 40px 0 16px;
   scroll-margin-top: 96px;
 }
 
-.tyr-kicker,
 .tyr-step-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 12px;
   display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 12px;
 }
 
-/* Buttons use the shared system in App.css: the contact hand-off is
-   .btn-primary, the disclosure toggle and Copy are .btn-secondary text
-   actions. Only layout lives here. */
-.tyr .tyr-toggle { padding-left: 0; }
-
 .tyr-link-btn:focus-visible,
-.tyr-textarea:focus-visible,
-.tyr-location input:focus-visible,
 .tyr-member input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -35,9 +21,9 @@
 
 .tyr-panel {
   margin-top: 20px;
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  padding: 32px;
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
   background: var(--surface);
   max-width: 760px;
 }
@@ -49,105 +35,86 @@
   align-items: baseline;
   gap: 16px;
 }
+
 .tyr-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.75rem;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 .tyr-title:focus { outline: none; }
 .tyr-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 .tyr-disclaimer {
   margin: 12px 0 0;
-  padding: 12px 0 12px 16px;
-  border-left: 2px solid var(--rule-strong);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 62ch;
 }
-.tyr-disclaimer strong { color: var(--text-primary); font-weight: 600; }
+.tyr-disclaimer strong { color: var(--ink); font-weight: 600; }
 
-.tyr-steps { list-style: none; margin: 24px 0 0; padding: 0; }
-.tyr-step { padding: 20px 0; border-top: 1px solid var(--border-light); }
-.tyr-step:first-child { border-top: none; padding-top: 0; }
+.tyr-steps { list-style: none; margin: 32px 0 0; padding: 0; display: grid; gap: 36px; }
 
-.tyr-members { border: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tyr-members { border: none; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+/* Each choice is a control: soft fill, stronger when chosen. */
 .tyr-member {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   column-gap: 12px;
   row-gap: 2px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  min-height: 52px;
+  padding: 12px 16px;
+  border-radius: var(--r-input);
+  background: var(--surface-dim);
   cursor: pointer;
 }
-.tyr-member.is-selected { border-color: var(--accent); background: var(--accent-subtle); }
+.tyr-member.is-selected { background: var(--accent-soft); }
 .tyr-member input { margin: 0; accent-color: var(--accent); width: 18px; height: 18px; }
-.tyr-member-single { grid-template-columns: 1fr auto; cursor: default; }
-.tyr-member-name { font-weight: 500; color: var(--text-primary); }
+.tyr-member-single { grid-template-columns: 1fr auto; cursor: default; padding: 0; min-height: 0; background: none; }
+.tyr-member-name { font-weight: 600; color: var(--ink); }
 .tyr-member-seat,
-.tyr-member-vote,
-.tyr-mono { font-family: var(--font-mono); font-size: 12px; }
-.tyr-member-seat { color: var(--text-secondary); }
-.tyr-member-vote { grid-column: 2 / -1; color: var(--text-muted); }
+.tyr-mono { font-family: var(--font-mono); font-size: 14px; }
+.tyr-member-seat { color: var(--ink-2); }
+.tyr-member-vote { grid-column: 2 / -1; font-size: 15px; font-weight: 600; color: var(--ink-3); }
 .tyr-member-single .tyr-member-vote { grid-column: 1 / -1; }
 .tyr-vote-yea { color: var(--success); }
 .tyr-vote-nay { color: var(--error); }
+.btn-primary .tyr-mono { font-size: inherit; }
 
 .tyr-location {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px 12px;
   align-items: flex-end;
   margin-top: 12px;
 }
-.tyr-field { display: flex; flex-direction: column; gap: 6px; flex: 0 1 140px; }
+.tyr-field { display: flex; flex-direction: column; gap: 8px; flex: 0 1 140px; min-width: 0; }
 .tyr-field-wide { flex: 1 1 260px; }
-.tyr-field label { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-.tyr-optional { font-weight: 400; color: var(--text-muted); }
-.tyr-location input {
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg, var(--surface));
-  color: var(--text-primary);
-  font: inherit;
-  font-size: 16px;
-}
+.tyr-field label { font-size: 15px; font-weight: 500; color: var(--ink); }
+.tyr-optional { font-weight: 400; color: var(--ink-3); }
+.tyr-location .tyr-btn { min-height: 52px; }
 .tyr-location .tyr-fineprint { flex-basis: 100%; margin: 0; }
 
-.tyr-textarea {
+.tyr .tyr-textarea {
   display: block;
-  width: 100%;
   box-sizing: border-box;
-  margin-top: 8px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--bg, var(--surface));
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 16px;
+  margin-top: 12px;
   line-height: 1.6;
   resize: vertical;
 }
 
 .tyr-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-
-.tyr-link-btn { padding: 4px 0; }
-.tyr-panel-head .tyr-link-btn { margin-top: 0; }
-
-.tyr-muted { color: var(--text-muted); font-size: 14px; margin: 8px 0 0; }
-.tyr-error { color: var(--error); font-size: 14px; margin: 8px 0 0; }
-.tyr-fineprint { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.5; }
-.tyr-fineprint a { color: var(--text-secondary); }
+.tyr .tyr-actions .btn-primary { white-space: normal; text-align: center; }
+.tyr .tyr-link-btn { min-height: 44px; }
+.tyr-muted { color: var(--ink-3); font-size: 16px; margin: 8px 0 0; }
+.tyr-error { color: var(--error); font-size: 16px; margin: 8px 0 0; }
+.tyr-fineprint { font-size: 15px; color: var(--ink-3); margin: 8px 0 0; line-height: 1.5; max-width: 62ch; }
+.tyr-fineprint a { color: var(--ink-2); }
 
 .tyr-sr-only {
   position: absolute;
@@ -161,18 +128,19 @@
   border: 0;
 }
 
+/* "I sent it" confirmation (device-only record). */
+.tyr-sent { margin-top: 24px; }
+.tyr-sent-done { margin: 0; font-size: 16px; color: var(--ink); }
+
 @media (max-width: 640px) {
-  .tyr-panel { padding: 16px; }
-  .tyr-title { font-size: 1.375rem; }
+  .tyr-panel { padding: 20px; }
+  .tyr .tyr-toggle { white-space: normal; text-align: center; }
   .tyr-actions .tyr-btn,
-  .tyr-location .tyr-btn { width: 100%; }
+  .tyr-location .tyr-btn,
+  .tyr-sent .tyr-btn { width: 100%; white-space: normal; text-align: center; }
   .tyr-field, .tyr-field-wide { flex: 1 1 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tyr-toggle, .tyr-btn { transition: none; }
 }
-
-/* "I sent it" confirmation (device-only record). */
-.tyr-sent { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
-.tyr-sent-done { margin: 0; font-size: 14px; color: var(--text-primary); }

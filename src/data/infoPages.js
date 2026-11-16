@@ -81,3 +81,10 @@ export const DATA_SOURCES = [
     linkLabel: 'api.open.fec.gov',
   },
 ]
+
+// Headlines are Title Case (DESIGN.md). For h1/h2 text that comes from data
+// (methodology titles, glossary group names); the data itself stays sentence
+// case because the same strings are link labels elsewhere.
+export function titleCase(text) {
+  return String(text).replace(/(^|[\s(“-])([a-z])/g, (_, lead, letter) => lead + letter.toUpperCase())
+}

@@ -41,11 +41,32 @@ export interface HandCuratedLineageRow {
   source?: string | null;
 }
 
+// Where a desk stands on the floor. Desks are moved between the two sides at
+// the start of a Congress, so this is per floor plan, not a fixed fact about
+// the desk. The loader writes the newest plan's layout to senate_desks.
+export interface DeskLayoutRow {
+  deskId: number;
+  side: 'D' | 'R' | 'aisle';
+  arc: number;
+  position: number;
+  famousName?: string | null;
+  description?: string | null;
+}
+
 export interface DeskDataForCongress {
   congress: number;
   assignments: HandCuratedAssignment[];
   lineageRows?: HandCuratedLineageRow[];
   notes?: string;
+  /** Written to senate_desk_assignments.source. Defaults to 'hand_curated_sho'. */
+  source?: string;
+  /** All 100 desks' positions for this Congress's current floor plan. */
+  desks?: DeskLayoutRow[];
+  /**
+   * Desk ids an earlier version of this file wrongly called famous. The loader
+   * deletes their lineage rows; `desks` then rewrites their name to null.
+   */
+  retiredFamousDeskIds?: number[];
 }
 
 const REGISTRY: Record<number, DeskDataForCongress> = {

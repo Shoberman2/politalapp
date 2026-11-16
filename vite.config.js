@@ -80,6 +80,19 @@ function copyShellForPrerender() {
 export default defineConfig(({ mode }) => ({
   // Empty prefix: read server-only names (CONGRESS_API_KEY, FEC_API_KEY) too.
   plugins: [react(), copyShellForPrerender(), devApiProxy(loadEnv(mode, process.cwd(), ''))],
+  // `npm run dev` has no /api functions, so /api/v1/* would answer with the
+  // app shell and anything that reads it (the House floor schedule on
+  // /this-week) would fail. The v1 API is public, read-only and keyless: in
+  // dev, read it from the live site. Point DEV_API_ORIGIN at `vercel dev` or
+  // a preview to read from there instead.
+  server: {
+    proxy: {
+      '/api/v1': {
+        target: loadEnv(mode, process.cwd(), '').DEV_API_ORIGIN || 'https://www.ballotwatch.io',
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./test/setup.js'],

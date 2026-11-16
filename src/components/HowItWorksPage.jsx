@@ -63,8 +63,7 @@ function HowItWorksPage() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">How it works</span>
-          <h1 className="ip-title">Read the record. Reach the people in it.</h1>
+          <h1 className="ip-title">Read The Record. Reach The People In It.</h1>
           <p className="ip-lede">
             {BRAND.name} takes the official record of Congress, links every fact to its source, and puts it next to
             the people who represent you.
@@ -77,11 +76,11 @@ function HowItWorksPage() {
           <ol className="ip-steps">
             {LOOP.map((step) => (
               <li key={step.title}>
-                {step.tag && <p className="ip-tag">{step.tag}</p>}
                 <h3>{step.title}</h3>
+                {step.tag && <p className="ip-tag">{step.tag}</p>}
                 <p>{step.body}</p>
                 <div className="ip-links">
-                  <Link className="btn-text btn-go" to={step.link.to}>{step.link.label}</Link>
+                  <Link className="btn-text" to={step.link.to}>{step.link.label}</Link>
                 </div>
               </li>
             ))}
@@ -92,7 +91,7 @@ function HowItWorksPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>What’s live today</h2>
+          <h2>What’s Live Today</h2>
           <ul className="ip-checks">
             {LIVE.map((item) => (
               <li key={item.label}><Link to={item.to}>{item.label}</Link></li>
@@ -103,7 +102,7 @@ function HowItWorksPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>AI that explains. It never speaks for anyone.</h2>
+          <h2>AI Explains. It Never Speaks For Anyone.</h2>
           <div className="ip-pair">
             <div className="ip-pair-info">
               <h3>We use AI to</h3>
@@ -119,7 +118,7 @@ function HowItWorksPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Go deeper</h2>
+          <h2>Go Deeper</h2>
           <InfoIndex items={DEEPER} />
         </div>
       </section>

@@ -26,7 +26,7 @@ describe('AiCongress', () => {
     getSessions.mockResolvedValue([])
     renderWithProviders(<AiCongress />)
 
-    const heading = await screen.findByText("AI Congress hasn't convened yet.")
+    const heading = await screen.findByText("AI Congress Hasn't Convened Yet")
     expect(heading).toBeInTheDocument()
   })
 

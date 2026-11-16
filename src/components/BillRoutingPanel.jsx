@@ -98,7 +98,7 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
           setNarrativePromptVersion(cached.promptVersion || 'v1')
           setNarrativeStatus('ready')
         } else {
-          // Cache miss — trigger cold-start narrative generation.
+          // Cache miss: trigger cold-start narrative generation.
           await generateNarrative()
         }
       } catch (err) {
@@ -144,8 +144,8 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
   if (routingsLoading) {
     return (
       <section className="bill-routing-section">
-        <div className="bill-section-label">Where this bill goes</div>
-        <h2 className="bill-section-title">Loading committee path…</h2>
+        <h2 className="bill-section-title">Where This Bill Goes</h2>
+        <p className="bill-routing-empty">Loading committee path…</p>
       </section>
     )
   }
@@ -153,8 +153,7 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
   if (routingsError) {
     return (
       <section className="bill-routing-section">
-        <div className="bill-section-label">Where this bill goes</div>
-        <h2 className="bill-section-title">Committee path</h2>
+        <h2 className="bill-section-title">Where This Bill Goes</h2>
         <p className="bill-routing-error">{routingsError}</p>
       </section>
     )
@@ -164,9 +163,8 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
 
   return (
     <section className="bill-routing-section" id="routing-section">
-      <div className="bill-section-label">Where this bill goes</div>
       <h2 className="bill-section-title">
-        Committee path<InfoDot id="committee" />
+        Where This Bill Goes<InfoDot id="committee" />
       </h2>
 
       {emptyRoutings ? (
@@ -235,7 +233,7 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
             if (onOpenMethodology) onOpenMethodology('bill-path-narrative')
           }}
         >
-          How we generate this →
+          How we generate this
         </a>
       </aside>
     </section>
@@ -243,7 +241,7 @@ export default function BillRoutingPanel({ billId, onOpenMethodology }) {
 }
 
 /**
- * Smart status pill — wraps the existing pill with hover/tap to reveal
+ * Smart status pill: wraps the existing pill with hover/tap to reveal
  * a small popover showing the primary committee's survival %.
  *
  * Per design-review Pass 4: NO gauges, NO ring progress, NO color gradients.
@@ -330,7 +328,7 @@ export function StatusPillWithSurvival({ status, billId, congress, primaryCommit
           }
         } : undefined}
       >
-        <span className="bill-status-pill-dot"></span>{status.label}
+        {status.label}
       </span>
       {open && hasContent && (
         <div
@@ -351,11 +349,10 @@ export function StatusPillWithSurvival({ status, billId, congress, primaryCommit
                   <span className="bill-status-popover-caption">of bills referred here advance in this Congress</span>
                 </>
               ) : (
-                <em className="bill-status-popover-insufficient">Insufficient history yet</em>
+                <span className="bill-status-popover-insufficient">Insufficient history yet</span>
               )}
             </dd>
           </dl>
-          <hr className="bill-status-popover-rule" />
           <a
             href="#methodology"
             className="bill-status-popover-method"
@@ -365,7 +362,7 @@ export function StatusPillWithSurvival({ status, billId, congress, primaryCommit
               if (onOpenMethodology) onOpenMethodology('committee-survival')
             }}
           >
-            How we compute this →
+            How we compute this
           </a>
         </div>
       )}

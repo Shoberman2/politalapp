@@ -50,7 +50,7 @@ function Pricing() {
     <div className="bw pricing-page">
       <div className="pricing-card">
         <div className="pricing-header">
-          <span className="pricing-label">BallotWatch Pro</span>
+          <h1>BallotWatch Pro</h1>
           <div className="pricing-amount">
             <span className="pricing-dollar">$</span>
             <span className="pricing-number">2</span>
@@ -61,8 +61,7 @@ function Pricing() {
 
         <ul className="pricing-features">
           <li>Civic Briefing Agent for districts or candidates</li>
-          <li>Gmail delivery for modern source-linked updates</li>
-          <li>Everything else on BallotWatch stays free, no account needed</li>
+          <li>Gmail delivery for source-linked updates</li>
         </ul>
 
         <button
@@ -70,10 +69,10 @@ function Pricing() {
           onClick={handleSubscribe}
           disabled={loading}
         >
-          {loading ? 'Opening checkout...' : 'Subscribe Now'}
+          {loading ? 'Opening checkout' : 'Subscribe'}
         </button>
 
-        {error && <div className="pricing-error">{error}</div>}
+        {error && <div className="pricing-error" role="alert">{error}</div>}
 
         <p className="pricing-note">
           Secure payment via Stripe. Cancel anytime.
@@ -82,13 +81,13 @@ function Pricing() {
         {user && (
           <div className="pricing-footer">
             <span className="pricing-email">Signed in as {user.email}</span>
-            <button className="pricing-signout" onClick={signOut}>Sign out</button>
+            <button className="pricing-signout btn-text" onClick={signOut}>Sign out</button>
           </div>
         )}
 
         {!user && (
           <div className="pricing-footer">
-            <button className="pricing-auth-link" onClick={() => navigate('/auth?next=/briefings')}>
+            <button className="pricing-auth-link btn-text" onClick={() => navigate('/auth?next=/briefings')}>
               Already have an account? Sign in
             </button>
           </div>

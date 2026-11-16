@@ -30,9 +30,9 @@ function AiCongressSession() {
   if (!session) {
     return (
       <div className="ai-session-detail">
-        <Link to="/ai-congress" className="ai-session-back">&larr; All sessions</Link>
+        <Link to="/ai-congress" className="ai-session-back">All sessions</Link>
         <div className="ai-empty-state">
-          <h2>Session not found</h2>
+          <h2>Session Not Found</h2>
           <p>This simulation session doesn't exist or has been removed.</p>
         </div>
       </div>
@@ -52,17 +52,17 @@ function AiCongressSession() {
         <meta name="robots" content="noindex" />
       </Helmet>
 
-      <Link to="/ai-congress" className="ai-session-back">&larr; All sessions</Link>
+      <Link to="/ai-congress" className="ai-session-back">All sessions</Link>
 
       <div className="ai-disclaimer">
         This is an AI simulation of legislative debate, not a rating of real members.
         These are not real votes or legislation.{' '}
-        <Link to="/all">See real Congressional votes &rarr;</Link>
+        <Link to="/all">See real Congressional votes</Link>
       </div>
 
       {session.status === 'running' && (
         <div className="ai-status-banner running">
-          Simulation in progress... Some bills may still be loading.
+          Simulation in progress. Some bills may still be loading.
         </div>
       )}
 
@@ -133,7 +133,7 @@ function BillCard({ bill }) {
                 {bill.house_yea}-{bill.house_nay}
               </span>
               {housePassed != null && (
-                <span style={{ color: housePassed ? 'var(--success)' : 'var(--error)', marginLeft: '4px', fontSize: '0.75rem' }}>
+                <span className={`ai-vote-result ${housePassed ? 'passed' : 'failed'}`}>
                   {housePassed ? 'passed' : 'failed'}
                 </span>
               )}
@@ -146,7 +146,7 @@ function BillCard({ bill }) {
                 {bill.senate_yea}-{bill.senate_nay}
               </span>
               {senatePassed != null && (
-                <span style={{ color: senatePassed ? 'var(--success)' : 'var(--error)', marginLeft: '4px', fontSize: '0.75rem' }}>
+                <span className={`ai-vote-result ${senatePassed ? 'passed' : 'failed'}`}>
                   {senatePassed ? 'passed' : 'failed'}
                 </span>
               )}
@@ -162,7 +162,7 @@ function BillCard({ bill }) {
 
       {bill.provisions?.length > 0 && (
         <div className="ai-bill-provisions">
-          <h4>Key Provisions</h4>
+          <h4>Key provisions</h4>
           <ul>
             {bill.provisions.map((p, i) => (
               <li key={i}>{p}</li>

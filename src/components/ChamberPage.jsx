@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import SEO from './SEO'
 import { InfoDot } from './Term'
 import SenateChamberMap from './SenateChamberMap'
@@ -16,33 +16,37 @@ import {
   InvalidCongressError,
 } from '../utils/congressUtil'
 import { getChamberForCongress } from '../services/senateDesks'
-import { getMembersByCongress, getPartyComposition } from '../services/memberTerms'
+import { getMembersByCongress } from '../services/memberTerms'
+import { partyLetter } from '../utils/partyLetter'
 import {
   getAllCongressMetadata,
   getCongressMetadata,
 } from '../services/congressMetadata'
-import { getFidelityInfo, fidelityDotColor } from '../../shared/fidelity'
+import { getFidelityInfo } from '../../shared/fidelity'
 import { historicMoments } from '../data/historicMoments'
 import '../styles/Chamber.css'
 
 /**
- * ChamberPage — root component for /chamber routes.
+ * ChamberPage: root component for /chamber routes.
  *
  * Hosts both the Senate hemicycle and the House composition view, controlled
  * by a chamber toggle at the top. Default view is Senate (the eureka feature).
  *
  * Routes:
- *   /chamber                       — current Congress, Senate view
- *   /chamber/:congress             — specific Congress, Senate view
- *   /chamber/:congress/house       — House composition for Congress
- *   /chamber/desk/:deskId          — Senate view with lineage panel open
- *   /chamber/moment/:slug          — Senate view with moment overlay active
+ *   /chamber                      : current Congress, Senate view
+ *   /chamber/:congress            : specific Congress, Senate view
+ *   /chamber/:congress/house      : House composition for Congress
+ *   /chamber/desk/:deskId         : Senate view with lineage panel open
+ *   /chamber/moment/:slug         : Senate view with moment overlay active
  *
  * Responsive: switches to mobile compact-hemicycle layout below 768px
  * (handled by SenateChamberMap via isMobile prop).
  */
 
 const MOBILE_BREAKPOINT_PX = 768
+
+// Fewer assigned desks than this and the Senate view shows composition, not desks.
+const MIN_ASSIGNED_DESKS = 50
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() =>
@@ -69,7 +73,7 @@ function ChamberPage() {
   useEffect(() => {
     const next = resolveCongress(params)
     if (next !== congress) setCongress(next)
-  }, [params.congress])
+  }, [params.congress, params.momentSlug])
 
   // ---- 2. Chamber toggle: 'senate' (default) or 'house' ----
   // /chamber/:congress/house uses a literal 'house' path segment, not a route
@@ -94,11 +98,9 @@ function ChamberPage() {
   // ---- 6. Data loading state ----
   const [desks, setDesks] = useState([])
   const [houseMembers, setHouseMembers] = useState([])
+  const [senateMembers, setSenateMembers] = useState([])
   const [congressMeta, setCongressMeta] = useState(null)
   const [metadataByCongress, setMetadataByCongress] = useState(new Map())
-  const [houseComposition, setHouseComposition] = useState({
-    D: 0, R: 0, I: 0, other: 0, total: 0,
-  })
   const [loading, setLoading] = useState(true)
 
   // Load all-congresses metadata once (for scrubber fidelity row).
@@ -124,15 +126,17 @@ function ChamberPage() {
         setCongressMeta(meta)
 
         if (chamberView === 'senate') {
-          const chamberRows = await getChamberForCongress(congress)
+          const [chamberRows, senators] = await Promise.all([
+            getChamberForCongress(congress),
+            getMembersByCongress(congress, 'senate'),
+          ])
           if (cancelled) return
           setDesks(chamberRows)
+          setSenateMembers(senators)
         } else {
           const members = await getMembersByCongress(congress, 'house')
-          const composition = await getPartyComposition(congress, 'house')
           if (cancelled) return
           setHouseMembers(members)
-          setHouseComposition(composition)
         }
       } catch (err) {
         console.error('[ChamberPage] load failed', err)
@@ -206,50 +210,48 @@ function ChamberPage() {
   }, [handleCongressChange])
 
   // ---- 9. Render ----
-  const fidelityTier = congressMeta?.fidelity_tier ?? 'composition_only'
+  // A desk chart needs desk assignments. When fewer than half the desks have
+  // a senator on record, a chart of empty desks says nothing: show party
+  // composition from the members who served instead, and say so.
+  const assignedDesks = desks.filter((d) => d.assignment?.bioguide_id).length
+  const recordedTier = congressMeta?.fidelity_tier ?? 'composition_only'
+  const fidelityTier = chamberView === 'senate' && recordedTier !== 'composition_only' && assignedDesks < MIN_ASSIGNED_DESKS
+    ? 'composition_only'
+    : recordedTier
   const fidelityInfo = getFidelityInfo(fidelityTier)
   const congressLabel = formatCongressLabel(congress)
 
   const seoTitle = `The ${chamberView === 'house' ? 'House' : 'Senate'} Chamber · ${congressLabel} · BallotWatch`
-  const seoDescription = `Interactive ${chamberView === 'house' ? 'House' : 'Senate'} chamber for the ${congressLabel}. ${chamberView === 'senate' ? 'Click any desk to see its history.' : 'Party composition view — House seating is open.'}`
+  const seoDescription = `Interactive ${chamberView === 'house' ? 'House' : 'Senate'} chamber for the ${congressLabel}. ${chamberView === 'senate' ? 'Click any desk to see its history.' : 'Party composition view. House seating is open.'}`
 
   return (
     <div className="chamber-page">
       <SEO title={seoTitle} description={seoDescription} />
 
       <header className="chamber-header">
-        <div className="chamber-eyebrow">BALLOTWATCH</div>
         <h1 className="chamber-title">
           The {chamberView === 'house' ? 'House' : 'Senate'} Chamber
           <InfoDot id={chamberView === 'house' ? 'house' : 'senate'} />
         </h1>
         <div className="chamber-subtitle">{congressLabel}</div>
 
-        {chamberView === 'senate' && (
-          <div className="chamber-caption">
-            100 desks · {congressMeta?.majority_party_senate
-              ? `${congressMeta.majority_party_senate} majority`
-              : 'composition coming as data loads'}
-          </div>
-        )}
-        {chamberView === 'house' && houseComposition.total > 0 && (
-          <div className="chamber-caption">
-            {houseComposition.total} representatives · {houseComposition.R} R · {houseComposition.D} D
-            {houseComposition.I > 0 ? ` · ${houseComposition.I} I` : ''}
-          </div>
-        )}
-
-        <div className="chamber-header-aside">
-          <span
-            className="chamber-fidelity-dot-inline"
-            style={{ backgroundColor: fidelityDotColor(fidelityTier) }}
-            aria-hidden="true"
-          />
-          <span className="chamber-fidelity-label">{fidelityInfo.label}</span>
+        <div className="chamber-meta">
+          {chamberView === 'senate' && (
+            <span className="chamber-caption">
+              {fidelityInfo.hasDeskData ? '100 desks' : '100 seats'}{congressMeta?.majority_party_senate
+                ? ` · ${congressMeta.majority_party_senate} majority`
+                : ''}
+            </span>
+          )}
+          <span className="chamber-header-aside">
+            <span
+              className={`chamber-fidelity-dot-inline is-tier-${fidelityTier}`}
+              aria-hidden="true"
+            />
+            <span className="chamber-fidelity-label">{fidelityInfo.label}</span>
+          </span>
         </div>
       </header>
-
-      <hr className="chamber-rule" />
 
       {/* Chamber toggle */}
       <nav className="chamber-toggle" role="tablist" aria-label="Chamber selector">
@@ -289,6 +291,7 @@ function ChamberPage() {
         {!loading && chamberView === 'senate' && (
           <SenateChamberMap
             desks={desks}
+            members={senateMembers}
             fidelityTier={fidelityTier}
             onDeskClick={handleDeskClick}
             onDeskHover={setHoveredDesk}
@@ -300,18 +303,26 @@ function ChamberPage() {
           <HouseCompositionMap members={houseMembers} isMobile={isMobile} />
         )}
 
-        {/* Mobile tap-to-reveal label per D5 decision */}
-        {isMobile && hoveredDesk && hoveredDesk.politician && (
-          <div className="chamber-mobile-reveal" aria-live="polite">
-            <strong>{hoveredDesk.politician.name}</strong>{' '}
-            <span className="chamber-mobile-reveal-meta">
-              ({hoveredDesk.politician.party}-{hoveredDesk.politician.state}) · Desk {hoveredDesk.desk_id}
-            </span>
-          </div>
+        {/* Desk readout: the hovered, focused or tapped desk in readable type */}
+        {!loading && chamberView === 'senate' && fidelityInfo.hasDeskData && (
+          <p className="chamber-readout" aria-live="polite">
+            {hoveredDesk?.politician ? (
+              <>
+                <strong>{hoveredDesk.politician.name}</strong>{' '}
+                <span className="chamber-readout-meta">
+                  ({partyLetter(hoveredDesk.politician.party) || hoveredDesk.politician.party}-{hoveredDesk.politician.state}) · Desk {hoveredDesk.desk_id}
+                </span>
+              </>
+            ) : hoveredDesk ? (
+              <span className="chamber-readout-meta">Desk {hoveredDesk.desk_id} · unassigned</span>
+            ) : (
+              isMobile
+                ? 'Tap any desk to read its history.'
+                : 'Click any desk to read its history. Hover to see the senator who currently holds it.'
+            )}
+          </p>
         )}
       </section>
-
-      <hr className="chamber-rule" />
 
       {/* Scrubber */}
       <ChamberScrubber
@@ -320,8 +331,6 @@ function ChamberPage() {
         metadataByCongress={metadataByCongress}
         isMobile={isMobile}
       />
-
-      <hr className="chamber-rule" />
 
       {/* Moments overlay (Senate view only) */}
       {chamberView === 'senate' && (
@@ -335,15 +344,8 @@ function ChamberPage() {
         </section>
       )}
 
-      <hr className="chamber-rule" />
-
       <footer className="chamber-footer">
-        <div className="chamber-footer-caption">
-          <em>Click any desk to read its history. Hover to see the senator who currently holds it.</em>
-        </div>
-        <div className="chamber-footer-link">
-          <a href="/chamber/methodology">Methodology and data sources</a>
-        </div>
+        <Link to="/chamber/methodology" className="btn-text">Methodology and data sources</Link>
       </footer>
 
       {/* Slide-in drawer (desktop) / modal (mobile) for desk lineage */}
@@ -360,7 +362,12 @@ function ChamberPage() {
 }
 
 function resolveCongress(params) {
-  // Order of preference: explicit :congress param → default to current.
+  // Order of preference: explicit :congress param, then the Congress of a
+  // linked historic moment, then the current Congress.
+  if (!params.congress && params.momentSlug) {
+    const moment = historicMoments.find((m) => m.slug === params.momentSlug)
+    if (moment?.congress) return moment.congress
+  }
   if (params.congress) {
     try {
       return parseCongressParam(params.congress)

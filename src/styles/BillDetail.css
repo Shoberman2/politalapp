@@ -1,3 +1,6 @@
+/* Bill page. api/_lib/renderPage.js server-renders the same class names, so
+   every rule here must style that markup too: do not rename a class without
+   changing it there. Buttons come from App.css; this file is layout and type. */
 .bill-detail {
   width: 100%;
   max-width: 1120px;
@@ -14,295 +17,203 @@
 /* CRUMB */
 .bill-crumb {
   display: flex;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 40px;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-bottom: 32px;
   flex-wrap: wrap;
 }
-.bill-crumb a {
-  color: var(--accent);
-  text-decoration: none;
-}
+.bill-crumb a { color: var(--accent); text-decoration: none; }
 .bill-crumb a:hover { text-decoration: underline; }
-.bill-crumb-sep { color: var(--border); }
+.bill-crumb-sep { color: var(--ink-3); }
 
-/* MASTHEAD */
+/* MASTHEAD: the title leads; the bill number, Congress and status sit under
+   it. `order` keeps that true for the server-rendered markup as well. */
 .bill-masthead {
-  padding-bottom: 32px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 56px;
+}
+.bill-masthead-title { order: 1; }
+.bill-id-row { order: 2; }
+.bill-masthead-byline { order: 3; }
+.bill-masthead-actions { order: 4; }
+
+.bill-masthead-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(32px, 4.6vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+  max-width: 24ch;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .bill-id-row {
   display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 16px;
+  gap: 6px 18px;
+  align-items: baseline;
+  margin-bottom: 10px;
   flex-wrap: wrap;
+  font-size: 15px;
 }
-
 .bill-masthead-id {
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 15px;
   color: var(--accent);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.bill-masthead-congress {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.bill-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 3px;
-}
-.bill-status-pill-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-.bill-status-pill.status-enacted, .bill-status-pill.status-passed-both {
-  background: var(--success-subtle);
-  color: var(--success);
-}
-.bill-status-pill.status-enacted .bill-status-pill-dot,
-.bill-status-pill.status-passed-both .bill-status-pill-dot { background: var(--success); }
-.bill-status-pill.status-passed {
-  background: var(--info-subtle);
-  color: var(--info);
-}
-.bill-status-pill.status-passed .bill-status-pill-dot { background: var(--info); }
-.bill-status-pill.status-committee {
-  background: var(--warning-subtle);
-  color: var(--warning);
-}
-.bill-status-pill.status-committee .bill-status-pill-dot { background: var(--warning); }
-.bill-status-pill.status-introduced, .bill-status-pill.status-progress {
-  background: var(--border-light);
-  color: var(--text-secondary);
-}
-.bill-status-pill.status-introduced .bill-status-pill-dot,
-.bill-status-pill.status-progress .bill-status-pill-dot { background: var(--text-muted); }
-
-.bill-masthead-title {
-  font-family: var(--font-display);
   font-weight: 600;
-  font-size: 56px;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  margin: 0 0 24px;
-  color: var(--text-primary);
 }
+.bill-masthead-congress { font-size: 15px; color: var(--ink-2); }
+
+/* Status is a coloured word, not a chip. */
+.bill-status-pill { font-size: 15px; font-weight: 600; }
+.bill-status-pill-dot { display: none; }
+.bill-status-pill.status-enacted,
+.bill-status-pill.status-passed-both { color: var(--success); }
+.bill-status-pill.status-passed { color: var(--info); }
+.bill-status-pill.status-committee { color: var(--warning); }
+.bill-status-pill.status-introduced,
+.bill-status-pill.status-progress { color: var(--ink-2); }
+.bill-status-pill[role="button"] { cursor: pointer; }
 
 .bill-masthead-byline {
-  font-size: 15px;
-  color: var(--text-secondary);
+  font-size: 16px;
+  color: var(--ink-2);
   line-height: 1.65;
   margin: 0;
+  max-width: 70ch;
 }
-.bill-byline-sponsor {
-  color: var(--text-primary);
-  font-weight: 500;
-  text-decoration: none;
-}
+.bill-masthead-byline strong { color: var(--ink); font-weight: 600; }
+.bill-byline-sponsor { color: var(--ink); font-weight: 600; text-decoration: none; }
 .bill-byline-sponsor:hover { color: var(--accent); }
-.bill-byline-party {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  margin-left: 4px;
-}
+.bill-byline-party { font-weight: 600; font-size: 15px; margin-left: 6px; }
 .bill-byline-party.party-tag-dem { color: var(--party-dem); }
 .bill-byline-party.party-tag-rep { color: var(--party-rep); }
 .bill-byline-party.party-tag-ind { color: var(--party-ind); }
-.bill-byline-mono { font-family: var(--font-mono); font-size: 13px; }
+.bill-byline-mono { font-family: var(--mono); font-size: 15px; }
 
 .bill-masthead-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 24px;
+  gap: 4px 24px;
+  margin-top: 16px;
   flex-wrap: wrap;
 }
 
 /* LAYOUT */
 .bill-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 64px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 72px;
   align-items: start;
 }
 .bill-main { min-width: 0; }
 
-/* AI EXPLANATION CARD */
+/* THE EXPLANATION: one annotation block, marked by its left rule. */
 .bill-ai-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
   border-left: 3px solid var(--info);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  padding: 32px;
+  padding: 4px 0 4px 28px;
   margin-bottom: 32px;
-  position: relative;
+  max-width: 72ch;
 }
 .bill-ai-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--info);
-  margin-bottom: 4px;
-}
-.bill-ai-pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--info);
-  box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4);
-  animation: bill-ai-pulse 2s infinite;
-}
-@keyframes bill-ai-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(22px, 2.4vw, 28px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 8px;
 }
 .bill-ai-byline {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  margin: 0 0 20px;
 }
-.bill-ai-headline {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 28px;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  margin: 0 0 24px;
-  color: var(--text-primary);
-}
+.bill-ai-byline:empty { display: none; }
+.bill-ai-byline a { color: var(--accent); }
 .bill-ai-prose p {
   font-size: 17px;
-  line-height: 1.75;
-  color: var(--text-primary);
+  line-height: 1.7;
+  color: var(--ink);
   margin: 0 0 18px;
 }
 .bill-ai-prose p:last-child { margin-bottom: 0; }
-.bill-ai-prose p:first-of-type::first-letter {
-  font-family: var(--font-display);
-  font-size: 56px;
-  float: left;
-  line-height: 0.9;
-  padding: 8px 8px 0 0;
-  color: var(--info);
-}
 .bill-ai-loading {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--sans);
-  color: var(--text-secondary);
+  color: var(--ink-2);
   font-size: 16px;
   padding: 12px 0;
 }
-
-.bill-ai-byline a { color: var(--info); }
 .bill-ai-points-title {
-  font-family: var(--font-display);
+  font-family: var(--display);
   font-weight: 600;
-  font-size: 18px;
+  font-size: 20px;
   margin: 28px 0 12px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
-.bill-ai-points {
-  margin: 0;
-  padding-left: 20px;
-}
+.bill-ai-points { margin: 0; padding-left: 20px; }
 .bill-ai-points li {
   font-size: 16px;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--ink);
   margin-bottom: 8px;
 }
 .bill-ai-points li::marker { color: var(--info); }
 
-/* OFFICIAL SUMMARY (collapsed) */
-.bill-summary-block {
-  background: var(--accent-subtle);
-  padding: 16px 20px;
-  border-radius: var(--radius-sm);
-  margin-bottom: 32px;
-}
+/* OFFICIAL SUMMARY (folded) */
+.bill-summary-block { margin-bottom: 32px; max-width: 72ch; }
 .bill-summary-block summary {
   cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--accent);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   list-style: none;
   user-select: none;
 }
 .bill-summary-block summary::-webkit-details-marker { display: none; }
-.bill-summary-block summary::before {
-  content: '+ ';
-  font-weight: 600;
-  margin-right: 4px;
-}
-.bill-summary-block[open] summary::before { content: '− '; }
-.bill-summary-block .bill-summary-body {
-  margin-top: 16px;
-  font-size: 14px;
+.bill-summary-block summary:hover { color: var(--accent-hover); }
+.bill-summary-body {
+  font-size: 16px;
   line-height: 1.7;
-  color: var(--text-primary);
+  color: var(--ink);
+  max-width: 72ch;
 }
-.bill-summary-block .bill-summary-body p {
-  margin: 0 0 12px;
-}
+.bill-summary-block .bill-summary-body { margin-top: 8px; }
+.bill-summary-body p { margin: 0 0 12px; }
 
-/* EDITORIAL SECTION pattern */
-.bill-editorial-section {
-  padding: 32px 0;
-  border-top: 1px solid var(--border);
-}
+/* SECTIONS: space separates them. */
+.bill-editorial-section { padding: 28px 0; }
+/* Only the server-rendered page uses this, as a section's plain heading. */
 .bill-section-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
   margin-bottom: 12px;
 }
 .bill-section-title {
-  font-family: var(--font-display);
+  font-family: var(--display);
   font-weight: 600;
-  font-size: 32px;
+  font-size: clamp(24px, 2.8vw, 32px);
   line-height: 1.1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
   margin: 0 0 20px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 .bill-section-loading {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--text-secondary);
-  font-size: 14px;
+  color: var(--ink-2);
+  font-size: 16px;
 }
 
 /* VOTE TALLIES */
@@ -310,270 +221,196 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-top: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
 }
 .bill-tally-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
+  padding: 24px;
+  min-width: 0;
 }
 .bill-tally-chamber {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
 }
 .bill-tally-date {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-3);
   margin-bottom: 14px;
 }
 .bill-tally-result {
-  font-family: var(--font-display);
-  font-size: 28px;
-  line-height: 1;
-  margin-bottom: 12px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.1;
 }
 .bill-tally-result.passed { color: var(--success); }
 .bill-tally-result.failed { color: var(--error); }
+/* Server-rendered tally line: the result is a word in the line, not a headline. */
+.rc-mono .bill-tally-result { font: inherit; font-weight: 600; }
+.bill-tally-card a { color: var(--accent); }
 
 .bill-tally-bar {
   display: flex;
   height: 8px;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 8px;
-  background: var(--border-light);
+  margin-bottom: 10px;
+  background: var(--surface-dim);
 }
 .bill-tally-bar-yea { background: var(--success); }
 .bill-tally-bar-nay { background: var(--error); }
-.bill-tally-bar-other { background: var(--text-muted); }
+.bill-tally-bar-other { background: var(--ink-3); }
 .bill-tally-counts {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-2);
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
 }
 
-/* TIMELINE */
-.bill-timeline {
-  position: relative;
-  padding-left: 24px;
-}
-.bill-timeline::before {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: var(--border);
-}
+/* TIMELINE: date, then what happened. */
+.bill-timeline { display: grid; gap: 16px; max-width: 80ch; }
 .bill-tl-item {
-  position: relative;
-  padding-bottom: 20px;
-  padding-right: 8px;
-}
-.bill-tl-item::before {
-  content: '';
-  position: absolute;
-  left: -21px;
-  top: 6px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 2px solid var(--text-muted);
-}
-.bill-tl-item.recent::before {
-  background: var(--accent);
-  border-color: var(--accent);
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: baseline;
 }
 .bill-tl-date {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  margin-bottom: 2px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
 }
+.bill-tl-item.recent .bill-tl-date { color: var(--ink); font-weight: 600; }
 .bill-tl-text {
-  font-size: 14px;
-  color: var(--text-primary);
+  font-size: 16px;
+  color: var(--ink);
   line-height: 1.5;
 }
 .bill-tl-code {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
   margin-left: 8px;
-  padding: 1px 6px;
-  background: var(--border-light);
-  border-radius: 3px;
 }
 
-/* RAIL */
+/* RAIL: plain groups, separated by space. */
 .bill-rail {
   position: sticky;
-  top: 24px;
+  top: 92px;
   align-self: start;
+  display: grid;
+  gap: 40px;
 }
-.bill-rail-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  margin-bottom: 16px;
-}
-.bill-watch-card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 600; margin: 4px 0 8px; }
-.bill-watch-card > p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 16px; }
-.bill-watch-kicker, .bill-watch-status {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
-}
-.bill-watch-status { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: var(--success); }
-.bill-watch-status span { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
-.bill-watch-options { display: grid; gap: 8px; margin: 14px 0 18px; }
-.bill-watch-options label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); }
-.bill-watch-actions { display: flex; gap: 8px; }
-.bill-watch-footer { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border-light); margin-top: 16px; padding-top: 12px; font-size: 12px; }
-.bill-watch-footer a { color: var(--accent); text-decoration: none; }
-.bill-watch-footer button { background: none; border: 0; color: var(--text-muted); cursor: pointer; padding: 0; }
-.bill-watch-footer button:hover { color: var(--error); }
-.bill-watch-error, .bill-watch-saved { font-size: 12px !important; margin: 10px 0 !important; }
-.bill-watch-error { color: var(--error) !important; }
-.bill-watch-saved { color: var(--success) !important; }
+.bill-rail-card { min-width: 0; }
 .bill-rail-h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 16px;
-  font-weight: 500;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: 0 0 8px;
 }
 
+/* Watch this bill (BillWatchControl.jsx): the rail's one raised card. */
+.bill-watch-card {
+  background: var(--surface);
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
+  padding: 24px;
+}
+.bill-watch-card h3 { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--ink); }
+.bill-watch-card h3.bill-watch-status { color: var(--success); }
+.bill-watch-card > p { font-size: 16px; color: var(--ink-2); line-height: 1.55; margin: 0 0 16px; }
+.bill-watch-options { display: grid; gap: 4px; margin: 0 0 16px; }
+.bill-watch-options label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 16px; font-weight: 400; color: var(--ink); cursor: pointer; }
+.bill-watch-options input { width: 18px; height: 18px; accent-color: var(--accent); }
+.bill-watch-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.bill-watch-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 15px; }
+.bill-watch-footer a { color: var(--accent); text-decoration: none; font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
+.bill-watch-footer button { background: none; border: 0; color: var(--ink-3); cursor: pointer; padding: 0; min-height: 44px; font-size: 15px; }
+.bill-watch-footer button:hover { color: var(--error); }
+.bill-watch-card > p.bill-watch-error,
+.bill-watch-card > p.bill-watch-saved { font-size: 15px; margin: 10px 0; }
+.bill-watch-card > p.bill-watch-error { color: var(--error); }
+.bill-watch-card > p.bill-watch-saved { color: var(--success); }
+
 .bill-sp-name {
-  font-family: var(--font-display);
-  font-size: 22px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 20px;
   line-height: 1.2;
   margin: 0 0 4px;
-  color: var(--text-primary);
+  color: var(--ink);
   text-decoration: none;
   display: block;
 }
 .bill-sp-name:hover { color: var(--accent); }
-.bill-sp-meta {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
+.bill-sp-meta { font-size: 15px; color: var(--ink-2); }
 
-.bill-cosp-breakdown {
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-.bill-cosp-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border-light);
-}
-.bill-cosp-row:last-child { border-bottom: none; }
-.bill-cosp-party {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
+.bill-cosp-breakdown { font-size: 15px; margin-bottom: 4px; }
+.bill-cosp-row { display: flex; justify-content: space-between; padding: 4px 0; }
+.bill-cosp-party { font-weight: 600; }
 .bill-cosp-party.party-tag-dem { color: var(--party-dem); }
 .bill-cosp-party.party-tag-rep { color: var(--party-rep); }
 .bill-cosp-party.party-tag-ind { color: var(--party-ind); }
-.bill-cosp-count {
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
+.bill-cosp-count { font-family: var(--mono); color: var(--ink); }
 
-.bill-cosp-toggle {
-  display: block;
-  width: 100%;
-  text-align: center;
-  background: none;
-  border: 0;
-  font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--accent);
-  cursor: pointer;
-  padding: 8px 0 0;
-}
-.bill-cosp-toggle:hover { text-decoration: underline; }
+.bill-rail .bill-cosp-toggle { min-height: 44px; font-size: 15px; }
 
 .bill-cosp-list {
-  margin-top: 12px;
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   max-height: 320px;
   overflow-y: auto;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
 }
 .bill-cosp-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  color: var(--text-primary);
+  gap: 12px;
+  font-size: 15px;
+  color: var(--ink);
   text-decoration: none;
-  padding: 4px 0;
+  padding: 7px 0;
 }
 .bill-cosp-item:hover { color: var(--accent); }
-.bill-cosp-item-party {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
+.bill-cosp-item-party { font-weight: 600; font-size: 14px; }
 .bill-cosp-item-party.party-tag-dem { color: var(--party-dem); }
 .bill-cosp-item-party.party-tag-rep { color: var(--party-rep); }
 .bill-cosp-item-party.party-tag-ind { color: var(--party-ind); }
 
-.bill-committee-item {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 13px;
-}
-.bill-committee-item:last-child { border-bottom: none; }
-.bill-committee-chamber {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-.bill-committee-name { color: var(--text-primary); }
+.bill-committee-item { padding: 4px 0; font-size: 15px; }
+.bill-committee-chamber { font-size: 14px; color: var(--ink-3); }
+.bill-committee-name { color: var(--ink); }
 
 .bill-text-version {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-light);
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
   text-decoration: none;
-  color: var(--text-primary);
-  font-size: 13px;
+  color: var(--ink);
+  font-size: 15px;
 }
-.bill-text-version:last-child { border-bottom: none; }
 .bill-text-version:hover { color: var(--accent); }
 .bill-tv-type { font-weight: 500; }
 .bill-tv-date {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
 }
 
 /* LOADING & ERROR */
@@ -585,34 +422,34 @@
   padding: 80px 24px;
   text-align: center;
 }
-.bill-detail-loading p {
-  font-family: var(--sans);
-  color: var(--text-secondary);
-  margin-top: 16px;
-}
+.bill-detail-loading p { color: var(--ink-2); margin-top: 16px; }
 
 /* MOBILE */
 @media (max-width: 900px) {
-  .bill-layout { grid-template-columns: 1fr; gap: 32px; }
+  .bill-layout { grid-template-columns: 1fr; gap: 48px; }
   .bill-rail { position: static; }
 }
 @media (max-width: 760px) {
-  .bill-detail { padding: 24px 16px 64px; }
-  .bill-masthead-title { font-size: 36px; }
-  .bill-ai-card { padding: 20px; margin-bottom: 24px; }
-  .bill-ai-headline { font-size: 22px; }
+  .bill-detail { padding: 24px 20px 64px; }
+  .bill-masthead { margin-bottom: 40px; }
+  .bill-ai-card { padding-left: 18px; margin-bottom: 24px; }
   .bill-ai-prose p { font-size: 16px; }
   .bill-tally-grid { grid-template-columns: 1fr; gap: 12px; }
-  .bill-section-title { font-size: 24px; }
+  .bill-tl-item { grid-template-columns: 1fr; gap: 2px; }
 }
 
-/* A status pill or vote result followed by its ⓘ (Term.jsx). */
-.bill-status-wrap,
-.bill-tally-result-row {
+/* A status word or vote result followed by its ⓘ (Term.jsx). */
+.bill-status-wrap {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-.bill-tally-result-row { display: flex; }
-.bill-tally-result-row { margin-bottom: 12px; }
-.bill-tally-result-row .bill-tally-result { margin-bottom: 0; }
+.bill-tally-result-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+/* Opens the rest of a long official summary. */
+.bill-summary-more { margin-top: 4px; min-height: 44px; }

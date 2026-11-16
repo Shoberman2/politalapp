@@ -3,8 +3,9 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 // The masthead lists public pages only. Signed out: a "Sign in" text link that
-// returns to the current page, and "Find my reps" through sign-in. Signed in:
-// "Sign out", "My reps", and the theme toggle (never shown signed out).
+// returns to the current page, and "Find my reps" through the create-account
+// form. Signed in: "Account" opens a sheet (appearance, sign out) and the CTA
+// keeps its words. The landing page never shows signed-in state.
 
 const state = vi.hoisted(() => ({ user: null, signOut: null }))
 
@@ -47,43 +48,67 @@ describe('Navigation', () => {
       expect(a.getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/vote/119/house/2/295?x=1')}`)
     })
     expect(cta(container).textContent).toBe('Find my reps')
-    expect(cta(container).getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/my-representative')}`)
+    expect(cta(container).getAttribute('href')).toBe(`/auth?mode=signup&next=${encodeURIComponent('/my-representative')}`)
   })
 
   it('on /auth itself, Sign in and the CTA keep the current ?next=', () => {
     const { container } = renderAt('/auth?next=%2Fbills')
     accountLinks(container).forEach((a) => expect(a.getAttribute('href')).toBe('/auth?next=%2Fbills'))
-    expect(cta(container).getAttribute('href')).toBe('/auth?next=%2Fbills')
+    expect(cta(container).getAttribute('href')).toBe('/auth?mode=signup&next=%2Fbills')
     cleanup()
     const plain = renderAt('/auth').container
     accountLinks(plain).forEach((a) => expect(a.getAttribute('href')).toBe('/auth'))
-    expect(cta(plain).getAttribute('href')).toBe(`/auth?next=${encodeURIComponent('/my-representative')}`)
+    expect(cta(plain).getAttribute('href')).toBe(`/auth?mode=signup&next=${encodeURIComponent('/my-representative')}`)
   })
 
-  it('never shows the theme toggle signed out', () => {
-    const { container } = renderAt('/')
-    expect(container.querySelector('.theme-toggle')).toBeNull()
-  })
-
-  it('signed in: Sign out, My reps and the theme toggle', async () => {
+  it('signed in: Account opens a sheet with appearance and sign out; the CTA keeps its words', async () => {
     state.user = { id: 'u1', email: 'a@b.c' }
     state.signOut = vi.fn().mockResolvedValue({ error: null })
-    const { container, getByTestId } = renderAt('/all')
+    const { container, getByTestId, getByRole, queryByRole } = renderAt('/all')
     const links = accountLinks(container)
     expect(links).toHaveLength(2)
-    links.forEach((b) => expect(b.textContent).toBe('Sign out'))
-    expect(cta(container).textContent).toBe('My reps')
+    links.forEach((b) => expect(b.textContent).toBe('Account'))
+    expect(cta(container).textContent).toBe('Find my reps')
     expect(cta(container).getAttribute('href')).toBe('/my-representative')
-    expect(container.querySelector('.theme-toggle')).not.toBeNull()
+    expect(queryByRole('dialog')).toBeNull()
 
     fireEvent.click(container.querySelector('button.nav-account'))
+    const sheet = getByRole('dialog')
+    expect(sheet.textContent).toContain('a@b.c')
+
+    // Light is the default; dark is a choice made here and saved.
+    fireEvent.click(getByRole('button', { name: 'Dark' }))
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(localStorage.getItem('bw-theme')).toBe('dark')
+    fireEvent.click(getByRole('button', { name: 'Light' }))
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+
+    fireEvent.click(getByRole('button', { name: 'Sign out' }))
     await waitFor(() => expect(getByTestId('where').textContent).toBe('/'))
     expect(state.signOut).toHaveBeenCalledTimes(1)
   })
 
+  it('the landing page never shows signed-in state', () => {
+    state.user = { id: 'u1', email: 'a@b.c' }
+    const { container } = renderAt('/')
+    accountLinks(container).forEach((a) => expect(a.textContent).toBe('Sign in'))
+    expect(container.textContent).not.toMatch(/Account|Sign out/)
+  })
+
+  it('the mobile menu closes on Escape and says whether it is open', () => {
+    const { container } = renderAt('/all')
+    const burger = container.querySelector('.nav-burger')
+    expect(burger.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(burger)
+    expect(burger.getAttribute('aria-expanded')).toBe('true')
+    expect(container.querySelector('nav.topnav').className).toContain('open-mobile')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(burger.getAttribute('aria-expanded')).toBe('false')
+  })
+
   it('keeps the main row to four public pages, with no announcement strip', () => {
     const { container } = renderAt('/')
-    const main = [...container.querySelectorAll('nav.topnav a:not(.topnav-account-mobile)')].map((a) => a.getAttribute('href'))
+    const main = [...container.querySelectorAll('nav.topnav > a')].map((a) => a.getAttribute('href'))
     expect(main).toEqual(['/how-it-works', '/this-week', '/all', '/offices'])
     expect(container.textContent).not.toMatch(/Bills|Methodology|API/)
     expect(container.querySelector('.announce')).toBeNull()

@@ -28,8 +28,7 @@ function TermsPage() {
 
       <section className="ip-hero">
         <div className="ip-inner">
-          <span className="ip-kicker">Terms</span>
-          <h1 className="ip-title">Terms of use</h1>
+          <h1 className="ip-title">Terms Of Use</h1>
           <p className="ip-lede">
             By using {BRAND.name}, its API, or its MCP server, you agree to these terms. We’ve kept them short and
             plain.
@@ -40,7 +39,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>An informational service</h2>
+          <h2>An Informational Service</h2>
           <p>
             {BRAND.name} presents the public record of the U.S. Congress for information only. It is not legal,
             political, or professional advice, and it is not an official government record. For anything that
@@ -51,7 +50,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Public data can contain errors</h2>
+          <h2>Public Data Can Contain Errors</h2>
           <p>
             Our data comes from public sources such as Congress.gov, the House Clerk, the Senate, the Census Bureau,
             and the FEC. Those sources, and our processing of them, can contain errors or lag behind events. If you
@@ -62,9 +61,9 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>AI explanations</h2>
+          <h2>AI Explanations</h2>
           <p>
-            Some explanations are written with AI from official summaries and records. They are explanatory, they can
+            Some explanations are written with AI from official bill text, summaries and records. They are explanatory, they can
             be wrong or incomplete, and they don’t replace the official text. See{' '}
             <Link to="/methodology/ai-explanations">how AI explanations are made</Link>.
           </p>
@@ -73,7 +72,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>No affiliation with government</h2>
+          <h2>No Affiliation With Government</h2>
           <p>
             {BRAND.name} is independent. It is not affiliated with, endorsed by, or speaking for the U.S. Congress,
             any member or office, any government agency, or any political party.
@@ -83,7 +82,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Messages you send</h2>
+          <h2>Messages You Send</h2>
           <p>
             Tell your rep helps you draft a message, but you write it and you send it, through your representative’s
             official contact page. You are responsible for what you send. Don’t use {BRAND.name} to harass anyone,
@@ -94,7 +93,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Accounts and acceptable use</h2>
+          <h2>Accounts And Acceptable Use</h2>
           <p>
             An account is free. You need one for the app’s tools (your representatives, the bills browser, the district map, the shutdown
             tracker, campaign-finance comparison and AI Congress); member
@@ -107,7 +106,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>The API and MCP server</h2>
+          <h2>The API And MCP Server</h2>
           <ul className="ip-bullets">
             <li>
               Without a key, use is limited to 60 requests per minute and 5,000 per day per IP address. A free key
@@ -137,7 +136,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>No warranty</h2>
+          <h2>No Warranty</h2>
           <p>
             The service is provided “as is” and “as available,” without warranties of any kind, express or implied,
             including accuracy, completeness, availability, fitness for a particular purpose, and non-infringement.
@@ -147,7 +146,7 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Limitation of liability</h2>
+          <h2>Limitation Of Liability</h2>
           <p>
             To the fullest extent the law allows, {BRAND.name} and its contributors are not liable for any indirect,
             incidental, special, consequential, or punitive damages, or for any loss arising from your use of, or
@@ -158,14 +157,14 @@ function TermsPage() {
 
       <section>
         <div className="ip-inner">
-          <h2>Changes and contact</h2>
+          <h2>Changes And Contact</h2>
           <p>
             We may update these terms. When we do, we’ll change the date at the top; continuing to use the service
             means you accept the updated terms. Questions: <ContactLine />.
           </p>
           <div className="ip-links">
-            <Link className="btn-text btn-go" to="/privacy">Privacy notice</Link>
-            <Link className="btn-text btn-go" to="/contact">Contact</Link>
+            <Link className="btn-text" to="/privacy">Privacy notice</Link>
+            <Link className="btn-text" to="/contact">Contact</Link>
           </div>
         </div>
       </section>

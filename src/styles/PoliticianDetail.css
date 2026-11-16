@@ -1,3 +1,8 @@
+/* Member profile (/politician/:id). api/_lib/renderPage.js renders the same
+   class names before React mounts: restyle in place, do not rename.
+   Space separates sections; a hairline sits only between rows of the donor
+   table. */
+
 .pol {
   width: 100%;
   max-width: 1120px;
@@ -14,18 +19,15 @@
 /* CRUMB */
 .pol-crumb {
   display: flex;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 48px;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-bottom: 40px;
   flex-wrap: wrap;
 }
 .pol-crumb a { color: var(--accent); text-decoration: none; }
 .pol-crumb a:hover { text-decoration: underline; }
-.pol-crumb-sep { color: var(--border); }
+.pol-crumb-sep { color: var(--ink-3); }
 
 /* MASTHEAD */
 .pol-masthead {
@@ -33,75 +35,77 @@
   grid-template-columns: 280px 1fr;
   gap: 48px;
   align-items: start;
-  padding-bottom: 32px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 48px;
+  margin-bottom: 8px;
 }
 
 .pol-photo-wrap {
   width: 280px;
 }
 .pol-photo {
+  display: block;
   width: 100%;
   aspect-ratio: 3/4;
   object-fit: cover;
-  border-radius: var(--radius-sm);
-  background: var(--border-light);
-  filter: grayscale(0.05);
+  border-radius: var(--r-card);
+  background: var(--surface-dim);
 }
 .pol-photo-placeholder {
   width: 100%;
   aspect-ratio: 3/4;
-  background: var(--border-light);
+  background: var(--surface-dim);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-card);
   font-family: var(--font-display);
   font-size: 64px;
-  color: var(--text-muted);
+  color: var(--ink-3);
 }
 
+/* The name leads; the office sits under it. `order` keeps that true for the
+   server-rendered markup, which prints the office line first. */
+.pol-lede { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.pol-name { order: -1; }
+
 .pol-kicker {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-size: 16px;
+  color: var(--ink-3);
   margin-bottom: 12px;
 }
 
 .pol-name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 52px;
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-  margin: 0 0 16px;
-  color: var(--text-primary);
+  font-size: clamp(36px, 5.4vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 12px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
-.pol-name-first {font-family: var(--sans); font-weight: inherit; }
+.pol-name-first { font-family: var(--sans); font-weight: inherit; }
+.pol-name .term-dot,
+.pol-section-title .term-dot { vertical-align: middle; }
 
+/* Party is a small coloured word beside the name. */
 .pol-party-tag {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  border-left: 2px solid;
-  padding-left: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
   margin-left: 12px;
-  text-transform: uppercase;
   vertical-align: middle;
 }
-.pol-party-tag.party-tag-dem { color: var(--party-dem); border-left-color: var(--party-dem); }
-.pol-party-tag.party-tag-rep { color: var(--party-rep); border-left-color: var(--party-rep); }
-.pol-party-tag.party-tag-ind { color: var(--party-ind); border-left-color: var(--party-ind); }
+.pol-party-tag.party-tag-dem { color: var(--party-dem); }
+.pol-party-tag.party-tag-rep { color: var(--party-rep); }
+.pol-party-tag.party-tag-ind { color: var(--party-ind); }
 
 .pol-standfirst {
   font-family: var(--sans);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.45;
-  color: var(--text-secondary);
+  color: var(--ink-2);
   margin: 0 0 28px;
   max-width: 640px;
 }
@@ -111,58 +115,73 @@
   grid-template-columns: auto 1fr;
   column-gap: 32px;
   row-gap: 10px;
-  font-size: 14px;
+  font-size: 16px;
   margin: 0;
 }
 .pol-meta-grid dt {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  align-self: center;
+  font-size: 15px;
+  color: var(--ink-3);
+  align-self: baseline;
 }
 .pol-meta-grid dd {
   margin: 0;
-  color: var(--text-primary);
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.pol-meta-mono { font-family: var(--font-mono); }
+.pol-meta-mono { font-family: var(--font-mono); font-size: 15px; }
 .pol-meta-link {
-  color: var(--text-primary);
+  color: var(--ink);
   text-decoration: none;
 }
 .pol-meta-link:hover { color: var(--accent); }
 
 .pol-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 28px;
+  gap: 10px;
+  margin-top: 32px;
   flex-wrap: wrap;
 }
+/* Server-rendered links carry only .pol-action-btn until React mounts: give
+   them the outline pill so the row does not jump. */
+.pol-action-btn:not([class*="btn-"]) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 9px 18px;
+  border-radius: var(--r-btn);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+}
 
-/* EDITORIAL SECTION pattern */
+/* SECTIONS: the heading leads, its note sits under it (server markup prints
+   the note first). */
 .pol-editorial {
-  padding: 48px 0;
-  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 56px 0;
 }
-.pol-editorial:last-of-type { border-bottom: none; }
 
-.pol-section-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
 .pol-section-title {
+  order: -1;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 36px;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   margin: 0 0 28px;
-  color: var(--text-primary);
+  color: var(--ink);
+}
+.pol-editorial .pol-section-title:has(+ .pol-section-label),
+.pol-editorial .pol-section-label + .pol-section-title { margin-bottom: 8px; }
+.pol-section-label {
+  font-size: 16px;
+  color: var(--ink-2);
+  margin: 0 0 28px;
 }
 .pol-section-loading {
   display: flex;
@@ -170,46 +189,40 @@
   align-items: center;
   gap: 12px;
   padding: 32px;
-  color: var(--text-secondary);
+  color: var(--ink-2);
 }
 .pol-section-loading p {
   font-family: var(--sans);
   margin: 0;
 }
 
-/* TENURE TIMELINE */
+/* CONGRESS HISTORY */
 .pol-tenure-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 24px;
-}
-.pol-tenure-item {
-  padding-top: 16px;
-  border-top: 2px solid var(--accent);
-}
-.pol-tenure-item.pol-tenure-past {
-  border-top-color: var(--border);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 28px 24px;
 }
 .pol-tenure-year {
   font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-bottom: 4px;
 }
 .pol-tenure-title {
-  font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1.25;
-  color: var(--text-primary);
+  color: var(--ink);
 }
+.pol-tenure-past .pol-tenure-title { font-weight: 500; }
 .pol-tenure-note {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 4px;
+  font-size: 15px;
+  color: var(--ink-2);
+  margin-top: 2px;
 }
+.pol-tenure-item:not(.pol-tenure-past) .pol-tenure-note { color: var(--accent); font-weight: 600; }
 
-/* MONEY GRID */
+/* MONEY */
 .pol-money-grid {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -218,48 +231,42 @@
 }
 .pol-money-big-number {
   font-family: var(--font-display);
-  font-size: 64px;
+  font-weight: 600;
+  font-size: clamp(44px, 6vw, 64px);
   line-height: 1;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin: 0 0 4px;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  margin: 0 0 8px;
 }
 .pol-money-big-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 24px;
+  font-size: 15px;
+  color: var(--ink-3);
+  margin-bottom: 32px;
 }
 .pol-money-splits {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-.pol-money-split {
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
+  gap: 24px 16px;
 }
 .pol-money-split-v {
   font-family: var(--font-mono);
-  font-size: 18px;
-  color: var(--text-primary);
+  font-size: 20px;
+  color: var(--ink);
 }
 .pol-money-split-l {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 15px;
+  color: var(--ink-2);
   margin-top: 2px;
 }
 
-.pol-rail-h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+.pol-rail-h3,
+.pol-correlation-h3 {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink);
   margin: 0 0 16px;
-  font-weight: 500;
 }
 
 .pol-industry-list .pol-ind-row {
@@ -268,14 +275,12 @@
   align-items: center;
   gap: 16px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 14px;
+  font-size: 16px;
 }
-.pol-industry-list .pol-ind-row:last-child { border-bottom: none; }
-.pol-ind-label { color: var(--text-primary); }
+.pol-ind-label { color: var(--ink); }
 .pol-ind-bar {
   height: 6px;
-  background: var(--border-light);
+  background: var(--fill-soft);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -287,24 +292,14 @@
 .pol-ind-amount {
   text-align: right;
   font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--ink-2);
 }
 
-/* CORRELATION */
-.pol-correlation-block {
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
-}
-.pol-correlation-h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 16px;
-  font-weight: 500;
+/* MONEY AND VOTES */
+.pol-correlation-block,
+.pol-donors-block {
+  margin-top: 56px;
 }
 .pol-correlation-grid {
   display: grid;
@@ -313,46 +308,42 @@
 }
 .pol-correlation-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border: 1px solid var(--card-edge);
+  border-radius: var(--r-card);
+  padding: 20px;
 }
 .pol-correlation-industry {
-  font-family: var(--font-display);
   font-size: 18px;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: var(--ink);
   margin-bottom: 6px;
 }
 .pol-correlation-stats {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
+  font-size: 15px;
+  color: var(--ink-2);
+  margin-bottom: 14px;
 }
 .pol-correlation-donated {
   font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 14px;
+  color: var(--ink-3);
 }
 .pol-correlation-bar {
-  height: 4px;
-  background: var(--border-light);
+  height: 6px;
+  background: var(--fill-soft);
   border-radius: 999px;
   overflow: hidden;
 }
 .pol-correlation-fill {
   height: 100%;
   background: var(--accent);
+  border-radius: 999px;
 }
 
-/* DONORS */
-.pol-donors-block {
-  margin-top: 48px;
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
-}
+/* DONORS: a data table, so a hairline sits between rows. */
 .pol-donors-list {
   display: flex;
   flex-direction: column;
@@ -360,60 +351,52 @@
 .pol-donor-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 14px;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule-light);
+  font-size: 15px;
 }
 .pol-donor-row:last-child { border-bottom: none; }
 .pol-donor-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 4px 10px;
   flex-wrap: wrap;
+  min-width: 0;
 }
-.pol-donor-name { color: var(--text-primary); }
-.pol-donor-entity {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: var(--border-light);
-  color: var(--text-secondary);
-}
-.pol-donor-entity.entity-com { color: var(--warning); background: var(--warning-subtle); }
-.pol-donor-entity.entity-org { color: var(--info); background: var(--info-subtle); }
+.pol-donor-name { color: var(--ink); overflow-wrap: anywhere; }
+/* The contributor type is a word, not a chip. */
+.pol-donor-entity,
 .pol-donor-employer {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 13px;
+  color: var(--ink-3);
 }
 .pol-donor-amount {
   font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text-primary);
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
 }
-.pol-fec-link {
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 13px;
-  color: var(--accent);
-  text-decoration: none;
-}
-.pol-fec-link:hover { text-decoration: underline; }
 
 .pol-fec-source {
-  max-width: 720px;
-  margin-top: 16px;
-  font-size: 13px;
+  max-width: 70ch;
+  margin-top: 20px;
+  font-size: 15px;
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--ink-3);
 }
 
 .pol-fec-source p {
   margin: 0;
 }
+
+.pol-fec-link {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.pol-fec-link:hover { color: var(--accent-hover); }
 
 .pol-fec-source .pol-fec-link {
   min-height: 44px;
@@ -424,17 +407,14 @@
 
 .pol-no-data {
   font-family: var(--sans);
-  color: var(--text-secondary);
+  color: var(--ink-2);
   font-size: 17px;
 }
 
 .pol-photo-attribution {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-light);
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 8px;
   overflow-wrap: anywhere;
 }
 
@@ -455,7 +435,7 @@
 }
 .pol-loading p {
   font-family: var(--sans);
-  color: var(--text-secondary);
+  color: var(--ink-2);
   margin-top: 16px;
 }
 .loading-spinner {
@@ -467,25 +447,27 @@
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.error-message {
-  font-family: var(--font-display);
+.pol-error .error-message {
+  background: none;
+  padding: 0;
   font-size: 18px;
   color: var(--error);
-  margin-bottom: 16px;
+  margin: 0 0 20px;
 }
 
 /* MOBILE */
 @media (max-width: 760px) {
-  .pol { padding: 24px 16px 64px; }
+  /* .main-content already gives a 16px gutter here. */
+  .pol { padding: 8px 4px 48px; }
+  .pol-crumb { margin-bottom: 24px; }
   .pol-masthead { grid-template-columns: 1fr; gap: 24px; }
-  .pol-photo-wrap { width: 100%; max-width: 280px; }
-  .pol-name { font-size: 36px; }
+  .pol-photo-wrap { width: 100%; max-width: 200px; }
   .pol-standfirst { font-size: 18px; }
   .pol-meta-grid { column-gap: 16px; }
+  .pol-editorial { padding: 40px 0; }
   .pol-tenure-grid { grid-template-columns: repeat(2, 1fr); }
-  .pol-money-grid { grid-template-columns: 1fr; gap: 32px; }
+  .pol-money-grid { grid-template-columns: 1fr; gap: 40px; }
   .pol-correlation-grid { grid-template-columns: 1fr; }
-  .pol-industry-list .pol-ind-row { grid-template-columns: 1fr 80px; }
-  .pol-ind-bar { grid-column: 1 / -1; }
-  .pol-section-title { font-size: 28px; }
+  .pol-industry-list .pol-ind-row { grid-template-columns: 1fr 80px; gap: 6px 16px; }
+  .pol-ind-bar { grid-column: 1 / -1; order: 3; }
 }

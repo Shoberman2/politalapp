@@ -60,12 +60,12 @@ function CompositionBlock({ name, term, total, majority, counts, note }) {
     <div className="comp-block">
       <div className="comp-head">
         <span className="ch-name">{term ? <Term id={term}>{name}</Term> : name}</span>
-        <span className="ch-total">{total} voting seats / {majority} needed for a <Term id="majorityVote">majority</Term></span>
+        <span className="ch-total">{total} voting seats · {majority} needed for a <Term id="majorityVote">majority</Term></span>
       </div>
       <div className="comp-bar">
         {segs.map((s) => (
           <div key={s.cls} className={`comp-seg ${s.cls}`} style={{ flex: s.n }} title={`${s.label}: ${s.n}`}>
-            {s.cls === 'v' ? '' : `${s.n} ${s.cls.toUpperCase()}`}
+            {s.cls === 'v' || s.n / total < 0.08 ? '' : `${s.n} ${s.cls.toUpperCase()}`}
           </div>
         ))}
       </div>
@@ -199,7 +199,7 @@ function AllPoliticians() {
     return (
       <div className="all-politicians-loading">
         <div className="loading-spinner"></div>
-        <p>Loading the current congressional roster…</p>
+        <p>Loading the current roster</p>
       </div>
     )
   }
@@ -208,7 +208,6 @@ function AllPoliticians() {
     return (
       <div className="all-politicians-error">
         <div className="error-message">{error}</div>
-        <p className="error-help">Need help? Check the API_GUIDE.md file in the project for setup instructions.</p>
       </div>
     )
   }
@@ -230,9 +229,8 @@ function AllPoliticians() {
 
       <header className="page-masthead">
         <div className="pm-inner">
-          <span className="pm-kicker kicker">Who Represents America / <Term id="congressNumber">119th Congress</Term></span>
           <h1 className="pm-title">The Members Register</h1>
-          <p className="pm-deck">Everyone serving in Congress right now: {composition.rosterTotal} members, including <Term id="delegate">delegates</Term> from D.C. and the U.S. territories, who cannot vote on final passage. The bars show how many seats each <Term id="party">party</Term> holds and how many are empty.</p>
+          <p className="pm-deck">The <Term id="congressNumber">119th Congress</Term> has {composition.rosterTotal} members, including <Term id="delegate">delegates</Term> from D.C. and the U.S. territories, who cannot vote on final passage. The bars show how many seats each <Term id="party">party</Term> holds and how many are empty.</p>
           <div className="composition">
             <CompositionBlock
               name="House"
@@ -254,23 +252,23 @@ function AllPoliticians() {
             <input
               type="text"
               aria-label="Search members by name"
-              placeholder="Search members by name..."
+              placeholder="Search members by name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </label>
-          <select className="filter-pill" aria-label="Chamber" value={chamberFilter} onChange={(e) => setChamberFilter(e.target.value)}>
+          <select className="filter-pill field" aria-label="Chamber" value={chamberFilter} onChange={(e) => setChamberFilter(e.target.value)}>
             <option value="all">All chambers</option>
             <option value="house">House of Representatives</option>
             <option value="senate">Senate</option>
           </select>
-          <select className="filter-pill" aria-label="Party" value={partyFilter} onChange={(e) => setPartyFilter(e.target.value)}>
+          <select className="filter-pill field" aria-label="Party" value={partyFilter} onChange={(e) => setPartyFilter(e.target.value)}>
             <option value="all">All parties</option>
             <option value="D">Democrat</option>
             <option value="R">Republican</option>
             <option value="I">Independent</option>
           </select>
-          <select className="filter-pill" aria-label="State" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
+          <select className="filter-pill field" aria-label="State" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
             <option value="all">All states</option>
             {uniqueStates.map((state) => (
               <option key={state} value={state}>{state}</option>
@@ -281,10 +279,10 @@ function AllPoliticians() {
 
       <div className="members-toolbar">
         <div className="mt-bar">
-          <div className="mt-count">Showing <b>{visibleMembers.length}</b> of <b>{filteredMembers.length}</b> members and delegates / sorted by surname</div>
+          <div className="mt-count">Showing <b>{visibleMembers.length}</b> of <b>{filteredMembers.length}</b> members and delegates, sorted by surname</div>
           <div className="mt-chips">
             {CHIPS.map((c) => (
-              <button key={c.key} className={`mt-chip btn-toggle ${chip === c.key ? 'active' : ''}`} onClick={() => setChip(c.key)}>{c.label}</button>
+              <button key={c.key} type="button" className={`mt-chip btn-toggle ${chip === c.key ? 'active' : ''}`} aria-pressed={chip === c.key} onClick={() => setChip(c.key)}>{c.label}</button>
             ))}
           </div>
         </div>
@@ -299,12 +297,12 @@ function AllPoliticians() {
           </main>
           {hasMore && (
             <div className="members-foot">
-              <button className="btn btn-ghost" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>Load more members</button>
+              <button type="button" className="btn-outline" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>Load more members</button>
             </div>
           )}
         </>
       ) : (
-        <div className="members-empty">No members found matching your criteria</div>
+        <div className="members-empty">No members match these filters.</div>
       )}
 
     </div>

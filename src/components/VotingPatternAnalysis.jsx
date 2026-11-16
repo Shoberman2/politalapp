@@ -180,14 +180,14 @@ export default function VotingPatternAnalysis({ member }) {
     <section className="vpa-section" aria-labelledby="vpa-heading">
       <div className="vpa-heading-row">
         <h2 id="vpa-heading" className="vpa-heading">
-          Voting Pattern Analysis <span className="vpa-ai-tag">Record-based</span>
+          Voting Pattern Analysis
         </h2>
       </div>
 
       {!analysis && !loading && !error && (
         <div className="vpa-default">
           <p className="vpa-teaser">
-            See how often this member voted the same way as most of their own <Term id="party">party</Term>,
+            See how often this member voted the same way as most of their own <span style={{ whiteSpace: 'nowrap' }}><Term id="party">party</Term>,</span>{' '}
             how their votes compare with how their <Term id="district">district</Term> voted for president,
             and how they line up with the industries that gave to their campaign. Notable votes are explained from the recorded data.
           </p>
@@ -206,14 +206,14 @@ export default function VotingPatternAnalysis({ member }) {
       {loading && (
         <div className="vpa-loading">
           <div className="loading-spinner" aria-hidden="true"></div>
-          <p>Analyzing voting patterns…</p>
+          <p>Analyzing voting patterns</p>
         </div>
       )}
 
       {error && (
         <div className="vpa-error">
           <p>{error}</p>
-          <button type="button" className="vpa-analyze-btn btn-primary" onClick={runAnalysis}>Retry</button>
+          <button type="button" className="vpa-analyze-btn btn-outline" onClick={runAnalysis}>Retry</button>
         </div>
       )}
 
@@ -228,16 +228,14 @@ export default function VotingPatternAnalysis({ member }) {
 
       {analysis && !analysis.belowThreshold && (
         <div className="vpa-content">
-          <ScoreBlock analysis={analysis} onMethodologyClick={() => setMethodologyOpen(true)} />
-          <hr className="vpa-rule" />
+          <ScoreBlock analysis={analysis} />
           <Flags analysis={analysis} />
-          <hr className="vpa-rule" />
           <NotableVotes analysis={analysis} />
           <div className="vpa-footer">
-            <button type="button" className="vpa-methodology-link" onClick={() => setMethodologyOpen(true)}>
+            <button type="button" className="vpa-methodology-link btn-text" onClick={() => setMethodologyOpen(true)}>
               Methodology and data sources
             </button>
-            <button type="button" className="vpa-refresh-link" onClick={runAnalysis} aria-label="Re-run analysis">
+            <button type="button" className="vpa-refresh-link btn-text" onClick={runAnalysis} aria-label="Re-run analysis">
               Refresh analysis
             </button>
           </div>
@@ -249,13 +247,13 @@ export default function VotingPatternAnalysis({ member }) {
   )
 }
 
-function ScoreBlock({ analysis, onMethodologyClick }) {
+function ScoreBlock({ analysis }) {
   const s = analysis.score
   if (!s || s.score === null) {
     return (
       <div className="vpa-score-block">
         <p className="vpa-score-caption">
-          Signal agreement unavailable — insufficient comparison coverage across votes.
+          Signal agreement unavailable: insufficient comparison coverage across votes.
         </p>
       </div>
     )
@@ -268,10 +266,7 @@ function ScoreBlock({ analysis, onMethodologyClick }) {
       </div>
       <p className="vpa-score-caption">
         Share of substantive votes that matched the available comparison signals.
-        Based on {s.signalCoverage?.usable ?? 0} substantive votes.{' '}
-        <button type="button" className="vpa-inline-link" onClick={onMethodologyClick}>
-          See methodology
-        </button>
+        Based on {s.signalCoverage?.usable ?? 0} substantive votes.
       </p>
       <span className="visually-hidden">
         Signal Agreement: {s.score} out of 100, based on {s.signalCoverage?.usable ?? 0} substantive votes.
@@ -296,7 +291,7 @@ function FlagBar({ label, def, rate, description, ariaLabel }) {
         >
           {pct !== null && <span className="vpa-flag-fill" style={{ width: `${pct}%` }} />}
         </span>
-        <span className="vpa-flag-pct">{pct !== null ? `${pct}%` : '—'}</span>
+        <span className="vpa-flag-pct">{pct !== null ? `${pct}%` : 'No data'}</span>
       </div>
       <p className="vpa-flag-desc">{description}</p>
     </div>
@@ -322,7 +317,7 @@ function Flags({ analysis }) {
 
   const mismatchDesc = mismatch?.available
     ? `${mismatch.mismatchCount} votes differed from the district's 2024 presidential lean out of ${mismatch.substantiveCount} substantive votes.`
-    : `District lean not available — shown as a rate when this member's district is included in the data set.`
+    : `District lean not available. It is shown as a rate when this member's district is included in the data set.`
 
   return (
     <div className="vpa-flags">
@@ -357,7 +352,7 @@ function NotableVotes({ analysis }) {
     <div className="vpa-notable">
       <h3 className="vpa-notable-heading">Notable Votes</h3>
       <p className="vpa-notable-subtitle">
-        Ranked by vote margin. {typical?.length ?? 0} matched the party majority + {atypical?.length ?? 0} differed from it.
+        Ranked by vote margin. {typical?.length ?? 0} matched the party majority and {atypical?.length ?? 0} differed from it.
       </p>
       <div className="vpa-notable-grid">
         <NotableColumn title="Matched Party Majority" items={typical ?? []} empty="No party-majority matches with substantive roll-call data." />
@@ -380,7 +375,7 @@ function NotableColumn({ title, items, empty }) {
               <div className="vpa-notable-meta">
                 <span className="vpa-notable-bill">{item.vote.bill?.title ?? 'Unlabeled measure'}</span>
                 <span className="vpa-notable-stats">
-                  {item.vote.position ?? '—'}
+                  {item.vote.position ?? 'No position'}
                   {item.margin != null && ` · margin ${item.margin}`}
                 </span>
               </div>
@@ -407,9 +402,9 @@ function MethodologyModal({ onClose }) {
             combines up to three descriptive signals:
           </p>
           <ul>
-            <li><strong>Party majority direction</strong> — how most of the member's effective party voted on that roll call (weight 60%).</li>
-            <li><strong>Donor-industry direction</strong> — when the bill's policy area matches the member's top 5 donor industries, uses the member's historical voting pattern on that industry (weight 25%).</li>
-            <li><strong>District lean</strong> — compares the vote with the district's 2024 presidential lean relative to the member's party (weight 15%).</li>
+            <li><strong>Party majority direction</strong>: how most of the member's effective party voted on that roll call (weight 60%).</li>
+            <li><strong>Donor-industry direction</strong>: when the bill's policy area matches the member's top 5 donor industries, uses the member's historical voting pattern on that industry (weight 25%).</li>
+            <li><strong>District lean</strong>: compares the vote with the district's 2024 presidential lean relative to the member's party (weight 15%).</li>
           </ul>
           <p>
             Missing signals are handled by renormalizing the remaining weights.
@@ -424,7 +419,7 @@ function MethodologyModal({ onClose }) {
           <p>
             <strong>Data sources:</strong> Congress.gov (roll-call votes, bills, policy areas),
             FEC via the Campaign Finance section (donor industries), and 2024 presidential
-            margins by district/state (Daily Kos Elections, CC BY-SA 4.0 — partial coverage
+            margins by district/state (Daily Kos Elections, CC BY-SA 4.0; partial coverage
             while full dataset is being imported).
           </p>
           <p>
@@ -433,7 +428,7 @@ function MethodologyModal({ onClose }) {
             generates or interprets these sentences.
           </p>
         </div>
-        <button type="button" className="vpa-modal-close btn-secondary" onClick={onClose}>Close</button>
+        <button type="button" className="vpa-modal-close btn-outline" onClick={onClose}>Close</button>
       </div>
     </div>
   )

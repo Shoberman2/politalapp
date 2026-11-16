@@ -4,6 +4,7 @@ import Navigation from './components/Navigation'
 import Landing from './components/Landing'
 import Auth from './components/Auth'
 import AuthCallback from './components/AuthCallback'
+import ResetPassword from './components/ResetPassword'
 import AccessGate from './components/AccessGate'
 import MyPolitician from './components/MyPolitician'
 import CivicBriefing from './components/CivicBriefing'
@@ -37,6 +38,7 @@ import ContactPage from './components/ContactPage'
 import PrivacyPage from './components/PrivacyPage'
 import TermsPage from './components/TermsPage'
 import Footer from './components/Footer'
+import ClosingCta from './components/ClosingCta'
 import Pricing from './components/Pricing'
 import BillAlertsPage from './components/BillAlertsPage'
 import RollCallPage from './components/RollCallPage'
@@ -70,6 +72,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset" element={<ResetPassword />} />
           {SHOW_BRIEFINGS && <Route path="/pricing" element={<Pricing />} />}
           <Route path="/open" element={<OpenSourcePage />} />
           <Route path="/offices" element={<OfficesPage />} />
@@ -142,6 +145,7 @@ function App() {
         </Routes>
         </AccessGate>
       </main>
+      <ClosingCta />
       <Footer />
       <Analytics />
     </div>

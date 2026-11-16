@@ -1,114 +1,100 @@
+/* /compare: two members' campaign funding by industry. */
 .donation-comparison {
   width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 48px;
   animation: fadeIn 0.6s ease-out;
 }
 
 .donation-comparison h1 {
   font-family: var(--font-display);
-  font-size: 2.25rem;
+  font-size: clamp(36px, 5.4vw, 64px);
   font-weight: 600;
-  margin-bottom: var(--space-2);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 16px;
 }
 
 .comparison-subtitle {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  margin-bottom: var(--space-6);
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1.55;
+  max-width: 60ch;
+  margin: 0 0 40px;
 }
 
 .comparison-inputs {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  gap: 16px;
+  margin-bottom: 40px;
   flex-wrap: wrap;
 }
 
 .comparison-input-group {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 
 .comparison-input-group label {
   display: block;
-  font-size: 0.8125rem;
+  font-size: 15px;
   font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-2);
-}
-
-.comparison-input-group input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.9375rem;
-  font-family: var(--font-body);
-  background: var(--surface);
-  color: var(--text-primary);
-}
-
-.comparison-input-group input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-subtle);
+  color: var(--ink);
+  margin-bottom: 8px;
 }
 
 .comparison-vs {
-  font-family: var(--sans);
-  font-size: 1.125rem;
-  color: var(--text-muted);
-  padding-bottom: 0.5rem;
+  font-size: 16px;
+  color: var(--ink-3);
+  padding-bottom: 14px;
 }
+
+.comparison-inputs .btn-primary { min-height: 52px; }
 
 .comparison-error {
   color: var(--error);
-  margin-bottom: var(--space-4);
+  margin-bottom: 24px;
 }
 
-/* Results */
-.comparison-results {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.comparison-header-row {
+/* Results: a data table, so a hairline sits between rows. */
+.comparison-header-row,
+.comparison-row {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  grid-template-columns: 180px 1fr 1fr;
+  gap: 24px;
   align-items: center;
 }
 
+.comparison-header-row {
+  align-items: start;
+  padding-bottom: 20px;
+}
+
 .comparison-header-row h3 {
-  font-family: var(--font-display);
-  font-size: 1rem;
+  font-family: var(--font-body);
+  font-size: 18px;
   font-weight: 600;
+  line-height: 1.25;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .comparison-total {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 14px;
+  color: var(--ink-2);
 }
 
 .comparison-no-data {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-3);
 }
 
 .comparison-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 1fr;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--border-light);
-  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule-light);
 }
 
 .comparison-row:last-child {
@@ -116,62 +102,60 @@
 }
 
 .comparison-col-label {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  text-align: right;
+  font-size: 15px;
+  color: var(--ink);
 }
 
 .comparison-col {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
+  min-width: 0;
 }
 
 .comparison-bar-track {
   height: 8px;
-  background: var(--border-light);
-  border-radius: 4px;
+  background: var(--fill-soft);
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .comparison-bar-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 999px;
   transition: width 0.6s ease;
 }
 
-.comparison-bar-fill.a {
-  background: var(--accent);
-}
-
-.comparison-bar-fill.b {
-  background: var(--success);
-}
+/* Two series, two neutral marks: the accent and ink. */
+.comparison-bar-fill.a { background: var(--accent); }
+.comparison-bar-fill.b { background: var(--ink); }
 
 .comparison-amount {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-muted);
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
 @media (max-width: 768px) {
   .comparison-inputs {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .comparison-vs {
-    text-align: center;
     padding: 0;
   }
 
   .comparison-header-row,
   .comparison-row {
-    grid-template-columns: 80px 1fr 1fr;
-    gap: var(--space-2);
-    padding: var(--space-3);
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
   }
 
   .comparison-col-label {
-    font-size: 0.6875rem;
+    grid-column: 1 / -1;
+    font-weight: 600;
   }
+
+  .comparison-header-row .comparison-col-label { display: none; }
 }
