@@ -63,3 +63,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ballotwatch.app.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: BallotWatch
+
+# Shared scheme used by Xcode Cloud and by local xcodebuild. XcodeGen writes
+# it into the generated (gitignored) BallotWatch.xcodeproj.
+schemes:
+  BallotWatch:
+    shared: true
+    build:
+      targets:
+        BallotWatch: all
+        BallotWatchTests: [testing]
+        BallotWatchUITests: [testing]
+    test:
+      targets:
+        - BallotWatchTests
+        - BallotWatchUITests
+
