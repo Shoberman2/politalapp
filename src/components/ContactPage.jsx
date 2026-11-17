@@ -68,7 +68,6 @@ function ContactPage() {
               )}
               <div className="ip-links">
                 <a className="btn-text" href={ISSUES_URL} target="_blank" rel="noopener noreferrer">GitHub issues</a>
-                <Link className="btn-text" to="/offices">For congressional offices</Link>
               </div>
             </li>
           </ul>

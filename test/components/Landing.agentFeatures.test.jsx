@@ -51,37 +51,41 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('Landing: office feature', () => {
+describe('Landing: write feature', () => {
   it('shows skeletons, not invented data, while nothing has loaded', () => {
     services.getRecentFloorVotes.mockReturnValue(new Promise(() => {}))
     const { container } = renderLanding()
-    expect(container.querySelectorAll('.feature-offices .mk-skel').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('.feature-write .mk-skel').length).toBeGreaterThan(0)
   })
 
-  it('no longer carries the assistant or the write sections (2026-11-16)', async () => {
+  it('explains writing to your rep, and nothing for developers or offices (2026-11-17)', async () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [vote(281), vote(280), vote(279)], recordedThrough: '2026-07-24' })
     const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-offices .mk-fields .mk-skel')).toBeNull())
-    for (const id of ['mcp', 'write', 'agents']) expect(container.querySelector(`.feature-${id}`), id).toBeNull()
-    expect(container.textContent).not.toMatch(/Then Write To The Person Who Cast It|Ask Your AI Assistant/)
+    await waitFor(() => expect(container.querySelector('.feature-write .mk-skel')).toBeNull())
+    for (const id of ['mcp', 'offices', 'agents']) expect(container.querySelector(`.feature-${id}`), id).toBeNull()
+    expect(container.textContent).toMatch(/Then Write To The Person Who Cast It/)
+    expect(container.textContent).not.toMatch(/Ask Your AI Assistant|For Congressional Offices/)
+    expect(container.querySelector('a[href="/offices"]')).toBeNull()
+    expect(container.querySelector('a[href="/all"]')).toBeNull()
   })
 
-  it('prints the inbox row from the latest recorded vote', async () => {
+  it('opens the draft with the facts of the latest recorded vote and links to it', async () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [vote(281), vote(280), vote(279)], recordedThrough: '2026-07-24' })
     const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-offices .mk-fields .mk-skel')).toBeNull())
-    const inbox = container.querySelector('.feature-offices .mock-inbox')
-    const fields = Object.fromEntries([...inbox.querySelectorAll('.mk-fields > div')].map((d) => [d.querySelector('dt').textContent, d.querySelector('dd').textContent]))
-    expect(fields).toEqual({ From: 'A constituent in your district', Re: 'H.R. 8800', Vote: '216–214 · Passed', Status: 'Received' })
+    await waitFor(() => expect(container.querySelector('.feature-write .mk-skel')).toBeNull())
+    const letter = container.querySelector('.feature-write .mk-letter').textContent
+    expect(letter).toContain('H.R. 8800')
+    expect(letter).toContain('[Write your message here, in your own words.]')
+    expect(container.querySelector('.feature-write a.btn-text').getAttribute('href')).toMatch(/^\/vote\/.+#tell-your-rep$/)
   })
 
   it('replaces skeletons with a one-line fallback once loading fails', async () => {
     services.getRecentFloorVotes.mockRejectedValue(new Error('offline'))
     services.getFeaturedMembers.mockRejectedValue(new Error('offline'))
     const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-offices .mk-unavailable')).not.toBeNull())
-    expect(container.querySelector('.feature-offices .mk-unavailable').textContent).toBe('No recorded vote available right now.')
-    for (const id of ['offices', 'votes', 'find']) {
+    await waitFor(() => expect(container.querySelector('.feature-write .mk-unavailable')).not.toBeNull())
+    expect(container.querySelector('.feature-write .mk-unavailable').textContent).toBe('No recorded vote available right now.')
+    for (const id of ['write', 'votes', 'find']) {
       expect(container.querySelectorAll(`.feature-${id} .mk-skel`), id).toHaveLength(0)
     }
   })

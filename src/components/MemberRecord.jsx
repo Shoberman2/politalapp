@@ -14,7 +14,7 @@ import {
   recordSeatTitle,
   recordSummary,
 } from '../../shared/memberRecord.js'
-import { congressImageUrl, handleMemberPhotoError } from '../utils/memberImage'
+import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import { copyTextToClipboard } from '../utils/clipboard'
 import { canNativeShare, recordShareLinks } from '../utils/recordShare'
 import { toStateName } from '../utils/states'
@@ -142,7 +142,7 @@ export default function MemberRecord() {
         {!photoFailed ? (
           <img
             className="rec-photo"
-            src={congressImageUrl(r.id)}
+            src={resolveMemberImageUrl(r.id, r.photo_url)}
             alt={r.name}
             width="96"
             height="117"

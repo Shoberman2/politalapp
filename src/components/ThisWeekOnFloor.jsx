@@ -39,18 +39,22 @@ function SkeletonRows({ count }) {
   ))
 }
 
+// A scheduled item has not been voted on: it leads with the bill's title and
+// says so. A recorded vote leads with the same kind of title and ends with the
+// result in words and the count, so the two columns read differently at a glance.
 function ScheduledRow({ item }) {
   const number = item.label || 'No number'
   return (
     <li className="twof-row twof-row--scheduled">
+      <p className="twof-title">{item.title || 'Untitled floor item'}</p>
       <div className="twof-row-head">
         {item.billHref
           ? <Link className="twof-num" to={item.billHref}>{number}</Link>
           : <span className="twof-num twof-num--plain">{number}</span>}
         {item.category && <span className="twof-cat">{item.category}</span>}
       </div>
-      <p className="twof-title" title={item.title || undefined}>{item.title || 'Untitled floor item'}</p>
       <div className="twof-row-foot">
+        <span className="twof-state twof-state--pending">Not voted on yet</span>
         {item.tellRepHref && (
           <Link className="twof-tell" to={item.tellRepHref}>Tell your rep before the vote</Link>
         )}
@@ -63,19 +67,19 @@ function ScheduledRow({ item }) {
 function RecordedRow({ vote }) {
   const href = rollCallHref(vote.id)
   const text = vote.description || vote.question || ''
-  const tally = vote.yea != null && vote.nay != null ? `${vote.yea}–${vote.nay}` : null
+  const tally = vote.yea != null && vote.nay != null ? `${vote.yea} yes, ${vote.nay} no` : null
   return (
     <li className="twof-row twof-row--recorded">
+      {text && <p className="twof-title">{text}</p>}
       <div className="twof-row-head">
         {href
           ? <Link className="twof-num" to={href}>{vote.chamber} {vote.number != null ? `Roll ${vote.number}` : 'roll call'}</Link>
           : <span className="twof-num twof-num--plain">{vote.chamber}</span>}
         {vote.bill && <Link className="twof-bill" to={vote.bill.href}>{vote.bill.display}</Link>}
       </div>
-      {text && <p className="twof-title" title={text}>{text}</p>}
       <div className="twof-row-foot">
-        {tally && <span className="twof-tally">{tally}</span>}
         {vote.result && <span className={`twof-result twof-result--${resultKind(vote.result)}`}>{vote.result}</span>}
+        {tally && <span className="twof-tally">{tally}</span>}
       </div>
     </li>
   )
@@ -200,12 +204,14 @@ export default function ThisWeekOnFloor({ limit = 6, showRecorded = true, showHe
       <div className="twof-grid">
         <div className="twof-col twof-col--scheduled">
           <h3 className="twof-col-title">Scheduled<InfoDot def="Bills the House plans to take up this week. Being listed means a vote may happen, not that it will." label="Scheduled" glossaryLink={false} /></h3>
+          <p className="twof-col-sub">Coming up. The House may vote on these this week.</p>
           <ScheduledColumn schedule={schedule} limit={limit} />
           <p className="twof-footnote">{SENATE_NOTE}</p>
         </div>
         {showRecorded && (
           <div className="twof-col twof-col--recorded">
             <h3 className="twof-col-title">Recorded<InfoDot id="rollCall" label="Recorded votes" /></h3>
+            <p className="twof-col-sub">Already decided. Each one shows the result and the count.</p>
             <RecordedColumn votes={votes} limit={limit} />
           </div>
         )}

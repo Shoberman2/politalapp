@@ -16,7 +16,6 @@ const COLUMNS = [
     title: 'Explore',
     links: [
       { label: 'My representatives', to: '/my-representative' },
-      { label: 'Members', to: '/all' },
       { label: 'Bills', to: '/bills' },
       { label: 'This week', to: '/this-week' },
       SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },
@@ -38,7 +37,7 @@ const COLUMNS = [
   {
     title: 'Build',
     links: [
-      { label: 'API', to: '/developers' },
+      { label: 'For developers', to: '/developers' },
       { label: 'API docs', to: '/developers/docs' },
       { label: 'Open data', to: '/open' },
       { label: 'llms.txt', href: '/llms.txt' },
@@ -49,7 +48,6 @@ const COLUMNS = [
     title: 'Company',
     links: [
       { label: 'About', to: '/about' },
-      { label: 'For offices', to: '/offices' },
       { label: 'Contact', to: '/contact' },
       { label: 'Privacy', to: '/privacy' },
       { label: 'Terms', to: '/terms' },

@@ -106,10 +106,10 @@ describe('Navigation', () => {
     expect(burger.getAttribute('aria-expanded')).toBe('false')
   })
 
-  it('keeps the main row to four public pages, with no announcement strip', () => {
+  it('keeps the main row to four links, with no members list or offices page and no announcement strip', () => {
     const { container } = renderAt('/')
     const main = [...container.querySelectorAll('nav.topnav > a')].map((a) => a.getAttribute('href'))
-    expect(main).toEqual(['/how-it-works', '/this-week', '/all', '/offices'])
+    expect(main).toEqual(['/how-it-works', '/this-week', '/government', '/developers'])
     expect(container.textContent).not.toMatch(/Bills|Methodology|API/)
     expect(container.querySelector('.announce')).toBeNull()
   })

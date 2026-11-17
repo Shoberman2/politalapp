@@ -1,14 +1,14 @@
 {
   "name": "political-voting-tracker",
   "private": true,
-  "version": "0.12.0",
+  "version": "0.13.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:fullstack": "vercel dev --listen 3000",
     "config:check": "node scripts/check-config.mjs",
     "config:check:full": "node scripts/check-config.mjs --full",
-    "prebuild": "node scripts/sync-openapi.mjs && node scripts/build-llms-full.mjs",
+    "prebuild": "node scripts/sync-openapi.mjs && node scripts/build-llms-full.mjs && node scripts/build-static-text.mjs",
     "data:export": "npx tsx etl/exportOpenData.ts",
     "data:publish": "npx tsx etl/exportOpenData.ts --upload",
     "build": "vite build",

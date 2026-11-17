@@ -90,7 +90,7 @@
 }
 .gov-ladder a.btn-text { color: var(--accent); }
 .gov-ladder a.btn-text:hover { color: var(--accent-hover); }
-.gov-ladder-link { display: flex; width: fit-content; margin: 28px auto 0; min-height: 44px; }
+.gov-ladder a.gov-ladder-link { display: flex; width: fit-content; margin: 28px auto 0; min-height: 44px; }
 
 /* ---------- /government ---------- */
 .gov-page .gov-ladder-inner { padding-top: clamp(64px, 9vw, 120px); }
@@ -246,6 +246,53 @@
   color: var(--ink-3);
 }
 
+.gov-dept-count { display: block; margin-top: 2px; font-size: 15px; color: var(--ink-3); }
+
+/* inside a department: its agencies, and what Congress does to it */
+.gov-part { margin-top: clamp(40px, 5vw, 56px); }
+.gov-part h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(22px, 2.4vw, 28px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.gov-part-sub { margin: 8px 0 0; max-width: 44rem; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.gov-part .gov-facts { margin-top: 24px; }
+.gov-components {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px clamp(24px, 4vw, 48px);
+}
+.gov-components h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.gov-components h4 a { color: inherit; text-decoration: none; }
+.gov-components h4 a:hover { color: var(--accent); }
+.gov-components p { margin: 6px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.gov-components .gov-comp-head { color: var(--ink); font-weight: 500; }
+.gov-components .gov-comp-note { font-size: 15px; color: var(--ink-3); }
+.gov-comp-head a,
+.gov-workers a { color: var(--accent); text-decoration: none; }
+.gov-comp-head a:hover,
+.gov-workers a:hover { text-decoration: underline; }
+.gov-laws { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gov-laws b { font-weight: 600; }
+
+.gov-workers { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; }
+.gov-workers p { margin: 0; }
+.gov-workers small { display: block; margin-top: 4px; font-size: 15px; color: var(--ink-3); }
+
 /* Congress's part, and the agencies outside the departments */
 .gov-checks,
 .gov-indies {
@@ -274,6 +321,7 @@
   .gov-film img { border-radius: var(--r-card); }
   .gov-depts { grid-template-columns: minmax(0, 1fr); }
   .gov-facts { grid-template-columns: minmax(0, 1fr); }
+  .gov-components { grid-template-columns: minmax(0, 1fr); }
   .gov-sheet-photo img { aspect-ratio: 16 / 9; }
 }
 @media (prefers-reduced-motion: reduce) {

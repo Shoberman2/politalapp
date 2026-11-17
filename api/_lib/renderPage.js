@@ -102,7 +102,7 @@ const COLOPHON_RC = 'Data from Congress.gov, the House Clerk, and the Senate. Th
 
 // Mirrors Navigation.jsx so broadsheet.css styles the masthead before React mounts.
 export function chrome(inner) {
-  return `<div class="app"><div class="bw bw-masthead"><div class="topbar-wrap"><div class="topbar"><a class="brand" href="/" aria-label="BallotWatch home"><span class="brand-mark"><img src="/capitol-logo.svg" alt="" /></span><span class="brand-name">BallotWatch</span></a><nav class="topnav"><a href="/how-it-works">How it works</a><a href="/this-week">This week</a><a href="/all">Members</a><a href="/offices">For offices</a></nav><div class="topbar-right"><a class="nav-account" href="/auth" rel="nofollow">Sign in</a><a class="btn-primary btn-sm nav-cta" href="${SIGN_IN_CTA}">Find my reps</a></div></div></div></div><main class="main-content">${inner}</main></div>`
+  return `<div class="app"><div class="bw bw-masthead"><div class="topbar-wrap"><div class="topbar"><a class="brand" href="/" aria-label="BallotWatch home"><span class="brand-mark"><img src="/capitol-logo.svg" alt="" /></span><span class="brand-name">BallotWatch</span></a><nav class="topnav"><a href="/how-it-works">How it works</a><a href="/this-week">This week</a><a href="/government">The government</a><a href="/developers">For developers</a></nav><div class="topbar-right"><a class="nav-account" href="/auth" rel="nofollow">Sign in</a><a class="btn-primary btn-sm nav-cta" href="${SIGN_IN_CTA}">Find my reps</a></div></div></div></div><main class="main-content">${inner}</main></div>`
 }
 
 function initials(name) {

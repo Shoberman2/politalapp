@@ -46,8 +46,8 @@ function DeveloperPortal() {
   return (
     <div className="dev-portal">
       <SEO
-        title="BallotWatch API and Open Data"
-        description="OpenAPI docs, public sample data, and hosted API access for congressional voting records, bills, member profiles, and civic statistics."
+        title="For Developers: API, MCP Server and Open Data"
+        description="Build on the congressional record: a free JSON API with no key needed to read, an MCP server for Claude, ChatGPT and other AI assistants, and bulk open data."
         path="/developers"
       />
 
@@ -108,7 +108,24 @@ function DeveloperPortal() {
 
       <section className="dev-agents" id="mcp">
         <div className="dev-open-data-copy">
-          <h2>For Developers And AI Agents</h2>
+          <h2>Ask Your AI Assistant</h2>
+          <p>
+            Connect Claude, ChatGPT or any MCP client and ask how your representative voted.
+            Every answer cites the official record. No key and no account are needed: add the
+            server address below as a custom connector.
+          </p>
+          <pre className="dev-curl"><code>{'https://www.ballotwatch.io/mcp'}</code></pre>
+        </div>
+        <div className="dev-open-data-links">
+          <a href="/.well-known/mcp/server-card.json">MCP server card</a>
+          <a href="/llms.txt">llms.txt (site map for agents)</a>
+          <a href="/llms-full.txt">Everything for agents in one file</a>
+        </div>
+      </section>
+
+      <section className="dev-agents">
+        <div className="dev-open-data-copy">
+          <h2>The Same Record As JSON</h2>
           <p>
             Sixty requests a minute and five thousand a day per IP, no signup. Every
             response carries <code>data_updated_at</code> and the official source URL.
@@ -117,9 +134,7 @@ function DeveloperPortal() {
           <pre className="dev-curl"><code>{'curl https://www.ballotwatch.io/api/v1/members/P000197/votes?limit=5'}</code></pre>
         </div>
         <div className="dev-open-data-links">
-          <a href="/llms.txt">llms.txt (site map for agents)</a>
           <a href="/openapi.yaml">OpenAPI spec</a>
-          <a href="/mcp">MCP server endpoint</a>
           <a href="/sitemap.xml">Sitemap</a>
         </div>
       </section>

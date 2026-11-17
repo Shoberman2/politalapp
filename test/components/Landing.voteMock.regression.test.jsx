@@ -180,7 +180,7 @@ describe('Landing — "See every vote" step', () => {
     const features = container.querySelectorAll('.features .feature')
     expect(features.length).toBe(4)
     expect([...features].map((f) => f.className.replace('feature feature-', ''))).toEqual(
-      ['find', 'bills', 'votes', 'offices'])
+      ['find', 'bills', 'votes', 'write'])
     expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
@@ -254,13 +254,13 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     expect(films[0].hasAttribute('autoplay')).toBe(false)
   })
 
-  it('links offices to /offices and never offers a pilot, trial or price', () => {
+  it('never mentions offices, the members list or a price (2026-11-17)', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    const offices = container.querySelector('.feature-offices')
-    expect(offices.querySelector('a[href="/offices"]')).not.toBeNull()
-    expect(offices.textContent).toMatch(/not for sale/i)
-    expect(offices.textContent).not.toMatch(/free trial|pilot|\$\d|pricing/i)
+    expect(container.querySelector('.feature-offices')).toBeNull()
+    expect(container.querySelector('a[href="/offices"]')).toBeNull()
+    expect(container.querySelector('a[href="/all"]')).toBeNull()
+    expect(container.textContent).not.toMatch(/free trial|pilot|\$\d|pricing/i)
   })
 
   it('has no dark concept band, no offices band and no italic headline accents', () => {

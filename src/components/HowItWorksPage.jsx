@@ -6,7 +6,7 @@ import { SHOW_BILL_ALERTS } from '../config/features'
 import { AI_NEVER, AI_USES } from '../data/infoPages'
 import '../styles/InfoPage.css'
 
-// The concept in four ideas, not a manual. Detail lives on /data-sources and
+// The concept in three ideas, not a manual. Detail lives on /data-sources and
 // /methodology; keep this page short.
 
 const LOOP = [
@@ -19,12 +19,6 @@ const LOOP = [
     title: 'Write to your rep',
     body: 'Start from the facts of a vote, add your own words, and send it yourself.',
     link: { to: '/this-week', label: 'Pick a vote' },
-  },
-  {
-    title: 'Offices answer from their own words',
-    tag: 'Where we’re headed',
-    body: 'Offices reply from what they have published, never in a voice they didn’t write.',
-    link: { to: '/offices', label: 'For offices' },
   },
   {
     title: 'See how they vote next',
@@ -40,7 +34,7 @@ const LIVE = [
   { label: 'Every House and Senate roll call', to: '/this-week' },
   { label: 'Bills in plain English', to: '/bills' },
   { label: 'This week on the floor', to: '/this-week' },
-  { label: 'A record in 60 seconds', to: '/all' },
+  { label: 'A record in 60 seconds', to: '/my-representative' },
   { label: 'Tell your rep', to: '/this-week' },
   SHOW_BILL_ALERTS && { label: 'Bill alerts (free account)', to: '/alerts' },
   { label: 'Free API and MCP server', to: '/developers' },

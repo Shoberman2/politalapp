@@ -374,6 +374,15 @@
   color: var(--ink-2);
   text-wrap: pretty;
 }
+.landing .primer-lede {
+  max-width: 36rem;
+  margin: 16px auto 0;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
 .landing .primer-link { display: flex; width: fit-content; margin: 40px auto 0; min-height: 44px; }
 
 /* =====================================================
@@ -491,19 +500,15 @@
 .landing .mk-rec-stats small { font-size: 14px; color: var(--ink-2); }
 .landing .mk-rec-vote { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 
-/* Office inbox: one message, labelled fields */
-.landing .mk-label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
-.landing .mk-fields { margin: 0; display: flex; flex-direction: column; gap: 12px; }
-.landing .mk-fields > div {
-  display: grid;
-  grid-template-columns: 4.5em minmax(0, 1fr);
-  gap: 12px;
-  align-items: baseline;
+/* the opening of a Tell your rep draft */
+.landing .mk-letter {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink);
 }
-.landing .mk-fields dt { font-size: 15px; color: var(--ink-3); }
-.landing .mk-fields dd { margin: 0; font-size: 16px; color: var(--ink); min-width: 0; }
-.landing .mk-fields .mk-mono { font-family: var(--mono); font-size: 15px; }
-.landing .mk-status { font-weight: 600; color: var(--success); }
+.landing .mk-yours { color: var(--accent); }
 
 /* =====================================================
    RESULT WORDS in the hero floor ticker: colour, no chip

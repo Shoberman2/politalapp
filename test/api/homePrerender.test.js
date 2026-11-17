@@ -77,7 +77,7 @@ describe('prerender kind=home', () => {
     const html = res.body
     const text = rootText(html)
 
-    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How Did Your Representative Vote This Week\?<\/h1>/)
+    expect(html).toMatch(/<div id="root">[\s\S]*<h1 class="hero-title">How Your Rep Voted<\/h1>/)
     expect(html.match(/<h1[\s>]/g)).toHaveLength(1)
     expect(text).toContain(BRAND.mission)
     expect(text).toContain('free, open-source, nonpartisan record of the U.S. Congress')
@@ -91,7 +91,7 @@ describe('prerender kind=home', () => {
     expect(text).not.toContain('180 yea')
     expect(text).not.toMatch(/HR 2\b/)
     // Features and links.
-    for (const href of ['/my-representative', '/this-week', '/bills', '/all', '/how-it-works', '/methodology', '/about', '/offices']) {
+    for (const href of ['/my-representative', '/this-week', '/bills', '/how-it-works', '/methodology', '/about', '/developers']) {
       expect(html).toContain(`href="${href}"`)
     }
     for (const { q, a } of LANDING_FAQ) {
@@ -167,7 +167,7 @@ describe('prerender kind=home', () => {
     expect(res.statusCode).toBe(200)
     expect(res.getHeader('content-type')).toContain('text/markdown')
     expect(res.getHeader('link')).toBe('<https://www.ballotwatch.io/>; rel="canonical"')
-    expect(res.body.startsWith('# BallotWatch: how did your representative vote this week?')).toBe(true)
+    expect(res.body.startsWith('# BallotWatch: see how your representative voted')).toBe(true)
     expect(res.body).toContain('- Tally: 215 yea, 205 nay')
     expect(res.body).toContain('https://www.ballotwatch.io/vote/119/house/2/295')
     expect(res.body).toContain(`### ${LANDING_FAQ[0].q}`)
@@ -185,7 +185,7 @@ describe('prerender kind=home', () => {
     expect(res.getHeader('x-ballotwatch-prerender')).toBe('index:no-votes')
     expect(res.body).not.toContain('home-latest')
     expect(res.body).not.toContain('Recent roll calls')
-    expect(res.body).toContain('How Did Your Representative Vote')
+    expect(res.body).toContain('How Your Rep Voted')
     expect(rootText(res.body)).toContain(LANDING_FAQ[0].q)
   })
 
@@ -280,7 +280,7 @@ describe('sitemap pages part', () => {
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
     const xml = await buildPart('pages')
     expect(xml).toContain('<url><loc>https://www.ballotwatch.io/</loc><lastmod>2026-09-03</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>')
-    for (const p of ['/how-it-works', '/methodology', '/data-sources', '/about', '/this-week', '/offices', '/contact', '/privacy', '/terms']) {
+    for (const p of ['/how-it-works', '/methodology', '/data-sources', '/about', '/government', '/contact', '/privacy', '/terms']) {
       expect(xml).toContain(`<loc>https://www.ballotwatch.io${p}</loc>`)
     }
     db.responses.bills = { data: [] }
@@ -306,6 +306,97 @@ describe('robots.txt and llms.txt', () => {
     expect(head).toContain('## How to cite')
     for (const u of ['https://www.ballotwatch.io/', '/politician/{bioguide_id}/record', '/vote/{congress}/{house|senate}/{session}/{roll}', '/this-week', '/how-it-works', '/data-sources']) {
       expect(llms).toContain(u)
+    }
+  })
+})
+
+describe('fact-list info pages carry their full text', () => {
+  let handler
+
+  beforeEach(async () => {
+    vi.resetModules()
+    db.reset()
+    process.env.PRERENDER_SHELL_FROM_ORIGIN = '1'
+    global.fetch = vi.fn(async () => ({ ok: true, text: async () => shell }))
+    handler = (await import('../../api/prerender.js')).default
+  })
+
+  it('renders every department, its leader and structured data on /government', async () => {
+    const { DEPARTMENTS, GOV_AS_OF } = await import('../../src/data/government.js')
+    const res = makeRes()
+    await handler(req({ kind: 'static', page: 'government' }), res)
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toContain('<title>Who Runs the U.S. Government? The 15 Departments | BallotWatch</title>')
+    for (const d of DEPARTMENTS) {
+      expect(res.body).toContain(`<li id="${d.id}">`)
+      if (d.headName) expect(res.body).toContain(d.headName)
+    }
+    const blocks = ldBlocks(res.body)
+    expect(blocks.map((b) => b['@type'])).toEqual(['WebPage', 'ItemList'])
+    expect(blocks[0].dateModified).toBe(GOV_AS_OF)
+    expect(blocks[1].itemListElement).toHaveLength(15)
+    expect(blocks[1].itemListElement[0].item).toMatchObject({
+      '@type': 'GovernmentOrganization',
+      name: DEPARTMENTS[0].name,
+      employee: { '@type': 'Person', name: DEPARTMENTS[0].headName },
+    })
+
+    const md = makeRes()
+    await handler(req({ kind: 'static', page: 'government' }, 'text/markdown'), md)
+    expect(md.body).toContain('| Department | Who runs it |')
+    expect(md.body).toContain(DEPARTMENTS[1].headName)
+    expect(md.body).not.toContain('needs JavaScript')
+  })
+
+  it('renders every glossary term as a DefinedTerm with its anchor', async () => {
+    const { GLOSSARY } = await import('../../shared/glossary.js')
+    const res = makeRes()
+    await handler(req({ kind: 'static', page: 'glossary' }), res)
+    const ids = Object.keys(GLOSSARY)
+    for (const id of ids) expect(res.body).toContain(`id="${id}"`)
+    const set = ldBlocks(res.body).find((b) => b['@type'] === 'DefinedTermSet')
+    expect(set.hasDefinedTerm).toHaveLength(ids.length)
+    expect(set.hasDefinedTerm[0]).toMatchObject({ '@type': 'DefinedTerm', name: GLOSSARY[ids[0]].term, description: GLOSSARY[ids[0]].def })
+  })
+
+  it('lists every source on /data-sources and the generated text of the rest', async () => {
+    const { DATA_SOURCES } = await import('../../src/data/infoPages.js')
+    const res = makeRes()
+    await handler(req({ kind: 'static', page: 'data-sources' }), res)
+    for (const s of DATA_SOURCES) expect(res.body).toContain(s.url)
+
+    // Pages whose words live in a component come from the generated text.
+    const md = makeRes()
+    await handler(req({ kind: 'static', page: 'about' }, 'text/markdown'), md)
+    expect(md.body).toContain('## Independent And Nonpartisan')
+    expect(md.body).not.toContain('needs JavaScript')
+    const html = makeRes()
+    await handler(req({ kind: 'static', page: 'privacy' }), html)
+    expect(html.body).toMatch(/<div id="root">[\s\S]*<h2/)
+  })
+
+  it('no longer serves the offices page or a public This Week page (2026-11-17)', async () => {
+    for (const page of ['offices', 'this-week']) {
+      const res = makeRes()
+      await handler(req({ kind: 'static', page }), res)
+      expect(res.statusCode, page).toBe(404)
+    }
+  })
+})
+
+describe('static page social images', () => {
+  it('gives /government and /glossary their own preview image, and other pages the default', async () => {
+    vi.resetModules()
+    process.env.PRERENDER_SHELL_FROM_ORIGIN = '1'
+    // The real index.html states a default image; the fixture shell does not.
+    const withImage = shell.replace('<meta name="robots"', '<meta property="og:image" content="https://www.ballotwatch.io/congress.jpg" />\n    <meta name="twitter:image" content="https://www.ballotwatch.io/congress.jpg" />\n    <meta name="robots"')
+    global.fetch = vi.fn(async () => ({ ok: true, text: async () => withImage }))
+    const handler = (await import('../../api/prerender.js')).default
+    for (const [page, image] of [['government', '/gov/og-government.jpg'], ['glossary', '/gov/og-glossary.jpg'], ['about', '/congress.jpg']]) {
+      const res = makeRes()
+      await handler(req({ kind: 'static', page }), res)
+      expect(res.body, page).toContain(`<meta property="og:image" content="https://www.ballotwatch.io${image}" />`)
+      expect(res.body, page).toContain(`<meta name="twitter:image" content="https://www.ballotwatch.io${image}" />`)
     }
   })
 })

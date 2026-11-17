@@ -18,7 +18,6 @@ import PrivacyPage from '../../src/components/PrivacyPage'
 import TermsPage from '../../src/components/TermsPage'
 import DataSourcesPage from '../../src/components/DataSourcesPage'
 import MethodologyPage from '../../src/components/MethodologyPage'
-import OfficesPage from '../../src/components/OfficesPage'
 import { DATA_SOURCES } from '../../src/data/infoPages'
 import { METHODOLOGY_PAGES } from '../../src/data/openSource'
 import { BRAND } from '../../src/config/brand'
@@ -40,10 +39,10 @@ describe('site-wide footer', () => {
     expect(footers).toHaveLength(1)
     const hrefs = [...footers[0].querySelectorAll('a')].map((a) => a.getAttribute('href'))
     for (const href of [
-      '/my-representative', '/all', '/bills', '/this-week',
+      '/my-representative', '/bills', '/this-week',
       '/how-it-works', '/data-sources', '/methodology', '/methodology/ai-explanations', '/methodology/corrections',
       '/developers', '/developers/docs', '/open', '/llms.txt', '/developers#mcp',
-      '/about', '/offices', '/contact', '/privacy', '/terms',
+      '/about', '/contact', '/privacy', '/terms',
       'https://github.com/Shoberman2/politalapp',
     ]) {
       expect(hrefs).toContain(href)
@@ -94,14 +93,10 @@ describe('information pages', () => {
     })
   }
 
-  // /offices has its own dossier layout (Offices.css), not the info-page one.
-  it('/offices renders one H1 in its own layout and never says "Plainfloor"', () => {
-    const { container } = renderAt('/offices', <OfficesPage />)
-    expect(container.querySelector('.offices-page')).not.toBeNull()
-    const h1s = container.querySelectorAll('h1')
-    expect(h1s).toHaveLength(1)
-    expect(h1s[0].textContent).toMatch(/Answer Constituents/)
-    expect(container.textContent).not.toMatch(/plainfloor/i)
+  it('has no offices page and no mention of the office channel (2026-11-17)', () => {
+    const { container } = renderAt('/about', <AboutPage />)
+    expect(container.querySelector('a[href="/offices"]')).toBeNull()
+    expect(container.textContent).not.toMatch(/congressional offices/i)
   })
 
   it('info-page headings carry no italic em accents', () => {
@@ -113,11 +108,12 @@ describe('information pages', () => {
     }
   })
 
-  it('how it works shows the four-step loop and labels the future step', () => {
+  it('how it works shows the three-step loop, with no offices step (2026-11-17)', () => {
     const { container } = renderAt('/how-it-works', <HowItWorksPage />)
     const steps = container.querySelectorAll('.ip-steps > li')
-    expect(steps).toHaveLength(4)
-    expect(steps[2].textContent).toMatch(/Where we’re headed/)
+    expect(steps).toHaveLength(3)
+    expect(container.textContent).not.toMatch(/Where we’re headed|Offices answer/)
+    expect(container.querySelector('a[href="/offices"]')).toBeNull()
     for (const step of steps) expect(step.querySelector('a.btn-text')).not.toBeNull()
     // A plain flow: no arrow class and no numbering.
     expect(container.querySelector('.btn-go')).toBeNull()

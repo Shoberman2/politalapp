@@ -7,7 +7,7 @@
    headlines, no numbered steps, no arrows. Links are `.btn-text` actions from
    App.css. Fonts come only from the --serif / --sans / --mono tokens. Pages
    should not need their own stylesheet; add a pattern here instead.
-   (/offices is the one exception: it has its own layout in Offices.css.) */
+   */
 
 .info-page { color: var(--ink); background: var(--bg); }
 .info-page .ip-inner {

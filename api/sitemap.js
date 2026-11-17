@@ -55,7 +55,7 @@ export async function pageEntries() {
     { path: '/', lastmod, changefreq: 'daily', priority: 1.0 },
     ...Object.entries(STATIC_PAGES).filter(([path]) => !isGatedPath(path)).map(([path, p]) => ({
       path,
-      lastmod: path === '/this-week' ? lastmod : null,
+      lastmod: null,
       changefreq: p.changefreq,
       priority: p.priority,
     })),
