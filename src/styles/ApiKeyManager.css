@@ -63,6 +63,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .api-key-revoked {
@@ -88,7 +89,7 @@
 }
 
 .api-key-revoked-badge {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--error);
 }
@@ -107,6 +108,11 @@
 /* Revoke: a quiet text action (shared .btn-secondary .btn-sm) in error red. */
 .btn-secondary.btn-danger-sm,
 .btn-secondary.btn-danger-sm:hover:not(:disabled) { color: var(--error); }
+
+/* Revoke asks once, in the row. */
+.api-key-confirm { flex: 1 1 100%; margin-top: 12px; }
+.api-key-confirm p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.api-key-confirm-actions { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 4px; }
 
 .api-keys-empty {
   font-size: 16px;

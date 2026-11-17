@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BRAND } from '../config/brand'
 import { SHOW_BILL_ALERTS } from '../config/features'
-import { CTA_HREF, CTA_LABEL } from '../config/cta'
 
 // The one site-wide footer, rendered once by App after <Routes>. It wraps
 // itself in `.bw` so the .bw-scoped footer styles in broadsheet.css apply on
@@ -69,14 +68,19 @@ function Footer() {
     <div className="bw bw-footer">
       <footer className="footer">
         <div className="footer-inner">
-          <div className="footer-top">
+          <div className="footer-main">
+            {/* The mark and the name, as in the masthead. No button here: the
+                closing band above the footer carries the one primary action
+                (founder, 2026-11-17). */}
             <div className="footer-brand">
-              <span className="footer-wordmark">{BRAND.name}</span>
+              <Link className="footer-home" to="/" aria-label={`${BRAND.name} home`}>
+                <span className="brand-mark"><img src="/capitol-logo.svg" alt="" /></span>
+                <span className="footer-wordmark">{BRAND.name}</span>
+              </Link>
               <p className="footer-tag">How Congress voted, in plain English, linked to the official record.</p>
+              <p className="footer-free">Free, nonpartisan and open source.</p>
             </div>
-            <Link className="btn-primary" to={CTA_HREF}>{CTA_LABEL}</Link>
-          </div>
-          <div className="footer-cols">
+            <div className="footer-cols">
             {COLUMNS.map((col) => (
               <nav className="footer-col" key={col.title} aria-label={col.title}>
                 <h4>{col.title}</h4>
@@ -87,6 +91,7 @@ function Footer() {
                 </ul>
               </nav>
             ))}
+            </div>
           </div>
           <div className="footer-bottom">
             <p>&copy; {new Date().getFullYear()} {BRAND.name}. Code MIT licensed. Source data terms vary by provider.</p>

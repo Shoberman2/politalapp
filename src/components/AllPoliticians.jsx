@@ -302,7 +302,16 @@ function AllPoliticians() {
           )}
         </>
       ) : (
-        <div className="members-empty">No members match these filters.</div>
+        <div className="members-empty">
+          <p>No members match these filters.</p>
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={() => { setSearchTerm(''); setChamberFilter('all'); setPartyFilter('all'); setStateFilter('all'); setChip('all') }}
+          >
+            Clear filters
+          </button>
+        </div>
       )}
 
     </div>

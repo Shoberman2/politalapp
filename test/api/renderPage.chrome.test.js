@@ -11,7 +11,7 @@ describe('renderPage chrome', () => {
   it('mirrors the signed-out Navigation masthead', () => {
     const html = chrome('<p>x</p>')
     const nav = html.match(/<nav class="topnav">([\s\S]*?)<\/nav>/)[1]
-    expect([...nav.matchAll(/href="([^"]+)"/g)].map((m) => m[1])).toEqual(['/how-it-works', '/this-week', '/government', '/developers'])
+    expect([...nav.matchAll(/href="([^"]+)"/g)].map((m) => m[1])).toEqual(['/how-it-works', '/government', '/developers'])
     expect(html).toContain('<a class="nav-account" href="/auth" rel="nofollow">Sign in</a>')
     expect(html).toContain(`href="/auth?mode=signup&amp;next=${encodeURIComponent('/my-representative')}"`)
     expect(html).not.toMatch(/href="\/(bills|map|blog)"/)

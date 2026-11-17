@@ -13,12 +13,10 @@ export default function ThisWeekPage() {
     // elements, which would override the component's own row type. The root is
     // a <div>: App.jsx already renders the page's <main>.
     <div className="bw twof-page">
-      {/* Behind sign-in (shared/access.js): not indexed, no server-rendered copy. */}
       <SEO
         title="This Week on the Floor"
         description="What the U.S. House has scheduled for floor consideration this week, from the Majority Leader’s weekly schedule, beside the roll-call votes Congress most recently recorded."
         path="/this-week"
-        noindex
       />
       <div className="info-page ip-wide">
         <section className="ip-hero">

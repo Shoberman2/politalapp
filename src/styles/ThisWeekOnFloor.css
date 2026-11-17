@@ -39,7 +39,7 @@
 /* Which week a group of scheduled items belongs to. */
 .twof-week-label {
   margin: var(--space-5) 0 var(--space-1);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -78,7 +78,7 @@
   flex-wrap: wrap;
   gap: 2px var(--space-4);
 }
-.twof-row-foot { margin-top: 6px; font-size: 15px; }
+.twof-row-foot { margin-top: 6px; font-size: 16px; }
 
 /* The title leads: what the bill or the vote is, in full, up to three lines. */
 .twof-title {
@@ -117,18 +117,18 @@
 .twof-cat { font-size: 14px; color: var(--ink-2); }
 
 /* A scheduled item's state, said in words. */
-.twof-state { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.twof-state { font-size: 16px; font-weight: 600; color: var(--ink-2); }
 
 .twof-tell {
   color: var(--accent);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
 }
 .twof-tell:hover { color: var(--accent-hover); }
 
 .twof-src {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-3);
   text-decoration: none;
 }
@@ -162,7 +162,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
@@ -172,7 +172,7 @@
 
 .twof-footnote {
   margin: var(--space-4) 0 0;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--ink-3);
 }

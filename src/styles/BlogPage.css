@@ -23,7 +23,7 @@
 }
 
 .blog-filters { margin-bottom: 16px; }
-.blog-results-info { margin-bottom: 40px; font-size: 15px; color: var(--ink-3); }
+.blog-results-info { margin-bottom: 40px; font-size: 16px; color: var(--ink-3); }
 
 .blog-grid { display: grid; gap: 48px; }
 .blog-card { display: grid; gap: 8px; text-decoration: none; }
@@ -39,7 +39,7 @@
 }
 .blog-card:hover .blog-card-title { color: var(--accent); }
 .blog-card-excerpt { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
-.blog-card-meta { margin: 0; font-size: 15px; color: var(--ink-3); }
+.blog-card-meta { margin: 0; font-size: 16px; color: var(--ink-3); }
 
 .no-articles { padding: 48px 0; text-align: center; }
 .no-articles p { margin: 0 0 16px; font-size: 17px; color: var(--ink-2); }

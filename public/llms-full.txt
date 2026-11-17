@@ -58,7 +58,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - Bill: https://www.ballotwatch.io/bill/{congress}/{type}/{number} (example: /bill/119/hr/1; types: hr, s, hjres, sjres, hconres, sconres, hres, sres)
 - Members index (free account in the browser; use the API's /api/v1/members without one): https://www.ballotwatch.io/all
 - Bills index: https://www.ballotwatch.io/bills
-- This week on the floor (House weekly schedule plus the latest recorded votes; free account in the browser): https://www.ballotwatch.io/this-week
+- This week on the floor (House weekly schedule plus the latest recorded votes): https://www.ballotwatch.io/this-week
 - Methodology: https://www.ballotwatch.io/methodology
 - How it works (the concept in four steps, what's live, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
 - How we get our data (every upstream source, what we take from it, how often, what we compute, and what AI writes): https://www.ballotwatch.io/data-sources
@@ -67,7 +67,7 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 
 The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, glossary, the government explainer at /government, methodology, data sources, about, open data, contact, privacy, terms) return their full text without JavaScript, in HTML and in Markdown. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
-The app pages need a free account in the browser: your representatives, the Bills index, the district map, the shutdown tracker, campaign-finance comparison, AI Congress, committee pages, the members index (/all) and This week on the floor (/this-week). Member pages, record cards, bill pages, roll calls, the API and the MCP server do not; the floor schedule is in the API at /api/v1/floor/schedule.
+The app pages need a free account in the browser: your representatives, the Bills index, the district map, the shutdown tracker, campaign-finance comparison, AI Congress, committee pages and the members index (/all). Member pages, record cards, bill pages, roll calls, the API and the MCP server do not; the floor schedule is in the API at /api/v1/floor/schedule.
 
 ## API (no key required for GET)
 

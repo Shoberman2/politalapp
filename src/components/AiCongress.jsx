@@ -61,6 +61,8 @@ function AiCongress() {
       {sessions.length === 0 ? (
         <div className="ai-empty-state">
           <h2>AI Congress Hasn't Convened Yet</h2>
+          <p>Until there is one, read what the real Congress is voting on.</p>
+          <Link className="btn-outline" to="/bills">Browse bills</Link>
         </div>
       ) : (
         <div className="ai-sessions-list">

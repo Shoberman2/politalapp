@@ -293,7 +293,7 @@
 .approp-bill-card .approp-bill-card__toggle {
   margin-top: 4px;
   min-height: 44px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .approp-bill-card__details {
@@ -360,7 +360,7 @@
 }
 
 .api-bill-item__action {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-2);
   line-height: 1.5;
 }

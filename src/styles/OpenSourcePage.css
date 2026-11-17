@@ -111,7 +111,7 @@
 .open-data-notes a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
 .open-data-facts a,
 .open-data-notes a { color: var(--accent); }
-.open-data-na { font-size: 15px; color: var(--ink-3); }
+.open-data-na { font-size: 16px; color: var(--ink-3); }
 
 /* ---------- Two columns: notes beside a short list ---------- */
 .open-split {

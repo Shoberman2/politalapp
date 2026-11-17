@@ -7,13 +7,12 @@ import { DEFAULT_SIGNED_IN_PATH } from '../config/access'
 import { CTA_HREF, CTA_LABEL } from '../config/cta'
 import '../styles/Navigation.css'
 
-// The main row. "This week" needs a free account (it opens the sign-in page
-// when signed out); the rest are public. The personal app (your reps, the Bills
-// index and tools) sits behind "Find my reps". No members list and no offices
-// page here (founder, 2026-11-17).
+// The main row: three public pages. The personal app (your reps, the Bills
+// index and tools) sits behind "Find my reps". No members list, no offices
+// page and no "This week" here: This week is public and shown on the landing
+// (founder, 2026-11-17).
 const NAV_LINKS = [
   { to: '/how-it-works', label: 'How it works' },
-  { to: '/this-week', label: 'This week' },
   { to: '/government', label: 'The government' },
   { to: '/developers', label: 'For developers' },
 ]

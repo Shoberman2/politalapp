@@ -6,7 +6,7 @@
       "has": [
         {
           "type": "host",
-          "value": "politicalapp.vercel.app"
+          "value": "politicalapp-shoberman2s-projects.vercel.app"
         }
       ],
       "destination": "https://www.ballotwatch.io/:path*",

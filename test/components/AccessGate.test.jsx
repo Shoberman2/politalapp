@@ -31,11 +31,11 @@ function renderAt(path) {
 afterEach(() => { cleanup(); state.user = null; state.loading = false })
 
 const GATED = ['/my-representative', '/bills', '/map', '/shutdown-tracker', '/compare', '/ai-congress',
-  '/ai-congress/x', '/committee/HSAG', '/briefings', '/alerts', '/all', '/this-week',
+  '/ai-congress/x', '/committee/HSAG', '/briefings', '/alerts', '/all',
   // spellings the router resolves to a gated page
   '/%62ills', '/%6Dap', '/my-%72epresentative', '/my-representative//', '/compare///', '/committee/x//', '/committee/a%2Fb']
 const PUBLIC = ['/politician/P000197', '/politician/P000197/record', '/bill/119/hr/1',
-  '/vote/119/house/2/295', '/government', '/developers', '/how-it-works', '/', '/billsx']
+  '/vote/119/house/2/295', '/government', '/developers', '/how-it-works', '/this-week', '/', '/billsx']
 
 describe('AccessGate', () => {
   it.each(GATED)('signed out, %s redirects to /auth with ?next=', (path) => {

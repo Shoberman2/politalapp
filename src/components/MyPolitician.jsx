@@ -294,7 +294,7 @@ function MyPolitician() {
                 ))}
               </div>
             ) : !loadingHouse && (
-              <p className="no-senators-message">No senators found for your state.</p>
+              <p className="no-senators-message">No senators found for your state. Check the address above and search again.</p>
             )}
           </div>
         </div>

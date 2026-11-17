@@ -499,7 +499,7 @@ dt .chamber-fidelity-dot-inline {
 }
 
 .chamber-scrubber-hint {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink-2);
   margin-top: 12px;
   opacity: 1;
@@ -620,7 +620,7 @@ dt .chamber-fidelity-dot-inline {
 }
 
 .chamber-drawer-row-notes {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink-2);
   margin-top: 6px;
 }

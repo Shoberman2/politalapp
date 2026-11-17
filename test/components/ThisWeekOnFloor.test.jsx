@@ -155,7 +155,7 @@ describe('ThisWeekPage', () => {
     expect(h1s).toHaveLength(1)
     expect(h1s[0].classList.contains('ip-title')).toBe(true)
     expect(h1s[0].textContent).toBe('This Week On The Floor')
-    // Behind sign-in since 2026-11-17: no server-rendered copy to keep in step.
+    // Public, rendered by the app only: no server-rendered copy to keep in step.
     expect(STATIC_PAGES['/this-week']).toBeUndefined()
     // The floor component sits outside .info-page so its row type is its own.
     expect(container.querySelector('.info-page .twof')).toBeNull()
@@ -165,5 +165,22 @@ describe('ThisWeekPage', () => {
     expect(container.querySelector('.twof-kicker, .twof-heading')).toBeNull()
     expect(container.querySelector('main')).toBeNull()
     expect(container.querySelector('.twof-page-body .twof').getAttribute('aria-label')).toBe('This week on the floor')
+  })
+
+  // Extended by /ship test coverage audit (2026-11-17).
+  // Value: protects=/this-week is public again, so the page sets its canonical
+  //   URL and carries no robots noindex tag;
+  //   fails_when=the noindex prop comes back on the page's SEO, keeping a
+  //   public page out of search results;
+  //   why_new=the test above checks layout only; noindex is asserted for /auth
+  //   alone (Auth.test.jsx);
+  //   seam=none;
+  //   no_claim=that search engines index the page, or that the sitemap lists it
+  it('is indexable now that it is public', async () => {
+    services.getFloorSchedule.mockReturnValue(pending())
+    services.getRecentFloorVotes.mockReturnValue(pending())
+    render(<HelmetProvider><MemoryRouter><ThisWeekPage /></MemoryRouter></HelmetProvider>)
+    await waitFor(() => expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toMatch(/\/this-week$/))
+    expect(document.querySelector('meta[name="robots"]')).toBeNull()
   })
 })

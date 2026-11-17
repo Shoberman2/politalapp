@@ -32,10 +32,10 @@
 
 .sponsor-badge-methodology {
   display: inline-block;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-3);
 }
-.sponsor-badge-loading { font-size: 15px; color: var(--ink-3); }
+.sponsor-badge-loading { font-size: 16px; color: var(--ink-3); }
 
 .visually-hidden {
   position: absolute;

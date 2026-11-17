@@ -375,7 +375,7 @@ describe('fact-list info pages carry their full text', () => {
     expect(html.body).toMatch(/<div id="root">[\s\S]*<h2/)
   })
 
-  it('no longer serves the offices page or a public This Week page (2026-11-17)', async () => {
+  it('no longer serves the offices page, and This Week has no server-rendered copy (2026-11-17)', async () => {
     for (const page of ['offices', 'this-week']) {
       const res = makeRes()
       await handler(req({ kind: 'static', page }), res)

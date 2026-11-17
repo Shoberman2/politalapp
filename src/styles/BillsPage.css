@@ -90,8 +90,8 @@
 }
 .bills-desk .results-count { font-size: 15px; color: var(--ink-2); }
 .bills-desk .results-count b { color: var(--ink); font-family: var(--mono); font-weight: 600; }
-.bills-desk .results-sort { font-size: 15px; font-weight: 500; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
-.bills-desk .results-sort select { width: auto; min-height: 44px; font-size: 15px; cursor: pointer; }
+.bills-desk .results-sort { font-size: 16px; font-weight: 500; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
+.bills-desk .results-sort select { width: auto; min-height: 44px; font-size: 16px; cursor: pointer; }
 
 .bills-desk .bill-list { display: flex; flex-direction: column; gap: 4px; }
 .bills-desk .bill-row {

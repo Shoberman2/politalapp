@@ -80,7 +80,7 @@
 .tyr-member-seat,
 .tyr-mono { font-family: var(--font-mono); font-size: 14px; }
 .tyr-member-seat { color: var(--ink-2); }
-.tyr-member-vote { grid-column: 2 / -1; font-size: 15px; font-weight: 600; color: var(--ink-3); }
+.tyr-member-vote { grid-column: 2 / -1; font-size: 16px; font-weight: 600; color: var(--ink-3); }
 .tyr-member-single .tyr-member-vote { grid-column: 1 / -1; }
 .tyr-vote-yea { color: var(--success); }
 .tyr-vote-nay { color: var(--error); }
@@ -95,7 +95,7 @@
 }
 .tyr-field { display: flex; flex-direction: column; gap: 8px; flex: 0 1 140px; min-width: 0; }
 .tyr-field-wide { flex: 1 1 260px; }
-.tyr-field label { font-size: 15px; font-weight: 500; color: var(--ink); }
+.tyr-field label { font-size: 16px; font-weight: 500; color: var(--ink); }
 .tyr-optional { font-weight: 400; color: var(--ink-3); }
 .tyr-location .tyr-btn { min-height: 52px; }
 .tyr-location .tyr-fineprint { flex-basis: 100%; margin: 0; }
@@ -113,7 +113,7 @@
 .tyr .tyr-link-btn { min-height: 44px; }
 .tyr-muted { color: var(--ink-3); font-size: 16px; margin: 8px 0 0; }
 .tyr-error { color: var(--error); font-size: 16px; margin: 8px 0 0; }
-.tyr-fineprint { font-size: 15px; color: var(--ink-3); margin: 8px 0 0; line-height: 1.5; max-width: 62ch; }
+.tyr-fineprint { font-size: 16px; color: var(--ink-3); margin: 8px 0 0; line-height: 1.5; max-width: 62ch; }
 .tyr-fineprint a { color: var(--ink-2); }
 
 .tyr-sr-only {

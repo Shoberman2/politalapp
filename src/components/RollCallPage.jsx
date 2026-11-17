@@ -63,7 +63,7 @@ function RollCallPage() {
     return (
       <div className="rc rc-error">
         <SEO title="Roll call not found" path={`/vote/${congress}/${chamber}/${session}/${roll}`} />
-        <h1>Roll call not found</h1>
+        <h1>Roll Call Not Found</h1>
         <p>We don't hold a {chamber} roll call {roll} for session {session} of the {congress}th Congress. <Link to="/bills">Browse bills</Link>.</p>
       </div>
     )

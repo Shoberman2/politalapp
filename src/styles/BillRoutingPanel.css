@@ -34,7 +34,7 @@
 .bill-routing-committee-name:hover { color: var(--accent); }
 
 .bill-routing-subcommittee { font-size: 15px; color: var(--ink-2); margin-top: 2px; }
-.bill-routing-gloss { font-size: 15px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
+.bill-routing-gloss { font-size: 16px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
 
 .bill-routing-row-side {
   display: flex;
@@ -77,7 +77,7 @@
   width: fit-content;
   min-height: 44px;
   margin-top: 4px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
@@ -123,15 +123,15 @@
   display: inline-block;
   margin-right: 6px;
 }
-.bill-status-popover-caption { font-size: 14px; color: var(--ink-2); }
-.bill-status-popover-insufficient { font-size: 14px; color: var(--ink-2); }
+.bill-status-popover-caption { font-size: 16px; color: var(--ink-2); }
+.bill-status-popover-insufficient { font-size: 16px; color: var(--ink-2); }
 
 .bill-status-popover-method {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   margin-top: 4px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;

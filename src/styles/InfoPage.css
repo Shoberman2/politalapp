@@ -193,7 +193,7 @@
 .info-page .ip-sources p { line-height: 1.55; }
 .info-page .ip-sources .ip-source-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding-top: 4px; }
 .info-page .ip-sources .ip-cadence { font-size: 16px; font-weight: 600; color: var(--ink); }
-.info-page .ip-sources .ip-cadence-note { font-size: 15px; line-height: 1.45; color: var(--ink-3); }
+.info-page .ip-sources .ip-cadence-note { font-size: 16px; line-height: 1.45; color: var(--ink-3); }
 .info-page .ip-sources .btn-text { min-height: 44px; white-space: normal; text-align: left; overflow-wrap: anywhere; }
 
 /* A big quoted statement (About mission). */

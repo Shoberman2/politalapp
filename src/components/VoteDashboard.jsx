@@ -471,7 +471,7 @@ function VoteDashboard({ bioguideId }) {
             )
           }) : (
             <div className="dash-empty">
-              <p>No voting records available.</p>
+              <p>No recorded votes to show for this member right now.</p>
             </div>
           )}
         </div>

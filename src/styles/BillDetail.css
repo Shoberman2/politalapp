@@ -114,7 +114,7 @@
   margin: 0 0 8px;
 }
 .bill-ai-byline {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--ink-3);
   margin: 0 0 20px;
@@ -322,12 +322,12 @@
 .bill-watch-options label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 16px; font-weight: 400; color: var(--ink); cursor: pointer; }
 .bill-watch-options input { width: 18px; height: 18px; accent-color: var(--accent); }
 .bill-watch-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.bill-watch-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 15px; }
+.bill-watch-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 16px; }
 .bill-watch-footer a { color: var(--accent); text-decoration: none; font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; }
-.bill-watch-footer button { background: none; border: 0; color: var(--ink-3); cursor: pointer; padding: 0; min-height: 44px; font-size: 15px; }
+.bill-watch-footer button { background: none; border: 0; color: var(--ink-3); cursor: pointer; padding: 0; min-height: 44px; font-size: 16px; }
 .bill-watch-footer button:hover { color: var(--error); }
 .bill-watch-card > p.bill-watch-error,
-.bill-watch-card > p.bill-watch-saved { font-size: 15px; margin: 10px 0; }
+.bill-watch-card > p.bill-watch-saved { font-size: 16px; margin: 10px 0; }
 .bill-watch-card > p.bill-watch-error { color: var(--error); }
 .bill-watch-card > p.bill-watch-saved { color: var(--success); }
 
@@ -352,7 +352,7 @@
 .bill-cosp-party.party-tag-ind { color: var(--party-ind); }
 .bill-cosp-count { font-family: var(--mono); color: var(--ink); }
 
-.bill-rail .bill-cosp-toggle { min-height: 44px; font-size: 15px; }
+.bill-rail .bill-cosp-toggle { min-height: 44px; font-size: 16px; }
 
 .bill-cosp-list {
   margin-top: 4px;
@@ -389,7 +389,7 @@
   padding: 8px 0;
   text-decoration: none;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 16px;
 }
 .bill-text-version:hover { color: var(--accent); }
 .bill-tv-type { font-weight: 500; }

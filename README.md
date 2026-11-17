@@ -30,12 +30,12 @@ Congress.gov ETL, public API routes, methodology docs, and sample civic datasets
 | API and sample data | How can I build with this? | BallotWatch API, OpenAPI, sample exports | Use `/open` and `/developers/docs` |
 | Methodology pages | How was this computed? | Public docs and code references | Audit, cite, or correct |
 
-Reading the record needs no account: the ZIP lookup on the homepage, the
-members list, every member profile and record card, every bill and roll call,
-This week, the public API, and `/mcp`. The app pages need a free account: My
-representatives, the Bills browser, the district map, the shutdown tracker,
-campaign-finance comparison, AI Congress, and committee pages. The list lives
-in `shared/access.js` and is enforced by `src/components/AccessGate.jsx`.
+Reading the record needs no account: the ZIP lookup on the homepage, every
+member profile and record card, every bill and roll call, This week, the
+public API, and `/mcp`. The app pages need a free account: My representatives,
+the members list (`/all`), the Bills browser, the district map, the shutdown
+tracker, campaign-finance comparison, AI Congress, and committee pages. The list
+lives in `shared/access.js` and is enforced by `src/components/AccessGate.jsx`.
 
 ## Open-Source Surface
 
@@ -70,7 +70,7 @@ UI work:
 - Warm paper background.
 - Inter for headlines and body text; no serif, no italic accent words.
 - Geist Mono for data.
-- Thin rule lines.
+- Space between sections, no rule lines.
 - Restrained civic blue accent.
 - Party colors as metadata, not page-dominating surfaces.
 - Official plain-English explanations as typographic marginalia, not chatbot bubbles.
@@ -175,10 +175,11 @@ immutable commits and Dependabot proposes reviewed updates.
 
 The database runtime mode defaults to `off`. Apply the migration, configure the
 signed Resend webhook at `/api/webhooks/resend`, validate an internal account,
-then advance through `shadow` → `internal` → `public`. The authenticated in-app
-watchlist ships by default; `VITE_BILL_ALERTS_ENABLED=false` remains an emergency
-UI kill switch. Email controls require `VITE_BILL_ALERT_EMAIL_ENABLED=true` and a
-configured delivery runtime. `off` disables ingestion and delivery, `shadow` ingests without sending,
+then advance through `shadow` → `internal` → `public`. The site hides the
+watchlist UI until `SHOW_BILL_ALERTS` in `src/config/features.js` is set to
+`true` in code (an environment variable alone cannot turn it on). Email controls
+also require `VITE_BILL_ALERT_EMAIL_ENABLED=true` and a configured delivery
+runtime. `off` disables ingestion and delivery, `shadow` ingests without sending,
 `internal` sends only to allow-listed users, and `public` delivers to all active
 follows. The workflow is scheduled every 10 minutes, although GitHub Actions may
 delay scheduled runs.
@@ -306,7 +307,13 @@ Per-IP limits use Upstash Redis when `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are set; otherwise an in-memory counter applies per
 function instance.
 
-Main routes:
+Main routes (base URL `https://www.ballotwatch.io`, the only public host;
+`ballotwatch.io` redirects to it, and `politicalapp.vercel.app` is an unrelated
+site, not this app):
+
+```bash
+curl "https://www.ballotwatch.io/api/v1/members?limit=5"
+```
 
 - `GET /api/v1/members`
 - `GET /api/v1/members/:bioguideId`
@@ -391,7 +398,7 @@ User-facing features that require staged rollout ship behind env-gated flags:
 | `VITE_BILLS_SHOW_SPONSOR_FILTER` | `false` | Sponsor and cosponsor filters, sponsor activity badge |
 | `VITE_BILLS_SHOW_ROUTING_PANEL` | `false` | Legislative routing panel, committee route, survival popover |
 | `VITE_SHOW_CHAMBER` | `true` | Historical chamber visualization routes; set to `false` as an emergency kill switch |
-| `VITE_BILL_ALERTS_ENABLED` | `true` | `/alerts`, the navigation link, and bill-page watch controls; set false only as an emergency kill switch |
+| `VITE_BILL_ALERTS_ENABLED` | not read | No effect. `/alerts`, its footer link, and bill-page watch controls follow `SHOW_BILL_ALERTS` in `src/config/features.js`, a code constant that is `false` today |
 | `VITE_BILL_ALERT_EMAIL_ENABLED` | `false` | Shows email controls only after Resend and the public delivery runtime are configured |
 
 ## Contributing

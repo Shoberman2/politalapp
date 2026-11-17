@@ -105,3 +105,31 @@ describe('Landing lookup: record links', () => {
     noMemberList()
   })
 })
+
+// Extended by /ship test coverage audit (2026-11-17).
+// Value: protects=the landing has a "This Week On The Floor" section: one H2
+//   (the floor component's own heading is off), at most four recorded votes,
+//   and a "See the full week" link to the public /this-week page;
+//   fails_when=the section is dropped, shows a second heading, lists the full
+//   week instead of four rows, or its link points somewhere else;
+//   why_new=ThisWeekOnFloor.test.jsx covers the component alone; no landing
+//   test looked for it;
+//   seam=none;
+//   no_claim=the live schedule and vote data (both services are mocked), or the
+//   section's layout
+describe('Landing: this week on the floor', () => {
+  it('shows four recorded votes under one heading and links to the full week', async () => {
+    const vote = (n) => ({ id: `house-119-2-${n}`, chamber: 'House', number: n, question: 'On Passage', description: null, bill: { display: `H.R. ${n}`, href: `/bill/119/hr/${n}` }, yea: 300, nay: 100, result: 'Passed' })
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [1, 2, 3, 4, 5, 6].map(vote), recordedThrough: '2026-11-13' })
+    const { container } = render(<HelmetProvider><MemoryRouter><Landing /></MemoryRouter></HelmetProvider>)
+
+    const section = screen.getByRole('region', { name: 'This Week On The Floor' })
+    expect(section.querySelectorAll('h2')).toHaveLength(1)
+    expect(section.querySelector('.twof-heading')).toBeNull()
+    expect(within(section).getByRole('link', { name: 'See the full week' }).getAttribute('href')).toBe('/this-week')
+    expect(container.querySelectorAll('.twof')).toHaveLength(1)
+
+    await waitFor(() => expect(section.querySelectorAll('.twof-col--recorded .twof-list > li')).toHaveLength(4))
+    expect(section.querySelector('.twof-col--recorded .twof-list').getAttribute('aria-busy')).toBeNull()
+  })
+})
