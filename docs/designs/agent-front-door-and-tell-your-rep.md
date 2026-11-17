@@ -264,6 +264,13 @@ makes agents wire BallotWatch in by name) and Markdown responses for member and 
    (and its `-git-main` alias if present) redirects to `https://www.ballotwatch.io` for every
    path. Leave preview deployments alone: Vercel already sends `X-Robots-Tag: noindex` on them
    and Playwright and preview QA depend on them.
+
+   > **Correction (2026-10-23):** `politicalapp.vercel.app` is not this project. It belongs to
+   > another Vercel account ("DCP Kenya Admin"), which is why its `/api/v1/*` returns 404 and why
+   > a redirect keyed on it never fired. This project's default alias is
+   > `politicalapp-shoberman2s-projects.vercel.app` (plus `-git-main-`); `vercel.json` now
+   > redirects those. `www.ballotwatch.io` is the only public host, and nothing should link to
+   > `politicalapp.vercel.app`, including the GitHub repo's homepage field.
 2. **Routes.** Keep `/politician/:bioguideId` and `/bill/:congress/:type/:number`. Add
    `/vote/:congress/:chamber/:session/:roll` (House and Senate roll numbers reset each session;
    2026 is session 2 of the 119th, so session is part of the key). The route resolves to

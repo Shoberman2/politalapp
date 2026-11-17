@@ -40,3 +40,30 @@ describe('Vercel SPA routing regression', () => {
     }
   )
 })
+
+// politicalapp.vercel.app belongs to another Vercel account ("DCP Kenya
+// Admin"); this project's default alias is
+// politicalapp-shoberman2s-projects.vercel.app. A redirect keyed on a host we
+// don't own never fires.
+describe('canonical host redirects', () => {
+  const hostRedirects = vercelConfig.redirects.filter((r) =>
+    r.has?.some((h) => h.type === 'host')
+  )
+
+  it('sends every project alias to https://www.ballotwatch.io', () => {
+    expect(hostRedirects.length).toBeGreaterThan(0)
+    for (const r of hostRedirects) {
+      expect(r.source).toBe('/:path*')
+      expect(r.destination).toBe('https://www.ballotwatch.io/:path*')
+      expect(r.permanent).toBe(true)
+    }
+  })
+
+  it('only matches hosts under this team, never politicalapp.vercel.app', () => {
+    for (const r of hostRedirects) {
+      const host = r.has.find((h) => h.type === 'host').value
+      expect(host).not.toBe('politicalapp.vercel.app')
+      expect(host).toMatch(/-shoberman2s-projects\.vercel\.app$/)
+    }
+  })
+})
