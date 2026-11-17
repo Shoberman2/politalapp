@@ -319,7 +319,7 @@ function DistrictMap() {
             )}
 
             {!selectedDistrict.member && selectedSenators.length === 0 && (
-              <p className="panel-empty">No representative data available for this district.</p>
+              <p className="panel-empty">We have no member on record for this district. Pick another district on the map.</p>
             )}
           </div>
         )}

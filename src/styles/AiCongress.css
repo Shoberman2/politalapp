@@ -119,6 +119,8 @@
 .ai-empty-state p {
   color: var(--ink-2);
   font-size: 16px;
+  max-width: 44rem;
+  margin: 0 0 20px;
 }
 
 /* Loading */
@@ -261,7 +263,7 @@
 }
 
 .ai-cloture-info {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--ink-3);
   margin-top: 4px;
 }

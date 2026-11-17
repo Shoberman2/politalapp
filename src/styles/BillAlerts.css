@@ -15,7 +15,7 @@
   margin: 0 0 16px;
 }
 .alerts-header > p { font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 62ch; }
-.alerts-header .alerts-provider-note { font-size: 14px; color: var(--ink-3); margin-top: 8px; }
+.alerts-header .alerts-provider-note { font-size: 16px; color: var(--ink-3); margin-top: 8px; }
 .alerts-email-toggle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 16px; font-size: 16px; cursor: pointer; }
 .alerts-email-toggle input, .alerts-follow-options input { width: 18px; height: 18px; accent-color: var(--accent); }
 
@@ -37,7 +37,7 @@
 .alerts-follow-content { min-width: 0; }
 .alerts-bill-id, .alerts-history a { color: var(--accent); font-family: var(--mono); font-size: 14px; font-weight: 600; text-decoration: none; }
 .alerts-follow h3 { font-family: var(--display); font-size: 20px; font-weight: 600; line-height: 1.3; margin: 2px 0; overflow-wrap: anywhere; }
-.alerts-history p { font-size: 15px; color: var(--ink-2); }
+.alerts-history p { font-size: 16px; color: var(--ink-2); }
 .alerts-muted { font-size: 16px; color: var(--ink-2); }
 .alerts-follow-options { display: flex; flex-wrap: wrap; gap: 0 20px; margin-top: 4px; }
 .alerts-follow-options label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--ink-2); font-size: 16px; font-weight: 400; cursor: pointer; }

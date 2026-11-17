@@ -26,7 +26,7 @@
 .rc-tally, .rc-standfirst.rc-muted { order: 4; }
 .rc-actions { order: 5; }
 
-.rc-kicker { font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.rc-kicker { font-size: 16px; line-height: 1.5; color: var(--ink-2); }
 .rc-title {
   font-family: var(--display); font-weight: 600; font-size: clamp(32px, 4.6vw, 56px);
   line-height: 1.05; letter-spacing: -0.035em; margin: 0 0 16px; color: var(--ink);
@@ -57,7 +57,7 @@
 /* The heading leads; the count sits under it (server markup has it first). */
 .rc-section { display: flex; flex-direction: column; margin: 56px 0; }
 .rc-section-title { order: -1; font-family: var(--display); font-weight: 600; font-size: clamp(24px, 2.8vw, 32px); line-height: 1.1; letter-spacing: -0.025em; margin: 0 0 8px; color: var(--ink); }
-.rc-section-label { font-size: 15px; color: var(--ink-2); margin-bottom: 20px; }
+.rc-section-label { font-size: 16px; color: var(--ink-2); margin-bottom: 20px; }
 
 .rc-filter { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
 /* Matches `.field` in App.css (the server-rendered input carries no class). */
@@ -85,7 +85,7 @@
 .rc-position-nay { color: var(--error); }
 .rc-position-present, .rc-position-not-voting { color: var(--ink-3); }
 
-.rc-colophon { font-size: 14px; line-height: 1.6; color: var(--ink-3); max-width: 80ch; }
+.rc-colophon { font-size: 16px; line-height: 1.6; color: var(--ink-3); max-width: 80ch; }
 .rc-colophon a { color: var(--ink-2); }
 
 /* Server-rendered member page: terms list */

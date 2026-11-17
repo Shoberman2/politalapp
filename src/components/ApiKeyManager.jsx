@@ -13,6 +13,7 @@ function ApiKeyManager() {
   const [newKeyName, setNewKeyName] = useState('')
   const [showNewKey, setShowNewKey] = useState(null) // full key shown once
   const [creating, setCreating] = useState(false)
+  const [confirmRevoke, setConfirmRevoke] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
   const [claiming, setClaiming] = useState(false)
@@ -115,9 +116,10 @@ function ApiKeyManager() {
     }
   }
 
+  // Revoking asks once, in the key's own row, instead of a browser dialog.
   async function revokeKey(keyId) {
-    if (!confirm('Revoke this API key? Any integrations using it will immediately stop working.')) return
-
+    setConfirmRevoke(null)
+    setError(null)
     const { error: updateError } = await supabase
       .from('api_keys')
       .update({ active: false })
@@ -125,6 +127,8 @@ function ApiKeyManager() {
 
     if (!updateError) {
       await loadData()
+    } else {
+      setError('We could not revoke that key. It is still active. Try again.')
     }
   }
 
@@ -206,7 +210,7 @@ function ApiKeyManager() {
         </div>
       )}
 
-      {error && <div className="api-keys-error">{error}</div>}
+      {error && <div className="api-keys-error" role="alert">{error}</div>}
 
       {/* Create new key */}
       <div className="api-keys-create">
@@ -247,10 +251,23 @@ function ApiKeyManager() {
                   {key.active && ` · ${key.monthly_count || 0} requests this month`}
                 </div>
               </div>
-              {key.active && (
-                <button className="btn-danger-sm btn-secondary btn-sm" onClick={() => revokeKey(key.id)}>
+              {key.active && confirmRevoke !== key.id && (
+                <button className="btn-danger-sm btn-secondary btn-sm" onClick={() => setConfirmRevoke(key.id)}>
                   Revoke
                 </button>
+              )}
+              {key.active && confirmRevoke === key.id && (
+                <div className="api-key-confirm" role="group" aria-label={`Revoke ${key.name}`}>
+                  <p>Revoke this API key? Any integrations using it will immediately stop working.</p>
+                  <div className="api-key-confirm-actions">
+                    <button className="btn-danger-sm btn-secondary btn-sm" onClick={() => revokeKey(key.id)}>
+                      Revoke key
+                    </button>
+                    <button className="btn-secondary btn-sm" autoFocus onClick={() => setConfirmRevoke(null)}>
+                      Keep key
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           ))

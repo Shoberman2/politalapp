@@ -4,7 +4,7 @@
 .dash-stale-banner {
   background: var(--warning-subtle);
   color: var(--warning);
-  font-size: 15px;
+  font-size: 16px;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--r-input);
   margin-bottom: var(--space-5);
@@ -180,7 +180,7 @@
 }
 
 .dash-vote-card .dash-explain-btn {
-  font-size: 15px;
+  font-size: 16px;
   min-height: 44px;
   margin-top: 2px;
 }
@@ -209,7 +209,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink-2);
 }
 
@@ -325,7 +325,7 @@
   border: 1px solid var(--card-edge);
   border-radius: var(--r-card);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0;

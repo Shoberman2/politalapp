@@ -95,14 +95,14 @@ describe('RollCallPage', { timeout: 30000 }, () => {
     cleanup()
     services.getRollCall.mockResolvedValue(null)
     renderAt('/vote/119/senate/1/9999')
-    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe('Roll call not found')
+    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe('Roll Call Not Found')
     expect(screen.getByText(/senate roll call 9999 for session 1 of the 119th Congress/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Browse bills' }).getAttribute('href')).toBe('/bills')
 
     cleanup()
     services.getRollCall.mockRejectedValue(new Error('network'))
     renderAt('/vote/119/house/2/1')
-    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe('Roll call not found')
+    expect((await screen.findByRole('heading', { level: 1 })).textContent).toBe('Roll Call Not Found')
 
     // A server-rendered page embeds its record: when it matches the route there is no fetch and no spinner.
     cleanup()

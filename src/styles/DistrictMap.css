@@ -124,7 +124,7 @@
 }
 
 .map-control-reset {
-  font-size: 15px;
+  font-size: 16px;
   padding: 0 14px;
 }
 
@@ -251,7 +251,7 @@
 .member-rep .member-role { color: var(--rep); }
 
 .member-arrow {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent);
 }
