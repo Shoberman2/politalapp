@@ -26,6 +26,14 @@ export const STATIC_PAGES = {
     changefreq: 'monthly',
     priority: 0.7,
   },
+  '/government': {
+    title: 'How The Government Works',
+    description: 'Who runs the U.S. government, in plain English: the President, the 15 executive departments, who leads each one, what it does, and how Congress checks them.',
+    h1: 'Who Runs The Government',
+    lede: 'The President sits at the top of the executive branch. Fifteen departments do most of its work, each led by a person the President picks and the Senate confirms. Congress creates, funds and oversees all of them.',
+    changefreq: 'monthly',
+    priority: 0.7,
+  },
   '/methodology': {
     title: 'Methodology',
     description: `Source, cadence, caveat, and code-reference notes for every ${name} feature that computes or explains something.`,

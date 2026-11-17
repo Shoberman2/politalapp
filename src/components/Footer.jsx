@@ -28,6 +28,7 @@ const COLUMNS = [
     links: [
       { label: 'How it works', to: '/how-it-works' },
       { label: 'Glossary', to: '/glossary' },
+      { label: 'How the government works', to: '/government' },
       { label: 'Data sources', to: '/data-sources' },
       { label: 'Methodology', to: '/methodology' },
       { label: 'AI explanations', to: '/methodology/ai-explanations' },

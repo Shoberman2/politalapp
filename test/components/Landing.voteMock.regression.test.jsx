@@ -178,9 +178,9 @@ describe('Landing — "See every vote" step', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
     const features = container.querySelectorAll('.features .feature')
-    expect(features.length).toBe(6)
+    expect(features.length).toBe(4)
     expect([...features].map((f) => f.className.replace('feature feature-', ''))).toEqual(
-      ['find', 'bills', 'votes', 'write', 'mcp', 'offices'])
+      ['find', 'bills', 'votes', 'offices'])
     expect(container.querySelector('a[href="/alerts"]')).toBeNull()
     features.forEach((f) => {
       expect(f.querySelector('h2')).not.toBeNull()
@@ -196,11 +196,18 @@ describe('Landing — "See every vote" step', () => {
   it('answers common questions in an FAQ', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    // Plain question and answer pairs, all readable without a click.
-    expect(container.querySelectorAll('.faq details').length).toBe(0)
-    expect(container.querySelectorAll('.faq .faq-item h3').length).toBeGreaterThanOrEqual(5)
-    expect(container.querySelectorAll('.faq .faq-item p').length).toBeGreaterThanOrEqual(5)
-    expect(container.querySelector('.faq').textContent).toMatch(/Does BallotWatch send messages for me\?/)
+    // Each question opens its answer in place (2026-11-16); one group, so
+    // opening one closes the last.
+    const items = [...container.querySelectorAll('.faq details.faq-item')]
+    expect(items.length).toBeGreaterThanOrEqual(5)
+    items.forEach((d) => {
+      expect(d.getAttribute('name')).toBe('landing-faq')
+      expect(d.querySelector('summary').textContent.trim()).toMatch(/\?$/)
+      expect(d.querySelector('p').textContent.length).toBeGreaterThan(20)
+    })
+    expect(container.querySelector('.faq').textContent).toMatch(/Can I contact my representative from here\?/)
+    // No link in the section head: links sit at the foot of a section.
+    expect(container.querySelector('.faq a')).toBeNull()
   })
 })
 
@@ -235,10 +242,16 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     expect(container.querySelector('.hero .floor-ticker .mk-unavailable')).not.toBeNull()
   })
 
-  it('has no video on the page', () => {
+  it('has no video in the hero; the one film on the page is silent and never loops', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    expect(container.querySelectorAll('video').length).toBe(0)
+    expect(container.querySelectorAll('.hero video').length).toBe(0)
+    const films = container.querySelectorAll('video')
+    expect(films.length).toBe(1)
+    expect(films[0].closest('.gov-ladder')).not.toBeNull()
+    expect(films[0].muted).toBe(true)
+    expect(films[0].hasAttribute('loop')).toBe(false)
+    expect(films[0].hasAttribute('autoplay')).toBe(false)
   })
 
   it('links offices to /offices and never offers a pilot, trial or price', () => {
@@ -259,12 +272,35 @@ describe('Landing — record-first hero (2026-10 redesign)', () => {
     expect(container.textContent).not.toMatch(/what we’re building toward/i)
   })
 
-  it('prints the privacy line once, under the hero lookup', () => {
+  it('keeps the ZIP privacy claim in the FAQ, not under the hero lookup', () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
     const { container } = renderLanding()
-    const hints = [...container.querySelectorAll('.lookup-hint')].map((p) => p.textContent)
-    expect(hints).toEqual(['No sign-up to look up. Your ZIP code never reaches our servers.'])
-    expect(container.querySelector('.hero .lookup-hint')).not.toBeNull()
+    expect(container.querySelector('.lookup-hint')).toBeNull()
+    const faq = container.querySelector('.faq').textContent
+    expect(faq.match(/Your ZIP code never reaches our servers\./g)).toHaveLength(1)
+  })
+
+  it('shows a real photograph beside each primer fact, with the glossary link at the foot', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    const items = [...container.querySelectorAll('.primer-list li')]
+    expect(items).toHaveLength(5)
+    items.forEach((li) => {
+      const img = li.querySelector('img')
+      expect(img.getAttribute('src')).toMatch(/^\/gov\/primer-[a-z]+\.jpg$/)
+      expect(img.getAttribute('alt').length).toBeGreaterThan(5)
+    })
+    const primer = container.querySelector('.primer-inner')
+    expect(primer.lastElementChild.getAttribute('href')).toBe('/glossary')
+  })
+
+  it('explains who runs the government and links to the departments', () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
+    const { container } = renderLanding()
+    const gov = container.querySelector('.gov-ladder')
+    expect(gov.querySelector('h2').textContent).toBe('Who Runs The Government')
+    expect(gov.querySelectorAll('.gov-rungs li')).toHaveLength(3)
+    expect(gov.querySelector('a.gov-ladder-link').getAttribute('href')).toBe('/government')
   })
 
   it('has no small labels above the feature headlines', () => {

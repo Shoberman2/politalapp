@@ -1,0 +1,283 @@
+/* "Who Runs The Government": the ladder section (landing and /government)
+   and the department explorer on /government.
+   House rules (DESIGN.md, 2026-11-14): tokens only, space separates, no
+   boxes around content, headlines centered, body left-aligned, 16px or more.
+   The film is the one moving picture here: it plays once and rests. */
+
+/* ---------- The ladder: one film, three rungs ---------- */
+.gov-ladder { background: var(--bg); color: var(--ink); }
+.gov-ladder-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: calc(var(--section-y) / 2) 40px;
+}
+.gov-ladder .gov-ladder-title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(30px, 4.4vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  text-align: center;
+  color: var(--ink);
+  margin: 0;
+}
+.gov-ladder .gov-ladder-lede {
+  max-width: 36rem;
+  margin: 20px auto 0;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.gov-ladder-stage {
+  margin-top: clamp(40px, 5vw, 64px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+.gov-film { position: relative; min-width: 0; }
+.gov-film video,
+.gov-film img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 28px;
+  background: var(--surface-dim);
+}
+.gov-ladder .gov-film-replay { position: absolute; right: 16px; bottom: 16px; background: var(--surface); }
+
+.gov-rungs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 28px;
+}
+.gov-rungs li {
+  opacity: 0.32;
+  transition: opacity 400ms ease-out;
+}
+.gov-rungs li.is-reached { opacity: 1; }
+.gov-ladder .gov-rungs h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.gov-ladder .gov-rungs p {
+  margin: 6px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.gov-rungs p a { color: var(--accent); text-decoration: none; }
+.gov-rungs p a:hover { text-decoration: underline; }
+.gov-ladder .gov-film-note {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.gov-ladder a.btn-text { color: var(--accent); }
+.gov-ladder a.btn-text:hover { color: var(--accent-hover); }
+.gov-ladder-link { display: flex; width: fit-content; margin: 28px auto 0; min-height: 44px; }
+
+/* ---------- /government ---------- */
+.gov-page .gov-ladder-inner { padding-top: clamp(64px, 9vw, 120px); }
+.gov-page .gov-ladder .gov-ladder-title { font-size: clamp(36px, 5.4vw, 64px); }
+.gov-page { background: var(--bg); color: var(--ink); }
+.gov-page .gov-wide {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: calc(var(--section-y) / 2) 40px;
+}
+.gov-page .gov-wide > h2 { text-align: center; margin-bottom: 16px; }
+.gov-page .gov-sub {
+  max-width: 38rem;
+  margin: 0 auto;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+/* the departments: each one is its real building, and a button */
+.gov-depts {
+  list-style: none;
+  margin: clamp(40px, 5vw, 64px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(40px, 5vw, 56px) clamp(24px, 3vw, 40px);
+}
+.gov-dept {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--r-card);
+}
+.gov-dept:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+.gov-dept-photo {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: var(--surface-dim);
+}
+.gov-dept-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  transition: transform 250ms ease-out;
+}
+.gov-dept:hover .gov-dept-photo img { transform: scale(1.02); }
+.gov-dept-name {
+  display: block;
+  margin-top: 16px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.gov-dept-head {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* one department, explained: a sheet over the page */
+.gov-sheet {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sheet);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-broad-lg);
+  overflow: auto;
+}
+.gov-sheet::backdrop { background: var(--scrim); }
+.gov-sheet-photo { position: relative; }
+.gov-sheet-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+  background: var(--surface-dim);
+}
+.gov-sheet .gov-sheet-close { position: absolute; top: 16px; right: 16px; background: var(--surface); }
+.gov-sheet-body { padding: clamp(24px, 4vw, 48px); }
+.gov-sheet-body h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  margin: 0;
+}
+.gov-sheet-does {
+  margin: 16px 0 0;
+  max-width: 44rem;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.gov-sheet-note { margin: 12px 0 0; max-width: 44rem; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.gov-facts {
+  margin: 32px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px clamp(24px, 4vw, 48px);
+}
+.gov-facts > div { min-width: 0; }
+.gov-facts dt { font-size: 14px; font-weight: 500; color: var(--ink-3); }
+.gov-facts dd {
+  margin: 4px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.gov-facts dd small { display: block; font-size: 15px; color: var(--ink-2); }
+.gov-facts dd a,
+.gov-sheet-links a,
+.gov-page .gov-credit a { color: var(--accent); text-decoration: none; }
+.gov-facts dd a:hover,
+.gov-sheet-links a:hover,
+.gov-page .gov-credit a:hover { text-decoration: underline; }
+.gov-facts .gov-fact-wide { grid-column: 1 / -1; }
+.gov-sheet-links {
+  margin: 32px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.gov-page .gov-credit,
+.gov-sheet .gov-credit {
+  margin: 20px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* Congress's part, and the agencies outside the departments */
+.gov-checks,
+.gov-indies {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 28px;
+}
+.gov-checks h3,
+.gov-indies h3 { margin: 0 0 6px; }
+.gov-indies small { display: block; margin-top: 4px; font-size: 16px; color: var(--ink-2); }
+.gov-page .gov-more { margin-top: 28px; }
+.gov-page .gov-asof { margin-top: 28px; font-size: 15px; color: var(--ink-3); }
+
+@media (max-width: 940px) {
+  .gov-ladder-inner,
+  .gov-page .gov-wide { padding-left: 24px; padding-right: 24px; }
+  .gov-ladder-stage { grid-template-columns: minmax(0, 1fr); }
+  .gov-depts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .gov-ladder-inner,
+  .gov-page .gov-wide { padding-left: 20px; padding-right: 20px; }
+  .gov-film video,
+  .gov-film img { border-radius: var(--r-card); }
+  .gov-depts { grid-template-columns: minmax(0, 1fr); }
+  .gov-facts { grid-template-columns: minmax(0, 1fr); }
+  .gov-sheet-photo img { aspect-ratio: 16 / 9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gov-rungs li,
+  .gov-dept-photo img { transition: none; }
+  .gov-dept:hover .gov-dept-photo img { transform: none; }
+}

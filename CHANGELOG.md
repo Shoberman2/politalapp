@@ -3,6 +3,28 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.12.0.0] - 2026-11-16
+
+### Added
+
+- "Who Runs The Government": a new section on the home page and a new page at `/government`. A short silent film of a scale model opens on the White House and pulls back to the 15 departments and the offices under them, and three lines light up as the camera reaches each level. The model is an illustration made with AI in Higgsfield, and the page says so.
+- The 15 executive departments, each shown as a photograph of its real headquarters. Press a building to see who runs it, what it does, what is inside it, how many people work there and which committees in Congress oversee it. Every sheet links to the official page that was checked, and the page prints the date it was checked (November 16, 2026).
+- "Congress In One Minute" shows a real photograph over each of its five facts.
+- The questions on the home page open in place, one at a time, and the set is new. It now covers how to find who represents you, what happens to your ZIP code, cost, sources, contacting your representative, who runs the departments, AI and developer access.
+
+### Changed
+
+- A section's link sits at its foot. "Every term, explained" moved from the head of "Congress In One Minute" to the bottom of it.
+- The ZIP privacy statement moved from under the hero's ZIP field into the questions, with the same claim.
+
+### Removed
+
+- The breadcrumb line at the top of bill, roll call, member, record card and committee pages ("BallotWatch / H.R. 9497"). The bill number, the chamber and roll number, and the "Full record" link are still on those pages.
+- The line under the hero's ZIP field ("No sign-up to look up. Your ZIP code never reaches our servers.").
+- Home page sections "Then Write To The Person Who Cast It" and "Ask Your AI Assistant", with their mock message and mock assistant chat. Tell your rep and the MCP server still work, and the footer still links to MCP.
+- The "How BallotWatch works" link beside the questions.
+- The questions "What is BallotWatch?" and "Is it partisan?" as worded. The second is now "Does BallotWatch take a side?" with the same answer.
+
 ## [0.11.0.0] - 2026-11-15
 
 ### Added

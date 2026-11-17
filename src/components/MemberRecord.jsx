@@ -138,12 +138,6 @@ export default function MemberRecord() {
     <article className="rec">
       <SEO title={title} description={description} path={recordPath(r.id)} type="profile" image={`${SITE}${recordOgImagePath(r.id)}`} />
 
-      <nav className="rc-crumb">
-        <Link to="/">BallotWatch</Link><span className="rc-crumb-sep">/</span>
-        <Link to={`/politician/${r.id}`}>{r.name}</Link><span className="rc-crumb-sep">/</span>
-        <span>Record in 60 seconds</span>
-      </nav>
-
       <header className="rec-head">
         {!photoFailed ? (
           <img

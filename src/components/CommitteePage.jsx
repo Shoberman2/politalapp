@@ -160,14 +160,6 @@ export default function CommitteePage() {
         path={`/committee/${code}`}
       />
 
-      <nav className="committee-crumb" aria-label="Breadcrumb">
-        <Link to="/">BallotWatch</Link>
-        <span className="committee-crumb-sep">/</span>
-        <Link to="/bills">Bills</Link>
-        <span className="committee-crumb-sep">/</span>
-        <span>{committeeName}</span>
-      </nav>
-
       <header className="committee-masthead">
         <h1 className="committee-title">{committeeName}<InfoDot id="committee" /></h1>
         <p className="committee-deck">{deck}</p>

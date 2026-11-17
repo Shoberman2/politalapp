@@ -87,11 +87,12 @@ describe('renderHomeBody fallbacks and escaping', () => {
     expect(same).not.toContain('home-vote-standfirst')
   })
 
-  it('points the Tell your rep feature at /how-it-works when there is no latest vote', () => {
+  it('no longer lists the write or assistant features (2026-11-16)', () => {
     const html = renderHomeBody({ votes: null, updatedAt: null })
     expect(html).not.toContain('#tell-your-rep')
-    expect(html).toMatch(/Then Write To The Person Who Cast It<\/h3><p>[^<]*<\/p><a href="\/how-it-works">/)
-    expect(html).not.toContain('home-recent')
+    expect(html).not.toContain('Then Write To The Person Who Cast It')
+    expect(html).not.toContain('Ask Your AI Assistant')
+    expect(html).toContain('<a href="/government">How the government works</a>')
   })
 })
 
@@ -123,7 +124,7 @@ describe('homeMarkdown fallbacks', () => {
     const empty = homeMarkdown({ votes: null, updatedAt: null })
     expect(empty).not.toContain('## Latest recorded vote')
     expect(empty).not.toContain('## Recent roll calls')
-    expect(empty).toContain('(https://www.ballotwatch.io/how-it-works)')
+    expect(empty).toContain('- How it works: https://www.ballotwatch.io/how-it-works')
     expect(empty.endsWith('\n')).toBe(true)
   })
 })

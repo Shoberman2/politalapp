@@ -172,7 +172,6 @@ export function renderMemberBody(m) {
     : `<div class="pol-photo-placeholder"><span>${escapeHtml(initials(m.name))}</span></div>`
 
   return chrome(`<article class="pol">
-  <nav class="pol-crumb"><a href="/">BallotWatch</a><span class="pol-crumb-sep">/</span><a href="/all">Members</a><span class="pol-crumb-sep">/</span><span>${escapeHtml(m.name)}</span></nav>
   <header class="pol-masthead">
     <div class="pol-photo-wrap">${photoHtml}</div>
     <div class="pol-lede">
@@ -263,7 +262,6 @@ export function renderRecordBody(r) {
     : `${r.thin ? `<p class="rec-note">${escapeHtml(r.name)} has ${r.voteCount} recorded vote${r.voteCount === 1 ? '' : 's'} so far. All are shown.</p>` : ''}<div class="rc-table-wrap"><table class="rc-table rec-table"><thead><tr><th>Date</th><th>Question</th><th>Vote</th><th>Result</th><th>Source</th></tr></thead><tbody>${rows}</tbody></table></div>`
 
   return chrome(`<article class="rec">
-  <nav class="rc-crumb"><a href="/">BallotWatch</a><span class="rc-crumb-sep">/</span><a href="/politician/${escapeHtml(r.id)}">${escapeHtml(r.name)}</a><span class="rc-crumb-sep">/</span><span>Record in 60 seconds</span></nav>
   <header class="rec-head">
     <img class="rec-photo" src="${photo}" alt="${escapeHtml(r.name)}" width="96" height="117" />
     <div class="rec-id">
@@ -339,7 +337,6 @@ export function renderRollCallBody(rc) {
   const filter = `<div class="rc-filter"><input type="search" placeholder="Filter by name or state" aria-label="Filter members by name or state" disabled /><div class="rc-filter-positions" role="group" aria-label="Filter by vote"><button type="button" class="is-active" disabled>All</button><button type="button" disabled>Yea</button><button type="button" disabled>Nay</button><button type="button" disabled>Present</button><button type="button" disabled>Not Voting</button></div></div>`
 
   return chrome(`<article class="rc">
-  <nav class="rc-crumb"><a href="/">BallotWatch</a><span class="rc-crumb-sep">/</span><a href="/this-week">This week</a><span class="rc-crumb-sep">/</span><span>${escapeHtml(rc.chamber)} roll call ${rc.roll}</span></nav>
   <header class="rc-masthead">
     <div class="rc-kicker">${escapeHtml(rc.chamber)} · Roll call ${rc.roll} · Session ${rc.session} · ${escapeHtml(ordinal(rc.congress))} Congress${rc.voted_at ? ` · ${escapeHtml(fmtDate(rc.voted_at))}` : ''}</div>
     <h1 class="rc-title">${escapeHtml(rc.question || 'Recorded vote')}${rc.bill && bp ? ` on <a href="${bp}">${escapeHtml(billLabel(rc.bill.id))}</a>` : ''}</h1>
@@ -411,7 +408,6 @@ export function renderBillBody(b) {
   const src = safeUrl(b.source_url)
 
   return chrome(`<article class="bill-detail">
-  <nav class="bill-crumb"><a href="/">BallotWatch</a><span class="bill-crumb-sep">/</span><span>${escapeHtml(b.label)}</span></nav>
   <header class="bill-masthead">
     <div class="bill-id-row"><span class="bill-masthead-id">${escapeHtml(b.label)}</span><span class="bill-masthead-congress">${escapeHtml(ordinal(b.congress))} Congress</span>${status ? `<span class="bill-status-pill ${escapeHtml(status.cls)}">${escapeHtml(status.label)}</span>` : ''}</div>
     <h1 class="bill-masthead-title">${escapeHtml(b.title)}</h1>

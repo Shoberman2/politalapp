@@ -34,6 +34,7 @@ import HowItWorksPage from './components/HowItWorksPage'
 import DataSourcesPage from './components/DataSourcesPage'
 import AboutPage from './components/AboutPage'
 import GlossaryPage from './components/GlossaryPage'
+import GovernmentPage from './components/GovernmentPage'
 import ContactPage from './components/ContactPage'
 import PrivacyPage from './components/PrivacyPage'
 import TermsPage from './components/TermsPage'
@@ -80,6 +81,7 @@ function App() {
           <Route path="/data-sources" element={<DataSourcesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />
+          <Route path="/government" element={<GovernmentPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

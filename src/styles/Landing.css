@@ -26,9 +26,9 @@
 .landing a.btn-text:hover { color: var(--accent-hover); }
 
 /* shared section type: h2 and body from the DESIGN.md scale */
-.landing .primer-head h2,
+.landing .primer-inner > h2,
 .landing .feature-text h2,
-.landing .faq-head h2,
+.landing .faq-inner > h2,
 .landing .finale-inner h2 {
   font-family: var(--serif);
   font-weight: 600;
@@ -109,11 +109,6 @@
   border-color: transparent;
 }
 .landing .hero .lookup-form:focus-within { border-color: transparent; box-shadow: 0 0 0 3px var(--on-photo-2); }
-.landing .hero .lookup-hint {
-  color: var(--on-photo-2);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
-}
-
 /* the latest recorded votes, a full-bleed ticker rolling left under the
    lookup. The only continuously scrolling content on the site (loading
    indicators aside; DESIGN.md, 2026-10-06): it pauses on hover, on focus and
@@ -263,12 +258,6 @@
 }
 .landing .lookup-form input::placeholder { color: var(--ink-3); }
 .landing .lookup-form button { flex-shrink: 0; }
-.landing .lookup-hint {
-  font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 18px 0 0;
-}
 
 /* district lookup result: a raised card under the field that was used */
 .landing .lookup-result {
@@ -339,35 +328,36 @@
 .landing .lookup-result .lr-m-record:hover { color: var(--accent-hover); }
 
 /* =====================================================
-   PRIMER: "Congress In One Minute", five plain facts
+   PRIMER: "Congress In One Minute", five facts, each under a real
+   photograph. Two wide, then three: space separates them, not boxes.
    ===================================================== */
 .landing .primer { background: var(--bg); }
 .landing .primer-inner {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: var(--section-y) 40px calc(var(--section-y) / 2);
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
-  gap: clamp(32px, 6vw, 96px);
-  align-items: start;
 }
-.landing .primer-head p {
-  max-width: 30rem;
-  margin: 20px 0 0;
-  font-size: 17px;
-  line-height: 1.6;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.landing .primer-head .btn-text { margin-top: 12px; min-height: 44px; }
+.landing .primer-inner > h2 { text-align: center; }
 .landing .primer-list {
   list-style: none;
-  margin: 0;
+  margin: clamp(40px, 5vw, 64px) 0 0;
   padding: 0;
   display: grid;
-  gap: 32px;
-  max-width: 40rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(40px, 5vw, 56px) clamp(24px, 3vw, 40px);
 }
+.landing .primer-list li { grid-column: span 2; min-width: 0; }
+.landing .primer-list li:nth-child(-n + 2) { grid-column: span 3; }
+.landing .primer-list img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--r-card);
+  background: var(--surface-dim);
+}
+.landing .primer-list li:nth-child(-n + 2) img { aspect-ratio: 16 / 9; }
 .landing .primer-list h3 {
   font-family: var(--serif);
   font-weight: 600;
@@ -375,14 +365,16 @@
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 0;
+  margin: 20px 0 0;
 }
 .landing .primer-list p {
   margin: 6px 0 0;
   font-size: 17px;
   line-height: 1.6;
   color: var(--ink-2);
+  text-wrap: pretty;
 }
+.landing .primer-link { display: flex; width: fit-content; margin: 40px auto 0; min-height: 44px; }
 
 /* =====================================================
    FEATURES: one idea per section, alternating sides
@@ -499,30 +491,6 @@
 .landing .mk-rec-stats small { font-size: 14px; color: var(--ink-2); }
 .landing .mk-rec-vote { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 
-/* the opening of a Tell your rep draft */
-.landing .mk-letter {
-  margin: 0;
-  font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--ink);
-}
-.landing .mk-yours { color: var(--accent); }
-
-/* MCP transcript: two turns, the answer built from real recent votes */
-.landing .mock-chat { gap: 18px; }
-.landing .mk-turn { display: flex; flex-direction: column; gap: 6px; }
-.landing .mk-turn p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink); }
-.landing .mk-turn-user { align-self: flex-end; max-width: 88%; padding: 12px 16px; border-radius: var(--r-card); background: var(--surface-dim); }
-.landing .mk-who { font-size: 14px; font-weight: 600; color: var(--ink-3); }
-.landing .mk-answer { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.landing ul.mk-answer li {
-  display: grid;
-  grid-template-columns: 4.5em minmax(0, 1fr);
-  gap: 10px;
-  align-items: baseline;
-}
-
 /* Office inbox: one message, labelled fields */
 .landing .mk-label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
 .landing .mk-fields { margin: 0; display: flex; flex-direction: column; gap: 12px; }
@@ -546,30 +514,58 @@
 .landing .fr-result.neutral { color: var(--ink-2); }
 
 /* =====================================================
-   FAQ: heading column + plain question and answer pairs
+   FAQ: questions that open in place, one at a time
    ===================================================== */
 .landing .faq { background: var(--bg); }
 .landing .faq-inner {
-  max-width: var(--maxw);
+  max-width: 800px;
   margin: 0 auto;
   padding: calc(var(--section-y) / 2) 40px var(--section-y);
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
-  gap: clamp(32px, 6vw, 96px);
-  align-items: start;
 }
-.landing .faq-head .btn-text { margin-top: 16px; min-height: 44px; }
-.landing .faq-list { display: grid; gap: 40px; max-width: 44rem; }
-.landing .faq-item h3 {
+.landing .faq-inner > h2 { text-align: center; }
+.landing .faq-list { display: grid; gap: 12px; margin-top: clamp(32px, 4vw, 48px); }
+.landing .faq-item {
+  background: var(--surface-dim);
+  border-radius: var(--r-card);
+}
+.landing .faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 64px;
+  padding: 16px 24px;
   font-family: var(--sans);
   font-weight: 600;
-  font-size: clamp(20px, 2vw, 24px);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  font-size: clamp(17px, 1.6vw, 20px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--ink);
-  margin: 0;
+  border-radius: var(--r-card);
 }
-.landing .faq-item p { margin: 8px 0 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.landing .faq-item summary::-webkit-details-marker { display: none; }
+.landing .faq-item summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* a plus that becomes a minus when the answer is open */
+.landing .faq-item summary::after {
+  content: '+';
+  flex-shrink: 0;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+.landing .faq-item[open] summary::after { content: '\2212'; }
+.landing .faq-item p {
+  margin: 0;
+  padding: 0 24px 24px;
+  max-width: 44rem;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
 
 /* =====================================================
    FINALE: the closing lookup
@@ -589,8 +585,8 @@
    RESPONSIVE
    ===================================================== */
 @media (max-width: 940px) {
-  .landing .primer-inner,
-  .landing .faq-inner { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .landing .primer-list li,
+  .landing .primer-list li:nth-child(-n + 2) { grid-column: span 3; }
   .landing .feature { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .landing .feature:nth-child(even) .feature-text { order: 0; }
   .landing .hero-inner,
@@ -606,6 +602,10 @@
   .landing .faq-inner,
   .landing .finale-inner { padding-left: 20px; padding-right: 20px; }
   .landing .mock { padding: 22px 20px; }
+  .landing .primer-list li,
+  .landing .primer-list li:nth-child(-n + 2) { grid-column: 1 / -1; }
+  .landing .faq-item summary { padding: 14px 18px; }
+  .landing .faq-item p { padding: 0 18px 20px; }
   .landing .lookup-form { padding-left: 6px; }
   .landing .lookup-form input { font-size: 17px; padding-left: 12px; }
   .landing .lookup-form button { padding-left: 18px; padding-right: 18px; }
