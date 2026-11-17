@@ -65,17 +65,12 @@ function recentVotesHtml(list) {
     </section>`
 }
 
-function featureHref(f, latest) {
-  if (f.id === 'write' && latest) return `${rollCallPath(latest.id)}#tell-your-rep`
-  return f.href
-}
-
 export function renderHomeBody(data) {
   const votes = data.votes
   const latest = votes?.latest || null
   const recent = votes?.recent || []
   const recorded = data.updatedAt ? fmtDate(data.updatedAt) : ''
-  const features = HOME_FEATURES.map((f) => `<li><h3>${escapeHtml(f.title)}</h3><p>${escapeHtml(f.body)}</p><a href="${escapeHtml(featureHref(f, latest))}">${escapeHtml(f.label)}</a></li>`).join('')
+  const features = HOME_FEATURES.map((f) => `<li><h3>${escapeHtml(f.title)}</h3><p>${escapeHtml(f.body)}</p><a href="${escapeHtml(f.href)}">${escapeHtml(f.label)}</a></li>`).join('')
   const faq = LANDING_FAQ.map(({ q, a }) => `<div class="home-faq-item"><h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p></div>`).join('')
   const primer = CIVICS_PRIMER.map((p) => `<li><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.body)}</p></li>`).join('')
   const links = HOME_LINKS.map((l) => `<a href="${escapeHtml(l.href)}">${escapeHtml(l.label)}</a>`).join(' · ')
@@ -151,7 +146,7 @@ export function homeMarkdown(data) {
     }
   }
   lines.push('', '## What you can do', '')
-  for (const f of HOME_FEATURES) lines.push(`- **${f.title}** (${SITE}${featureHref(f, latest)}): ${f.body}`)
+  for (const f of HOME_FEATURES) lines.push(`- **${f.title}** (${SITE}${f.href}): ${f.body}`)
   lines.push('', '## FAQ', '')
   for (const { q, a } of LANDING_FAQ) lines.push(`### ${q}`, '', a, '')
   lines.push('## More', '')

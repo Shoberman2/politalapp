@@ -3,8 +3,7 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import { HelmetProvider } from 'react-helmet-async'
 import { MemoryRouter } from 'react-router-dom'
 
-// The MCP, API and offices features render from real data only: the featured
-// member's record and the latest recorded vote. Skeletons only while loading,
+// The offices feature renders from real data only: the latest recorded vote. Skeletons only while loading,
 // a one-line fallback when the data could not be loaded, never invented rows.
 
 const { services } = vi.hoisted(() => ({
@@ -52,38 +51,25 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('Landing: agent and office features', () => {
+describe('Landing: office feature', () => {
   it('shows skeletons, not invented data, while nothing has loaded', () => {
     services.getRecentFloorVotes.mockReturnValue(new Promise(() => {}))
     const { container } = renderLanding()
-    for (const id of ['mcp', 'offices']) {
-      const f = container.querySelector(`.feature-${id}`)
-      expect(f.querySelectorAll('.mk-skel').length).toBeGreaterThan(0)
-    }
-    expect(container.querySelector('.feature-mcp .mk-answer li')).toBeNull()
+    expect(container.querySelectorAll('.feature-offices .mk-skel').length).toBeGreaterThan(0)
   })
 
-  it('builds the MCP transcript from the featured member’s real votes', async () => {
-    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
-    services.getFeaturedMembers.mockResolvedValue([{ bioguideId: 'B001318', name: 'Becca Balint', chamber: 'house', state: 'VT', party: 'D' }])
-    services.getMemberRecord.mockResolvedValue(record)
+  it('no longer carries the assistant or the write sections (2026-11-16)', async () => {
+    services.getRecentFloorVotes.mockResolvedValue({ votes: [vote(281), vote(280), vote(279)], recordedThrough: '2026-07-24' })
     const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-mcp .mk-answer li')).not.toBeNull())
-    const mcp = container.querySelector('.feature-mcp .mock-chat')
-    expect(mcp.querySelector('.mk-turn-user').textContent).toMatch('How did Becca Balint vote recently?')
-    const rows = [...mcp.querySelectorAll('.mk-answer li')].map((li) => li.textContent)
-    expect(rows).toEqual(['YeaH.R. 8800 · On Passage', 'NayOn Motion to Recommit'])
-    expect(mcp.querySelector('.mk-src').textContent).toBe('Source · BallotWatch MCP · House roll call 281')
+    await waitFor(() => expect(container.querySelector('.feature-offices .mk-fields .mk-skel')).toBeNull())
+    for (const id of ['mcp', 'write', 'agents']) expect(container.querySelector(`.feature-${id}`), id).toBeNull()
+    expect(container.textContent).not.toMatch(/Then Write To The Person Who Cast It|Ask Your AI Assistant/)
   })
 
   it('prints the inbox row from the latest recorded vote', async () => {
     services.getRecentFloorVotes.mockResolvedValue({ votes: [vote(281), vote(280), vote(279)], recordedThrough: '2026-07-24' })
     const { container } = renderLanding()
     await waitFor(() => expect(container.querySelector('.feature-offices .mk-fields .mk-skel')).toBeNull())
-    // The API and MCP sections are one section now (2026-11-14); the JSON card is gone.
-    expect(container.querySelector('.feature-agents')).toBeNull()
-    expect(container.querySelector('.feature-mcp').textContent).toMatch(/no key needed to read/)
-
     const inbox = container.querySelector('.feature-offices .mock-inbox')
     const fields = Object.fromEntries([...inbox.querySelectorAll('.mk-fields > div')].map((d) => [d.querySelector('dt').textContent, d.querySelector('dd').textContent]))
     expect(fields).toEqual({ From: 'A constituent in your district', Re: 'H.R. 8800', Vote: '216–214 · Passed', Status: 'Received' })
@@ -94,18 +80,9 @@ describe('Landing: agent and office features', () => {
     services.getFeaturedMembers.mockRejectedValue(new Error('offline'))
     const { container } = renderLanding()
     await waitFor(() => expect(container.querySelector('.feature-offices .mk-unavailable')).not.toBeNull())
-    expect(container.querySelector('.feature-mcp .mk-unavailable').textContent).toBe('The record could not be loaded right now.')
     expect(container.querySelector('.feature-offices .mk-unavailable').textContent).toBe('No recorded vote available right now.')
-    for (const id of ['mcp', 'offices', 'write', 'votes', 'find']) {
+    for (const id of ['offices', 'votes', 'find']) {
       expect(container.querySelectorAll(`.feature-${id} .mk-skel`), id).toHaveLength(0)
     }
-  })
-
-  it('says "No recorded votes yet." when the featured member has none', async () => {
-    services.getRecentFloorVotes.mockResolvedValue({ votes: [], recordedThrough: null })
-    services.getFeaturedMembers.mockResolvedValue([{ bioguideId: 'B001318', name: 'Becca Balint', chamber: 'house', state: 'VT', party: 'D' }])
-    services.getMemberRecord.mockResolvedValue({ ...record, recentVotes: [] })
-    const { container } = renderLanding()
-    await waitFor(() => expect(container.querySelector('.feature-mcp .mk-turn-ai p')?.textContent).toBe('No recorded votes yet.'))
   })
 })

@@ -14,19 +14,6 @@
   to { opacity: 1; }
 }
 
-/* CRUMB */
-.bill-crumb {
-  display: flex;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--ink-3);
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-}
-.bill-crumb a { color: var(--accent); text-decoration: none; }
-.bill-crumb a:hover { text-decoration: underline; }
-.bill-crumb-sep { color: var(--ink-3); }
-
 /* MASTHEAD: the title leads; the bill number, Congress and status sit under
    it. `order` keeps that true for the server-rendered markup as well. */
 .bill-masthead {

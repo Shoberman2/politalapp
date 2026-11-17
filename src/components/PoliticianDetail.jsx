@@ -317,15 +317,6 @@ function PoliticianDetail() {
         }}
       />
 
-      {/* CRUMB */}
-      <nav className="pol-crumb">
-        <Link to="/">BallotWatch</Link>
-        <span className="pol-crumb-sep">/</span>
-        <Link to="/all">Representatives</Link>
-        <span className="pol-crumb-sep">/</span>
-        <span>{stateAbbr}{district ? `-${district}` : ''}</span>
-      </nav>
-
       {/* MASTHEAD */}
       <header className="pol-masthead">
         <div className="pol-photo-wrap">

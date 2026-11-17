@@ -25,19 +25,18 @@ export const HOME_H1 = 'How Did Your Representative Vote This Week?'
 export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan record of the U.S. Congress. Enter your address to find your House representative and both senators (a ZIP code alone finds your senators), then see how each of them voted on every recorded roll call in the 119th Congress, read what each bill does in plain English, and write to them about a specific vote. Every vote, bill and member comes from Congress.gov, the House Clerk and the Senate, is refreshed daily, and links to its official source.`
 
 // Feature blurbs for the landing and the server-rendered homepage. The
-// landing swaps two links for live ones (the featured member's record card,
-// Tell your rep on the latest vote); `href` here is the fallback.
+// landing swaps one link for a live one (the featured member's record card);
+// `href` here is the fallback.
 export const HOME_FEATURES = [
   { id: 'find', title: 'Know Who Speaks For You', body: 'Your address finds your House member and both senators, from U.S. Census district data. A ZIP code alone finds your senators.', href: '/my-representative', label: 'Save my reps (free account)' },
   { id: 'bills', title: 'Every Bill, Explained In Plain English', body: 'Bills are written in dense legal language. We explain each one in a few everyday sentences: what it would change and who it affects. Written with AI from the bill’s own text, never guessed from its title. The full official text is one click away.', href: '/bills', label: 'Browse bills (free account)' },
   { id: 'votes', title: 'See Exactly How They Voted', body: 'Every recorded vote (a roll call), this week’s and every one before it, with each member’s yes or no linked to the official record. Every member gets the same one-screen card: votes cast, votes missed and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
-  { id: 'write', title: 'Then Write To The Person Who Cast It', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', href: '/how-it-works', label: 'How Tell your rep works' },
-  { id: 'mcp', title: 'Ask Your AI Assistant', body: 'Connect Claude, ChatGPT or any MCP client and ask how your representative voted. Every answer cites the official record. Developers get the same record as JSON: every member, vote and bill, free, with no key needed to read. Bulk files, an OpenAPI spec and llms.txt.', href: '/developers#mcp', label: 'Set up the MCP server' },
   { id: 'offices', title: 'For Congressional Offices', body: 'A channel where constituents reach your office about a specific vote and your office answers from its own published words. In development, not for sale.', href: '/offices', label: 'How it would work' },
 ]
 
 export const HOME_LINKS = [
   { href: '/how-it-works', label: 'How it works' },
+  { href: '/government', label: 'How the government works' },
   { href: '/glossary', label: 'Glossary' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/data-sources', label: 'Data sources' },

@@ -130,7 +130,8 @@ describe('Landing hero floor ticker — reduced motion follows the setting live'
     const { mq, listeners } = liveMediaQuery(false)
     window.matchMedia = vi.fn().mockReturnValue(mq)
     const { unmount } = await renderTicker(votes)
-    expect(listeners.size).toBe(1)
+    // One for the ticker, one for the government film.
+    expect(listeners.size).toBe(2)
     unmount()
     expect(listeners.size).toBe(0)
     expect(mq.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))

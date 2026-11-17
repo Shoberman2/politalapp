@@ -279,13 +279,6 @@ function BillDetail() {
         }}
       />
 
-      {/* CRUMB */}
-      <nav className="bill-crumb">
-        <Link to="/">BallotWatch</Link>
-        <span className="bill-crumb-sep">/</span>
-        <span>{formatBillId(bill, billType, number)}</span>
-      </nav>
-
       {/* MASTHEAD */}
       <header className="bill-masthead">
         <h1 className="bill-masthead-title">{displayTitle}</h1>

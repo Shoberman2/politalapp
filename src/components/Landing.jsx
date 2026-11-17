@@ -9,6 +9,7 @@ import { findMembersForDistrict } from '../services/myMembers'
 import { displayName } from '../utils/tellYourRepDraft'
 import RecordLink from './RecordLink'
 import Term from './Term'
+import GovernmentLadder from './GovernmentLadder'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
@@ -16,9 +17,6 @@ import { CIVICS_PRIMER } from '../data/civicsPrimer'
 import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
-
-// The line under the hero's ZIP field (wording from the privacy audit, 2026-10-06).
-const LOOKUP_HINT = 'No sign-up to look up. Your ZIP code never reaches our servers.'
 
 const BILL_TYPE_LABELS = {
   HR: 'H.R.', S: 'S.', HRES: 'H.Res.', SRES: 'S.Res.',
@@ -142,7 +140,6 @@ function Landing() {
   // votesReady: the recorded votes have resolved (or failed), so skeletons
   // give way to real rows or the one-line fallback.
   const [votesReady, setVotesReady] = useState(false)
-  const [recordedThrough, setRecordedThrough] = useState(null)
   const reducedMotion = usePrefersReducedMotion()
   // The hero ticker: paused by the reader's Pause control; focused while a
   // link inside it has keyboard focus (the strip stops and scrolls instead).
@@ -219,7 +216,6 @@ function Landing() {
         if (cancelled) return
         const all = data?.votes || []
         setFloorVotes(all)
-        if (all.filter(hasSomethingToShow).length >= 3 && data.recordedThrough) setRecordedThrough(data.recordedThrough)
       } catch {
         // Only runs if a future change (or a test double) makes the service
         // reject: treat that like an empty feed.
@@ -326,7 +322,6 @@ function Landing() {
           Find my reps
         </button>
       </form>
-      {place === 'hero' && <p className="lookup-hint">{LOOKUP_HINT}</p>}
 
       {lookup && lookupPlace === place && (
         <div className="lookup-result" role="status">
@@ -517,33 +512,6 @@ function Landing() {
     if (tickerViewportRef.current) tickerViewportRef.current.scrollLeft = 0
     setTickerFocused(false)
   }
-  const recordedLabel = recordedThrough
-    ? new Date(recordedThrough).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
-    : null
-
-  // The opening of a real Tell your rep draft, built from the latest recorded
-  // vote.
-  const writeVisual = (
-    <div className="mock mock-write" aria-hidden="true">
-      {headlineVote ? (
-        <p className="mk-letter">
-          On {recordedLabel || 'the latest vote'}, the {headlineVote.chamber || 'chamber'} voted on{' '}
-          {headlineVote.bill ? `${headlineVote.bill.display}: ` : ''}{truncate(headlineVote.text, 70)}
-          {headlineVote.tally ? ` The result was ${headlineVote.tally}.` : ''}
-          <br />
-          <span className="mk-yours">[Write your message here, in your own words.]</span>
-        </p>
-      ) : votesReady ? (
-        <p className="mk-unavailable">{NO_VOTE}</p>
-      ) : (
-        <p className="mk-letter">
-          <span className="mk-skel" style={{ width: '90%', maxWidth: 'none' }} />
-          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
-        </p>
-      )}
-      <span className="mk-src">You send it through their official contact page</span>
-    </div>
-  )
 
   // The vote record feature: the real one-screen record card for a featured member,
   // laid out like their profile (photo, seat, totals, latest votes).
@@ -599,49 +567,6 @@ function Landing() {
     </div>
   )
 
-  // The assistant feature: a two-turn MCP transcript. The question names the real
-  // featured member; the answer lines are that member's real latest votes.
-  const mcpVotes = (featuredRecord?.recentVotes || []).slice(0, 3)
-  const mcpSource = mcpVotes[0]?.roll != null
-    ? `${mcpVotes[0].chamber || 'Roll call'} roll call ${mcpVotes[0].roll}`
-    : null
-  const mcpVisual = (
-    <div className="mock mock-chat" aria-hidden="true">
-      <div className="mk-turn mk-turn-user">
-        <span className="mk-who">You</span>
-        {featuredRecord
-          ? <p>How did {featuredRecord.name} vote recently?</p>
-          : recordFailed
-            ? <p>How did my representative vote recently?</p>
-            : <p><span className="mk-skel" style={{ width: '70%', maxWidth: 'none' }} /></p>}
-      </div>
-      <div className="mk-turn mk-turn-ai">
-        <span className="mk-who">Assistant</span>
-        {featuredRecord ? (
-          mcpVotes.length ? (
-            <ul className="mk-answer">
-              {mcpVotes.map((v) => (
-                <li key={v.roll_call_id}>
-                  {v.position && <span className={`mk-pos ${String(v.position).toLowerCase().replace(/\s+/g, '-')}`}>{v.position}</span>}
-                  <span className="mk-desc">{truncate([v.bill?.label, v.question].filter(Boolean).join(' · ') || 'Recorded vote', 48)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : <p>No recorded votes yet.</p>
-        ) : recordFailed ? (
-          <p className="mk-unavailable">{NO_RECORD}</p>
-        ) : (
-          <div className="mk-answer">
-            <span className="mk-skel" style={{ width: '88%', maxWidth: 'none' }} />
-            <span className="mk-skel" style={{ width: '76%', maxWidth: 'none', marginTop: 10 }} />
-            <span className="mk-skel" style={{ width: '64%', maxWidth: 'none', marginTop: 10 }} />
-          </div>
-        )}
-      </div>
-      {mcpSource && <span className="mk-src">Source · {BRAND.name} MCP · {mcpSource}</span>}
-    </div>
-  )
-
   // The offices feature: one row of an office inbox, built from the latest
   // recorded vote. Nothing in it speaks in the Member's name.
   // Same fields and the same pick as the /offices inbox (inboxFields).
@@ -663,17 +588,14 @@ function Landing() {
   )
 
   const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
-  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/this-week'
 
   // Headlines and copy come from src/data/homeSeo.js, the same text the
   // server-rendered homepage gives crawlers and AI answer engines.
   const VISUALS = {
-    find: repsVisual, bills: billVisual, votes: recordVisual, write: writeVisual,
-    mcp: mcpVisual, offices: officesVisual,
+    find: repsVisual, bills: billVisual, votes: recordVisual, offices: officesVisual,
   }
   const LINK_OVERRIDES = {
     votes: { to: recordHref, label: 'See a record' },
-    write: { to: writeHref, label: 'Write about the latest vote' },
   }
   const FEATURES = HOME_FEATURES.map((f) => ({
     ...f,
@@ -749,27 +671,24 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== PRIMER: the few facts a first-time visitor needs ===== */}
+      {/* ===== PRIMER: five facts, each beside a real photograph ===== */}
       <section className="primer" aria-labelledby="primer-title">
         <div className="primer-inner">
-          <header className="primer-head">
-            <h2 id="primer-title">Congress In One Minute</h2>
-            <p>
-              You don’t need any background in politics. These five facts are enough, and every confusing
-              word on the site has an ⓘ you can tap for a plain-English explanation.
-            </p>
-            <Link className="btn-text" to="/glossary">Every term, explained</Link>
-          </header>
+          <h2 id="primer-title">Congress In One Minute</h2>
           <ul className="primer-list">
             {CIVICS_PRIMER.map((p) => (
               <li key={p.title}>
+                <img src={p.image} alt={p.alt} width="1600" height="1000" loading="lazy" decoding="async" />
                 <h3><Term id={p.term}>{p.title}</Term></h3>
                 <p>{p.body}</p>
               </li>
             ))}
           </ul>
+          <Link className="btn-text primer-link" to="/glossary">Every term, explained</Link>
         </div>
       </section>
+
+      <GovernmentLadder />
 
       {/* ===== FEATURES: one idea per section, a simple real-data image each ===== */}
       <section className="features">
@@ -785,19 +704,16 @@ function Landing() {
         ))}
       </section>
 
-      {/* ===== FAQ ===== */}
+      {/* ===== FAQ: one question open at a time ===== */}
       <section className="faq" aria-labelledby="faq-title">
         <div className="faq-inner">
-          <header className="faq-head">
-            <h2 id="faq-title">Questions, Answered</h2>
-            <Link className="btn-text" to="/how-it-works">How {BRAND.name} works</Link>
-          </header>
+          <h2 id="faq-title">Questions, Answered</h2>
           <div className="faq-list">
             {FAQ.map((item) => (
-              <div key={item.q} className="faq-item">
-                <h3>{item.q}</h3>
+              <details key={item.q} className="faq-item" name="landing-faq">
+                <summary>{item.q}</summary>
                 <p>{item.a}</p>
-              </div>
+              </details>
             ))}
           </div>
         </div>

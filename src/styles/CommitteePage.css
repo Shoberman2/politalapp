@@ -6,15 +6,6 @@
   padding: 24px 24px 96px;
 }
 
-.committee-crumb {
-  font-size: 14px;
-  color: var(--ink-3);
-  margin-bottom: 32px;
-}
-.committee-crumb a { color: var(--accent); text-decoration: none; }
-.committee-crumb a:hover { text-decoration: underline; }
-.committee-crumb-sep { margin: 0 8px; color: var(--ink-3); }
-
 /* MASTHEAD */
 .committee-masthead { margin-bottom: 72px; }
 

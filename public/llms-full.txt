@@ -24,6 +24,7 @@ Contents: 1. Site map and citation rules (llms.txt). 2. Open data files and sche
 - This week on the floor: https://www.ballotwatch.io/this-week
 - How it works: https://www.ballotwatch.io/how-it-works
 - Glossary (what congressional terms like roll call, cloture and cosponsor mean, in plain English): https://www.ballotwatch.io/glossary
+- How the government works (the President, the 15 executive departments, who runs each and what it does, with sources): https://www.ballotwatch.io/government
 - Data sources: https://www.ballotwatch.io/data-sources
 - Methodology: https://www.ballotwatch.io/methodology
 

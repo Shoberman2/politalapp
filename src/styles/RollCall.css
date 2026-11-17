@@ -17,14 +17,6 @@
 .rc-error h1 { font-family: var(--display); font-weight: 600; font-size: clamp(36px, 5.4vw, 64px); letter-spacing: -0.04em; line-height: 1; margin-bottom: 16px; }
 .rc-error a { color: var(--accent); }
 
-.rc-crumb {
-  display: flex; gap: 10px; flex-wrap: wrap;
-  font-size: 14px; color: var(--ink-3); margin-bottom: 32px;
-}
-.rc-crumb a { color: var(--accent); text-decoration: none; }
-.rc-crumb a:hover { text-decoration: underline; }
-.rc-crumb-sep { color: var(--ink-3); }
-
 /* The question leads; where and when it was asked sits under it. `order`
    keeps that true for the server-rendered markup as well. */
 .rc-masthead { display: flex; flex-direction: column; margin-bottom: 56px; }
@@ -102,7 +94,6 @@
 
 @media (max-width: 640px) {
   .rc { padding: 24px 20px 64px; }
-  .rc-crumb { margin-bottom: 24px; }
   .rc-masthead { margin-bottom: 40px; }
   .rc-filter-positions .btn-toggle { padding-left: 12px; padding-right: 12px; }
 }
