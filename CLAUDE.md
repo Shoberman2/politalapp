@@ -41,8 +41,9 @@ Key routing rules:
   `src/components/AccessGate.jsx` enforces it around every route and
   `api/sitemap.js` leaves those pages out. Keep record pages, the API and
   `/mcp` off the list: llms.txt, the MCP server and search results link to
-  them. `/this-week` and the members list (`/all`) are on it by the
-  founder's decision (2026-11-17); do not take them off without asking. `ProtectedRoute` and `RequireAuth` are legacy
+  them. The members list (`/all`) is on it by the founder's decision
+  (2026-11-17); do not take it off without asking. `/this-week` is public,
+  is not in the nav, and is shown on the landing (founder, 2026-11-17). `ProtectedRoute` and `RequireAuth` are legacy
   aliases; do not wrap new routes in them. `test/shared/access.test.js` and
   `test/components/AccessGate.test.jsx` cover the list.
 - `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in

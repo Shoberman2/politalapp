@@ -16,8 +16,10 @@ function ClosingCta() {
   if (!showsClosingCta(pathname)) return null
   return (
     <section className="closing-cta" aria-labelledby="closing-cta-title">
-      <h2 id="closing-cta-title">See How Your Reps Voted</h2>
-      <Link className="btn-primary" to={CTA_HREF}>{CTA_LABEL}</Link>
+      <div className="closing-cta-band">
+        <h2 id="closing-cta-title">See How Your Reps Voted</h2>
+        <Link className="btn-primary" to={CTA_HREF}>{CTA_LABEL}</Link>
+      </div>
     </section>
   )
 }

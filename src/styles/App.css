@@ -504,17 +504,34 @@ textarea.field { padding: 14px 16px; min-height: 120px; line-height: 1.5; }
 /* ============ CLOSING CALL TO ACTION ============
    The band every public interior page ends on (src/components/ClosingCta.jsx). */
 .closing-cta {
-  padding: var(--section-y) 24px;
-  text-align: center;
+  padding: var(--section-y) clamp(20px, 5vw, 56px) clamp(40px, 6vw, 72px);
   background: var(--bg);
+}
+/* The Capitol photograph from the landing hero, under the same scrim, as one
+   rounded band: the site's one dark band (DESIGN.md, 2026-11-17). */
+.closing-cta-band {
+  --photo-scrim: linear-gradient(180deg, rgba(12, 14, 18, 0.62) 0%, rgba(12, 14, 18, 0.7) 100%);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(72px, 10vw, 128px) 24px;
+  text-align: center;
+  border-radius: clamp(24px, 3vw, 40px);
+  background-color: #1a1d22;
+  background-image: var(--photo-scrim), url('/hero-capitol.jpg');
+  background-size: cover;
+  background-position: center 38%;
 }
 .closing-cta h2 {
   font-size: clamp(30px, 4.4vw, 56px);
   line-height: 1.02;
   letter-spacing: -0.04em;
-  max-width: 16ch;
-  margin: 0 auto 28px;
-  color: var(--ink);
+  max-width: 20ch;
+  margin: 0 auto 32px;
+  color: #fff;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.35);
+}
+@media (max-width: 640px) {
+  .closing-cta-band { background-image: var(--photo-scrim), url('/hero-capitol-square.jpg'); }
 }
 
 /* Reduced motion: no animation or transition anywhere. The landing's floor

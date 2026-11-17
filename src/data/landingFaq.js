@@ -12,7 +12,7 @@ export const LANDING_FAQ = [
   },
   {
     q: 'Do I need an account, and what does it cost?',
-    a: 'An account is free, and you need one for the app’s tools: your representatives, the bills browser, the district map, the shutdown tracker, campaign-finance comparison and AI Congress. Looking up who represents you, this week’s votes, the members list, every member profile and record card, every bill and roll call, and the public API need no account.',
+    a: 'An account is free, and you need one for the app’s tools: your representatives, the bills browser, the district map, the shutdown tracker, campaign-finance comparison, AI Congress and the members list. Looking up who represents you, this week’s votes, every member profile and record card, every bill and roll call, and the public API need no account.',
   },
   {
     q: 'Where does the record come from, and how current is it?',

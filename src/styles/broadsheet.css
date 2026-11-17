@@ -179,25 +179,26 @@
 @keyframes sheet-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 /* ============ FOOTER ============
-   A statement and the primary action on top, link columns under it, the
-   small print last. Space separates the three; there are no rules. */
+   The mark, the name and one line on the left, four link columns beside
+   them, the small print last. No button: the closing band above carries the
+   primary action. Space separates the parts; there are no rules. */
 .bw .footer { margin-top: 0; background: var(--surface-dim); }
-.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 72px 32px 40px; }
-.bw .footer-top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px 48px;
-  flex-wrap: wrap;
-  padding-bottom: 64px;
+.bw .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 88px 32px 40px; }
+.bw .footer-main {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 9fr);
+  gap: 56px 72px;
+  padding-bottom: 72px;
 }
-.bw .footer-wordmark { display: block; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: var(--ink); }
-.bw .footer-tag { margin: 14px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 38ch; }
+.bw .footer-home { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; }
+.bw .footer-home .brand-mark { width: 44px; height: 24px; }
+.bw .footer-wordmark { display: block; font-family: var(--display); font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+.bw .footer-tag { margin: 16px 0 0; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 30ch; }
+.bw .footer-free { margin: 12px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink-3); }
 .bw .footer-cols {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 40px 32px;
-  padding-bottom: 64px;
 }
 .bw .footer-col h4 {
   font-family: var(--sans);
@@ -224,7 +225,7 @@
   gap: 8px 24px;
   flex-wrap: wrap;
 }
-.bw .footer-bottom p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-3); }
+.bw .footer-bottom p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink-3); }
 
 /* ============ MOBILE NAV ============
    Under 940px the links move into a full-screen sheet: big tappable rows,
@@ -297,6 +298,7 @@ body.nav-sheet-open { overflow: hidden; }
     cursor: pointer;
   }
   .bw .nav-burger:hover { background: var(--fill-soft); }
+  .bw .footer-main { grid-template-columns: minmax(0, 1fr); gap: 48px; }
   .bw .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
@@ -304,7 +306,7 @@ body.nav-sheet-open { overflow: hidden; }
   .bw .topnav { padding-left: 20px; padding-right: 20px; }
   .bw .topbar-right { gap: 6px; }
   .bw .footer-inner { padding: 56px 20px 32px; }
-  .bw .footer-top { flex-direction: column; align-items: flex-start; padding-bottom: 48px; }
+  .bw .footer-main { padding-bottom: 48px; }
   .bw .footer-col a { min-height: 44px; }
   .bw .footer-bottom { flex-direction: column; }
 }

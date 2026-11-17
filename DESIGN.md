@@ -8,7 +8,7 @@
 
 ## Aesthetic Direction
 - **Direction:** Editorial/Magazine — the feeling of a well-designed broadsheet newspaper covering Congress, not a government database or SaaS dashboard
-- **Decoration level:** Intentional — thin rule lines as dividers (newspaper-style), generous whitespace. No gradients, no blobs, no decorative illustrations. One scoped exception: the landing hero's Capitol photograph under a dark gradient scrim (see the 2026-10-07 decision).
+- **Decoration level:** Intentional: generous whitespace separates everything (no rule lines since 2026-11-14). No gradients, no blobs, no decorative illustrations. One scoped exception: the landing hero's Capitol photograph under a dark gradient scrim (see the 2026-10-07 decision).
 - **Mood:** Authoritative but approachable. Typography does the heavy lifting. Clean, confident, serious content presented with care. The user should feel: "This is unexpectedly well-designed for a civic tool, and therefore I trust it more."
 - **Reference sites:** GovTrack (functional but dated), Quorum (enterprise SaaS), Open States/Plural (transitioning to B2B). BallotWatch deliberately departs from all of these by treating civic data as editorial content, not database output.
 
@@ -19,7 +19,8 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 **What every page follows**
 
 - **Buttons are pills.** One system in `src/styles/App.css`: `.btn-primary` (solid accent pill, one per view), `.btn-outline` (outlined pill), `.btn-secondary` / `.btn-text` (accent text action), `.btn-sm`, `.btn-toggle` (pill, soft fill when selected), `.btn-icon` (round). Words only: no arrows, chevrons or icons in a button or CTA link. `.btn-go` is retired and adds nothing. Page stylesheets add layout only.
-- **One primary action, one wording.** "Find my reps" (`src/config/cta.js`) in the nav, the hero, the closing band (`ClosingCta.jsx`, on every public interior page except legal and sign-in) and the footer. It never changes after load.
+- **A button inside a field fills it.** When a button sits in the same pill as an input (the ZIP lookup), it is the full height of the field and flush with its end. No ring of the field's fill shows around the button (founder, 2026-11-17).
+- **One primary action, one wording.** "Find my reps" (`src/config/cta.js`) in the nav, the hero and the closing band (`ClosingCta.jsx`, on every public interior page except legal and sign-in). The footer carries no button, so the action is never said twice in a row (2026-11-17). It never changes after load.
 - **Space separates, not lines.** No `<hr>`, no `border-top` / `border-bottom` between sections, list rows, FAQ items, cards-in-a-list or footer columns. Two exceptions: a hairline between rows of a real data table (roll calls, member lists, vote records), and a raised surface's own outline (`--card-edge`).
 - **No labels above headlines.** No kickers, eyebrows, datelines or mono uppercase tags. No uppercase tracked text anywhere; labels are sentence case.
 - **No numbered steps.** No `01 / 02 / 03`, no "Step 1". A sequence reads as a flow or as plain short paragraphs.
@@ -33,8 +34,9 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 - **Light by default.** The site opens light on every device. Dark is a choice in the account sheet (`AccountSheet.jsx`), saved in `bw-theme`. Check both themes.
 - **Copy.** Every word, button and statement earns its place or goes. No em dashes, no arrows, no emoji, no exclamation marks. No statement or theme twice on a page. A printed number carries its source. Facts, legal constraints and privacy claims are never changed to make a line shorter.
 - **Nothing that does nothing.** A control that changes nothing the reader can see is removed, with the code that only existed for it.
-- **Nav.** Sticky, full width, 68px, no rule under it. Four plain-word links, the current one in ink at 600. Right: "Sign in" + "Find my reps". Under 940px: a full-screen sheet with large links and the two account actions at the bottom; Escape closes it. Signed in, "Sign in" becomes "Account" (a sheet with appearance and sign out). The landing never shows signed-in state.
-- **Footer.** Wordmark, one line and the primary pill on top; four link columns; small print. No rules. Every link opens a real page.
+- **Nav.** Sticky, full width, 68px, no rule under it. Three plain-word links (How it works, The government, For developers), the current one in ink at 600. Right: "Sign in" + "Find my reps". Under 940px: a full-screen sheet with large links and the two account actions at the bottom; Escape closes it. Signed in, "Sign in" becomes "Account" (a sheet with appearance and sign out). The landing never shows signed-in state.
+- **Footer.** The Capitol mark beside the wordmark (links home), one line and "Free, nonpartisan and open source." on the left; four link columns beside them; small print. No button, no rules. Every link opens a real page.
+- **Closing band.** One rounded band on the Capitol photograph under the hero scrim, white Title Case statement and the primary pill. It is the one dark band on interior pages; it never sits on plain paper.
 - **Sign in.** `/auth` is one 380px column, no card and no tabs: the Capitol mark, a Title Case heading, one line, soft-filled fields, one pill, then plain links (Forgot password, Sign up). `/auth/reset` sets a new password from the emailed link.
 - **Motion.** Fades and 1px hover lifts, 150 to 250ms. `prefers-reduced-motion` turns all of it off.
 
@@ -53,16 +55,13 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 - **No italic accents.** No `<em>` inside h1–h3, no italic accent words, no serif. `--accent-serif` survives only as an alias of `--sans` so old rules resolve.
 - **UI/Labels:** Inter 500 (nav 14px/500, labels 14px/500).
 - **Data/Tables/Code:** Geist Mono — tabular figures, for vote counts, bill numbers, percentages, dates.
-- **Mono kickers:** 11px, uppercase, tracking 0.12em. Sparingly: one per section at most, none above feature headlines.
 - **Loading:** one Google Fonts request in `index.html` for Inter (`ital,opsz,wght@0,14..32,400..700;1,14..32,400..500`) and Geist Mono. Stylesheets use the tokens, never literal font names. `html` sets `font-optical-sizing: auto` and antialiasing.
 - **Scale:**
   - Display XL (landing hero h1): clamp(40px, 5.6vw, 64px), 600, -0.035em, line-height 1.0
   - Section h2: clamp(28px, 3.4vw, 40px), 600, -0.025em, line-height 1.08
   - H3: 20px, 600, -0.01em
   - Body: 17px/1.55 on the landing, 16px/1.6 elsewhere
-  - Small: 14px
-  - Caption: 13px
-  - Mono data: 11-12px
+  - Dense app chrome only (table meta, timestamps, mono data, column headings): 13 to 15px. Nothing under 13px.
 - **Buttons:** Inter 15px/500 (14px on `.btn-sm`).
 
 ## Color
@@ -85,7 +84,7 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 - **Party colors (secondary, not dominant):**
   - Democrat: #2563EB (light mode) / #60A5FA (dark mode) — used as small text tags and thin indicator bars, NOT card backgrounds
   - Republican: #DC2626 (light mode) / #F87171 (dark mode)
-  - Independent: #7C3AED (light mode) / #A78BFA (dark mode)
+  - Independent: neutral grey, `--ind` (#5A574F). No purple anywhere.
 - **Dark mode:**
   - Background: #111110
   - Surface: #1C1C1A
@@ -108,7 +107,7 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 - **Grid:** Single column for content pages, 2-3 columns for listing/browse pages
 - **Max content width:** 1180px (`--maxw`)
 - **Border radius:** btn: 12px (primary and small buttons, button-joined inputs — `--r-btn`), toggle: 8px (filters, segmented controls, text-button focus ring — `--r-toggle`), icon: 10px (40px icon-only buttons — `--r-icon`), sm: 4px (tags, chips, inputs), md: 8px (cards, panels), lg: 12px (hero sections, modals), full: 9999px (avatars)
-  - Never use a pill radius (999px) for a button or toggle. 12px on a 44px button is clearly soft and clearly not a pill (~22px) or a square.
+  - Every button and toggle is a pill (`--r-btn: 999px`, 2026-11-14). The older 12px button rule is retired.
   - A button nested inside a bordered container (e.g. the landing ZIP field) sets the container to `calc(var(--r-btn) + <padding>)` so the two curves stay concentric.
 - **Buttons:** one shared system, unscoped in `src/styles/App.css` (`.btn-primary`, `.btn-secondary`, `.btn-text`, `.btn-go`, `.btn-sm`, `.btn-toggle`, `.btn-icon`). Each variant class works on its own; page stylesheets only add layout (width, margin, flex), never button visuals.
   - **Primary** (`.btn-primary`, one per view): solid `--accent`, white label, Inter 15px/500, sentence case, padding 11px 18px, min-height 44px, `--r-btn`, no border, no shadow; hover `--accent-hover`.
@@ -122,7 +121,7 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
   - Politician pages read like articles, not dashboards — top to bottom with editorial summary
   - AI bill explanations styled as marginalia (left-bordered annotation blocks), not chatbot bubbles
   - Party colors are text labels and thin bars, not full card background washes
-  - Thin rule lines as section dividers (newspaper-style)
+  - Space as the section divider, never a rule line
 
 ## Motion
 - **Approach:** Minimal-functional — only transitions that aid comprehension
@@ -153,4 +152,6 @@ Spencer's global rules (`~/design-rules`, skills `spencer-web-style` and `spence
 | 2026-11-14 | Global design rules applied site-wide | Founder asked for every global rule (`~/design-rules`) to be applied and for every word and control to earn its place. See "House Rules As Applied Here": pill buttons replace the 12px button, rules between sections and rows are gone, kickers and numbered steps are gone, headlines are Title Case, body text is 16px or more, independents are grey instead of purple, the theme toggle moved from the masthead into an account sheet, the sign-in page lost its card and gained password reset, every public page ends on the one primary action, and the shutdown banner stays silent when its hand-kept deadlines are stale. Supersedes the 2026-10-04 "never a pill" button rule and the thin-rule divider principle. |
 | 2026-11-16 | Landing trimmed; breadcrumbs gone; FAQ opens in place; photographs in the primer; "Who Runs The Government" | Founder asked for every statement that adds nothing to go. Removed: the breadcrumb line at the top of bill, roll-call, member, record-card and committee pages (React and server-rendered; the BreadcrumbList JSON-LD stays), the hint under the hero ZIP field (its privacy claim moved, unchanged, into the FAQ), the landing's "Then Write To The Person Who Cast It" and "Ask Your AI Assistant" sections, and the "How BallotWatch works" link in the FAQ head. A section's link now sits at its foot, never in its head. The FAQ is a set of `<details>` that open in place, one at a time (`name="landing-faq"`), each a soft-filled 16px row with a plus that becomes a minus: an explicit exception to "plain pairs, all readable without a click"; the server-rendered homepage and the FAQPage JSON-LD still carry every answer. "Congress In One Minute" shows a real, freely licensed photograph over each of its five facts (two wide, then three; credits in `public/gov/credits.json`). New section and page `/government`: one short silent film of a three-tier scale model (the White House, fifteen buildings, a field of offices) made with Higgsfield (GPT Image key frame, Kling 3.0 motion, played in reverse so it opens on the top and pulls back), with three rungs that light up as the camera reaches each tier. It plays once when scrolled into view, never loops, and is a still under `prefers-reduced-motion`; a line under it says the model is an AI illustration. This is a scoped exception to the 2026-10-02 "no video on the landing" decision, by founder request. The page shows each of the 15 departments as a photograph of its real headquarters; pressing one opens a 24px sheet (`<dialog>`) with who runs it, what it does, what is inside it, how many work there and which committees oversee it, each with a source and the date checked (`src/data/government.js`). |
 | 2026-11-17 | Developer features live on "For Developers"; no offices page; members list and This Week behind sign-in | Founder: the landing explains each feature a reader uses (find, bills, votes, write) and nothing for developers. The API, the MCP server and open data are explained on `/developers`, linked as "For developers" in the nav and footer, never as a landing section. The "For offices" page and every mention of the office channel are removed from the site (the backend stays). The members list (`/all`) and `/this-week` need a free account; bill, vote and member pages stay public. On This Week, a row leads with its title; Scheduled sits on the page and says "Not voted on yet", Recorded sits on a soft panel and ends with the result and the count. Hero headline is "How Your Rep Voted". |
+| 2026-11-17 | This Week public again, out of the nav, on the landing; mission line without the office channel | Founder: the hero said "easier to reach" and "A person answers it", which describes connecting to congressional offices, a feature the site does not offer or mention. The mission (`src/config/brand.js`) now reads "We use AI to make Congress easier to read. We never ask your name, and the ZIP code you enter here never reaches our servers." Both claims are scoped to the website lookup (the MCP tool does receive a ZIP from an assistant); "no data is stored" is not used because an account stores an email address. `/this-week` leaves `GATED_PATHS` and the nav (three links now) and its component sits on the landing under the hero as "This Week On The Floor" (four rows a column, link to the full page). Supersedes the This Week part of the row above. |
+| 2026-11-17 | Closing band on the Capitol photograph; footer loses its button and gains the mark | Founder: the closing "See How Your Reps Voted" band looked bare on plain paper, and the footer repeated "Find my reps" right under it. The band is now one rounded block on `hero-capitol.jpg` under the hero scrim. The footer drops its primary button, shows the Capitol mark beside the wordmark, and sets the brand block beside the four link columns. |
 | 2026-10-21 | Plain-English layer: ⓘ terms, `/glossary`, landing primer | Founder: the platform must make sense to someone with no political or government background, and the landing must say bills are explained in plain English. One definitions list, `shared/glossary.js` (one or two everyday sentences each, no opinion), feeds the ⓘ button (`src/components/Term.jsx`: `<Term id>` for word + ⓘ, `<InfoDot>` for the icon alone), the public `/glossary` page and the iOS copy (`scripts/sync-glossary.mjs`). The ⓘ is a 14px outlined glyph in `--ink-3` with a 24px hit area, accent on hover/open; tap, click, Enter or mouse hover opens a `--surface-raised` popover (8px radius, hairline border, term name at 600 then the definition in `--ink-2`, an "All terms, explained" link), clamped to the viewport with a 12px gutter; Escape, a second tap or a tap outside closes it. Mark only the first or most prominent use of a term in a region, and never inside a link or button. The old hover-only `Tooltip`/`InfoTip` now render the same ⓘ. The landing hero gains a three-item check list ("Every bill explained in plain English", "Every recorded vote, by name", "No politics background needed"), a "Congress in one minute" primer section follows the hero (five mono-numbered facts, each with its ⓘ), and the plain-English bills feature moves to second place. |

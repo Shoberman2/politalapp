@@ -10,6 +10,7 @@ import { displayName } from '../utils/tellYourRepDraft'
 import RecordLink from './RecordLink'
 import Term from './Term'
 import GovernmentLadder from './GovernmentLadder'
+import ThisWeekOnFloor from './ThisWeekOnFloor'
 import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
@@ -674,6 +675,16 @@ function Landing() {
           ) : (
             <p className="mk-unavailable ft-empty">{NO_VOTE}</p>
           )}
+        </div>
+      </section>
+
+      {/* ===== THIS WEEK: the House schedule beside the latest recorded votes.
+          The full list is public at /this-week (founder, 2026-11-17). ===== */}
+      <section className="week" aria-labelledby="week-title">
+        <div className="week-inner">
+          <h2 id="week-title">This Week On The Floor</h2>
+          <ThisWeekOnFloor limit={4} showHeader={false} />
+          <Link className="btn-text week-link" to="/this-week">See the full week</Link>
         </div>
       </section>
 

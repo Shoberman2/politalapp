@@ -5,7 +5,11 @@
 // pages still hard-code "BallotWatch"; move them here as they're touched.
 export const BRAND = {
   name: 'BallotWatch',
-  mission: 'We use AI to make Congress easier to read and easier to reach. A person writes every message. A person answers it.',
+  // Both privacy claims are scoped to the website on purpose: no form here asks
+  // for a name, and a ZIP typed into the lookup goes from the browser to a
+  // public service. The MCP tool find_representatives does receive a ZIP or
+  // address from an assistant, so never widen this to "we never see a ZIP".
+  mission: 'We use AI to make Congress easier to read. We never ask your name, and the ZIP code you enter here never reaches our servers.',
   // Contact address for congressional offices. Left empty until the founder
   // picks one; /offices hides the contact action while it's empty.
   officesEmail: '',

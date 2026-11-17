@@ -181,7 +181,7 @@ describe('middleware', () => {
 })
 
 describe('sitemap pages part', () => {
-  it('gives the homepage the latest vote date, info pages none, leaves gated /this-week out, and omits lastmod when there are no votes', async () => {
+  it('gives the homepage the latest vote date, info pages none, leaves /this-week (no server-rendered copy) out, and omits lastmod when there are no votes', async () => {
     const { pageEntries, _resetSitemapMemo } = await import('../../api/sitemap.js')
     _resetSitemapMemo?.()
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }

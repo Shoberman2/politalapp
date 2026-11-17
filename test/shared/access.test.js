@@ -30,7 +30,8 @@ describe('account gate list', () => {
     ]) expect(isGatedPath(p), p).toBe(false)
   })
 
-  it('puts the members list and This Week behind an account (2026-11-17)', () => {
-    for (const p of ['/all', '/all/', '/this-week', '/This-Week']) expect(isGatedPath(p), p).toBe(true)
+  it('puts the members list behind an account and leaves This Week public (2026-11-17)', () => {
+    for (const p of ['/all', '/all/', '/All']) expect(isGatedPath(p), p).toBe(true)
+    for (const p of ['/this-week', '/This-Week', '/this-week/']) expect(isGatedPath(p), p).toBe(false)
   })
 })

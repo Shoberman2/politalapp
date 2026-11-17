@@ -84,10 +84,10 @@ describe('ResetPassword', () => {
 
 describe('ClosingCta', () => {
   it('closes public interior pages, and stays off the landing, sign-in, legal and gated pages', () => {
-    for (const path of ['/about', '/how-it-works', '/government', '/politician/S001223', '/bill/119/hr/1', '/developers']) {
+    for (const path of ['/about', '/how-it-works', '/this-week', '/government', '/politician/S001223', '/bill/119/hr/1', '/developers']) {
       expect(showsClosingCta(path), path).toBe(true)
     }
-    for (const path of ['/', '/auth', '/auth/reset', '/auth/callback', '/privacy', '/terms', '/bills', '/my-representative', '/compare', '/all', '/this-week']) {
+    for (const path of ['/', '/auth', '/auth/reset', '/auth/callback', '/privacy', '/terms', '/bills', '/my-representative', '/compare', '/all']) {
       expect(showsClosingCta(path), path).toBe(false)
     }
   })

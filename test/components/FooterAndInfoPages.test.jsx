@@ -57,6 +57,28 @@ describe('site-wide footer', () => {
     expect(exploreLinks.at(-1).textContent).toBe('Sign in')
     expect(exploreLinks.at(-1).getAttribute('href')).toBe('/auth')
   })
+
+  // Extended by /ship test coverage audit (2026-11-17).
+  // Value: protects=the footer carries no primary button (the closing band
+  //   above it holds the one action); its Capitol mark and wordmark are one
+  //   link home, with the "Free, nonpartisan and open source." line;
+  //   fails_when=a "Find my reps" button returns to the footer, or the brand
+  //   stops linking home or loses its accessible name;
+  //   why_new=the footer test above checks the link columns only;
+  //   seam=none;
+  //   no_claim=how the footer looks (jsdom applies no stylesheet)
+  it('has no button of its own, and its mark and name link home', () => {
+    const { container } = renderAt('/about')
+    const footer = container.querySelector('footer.footer')
+    expect(footer.querySelector('.btn-primary, button')).toBeNull()
+    expect([...footer.querySelectorAll('a')].filter((a) => /Find my reps/i.test(a.textContent))).toHaveLength(0)
+
+    const home = footer.querySelector(`a[aria-label="${BRAND.name} home"]`)
+    expect(home.getAttribute('href')).toBe('/')
+    expect(home.querySelector('img').getAttribute('src')).toBe('/capitol-logo.svg')
+    expect(home.textContent).toBe(BRAND.name)
+    expect(footer.textContent).toContain('Free, nonpartisan and open source.')
+  })
 })
 
 describe('information pages', () => {
