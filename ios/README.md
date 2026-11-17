@@ -29,10 +29,10 @@ open BallotWatch.xcodeproj
 ```
 
 Then build and run against any iOS 17+ simulator or device.
-For a physical device, select the **BallotWatch** target in Xcode and choose
-your Apple Development team under **Signing & Capabilities**. XcodeGen leaves
-the team unset so each developer can use their own account; automatic signing
-remains enabled.
+`project.yml` signs with the BallotWatch team (`772YSVJ4U7`) and the bundle ID
+`io.ballotwatch.app` (`com.ballotwatch.app` belongs to another team). To build
+for a device under your own account, change the team under **Signing &
+Capabilities**; automatic signing remains enabled.
 
 From the command line:
 
@@ -48,6 +48,32 @@ xcodebuild -project BallotWatch.xcodeproj -scheme BallotWatch \
   -destination 'platform=iOS,id=<device-udid>' \
   DEVELOPMENT_TEAM=<team-id> -allowProvisioningUpdates build
 ```
+
+## TestFlight
+
+Bump `CFBundleVersion` in `BallotWatch/Info.plist`, then, from a logged-in
+Terminal on the Mac:
+
+```bash
+ios/scripts/testflight.sh
+```
+
+It archives a Release build and uploads it using `ExportOptions.plist`
+(`app-store-connect`, `destination: upload`, automatic signing). Before the
+first upload it needs three things: Xcode signed in to an Apple ID on team
+`772YSVJ4U7` with the Admin or App Manager role, the App Store Connect app
+record for `io.ballotwatch.app` (create it in App Store Connect > Apps > +; the
+CLI tools can't), and a click on **Always Allow** if macOS asks for keychain
+access to the signing key.
+
+## Xcode Cloud
+
+The project file is generated, so Xcode Cloud cannot find it on its own.
+`ci_scripts/ci_post_clone.sh` runs after the clone: it installs XcodeGen and
+generates `BallotWatch.xcodeproj` (with the shared `BallotWatch` scheme from
+`project.yml`). To archive or distribute from Xcode Cloud, add `SUPABASE_URL`
+and `SUPABASE_ANON_KEY` under the workflow's Environment Variables; the script
+writes `Secrets.plist` from them and refuses to archive without them.
 
 ## What's in it
 
