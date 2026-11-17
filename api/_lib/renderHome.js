@@ -9,23 +9,25 @@ import { chrome, escapeHtml, injectIntoShell, fmtDate, clampText, ordinal } from
 import { rollCallPath } from './rollCallResult.js'
 import { SITE_ORIGIN as SITE } from './site.js'
 import { staticPageTitle } from './staticPages.js'
+import { staticContent } from './staticContent.js'
 import { BRAND } from '../../src/config/brand.js'
 import { LANDING_FAQ } from '../../src/data/landingFaq.js'
 import { CIVICS_PRIMER } from '../../src/data/civicsPrimer.js'
 import {
   HOME_TITLE, HOME_DESCRIPTION, HOME_ABOUT, HOME_FEATURES, HOME_LINKS, DEFAULT_OG_IMAGE, homeJsonLd,
+  HOME_H1,
 } from '../../src/data/homeSeo.js'
 
 // ---------- shared vote phrasing ----------
 
-function voteSummary(v) {
+export function voteSummary(v) {
   const parts = []
   if (v.tally) parts.push(`${v.tally.yea} yea, ${v.tally.nay} nay`)
   if (v.result) parts.push(v.result)
   return parts.join(' · ')
 }
 
-function voteHeading(v) {
+export function voteHeading(v) {
   return v.question || v.description || 'Recorded vote'
 }
 
@@ -51,7 +53,7 @@ function latestVoteHtml(v) {
     </section>`
 }
 
-function recentVotesHtml(list) {
+export function recentVotesHtml(list, { more = true } = {}) {
   const items = list.map((v) => {
     const path = rollCallPath(v.id)
     const bill = v.bill ? ` · ${v.bill.path ? `<a href="${escapeHtml(v.bill.path)}">${escapeHtml(v.bill.label)}</a>` : escapeHtml(v.bill.label)}` : ''
@@ -61,7 +63,7 @@ function recentVotesHtml(list) {
   return `<section class="home-recent" aria-labelledby="home-recent-h">
       <h2 id="home-recent-h">Recent Roll Calls</h2>
       <ol>${items}</ol>
-      <p><a href="/this-week">This week on the floor</a></p>
+      ${more ? '<p><a href="/this-week">This week on the floor</a></p>' : ''}
     </section>`
 }
 
@@ -78,7 +80,7 @@ export function renderHomeBody(data) {
   return chrome(`<div class="bw landing">
   <section class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title">How Did Your Representative Vote This Week?</h1>
+      <h1 class="hero-title">${escapeHtml(HOME_H1)}</h1>
       <p class="hero-mission">${escapeHtml(BRAND.mission)}</p>
       <p class="home-about">${escapeHtml(HOME_ABOUT)}</p>
       <p><a class="btn-primary" href="/auth?mode=signup&amp;next=%2Fmy-representative">Find my reps</a></p>
@@ -122,7 +124,7 @@ export function homeMarkdown(data) {
   const latest = data.votes?.latest || null
   const recent = data.votes?.recent || []
   const lines = [
-    `# ${BRAND.name}: how did your representative vote this week?`,
+    `# ${BRAND.name}: see how your representative voted`,
     '',
     HOME_ABOUT,
     '',
@@ -163,15 +165,20 @@ export function staticMeta(data) {
 
 export function renderStaticPage(shell, data) {
   const meta = staticMeta(data)
+  // Pages whose content is a list of facts carry their full text; the rest
+  // carry the headline and opening paragraph.
+  const content = staticContent(data.path)
   const body = chrome(`<div class="bw info-page">
   <section class="ip-hero"><div class="ip-inner">
     <h1>${escapeHtml(data.page.h1)}</h1>
     <p class="ip-lede">${escapeHtml(data.page.lede)}</p>
   </div></section>
+${content ? content.html : ''}
 </div>`)
   return injectIntoShell(shell, {
     ...meta,
     ogType: 'website',
+    ogImage: data.page.image ? `${SITE}${data.page.image}` : null,
     robots: 'index, follow',
     jsonLd: [{
       '@context': 'https://schema.org',
@@ -180,12 +187,14 @@ export function renderStaticPage(shell, data) {
       description: meta.description,
       url: meta.canonical,
       isPartOf: { '@id': `${SITE}/#website` },
-    }],
+      ...(content?.dateModified ? { dateModified: content.dateModified } : {}),
+    }, ...(content ? content.jsonLd : [])],
     body,
   })
 }
 
 export function staticMarkdown(data) {
+  const content = staticContent(data.path)
   return [
     `# ${data.page.h1}`,
     '',
@@ -193,6 +202,8 @@ export function staticMarkdown(data) {
     '',
     `- Canonical: ${SITE}${data.path}`,
     '',
-    `The full page needs JavaScript. Record URL patterns, API and MCP: ${SITE}/llms.txt`,
+    ...(content
+      ? [...content.markdown, '', `Record URL patterns, API and MCP: ${SITE}/llms.txt`]
+      : [`The full page needs JavaScript. Record URL patterns, API and MCP: ${SITE}/llms.txt`]),
   ].join('\n') + '\n'
 }

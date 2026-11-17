@@ -22,11 +22,15 @@ describe('account gate list', () => {
 
   it('keeps the public record public', () => {
     for (const p of [
-      '/', '/all', '/politician/P000197', '/politician/P000197/', '/politician/P000197/record',
-      '/bill/119/hr/1', '/bill/119/s/42/', '/vote/119/house/2/295', '/this-week', '/how-it-works',
-      '/offices', '/developers', '/developers/docs', '/developers/keys', '/developers/usage', '/open',
+      '/', '/politician/P000197', '/politician/P000197/', '/politician/P000197/record',
+      '/bill/119/hr/1', '/bill/119/s/42/', '/vote/119/house/2/295', '/how-it-works', '/government',
+      '/developers', '/developers/docs', '/developers/keys', '/developers/usage', '/open',
       '/methodology', '/methodology/votes', '/data-sources', '/about', '/contact', '/privacy', '/terms',
       '/blog', '/blog/a-post', '/chamber', '/chamber/119/house', '/auth', '/auth/callback', '/billsx',
     ]) expect(isGatedPath(p), p).toBe(false)
+  })
+
+  it('puts the members list and This Week behind an account (2026-11-17)', () => {
+    for (const p of ['/all', '/all/', '/this-week', '/This-Week']) expect(isGatedPath(p), p).toBe(true)
   })
 })

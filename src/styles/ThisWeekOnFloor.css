@@ -53,7 +53,23 @@
   padding: 0;
 }
 
-.twof-row { padding: 14px 0; }
+/* Scheduled sits on the page; Recorded sits on a soft panel. The two columns
+   read as different things before a word is read. */
+.twof-col--recorded {
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: var(--r-card);
+  background: var(--surface-dim);
+}
+.twof--single .twof-col--recorded { padding: 0; background: none; }
+.twof-col-sub {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.twof-row { padding: 16px 0; }
+.twof-list > .twof-row:first-child { padding-top: 4px; }
 
 .twof-row-head,
 .twof-row-foot {
@@ -61,6 +77,22 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 2px var(--space-4);
+}
+.twof-row-foot { margin-top: 6px; font-size: 15px; }
+
+/* The title leads: what the bill or the vote is, in full, up to three lines. */
+.twof-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .twof-num,
@@ -84,17 +116,8 @@
 
 .twof-cat { font-size: 14px; color: var(--ink-2); }
 
-.twof-title {
-  margin: 4px 0;
-  font-size: 16px;
-  line-height: 1.45;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.twof-row-foot { font-size: 14px; }
+/* A scheduled item's state, said in words. */
+.twof-state { font-size: 15px; font-weight: 600; color: var(--ink-2); }
 
 .twof-tell {
   color: var(--accent);
@@ -113,13 +136,14 @@
 
 .twof-tally {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 /* The result is a coloured word. */
-.twof-result { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.twof-result { font-size: 16px; font-weight: 700; color: var(--ink-2); }
 .twof-result--pass { color: var(--success); }
 .twof-result--fail { color: var(--error); }
 
@@ -176,7 +200,6 @@
 
 @media (max-width: 760px) {
   .twof-grid { grid-template-columns: minmax(0, 1fr); }
-  .twof-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 }
 
 /* Page wrapper for /this-week. The hero, H1 and lede come from the shared
@@ -188,7 +211,7 @@
 .twof-page-body {
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: 8px 32px 0;
+  padding: 8px 32px clamp(64px, 8vw, 96px);
 }
 @media (max-width: 640px) {
   .twof-page-body { padding-left: 20px; padding-right: 20px; }

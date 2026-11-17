@@ -3,6 +3,34 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.13.0.0] - 2026-11-17
+
+### Added
+- **The government explainer goes a level deeper.** Each department's sheet on `/government` now lists the agencies inside it, what each one does and who runs it (with the page we checked), then how Congress shapes the department: the spending bill that funds it, the laws written for it, who the Senate must approve and the committees that watch it. A new section explains the two million career workers, each fact with its source. Where we could not confirm who holds a job, the page says so instead of guessing.
+- **Search engines and AI assistants get the full text of every info page** without JavaScript, in HTML and in the Markdown view: `/government`, `/glossary`, `/data-sources`, how it works, methodology, about, open data, contact, privacy and terms. Text for pages written as components is generated from the components (`scripts/build-static-text.mjs`, run on `prebuild`; a test fails when it is stale).
+- Structured data: `/government` lists each department and its agencies as government organizations with their leaders; `/glossary` is a defined-term set with one entry and anchor per term.
+- `/government` and `/glossary` have their own social preview images.
+- "Ask Your AI Assistant" (the MCP server) is its own section on the developer page, with the server address to copy.
+- Search engines are told about changes automatically: a job submits the homepage, the info pages and the week's changed vote and bill pages to IndexNow (Bing and others) after every deploy and each morning after the daily data load.
+- `docs/government-recheck.md`: the monthly procedure a scheduled agent follows to re-check every name on `/government` and open a pull request.
+
+### Changed
+- Landing headline is "How Your Rep Voted" (was "How Did Your Representative Vote This Week?").
+- The landing explains each feature again: find your members, bills in plain English, how they voted, and writing to the person who cast the vote. The feature sections now sit directly under the hero.
+- The civics primer on the landing is titled "New To Congress? Start Here." with one line saying what it is, and its link reads "Open the glossary".
+- Nav is How it works, This week, The government, For developers.
+- **This Week On The Floor needs a free account**, and its rows are easier to read: each leads with its title; Scheduled items say "Not voted on yet"; Recorded votes sit on a soft panel and end with the result and the count in words ("271 yes, 135 no").
+- **The members list (`/all`) needs a free account** and is no longer linked from the nav, footer or landing. Individual member, bill and vote pages stay public.
+- Every member now has a photograph: the fallback for members missing from the main photo collection is the official Biographical Directory photo (the old fallback 404'd for all 16 newest members). The record card also honours the hand-picked photo overrides.
+- Page titles written as the question people ask: `/government` is "Who Runs the U.S. Government? The 15 Departments", `/glossary` is "Glossary of Congress Terms in Plain English", `/developers` is "For Developers: API, MCP Server and Open Data".
+- DESIGN.md, CLAUDE.md and the house web style record the rule: developer features live on a "For Developers" page, never on the landing.
+
+### Removed
+- **The "For Offices" page** (`/offices`), its nav and footer links, its landing section, the "For Congressional Offices" section on About, the offices link on Contact, and the "Offices answer from their own words" step on How it works. The backend is untouched.
+- "Members" from the nav and the footer.
+- `/this-week` and `/offices` from the server-rendered static pages, the sitemap and the public list in `llms.txt` (`/this-week` because it is now behind sign-in).
+- The landing's MCP section stays removed; it now lives on the developer page.
+
 ## [0.12.0.0] - 2026-11-16
 
 ### Added

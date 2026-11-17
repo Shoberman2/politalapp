@@ -5,6 +5,7 @@ import GovernmentLadder from './GovernmentLadder'
 import {
   DEPARTMENTS, INDEPENDENT_AGENCIES, CONGRESS_CHECKS, GOV_AS_OF, GOV_SOURCES, PHOTO_CREDITS,
 } from '../data/government'
+import { DEPARTMENT_DETAIL, WORKFORCE_FACTS, GOV_DEEP_AS_OF } from '../data/governmentDeep'
 import '../styles/InfoPage.css'
 import '../styles/Government.css'
 
@@ -35,6 +36,14 @@ export function leaderLine(d) {
   return `${d.headName}, ${d.acting ? 'Acting ' : ''}${d.headTitle}`
 }
 
+// "Run by Billy Long, Commissioner", or the title alone when we could not
+// confirm who holds the job. Never a guessed name.
+export function componentLeader(c) {
+  if (!c.headTitle) return null
+  if (!c.headName) return `${c.headTitle}: we could not confirm who holds this job`
+  return `Run by ${c.headName}, ${c.acting ? 'Acting ' : ''}${c.headTitle}`
+}
+
 function PhotoCredit({ file }) {
   const c = PHOTO_CREDITS[file]
   if (!c) return null
@@ -48,6 +57,9 @@ function PhotoCredit({ file }) {
 
 function DepartmentSheet({ dept, onClose }) {
   const ref = useRef(null)
+  const detail = DEPARTMENT_DETAIL[dept.id] || null
+  const components = detail?.components || []
+  const congress = detail?.congress || null
 
   useEffect(() => {
     const dialog = ref.current
@@ -111,22 +123,82 @@ function DepartmentSheet({ dept, onClose }) {
               </dd>
             </div>
           )}
-          <div className="gov-fact-wide">
-            <dt>Inside it</dt>
-            <dd>{dept.agencies.join(' · ')}</dd>
-          </div>
+          {components.length === 0 && (
+            <div className="gov-fact-wide">
+              <dt>Inside it</dt>
+              <dd>{dept.agencies.join(' · ')}</dd>
+            </div>
+          )}
           <div>
             <dt>The building</dt>
             <dd>{dept.building}<small>{dept.address}</small></dd>
           </div>
-          <div>
-            <dt>Who in Congress watches it</dt>
-            <dd>
-              {dept.oversight.house.join(', ')}
-              <small>{dept.oversight.senate.join(', ')}</small>
-            </dd>
-          </div>
         </dl>
+
+        {components.length > 0 && (
+          <section className="gov-part" aria-labelledby="gov-inside-title">
+            <h3 id="gov-inside-title">Inside The Department</h3>
+            <p className="gov-part-sub">
+              A department is made of smaller agencies, each with its own job and its own boss.
+              These are the {components.length} largest or best known.
+            </p>
+            <ul className="gov-components">
+              {components.map((c) => (
+                <li key={c.name}>
+                  <h4>{c.website ? <a href={c.website} target="_blank" rel="noopener noreferrer">{c.name}</a> : c.name}</h4>
+                  <p>{c.does}</p>
+                  {componentLeader(c) && (
+                    <p className="gov-comp-head">
+                      {componentLeader(c)}
+                      {c.headSource && <> · <a href={c.headSource} target="_blank" rel="noopener noreferrer">Source</a></>}
+                    </p>
+                  )}
+                  {c.note && <p className="gov-comp-note">{c.note}</p>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="gov-part" aria-labelledby="gov-congress-part-title">
+          <h3 id="gov-congress-part-title">How Congress Shapes It</h3>
+          <dl className="gov-facts">
+            {congress?.fundedBy && (
+              <div>
+                <dt>How it gets its money</dt>
+                <dd>Congress funds it each year through the {congress.fundedBy}.</dd>
+              </div>
+            )}
+            {congress?.confirmed && (
+              <div>
+                <dt>Who the Senate must approve</dt>
+                <dd>{congress.confirmed}</dd>
+              </div>
+            )}
+            {congress?.laws?.length > 0 && (
+              <div className="gov-fact-wide">
+                <dt>Laws Congress wrote for it</dt>
+                <dd>
+                  <ul className="gov-laws">
+                    {congress.laws.map((l) => <li key={l.name}><b>{l.name}.</b> {l.what}</li>)}
+                  </ul>
+                </dd>
+              </div>
+            )}
+            <div className="gov-fact-wide">
+              <dt>Committees that watch it</dt>
+              <dd>
+                {dept.oversight.house.join(', ')}
+                <small>{dept.oversight.senate.join(', ')}</small>
+              </dd>
+            </div>
+          </dl>
+          {congress?.source && (
+            <p className="gov-sheet-links">
+              <a href={congress.source} target="_blank" rel="noopener noreferrer">Source for the funding bill</a>
+            </p>
+          )}
+        </section>
 
         <p className="gov-sheet-links">
           <a href={dept.website} target="_blank" rel="noopener noreferrer">Official website</a>
@@ -158,9 +230,10 @@ function GovernmentPage() {
   return (
     <div className="bw info-page gov-page">
       <SEO
-        title="How The Government Works"
+        title="Who Runs the U.S. Government? The 15 Departments"
         description="Who runs the U.S. government, in plain English: the President, the 15 executive departments, who leads each one, what it does, and how Congress checks them."
         path="/government"
+        image="https://www.ballotwatch.io/gov/og-government.jpg"
       />
 
       <GovernmentLadder headingLevel="h1" linkTo={null} />
@@ -186,12 +259,38 @@ function GovernmentPage() {
                   </span>
                   <span className="gov-dept-name">{d.short}</span>
                   <span className="gov-dept-head">{leaderLine(d)}</span>
+                  {DEPARTMENT_DETAIL[d.id]?.components?.length > 0 && (
+                    <span className="gov-dept-count">{DEPARTMENT_DETAIL[d.id].components.length} agencies inside, explained</span>
+                  )}
                 </button>
               </li>
             ))}
           </ul>
         </div>
       </section>
+
+      {WORKFORCE_FACTS.length > 0 && (
+        <section aria-labelledby="gov-workers-title">
+          <div className="ip-inner">
+            <h2 id="gov-workers-title">The Two Million Workers</h2>
+            <p>
+              Under the people the President appoints are the career staff who do the daily work
+              and stay when the President changes.
+            </p>
+            <ul className="gov-workers gov-more">
+              {WORKFORCE_FACTS.map((f) => (
+                <li key={f.fact}>
+                  <p>{f.fact}</p>
+                  <small>
+                    {f.asOf ? `${f.asOf} · ` : ''}
+                    <a href={f.source} target="_blank" rel="noopener noreferrer">Source</a>
+                  </small>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       <section aria-labelledby="gov-congress-title">
         <div className="ip-inner">
@@ -224,7 +323,8 @@ function GovernmentPage() {
             ))}
           </ul>
           <p className="gov-asof">
-            Checked on {longDate(GOV_AS_OF)}. People change jobs: each department’s sheet links to the
+            Department heads checked on {longDate(GOV_AS_OF)}; the agencies inside them
+            on {longDate(GOV_DEEP_AS_OF)}. People change jobs: each department’s sheet links to the
             official page we checked. Sources:{' '}
             {GOV_SOURCES.map((s, i) => (
               <span key={s.url}>

@@ -13,7 +13,6 @@
 - Homepage: https://www.ballotwatch.io/
 - A member's record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: https://www.ballotwatch.io/politician/P000197/record)
 - A roll call (how every member voted): https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: https://www.ballotwatch.io/vote/119/house/2/295)
-- This week on the floor: https://www.ballotwatch.io/this-week
 - How it works: https://www.ballotwatch.io/how-it-works
 - Glossary (what congressional terms like roll call, cloture and cosponsor mean, in plain English): https://www.ballotwatch.io/glossary
 - How the government works (the President, the 15 executive departments, who runs each and what it does, with sources): https://www.ballotwatch.io/government
@@ -49,19 +48,18 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 - Member record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: /politician/P000197/record). One short card per member, identical template for all: seat, votes cast and not voting this Congress, and the 10 most recent recorded votes with results, each linked to its roll call and official source.
 - Roll call: https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: /vote/119/house/2/295)
 - Bill: https://www.ballotwatch.io/bill/{congress}/{type}/{number} (example: /bill/119/hr/1; types: hr, s, hjres, sjres, hconres, sconres, hres, sres)
-- Members index: https://www.ballotwatch.io/all
+- Members index (free account in the browser; use the API's /api/v1/members without one): https://www.ballotwatch.io/all
 - Bills index: https://www.ballotwatch.io/bills
-- This week on the floor (House weekly schedule plus the latest recorded votes): https://www.ballotwatch.io/this-week
+- This week on the floor (House weekly schedule plus the latest recorded votes; free account in the browser): https://www.ballotwatch.io/this-week
 - Methodology: https://www.ballotwatch.io/methodology
 - How it works (the concept in four steps, what's live, and how AI is and isn't used): https://www.ballotwatch.io/how-it-works
 - How we get our data (every upstream source, what we take from it, how often, what we compute, and what AI writes): https://www.ballotwatch.io/data-sources
 - About (independence, open source, mission): https://www.ballotwatch.io/about
 - Open data and source (bulk downloads, license, API, MCP, methodology): https://www.ballotwatch.io/open
-- For congressional offices (in development): https://www.ballotwatch.io/offices
 
-The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, glossary, methodology, data sources, about, open data, this week, offices, contact, privacy, terms) return their title, headline and summary without JavaScript; their full text needs JavaScript. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
+The homepage, every member, member-record, and roll-call URL, and every bill with a recorded vote or an official summary, returns full HTML without JavaScript (other bills return the app shell). The info pages (how it works, glossary, the government explainer at /government, methodology, data sources, about, open data, contact, privacy, terms) return their full text without JavaScript, in HTML and in Markdown. Send `Accept: text/markdown` to the same URL for a compact Markdown record (about a tenth of the tokens); the Markdown view works for every bill.
 
-The app pages need a free account in the browser: your representatives, the Bills index, the district map, the shutdown tracker, campaign-finance comparison, AI Congress and committee pages. Member pages, record cards, bill pages, roll calls, This week, the API and the MCP server do not.
+The app pages need a free account in the browser: your representatives, the Bills index, the district map, the shutdown tracker, campaign-finance comparison, AI Congress, committee pages, the members index (/all) and This week on the floor (/this-week). Member pages, record cards, bill pages, roll calls, the API and the MCP server do not; the floor schedule is in the API at /api/v1/floor/schedule.
 
 ## API (no key required for GET)
 

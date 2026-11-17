@@ -18,7 +18,7 @@ export const DEFAULT_OG_IMAGE = `${SITE_URL}/congress.jpg`
 export const HOME_TITLE = 'How Did My Rep Vote? Congress Voting Records | BallotWatch'
 export const HOME_DESCRIPTION = 'How did your representative vote? Search the congressional voting record: every roll call, bill and member of Congress, linked to its official source.'
 
-export const HOME_H1 = 'How Did Your Representative Vote This Week?'
+export const HOME_H1 = 'How Your Rep Voted'
 
 // One plain-language paragraph: what BallotWatch is, for people and for
 // answer engines quoting a definition.
@@ -30,8 +30,8 @@ export const HOME_ABOUT = `${BRAND.name} is a free, open-source, nonpartisan rec
 export const HOME_FEATURES = [
   { id: 'find', title: 'Know Who Speaks For You', body: 'Your address finds your House member and both senators, from U.S. Census district data. A ZIP code alone finds your senators.', href: '/my-representative', label: 'Save my reps (free account)' },
   { id: 'bills', title: 'Every Bill, Explained In Plain English', body: 'Bills are written in dense legal language. We explain each one in a few everyday sentences: what it would change and who it affects. Written with AI from the bill’s own text, never guessed from its title. The full official text is one click away.', href: '/bills', label: 'Browse bills (free account)' },
-  { id: 'votes', title: 'See Exactly How They Voted', body: 'Every recorded vote (a roll call), this week’s and every one before it, with each member’s yes or no linked to the official record. Every member gets the same one-screen card: votes cast, votes missed and the latest votes. No scores, no spin.', href: '/all', label: 'Pick a member' },
-  { id: 'offices', title: 'For Congressional Offices', body: 'A channel where constituents reach your office about a specific vote and your office answers from its own published words. In development, not for sale.', href: '/offices', label: 'How it would work' },
+  { id: 'votes', title: 'See Exactly How They Voted', body: 'Every recorded vote (a roll call), this week’s and every one before it, with each member’s yes or no linked to the official record. Every member gets the same one-screen card: votes cast, votes missed and the latest votes. No scores, no spin.', href: '/my-representative', label: 'See your members’ records' },
+  { id: 'write', title: 'Then Write To The Person Who Cast It', body: 'Your message starts with the facts of the vote. You add your words and send it yourself.', href: '/how-it-works', label: 'How Tell your rep works' },
 ]
 
 export const HOME_LINKS = [
@@ -41,7 +41,7 @@ export const HOME_LINKS = [
   { href: '/methodology', label: 'Methodology' },
   { href: '/data-sources', label: 'Data sources' },
   { href: '/about', label: 'About' },
-  { href: '/offices', label: 'For congressional offices' },
+  { href: '/developers', label: 'For developers' },
 ]
 
 // One DataDownload per bulk file (gzip CSV and NDJSON, full archive and the

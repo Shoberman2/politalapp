@@ -18,7 +18,6 @@ import HowItWorksPage from '../../src/components/HowItWorksPage'
 import MethodologyPage from '../../src/components/MethodologyPage'
 import DataSourcesPage from '../../src/components/DataSourcesPage'
 import AboutPage from '../../src/components/AboutPage'
-import OfficesPage from '../../src/components/OfficesPage'
 import ContactPage from '../../src/components/ContactPage'
 import PrivacyPage from '../../src/components/PrivacyPage'
 import TermsPage from '../../src/components/TermsPage'
@@ -70,7 +69,6 @@ describe('SEO and server-rendered JSON-LD', () => {
       '/methodology': MethodologyPage,
       '/data-sources': DataSourcesPage,
       '/about': AboutPage,
-      '/offices': OfficesPage,
       '/contact': ContactPage,
       '/privacy': PrivacyPage,
       '/terms': TermsPage,

@@ -24,11 +24,18 @@ export function congressImageUrl(bioguideId) {
   return bioguideId ? `https://unitedstates.github.io/images/congress/450x550/${bioguideId}.jpg` : null
 }
 
-// Predictable congress.gov thumbnail — used only as an onError fallback for the
-// rare member not yet in the unitedstates collection.
-export function congressGovImageUrl(bioguideId) {
-  return bioguideId ? `https://www.congress.gov/img/member/${bioguideId.toLowerCase()}.jpg` : null
+// The official Biographical Directory photo, used as the onError fallback for a
+// member not yet in the unitedstates collection (everyone sworn in after the
+// collection's last update). The old fallback, congress.gov's
+// /img/member/<id>.jpg, 404s for exactly those new members (checked
+// 2026-11-17: 15 of the 16 members missing from the collection have a
+// Biographical Directory photo; the 16th is in MEMBER_IMAGE_OVERRIDES).
+export function bioguideImageUrl(bioguideId) {
+  return bioguideId ? `https://bioguide.congress.gov/photo/${bioguideId.toUpperCase()}.jpg` : null
 }
+
+// Kept under its old name for existing callers.
+export const congressGovImageUrl = bioguideImageUrl
 
 // Resolve the best photo URL for a member: hand-curated override first, then the
 // high-res unitedstates portrait, then the API depiction URL.
@@ -39,11 +46,11 @@ export function resolveMemberImageUrl(bioguideId, apiUrl) {
   return congressImageUrl(bioguideId) || stripDoublePrefix(apiUrl)
 }
 
-// Shared <img onError> handler: fall back to the congress.gov thumbnail once,
+// Shared <img onError> handler: fall back to the Biographical Directory photo once,
 // then hand off to the component's own placeholder via onFail(imgElement).
 export function handleMemberPhotoError(e, bioguideId, onFail) {
   const el = e.currentTarget
-  const fallback = congressGovImageUrl(bioguideId)
+  const fallback = bioguideImageUrl(bioguideId)
   if (fallback && el.dataset.imgFallback !== 'done') {
     el.dataset.imgFallback = 'done'
     el.src = fallback

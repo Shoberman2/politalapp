@@ -98,3 +98,29 @@ describe('GovernmentPage', () => {
     expect(STATIC_PAGES['/government'].h1).toBe('Who Runs The Government')
   })
 })
+
+describe('inside a department (2026-11-17)', () => {
+  it('has agencies and a Congress section for all 15 departments, with a source for every named head', async () => {
+    const { DEPARTMENTS } = await import('../../src/data/government')
+    const { DEPARTMENT_DETAIL, WORKFORCE_FACTS } = await import('../../src/data/governmentDeep')
+    expect(Object.keys(DEPARTMENT_DETAIL).sort()).toEqual(DEPARTMENTS.map((d) => d.id).sort())
+    for (const [id, detail] of Object.entries(DEPARTMENT_DETAIL)) {
+      expect(detail.components.length, id).toBeGreaterThanOrEqual(4)
+      expect(detail.congress.fundedBy, id).toBeTruthy()
+      for (const c of detail.components) {
+        expect(c.does, c.name).toBeTruthy()
+        expect(`${c.name} ${c.does} ${c.note || ''}`, c.name).not.toMatch(/—|blocks automated|could not be reached/)
+        if (c.headName) expect(c.headSource, c.name).toMatch(/^https:\/\//)
+      }
+    }
+    expect(WORKFORCE_FACTS.length).toBeGreaterThan(0)
+    for (const f of WORKFORCE_FACTS) expect(f.source).toMatch(/^https:\/\//)
+  })
+
+  it('says so when a job holder could not be confirmed, and never invents a name', async () => {
+    const { componentLeader } = await import('../../src/components/GovernmentPage')
+    expect(componentLeader({ headTitle: 'Commissioner', headName: null })).toBe('Commissioner: we could not confirm who holds this job')
+    expect(componentLeader({ headTitle: 'Director', headName: 'A. Person', acting: true })).toBe('Run by A. Person, Acting Director')
+    expect(componentLeader({ headTitle: 'Director', headName: 'A. Person', acting: false })).toBe('Run by A. Person, Director')
+  })
+})

@@ -39,9 +39,10 @@ Key routing rules:
 - Pages that need a free account are listed once, in `GATED_PATHS` in
   `shared/access.js` (re-exported by `src/config/access.js`).
   `src/components/AccessGate.jsx` enforces it around every route and
-  `api/sitemap.js` leaves those pages out. Keep record pages, `/this-week`,
-  the API and `/mcp` off the list: llms.txt, the MCP server and search
-  results link to them. `ProtectedRoute` and `RequireAuth` are legacy
+  `api/sitemap.js` leaves those pages out. Keep record pages, the API and
+  `/mcp` off the list: llms.txt, the MCP server and search results link to
+  them. `/this-week` and the members list (`/all`) are on it by the
+  founder's decision (2026-11-17); do not take them off without asking. `ProtectedRoute` and `RequireAuth` are legacy
   aliases; do not wrap new routes in them. `test/shared/access.test.js` and
   `test/components/AccessGate.test.jsx` cover the list.
 - `GET /api/v1/*` and `/mcp` must keep working without a key. Limits live in
@@ -56,3 +57,12 @@ Key routing rules:
   stay identical: the index gate, the sitemap, the ETL loader, and
   `etl/repairPlaceholderTitles.ts` all decide "stub or real title" with it.
   `test/etl/billTitlePreservation.test.ts` asserts parity.
+
+## Developer features
+
+- Anything for developers or AI agents (the API, the MCP server, open data,
+  llms.txt) is explained on `/developers`, linked as "For developers" in the
+  nav and footer. Never give it a section on the landing page.
+- There is no "For offices" page and the site does not mention the office
+  channel (founder, 2026-11-17). The backend for it stays; do not surface it
+  without being asked.

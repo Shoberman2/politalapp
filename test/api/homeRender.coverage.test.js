@@ -87,11 +87,14 @@ describe('renderHomeBody fallbacks and escaping', () => {
     expect(same).not.toContain('home-vote-standfirst')
   })
 
-  it('no longer lists the write or assistant features (2026-11-16)', () => {
+  it('lists the write feature again, and nothing for developers or offices (2026-11-17)', () => {
     const html = renderHomeBody({ votes: null, updatedAt: null })
-    expect(html).not.toContain('#tell-your-rep')
-    expect(html).not.toContain('Then Write To The Person Who Cast It')
+    expect(html).toContain('Then Write To The Person Who Cast It')
     expect(html).not.toContain('Ask Your AI Assistant')
+    expect(html).not.toContain('For Congressional Offices')
+    expect(html).not.toContain('href="/offices"')
+    expect(html).not.toContain('href="/all"')
+    expect(html).toContain('<a href="/developers">For developers</a>')
     expect(html).toContain('<a href="/government">How the government works</a>')
   })
 })
@@ -178,12 +181,13 @@ describe('middleware', () => {
 })
 
 describe('sitemap pages part', () => {
-  it('gives /this-week the latest vote date, other info pages none, and omits lastmod when there are no votes', async () => {
+  it('gives the homepage the latest vote date, info pages none, leaves gated /this-week out, and omits lastmod when there are no votes', async () => {
     const { pageEntries, _resetSitemapMemo } = await import('../../api/sitemap.js')
     _resetSitemapMemo?.()
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
     const entries = await pageEntries()
-    expect(entries.find((e) => e.path === '/this-week').lastmod).toBe('2026-09-03')
+    expect(entries.find((e) => e.path === '/').lastmod).toBe('2026-09-03')
+    expect(entries.find((e) => e.path === '/this-week')).toBeUndefined()
     expect(entries.find((e) => e.path === '/about').lastmod).toBeNull()
     expect(entries).toHaveLength(1 + Object.keys(STATIC_PAGES).length)
 

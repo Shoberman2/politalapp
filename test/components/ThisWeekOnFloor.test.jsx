@@ -106,7 +106,7 @@ describe('ThisWeekOnFloor', () => {
     expect(screen.getAllByText('Suspension')).toHaveLength(3)
     expect(screen.getByText('1 more on the official schedule')).toHaveAttribute('href', SOURCE)
 
-    await screen.findByText('380–40')
+    await screen.findByText('380 yes, 40 no')
     expect(screen.getByText('Passed')).toBeInTheDocument()
     expect(screen.getByText('House Roll 301').closest('a')).toHaveAttribute('href', '/vote/119/house/2/301')
     // A vote with no trustworthy tally shows no tally or result.
@@ -140,7 +140,7 @@ describe('ThisWeekOnFloor', () => {
 describe('ThisWeekPage', () => {
   afterEach(cleanup)
 
-  it('uses the info-page hero and keeps its H1 and lede in step with staticPages', () => {
+  it('uses the info-page hero and is no longer a server-rendered static page', () => {
     services.getFloorSchedule.mockReturnValue(pending())
     services.getRecentFloorVotes.mockReturnValue(pending())
     const { container } = render(
@@ -154,8 +154,9 @@ describe('ThisWeekPage', () => {
     const h1s = container.querySelectorAll('h1')
     expect(h1s).toHaveLength(1)
     expect(h1s[0].classList.contains('ip-title')).toBe(true)
-    expect(h1s[0].textContent).toBe(STATIC_PAGES['/this-week'].h1)
-    expect(hero.querySelector('.ip-lede').textContent.replace(/\s+/g, ' ').trim()).toBe(STATIC_PAGES['/this-week'].lede)
+    expect(h1s[0].textContent).toBe('This Week On The Floor')
+    // Behind sign-in since 2026-11-17: no server-rendered copy to keep in step.
+    expect(STATIC_PAGES['/this-week']).toBeUndefined()
     // The floor component sits outside .info-page so its row type is its own.
     expect(container.querySelector('.info-page .twof')).toBeNull()
     expect(container.querySelector('.twof-page-body .twof')).not.toBeNull()

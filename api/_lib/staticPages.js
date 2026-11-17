@@ -1,9 +1,13 @@
+// `image` is the page's own 1200x630 social preview (in public/); pages
+// without one share the default. Keep it in step with the page's <SEO image>.
+//
 // Head and lede for the static info pages, so crawlers and agents that do not
 // run JavaScript get a distinct title, description, canonical, H1 and opening
 // paragraph per page instead of the same app shell. Titles and descriptions
 // mirror the <SEO> props in each page component (SEO appends " | BallotWatch");
 // keep the two in step when either changes. The full page is still rendered by
-// React; this is only the head and the first screen of text.
+// React; this is the head and the first screen of text, plus the full text of
+// the fact-list pages built in staticContent.js.
 
 import { BRAND } from '../../src/config/brand.js'
 
@@ -19,7 +23,8 @@ export const STATIC_PAGES = {
     priority: 0.8,
   },
   '/glossary': {
-    title: 'Congress, Explained in Plain English',
+    title: 'Glossary of Congress Terms in Plain English',
+    image: '/gov/og-glossary.jpg',
     description: 'A plain-English glossary of the words Congress uses, from roll call and cloture to cosponsor and continuing resolution. No background in politics needed.',
     h1: 'Congress, Explained In Plain English',
     lede: 'No background in politics needed. Here is what every term on this site means, from roll call and cloture to cosponsor and continuing resolution.',
@@ -27,7 +32,8 @@ export const STATIC_PAGES = {
     priority: 0.7,
   },
   '/government': {
-    title: 'How The Government Works',
+    title: 'Who Runs the U.S. Government? The 15 Departments',
+    image: '/gov/og-government.jpg',
     description: 'Who runs the U.S. government, in plain English: the President, the 15 executive departments, who leads each one, what it does, and how Congress checks them.',
     h1: 'Who Runs The Government',
     lede: 'The President sits at the top of the executive branch. Fifteen departments do most of its work, each led by a person the President picks and the Senate confirms. Congress creates, funds and oversees all of them.',
@@ -57,22 +63,6 @@ export const STATIC_PAGES = {
     lede: BRAND.mission,
     changefreq: 'monthly',
     priority: 0.6,
-  },
-  '/this-week': {
-    title: 'This Week on the Floor',
-    description: 'What the U.S. House has scheduled for floor consideration this week, from the Majority Leader’s weekly schedule, beside the roll-call votes Congress most recently recorded.',
-    h1: 'This Week On The Floor',
-    lede: 'What the House plans to take up this week, from the weekly schedule its majority leader publishes on docs.house.gov, next to the votes Congress has just recorded. A listing means a bill may come up that week, not that it will, and the schedule names the week, not the day.',
-    changefreq: 'daily',
-    priority: 0.9,
-  },
-  '/offices': {
-    title: 'For Congressional Offices',
-    description: 'A channel between constituents, their AI assistants, and congressional offices that answers from sources the office approves and never speaks for the Member. In development.',
-    h1: 'Answer Constituents From Your Own Record',
-    lede: 'We’re building a channel between constituents, the AI assistants they already use, and your office. It answers from sources your office approves, and it never speaks for the Member.',
-    changefreq: 'monthly',
-    priority: 0.5,
   },
   '/open': {
     title: 'Open Data',

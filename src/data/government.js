@@ -1,8 +1,10 @@
 // The executive branch, in plain English, for /government and the landing's
-// "Who Runs The Government" section. GENERATED from a fact file checked
-// against official pages on GOV_AS_OF (whitehouse.gov cabinet page, each
-// department's leadership page, USA.gov, OPM workforce data). People change
-// jobs: re-check every name before changing the date.
+// "Who Runs The Government" section. Checked against official pages on
+// GOV_AS_OF (whitehouse.gov cabinet page, each department's leadership page,
+// USA.gov, OPM workforce data). This file is the source of truth and is edited
+// directly; a scheduled agent re-checks it every month following
+// docs/government-recheck.md. People change jobs: re-check every name before
+// changing the date.
 //
 // Employee counts are our own sums of OPM's public employment file by
 // department (civilians only), and are labelled that way on the page.

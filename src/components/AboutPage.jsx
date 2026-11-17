@@ -66,19 +66,6 @@ function AboutPage() {
         </div>
       </section>
 
-      <section>
-        <div className="ip-inner">
-          <h2>For Congressional Offices</h2>
-          <p>
-            We’re also building a channel that helps offices answer constituents from their own published record.
-            It is in development and not offered for use yet.
-          </p>
-          <div className="ip-links">
-            <Link className="btn-text" to="/offices">For offices</Link>
-            <Link className="btn-text" to="/contact">Contact</Link>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

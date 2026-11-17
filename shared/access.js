@@ -10,13 +10,14 @@
 // each segment percent-decoded, repeated slashes collapsed and trailing
 // slashes stripped, so '/%62ills' and '/compare///' are gated too.
 //
-// Everything else is public: the landing, the members list (/all), full member
-// profiles (/politician/:id), record cards (/politician/:id/record), bill pages
-// (/bill/*), roll calls (/vote/*), This week, How it works, For offices, the
+// Everything else is public: the landing, full member profiles
+// (/politician/:id), record cards (/politician/:id/record), bill pages
+// (/bill/*), roll calls (/vote/*), How it works, the government explainer, the
 // developer pages, methodology, data sources, legal and contact pages, the
-// blog, the historical chamber and /auth. Member profiles and bill pages stay
-// public because the MCP server, llms.txt, record cards and search results
-// link to them.
+// blog, the historical chamber and /auth. Member profiles, bill pages and roll
+// calls stay public because the MCP server, llms.txt, record cards and search
+// results link to them. The members list (/all) and This week (/this-week)
+// need an account (founder, 2026-11-17).
 
 // Where a reader lands after signing in when no ?next= is given. The app
 // (src/config/access.js) and the server chrome (api/_lib/renderPage.js) read it.
@@ -24,6 +25,8 @@ export const DEFAULT_SIGNED_IN_PATH = '/my-representative'
 
 export const GATED_PATHS = Object.freeze([
   '/my-representative',
+  '/all',
+  '/this-week',
   '/bills',
   '/map',
   '/shutdown-tracker',

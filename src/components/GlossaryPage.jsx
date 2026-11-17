@@ -32,9 +32,10 @@ function GlossaryPage() {
   return (
     <div className="bw info-page glossary-page">
       <SEO
-        title="Congress, Explained in Plain English"
+        title="Glossary of Congress Terms in Plain English"
         description="A plain-English glossary of the words Congress uses, from roll call and cloture to cosponsor and continuing resolution. No background in politics needed."
         path="/glossary"
+        image="https://www.ballotwatch.io/gov/og-glossary.jpg"
       />
 
       <section className="ip-hero">

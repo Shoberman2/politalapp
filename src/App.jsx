@@ -29,7 +29,6 @@ import ChamberPage from './components/ChamberPage'
 import ChamberMethodology from './components/ChamberMethodology'
 import OpenSourcePage from './components/OpenSourcePage'
 import MethodologyPage from './components/MethodologyPage'
-import OfficesPage from './components/OfficesPage'
 import HowItWorksPage from './components/HowItWorksPage'
 import DataSourcesPage from './components/DataSourcesPage'
 import AboutPage from './components/AboutPage'
@@ -76,7 +75,6 @@ function App() {
           <Route path="/auth/reset" element={<ResetPassword />} />
           {SHOW_BRIEFINGS && <Route path="/pricing" element={<Pricing />} />}
           <Route path="/open" element={<OpenSourcePage />} />
-          <Route path="/offices" element={<OfficesPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/data-sources" element={<DataSourcesPage />} />
           <Route path="/about" element={<AboutPage />} />

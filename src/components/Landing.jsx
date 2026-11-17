@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getDistrictFromAddress, US_STATES } from '../services/district'
 import { getFeaturedMembers, getTrendingBills } from '../services/congress'
-import { getRecentFloorVotes, pickHeadlineVote, inboxFields, rollCallHref, hasSomethingToShow } from '../services/floorVotes'
+import { getRecentFloorVotes, pickHeadlineVote, rollCallHref, hasSomethingToShow } from '../services/floorVotes'
 import { getMemberRecord } from '../services/memberRecord'
 import { saveUserAddress } from '../services/userService'
 import { findMembersForDistrict } from '../services/myMembers'
@@ -14,7 +14,7 @@ import SEO from './SEO'
 import { BRAND } from '../config/brand'
 import { LANDING_FAQ as FAQ } from '../data/landingFaq'
 import { CIVICS_PRIMER } from '../data/civicsPrimer'
-import { HOME_TITLE, HOME_DESCRIPTION, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
+import { HOME_TITLE, HOME_DESCRIPTION, HOME_H1, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
 import '../styles/Landing.css'
 
@@ -134,8 +134,8 @@ function Landing() {
   const [lookupPlace, setLookupPlace] = useState('hero')
   // Guards the member fetch against a newer lookup finishing first.
   const lookupSeq = useRef(0)
-  // The recorded votes; the headline vote is picked from these with the same
-  // rule /offices uses (pickHeadlineVote).
+  // The recorded votes; the headline vote is picked from these with
+  // pickHeadlineVote.
   const [floorVotes, setFloorVotes] = useState([])
   // votesReady: the recorded votes have resolved (or failed), so skeletons
   // give way to real rows or the one-line fallback.
@@ -417,7 +417,7 @@ function Landing() {
     </div>
   )
 
-  // The headline vote, picked by pickHeadlineVote (the same pick as /offices):
+  // The headline vote, picked by pickHeadlineVote:
   // the latest vote with a roll-call page, a bill and a real tally, else the
   // latest vote with a roll-call page and anything to show. Never invented.
   const headlineRaw = pickHeadlineVote(floorVotes)
@@ -567,35 +567,41 @@ function Landing() {
     </div>
   )
 
-  // The offices feature: one row of an office inbox, built from the latest
-  // recorded vote. Nothing in it speaks in the Member's name.
-  // Same fields and the same pick as the /offices inbox (inboxFields).
-  const inbox = inboxFields(headlineRaw)
-  const officesVisual = (
-    <div className="mock mock-inbox" aria-hidden="true">
-      <span className="mk-label">Office inbox</span>
-      {votesReady && !headlineVote ? (
+  // The write feature: the opening of a real Tell your rep draft, built from
+  // the latest recorded vote.
+  const writeVisual = (
+    <div className="mock mock-write" aria-hidden="true">
+      {headlineVote ? (
+        <p className="mk-letter">
+          The {headlineVote.chamber || 'chamber'} voted on{' '}
+          {headlineVote.bill ? `${headlineVote.bill.display}: ` : ''}{truncate(headlineVote.text, 70)}
+          {headlineVote.tally ? ` The result was ${headlineVote.tally}.` : ''}
+          <br />
+          <span className="mk-yours">[Write your message here, in your own words.]</span>
+        </p>
+      ) : votesReady ? (
         <p className="mk-unavailable">{NO_VOTE}</p>
       ) : (
-        <dl className="mk-fields">
-          <div><dt>From</dt><dd>A constituent in your district</dd></div>
-          <div><dt>Re</dt><dd>{headlineVote ? (inbox.re || truncate(headlineVote.text, 40)) : <span className="mk-skel" />}</dd></div>
-          <div><dt>Vote</dt><dd className="mk-mono">{headlineVote ? (inbox.vote || 'Recorded vote') : <span className="mk-skel" />}</dd></div>
-          <div><dt>Status</dt><dd><span className="mk-status">Received</span></dd></div>
-        </dl>
+        <p className="mk-letter">
+          <span className="mk-skel" style={{ width: '90%', maxWidth: 'none' }} />
+          <span className="mk-skel" style={{ width: '70%', maxWidth: 'none', marginTop: 8 }} />
+        </p>
       )}
+      <span className="mk-src">You send it through their official contact page</span>
     </div>
   )
 
-  const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/all'
+  const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/my-representative'
+  const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/how-it-works'
 
   // Headlines and copy come from src/data/homeSeo.js, the same text the
   // server-rendered homepage gives crawlers and AI answer engines.
   const VISUALS = {
-    find: repsVisual, bills: billVisual, votes: recordVisual, offices: officesVisual,
+    find: repsVisual, bills: billVisual, votes: recordVisual, write: writeVisual,
   }
   const LINK_OVERRIDES = {
     votes: { to: recordHref, label: 'See a record' },
+    write: { to: writeHref, label: 'Write about the latest vote' },
   }
   const FEATURES = HOME_FEATURES.map((f) => ({
     ...f,
@@ -610,7 +616,7 @@ function Landing() {
       {/* ===== HERO: centered question, mission, lookup, and the latest real votes ===== */}
       <section className="hero">
         <div className="hero-inner">
-          <h1 className="hero-title">How Did Your Representative Vote This Week?</h1>
+          <h1 className="hero-title">{HOME_H1}</h1>
           <p className="hero-mission">{BRAND.mission}</p>
 
           {renderLookup('hero')}
@@ -671,25 +677,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* ===== PRIMER: five facts, each beside a real photograph ===== */}
-      <section className="primer" aria-labelledby="primer-title">
-        <div className="primer-inner">
-          <h2 id="primer-title">Congress In One Minute</h2>
-          <ul className="primer-list">
-            {CIVICS_PRIMER.map((p) => (
-              <li key={p.title}>
-                <img src={p.image} alt={p.alt} width="1600" height="1000" loading="lazy" decoding="async" />
-                <h3><Term id={p.term}>{p.title}</Term></h3>
-                <p>{p.body}</p>
-              </li>
-            ))}
-          </ul>
-          <Link className="btn-text primer-link" to="/glossary">Every term, explained</Link>
-        </div>
-      </section>
-
-      <GovernmentLadder />
-
       {/* ===== FEATURES: one idea per section, a simple real-data image each ===== */}
       <section className="features">
         {FEATURES.map((f) => (
@@ -702,6 +689,26 @@ function Landing() {
             <div className="feature-visual">{f.visual}</div>
           </article>
         ))}
+      </section>
+
+      <GovernmentLadder />
+
+      {/* ===== PRIMER: five facts, each beside a real photograph ===== */}
+      <section className="primer" aria-labelledby="primer-title">
+        <div className="primer-inner">
+          <h2 id="primer-title">New To Congress? Start Here.</h2>
+          <p className="primer-lede">Five facts that make every vote and bill on this site make sense.</p>
+          <ul className="primer-list">
+            {CIVICS_PRIMER.map((p) => (
+              <li key={p.title}>
+                <img src={p.image} alt={p.alt} width="1600" height="1000" loading="lazy" decoding="async" />
+                <h3><Term id={p.term}>{p.title}</Term></h3>
+                <p>{p.body}</p>
+              </li>
+            ))}
+          </ul>
+          <Link className="btn-text primer-link" to="/glossary">Open the glossary</Link>
+        </div>
       </section>
 
       {/* ===== FAQ: one question open at a time ===== */}
