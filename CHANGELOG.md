@@ -3,6 +3,33 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.13.1.0] - 2026-11-17
+
+### Added
+- **This Week On The Floor is on the landing.** The House schedule and the latest recorded votes sit right under the hero, four rows a column, with a link to the full week.
+- The closing "See How Your Reps Voted" band on interior pages sits on the Capitol photograph.
+- The footer shows the Capitol mark beside the BallotWatch name, linked home, with "Free, nonpartisan and open source."
+- The members list offers a "Clear filters" button when no member matches.
+- Revoking an API key asks for confirmation in the key's own row and says so when the revoke fails.
+
+### Changed
+- **This Week is public again.** `/this-week` no longer needs an account and is no longer hidden from search engines.
+- The mission line under the landing headline reads "We use AI to make Congress easier to read. We never ask your name, and the ZIP code you enter here never reaches our servers."
+- Nav is How it works, The government, For developers.
+- The landing hero fills the first screen, and the "Find my reps" button fills the ZIP field with no ring around it.
+- Body text, links, form labels and fine print that were 13 to 15px are 16px across the public pages and the signed-in app. Dense data (table rows, bill numbers, tallies, timestamps) keeps its size.
+- Empty states on the district map, My representatives, AI Congress and the vote list say what to do next.
+- The landing FAQ says the members list needs a free account, which matches the site.
+- The redirect to `www.ballotwatch.io` now watches this project's own Vercel address; `politicalapp.vercel.app` is an unrelated site.
+- README: how the bill watchlist is switched on, and the one public host.
+- DESIGN.md and the house web style record two rules: a button inside a field fills it, and the footer carries no button.
+
+### Removed
+- "This week" from the nav. The page stays, linked from the landing and the footer.
+- The "Find my reps" button in the footer. The closing band above it carries that action.
+- "Easier to reach" and "A person writes every message. A person answers it." from the mission line.
+- The browser pop-up on API key revoke, replaced by the in-row confirmation.
+
 ## [0.13.0.0] - 2026-11-17
 
 ### Added
