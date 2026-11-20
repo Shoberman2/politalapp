@@ -163,7 +163,8 @@ function wantsMarkdown(req) {
 
 // The query string a redirect keeps: everything the visitor sent, minus the
 // parameters the vercel.json rewrite added.
-const REWRITE_PARAMS = new Set(['kind', 'id', 'alias'])
+// Vercel also copies named rewrite params (:bioguideId) into the query.
+const REWRITE_PARAMS = new Set(['kind', 'id', 'alias', 'bioguideId'])
 export function forwardedQuery(query) {
   const out = new URLSearchParams()
   for (const [k, v] of Object.entries(query || {})) {

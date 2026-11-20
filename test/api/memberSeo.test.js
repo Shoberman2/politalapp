@@ -82,6 +82,7 @@ describe('canonicalRedirect', () => {
 describe('forwardedQuery', () => {
   it('drops the rewrite parameters and keeps the visitor\'s', () => {
     expect(forwardedQuery({ kind: 'member', id: 'P000197', alias: '1', utm_source: 'x', tag: ['a', 'b'] })).toBe('?utm_source=x&tag=a&tag=b')
+    expect(forwardedQuery({ kind: 'member', id: 'A000055', bioguideId: 'A000055' })).toBe('')
     expect(forwardedQuery({ kind: 'member', id: 'P000197' })).toBe('')
     expect(forwardedQuery(undefined)).toBe('')
   })
