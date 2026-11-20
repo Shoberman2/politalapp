@@ -3,7 +3,7 @@
 // index.html wins over a vercel.json rewrite for `/`) and the static info
 // pages (kind=static&page=about, ...).
 //
-// vercel.json rewrites /politician/:id, /politician/:id/record,
+// vercel.json rewrites /members, /politician/:id, /politician/:id/record,
 // /bill/:congress/:type/:number, and /vote/:congress/:chamber/:session/:roll
 // here. The function injects the
 // record into the real SPA shell (index.html, fetched at runtime because asset
@@ -16,16 +16,17 @@
 // this function existed. Never a text error page.
 
 import { readFile } from 'fs/promises'
-import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, getHomeVotes, billPath } from './_lib/pages.js'
+import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, getHomeVotes, getMembersIndex, billPath } from './_lib/pages.js'
 import { renderPage } from './_lib/renderPage.js'
 import { renderMarkdown } from './_lib/markdown.js'
+import { renderMembersPage, notFoundHtml } from './_lib/renderMembers.js'
 import { renderHomePage, homeMarkdown, renderStaticPage, staticMarkdown } from './_lib/renderHome.js'
 import { STATIC_PAGES } from './_lib/staticPages.js'
 import { getDataUpdatedAt } from './_lib/etlMeta.js'
 import { buildRollCallId, rollCallPath } from './_lib/rollCallResult.js'
 import { originFrom } from './_lib/request.js'
 import { SITE_ORIGIN as SITE } from './_lib/site.js'
-import { recordPath } from '../shared/memberRecord.js'
+import { memberPath, parseMemberSegment } from '../shared/memberSlug.js'
 
 export { originFrom }
 
@@ -109,8 +110,16 @@ export function resolveTarget(query) {
     if (Object.hasOwn(STATIC_PAGES, path)) return { kind: 'static', id: path, path }
     return null
   }
-  if (q.kind === 'member' && q.id) return { kind: 'member', id: String(q.id).toUpperCase(), path: `/politician/${String(q.id).toUpperCase()}` }
-  if (q.kind === 'record' && q.id) return { kind: 'record', id: String(q.id).toUpperCase(), path: recordPath(q.id) }
+  if (q.kind === 'members') return { kind: 'members', id: 'members', path: '/members' }
+  // The rewrite passes the whole path segment ("P000197-nancy-pelosi"). The id
+  // is the part before the first hyphen; the slug is checked after the member
+  // is loaded, because only then do we know the right one.
+  if ((q.kind === 'member' || q.kind === 'record') && q.id) {
+    const seg = parseMemberSegment(Array.isArray(q.id) ? q.id[0] : q.id)
+    if (!seg) return null
+    const suffix = q.kind === 'record' ? '/record' : ''
+    return { kind: q.kind, id: seg.id, segment: String(Array.isArray(q.id) ? q.id[0] : q.id), alias: Boolean(q.alias), path: `/politician/${seg.id}${suffix}` }
+  }
   if (q.kind === 'bill' && q.congress && q.type && q.number) {
     const id = `${q.congress}-${String(q.type).toLowerCase()}-${q.number}`
     return { kind: 'bill', id, path: billPath(id) }
@@ -141,6 +150,7 @@ async function loadData(target) {
   if (target.kind === 'static') return { kind: 'static', path: target.path, page: STATIC_PAGES[target.path], indexable: true }
   if (target.kind === 'member') return getMemberPage(target.id)
   if (target.kind === 'record') return getRecordPage(target.id)
+  if (target.kind === 'members') return getMembersIndex()
   if (target.kind === 'bill') return getBillPage(target.id)
   return getRollCallPage(target.id)
 }
@@ -149,6 +159,37 @@ function wantsMarkdown(req) {
   if (req.query?.format === 'md') return true
   const accept = String(req.headers?.accept || '')
   return /text\/markdown/i.test(accept) && !/text\/html/i.test(accept.split(',')[0])
+}
+
+// The query string a redirect keeps: everything the visitor sent, minus the
+// parameters the vercel.json rewrite added.
+const REWRITE_PARAMS = new Set(['kind', 'id', 'alias'])
+export function forwardedQuery(query) {
+  const out = new URLSearchParams()
+  for (const [k, v] of Object.entries(query || {})) {
+    if (REWRITE_PARAMS.has(k)) continue
+    for (const item of Array.isArray(v) ? v : [v]) out.append(k, item)
+  }
+  const qs = out.toString()
+  return qs ? `?${qs}` : ''
+}
+
+// Where a member or record request belongs: the canonical slugged path, or
+// null when the request already is it. Bare ids, wrong or stale slugs,
+// lowercase ids and the old /member/:id alias all redirect there.
+export function canonicalRedirect(target, data) {
+  if (target.kind !== 'member' && target.kind !== 'record') return null
+  const canonical = memberPath(data.id, data.name, target.kind === 'record' ? '/record' : '')
+  if (!target.alias && canonical.split('/')[2] === target.segment) return null
+  return canonical
+}
+
+function sendRedirect(res, location) {
+  res.statusCode = 301
+  res.setHeader('Location', location)
+  res.setHeader('Cache-Control', SKIP_CACHE)
+  res.setHeader('Vary', 'Accept')
+  res.end()
 }
 
 function sendHtml(res, html, status, cache, extra = {}) {
@@ -174,7 +215,8 @@ export default async function handler(req, res) {
     const shell = await shellPromise
     if (markdown) { res.statusCode = 404; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.end('Not found\n') }
     if (!shell) { res.statusCode = 500; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.end('unavailable\n') }
-    return sendHtml(res, shell, 404, SKIP_CACHE, { 'X-Robots-Tag': 'noindex' })
+    const isMemberRoute = req.query?.kind === 'member' || req.query?.kind === 'record'
+    return sendHtml(res, isMemberRoute ? notFoundHtml(shell) : shell, 404, SKIP_CACHE, { 'X-Robots-Tag': 'noindex' })
   }
 
   let shell = null
@@ -188,8 +230,12 @@ export default async function handler(req, res) {
     if (!data) {
       if (markdown) { res.statusCode = 404; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.end(`Not found: ${target.id}\n`) }
       if (!shell) throw new Error('no shell for 404')
-      return sendHtml(res, shell, 404, SKIP_CACHE, { 'X-Robots-Tag': 'noindex' })
+      const isMemberRoute = target.kind === 'member' || target.kind === 'record'
+      return sendHtml(res, isMemberRoute ? notFoundHtml(shell) : shell, 404, SKIP_CACHE, { 'X-Robots-Tag': 'noindex' })
     }
+
+    const redirectTo = canonicalRedirect(target, data)
+    if (redirectTo) return sendRedirect(res, `${redirectTo}${forwardedQuery(req.query)}`)
 
     const cache = data.kind === 'home'
       ? (data.votes ? HOME_CACHE : HOME_DEGRADED_CACHE)
@@ -200,13 +246,17 @@ export default async function handler(req, res) {
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
       res.setHeader('Cache-Control', cache)
       res.setHeader('Vary', 'Accept')
-      res.setHeader('Link', `<${SITE}${target.path}>; rel="canonical"`)
+      res.setHeader('Link', `<${SITE}${data.kind === 'member' || data.kind === 'record' ? memberPath(data.id, data.name, data.kind === 'record' ? '/record' : '') : target.path}>; rel="canonical"`)
       if (!data.indexable) res.setHeader('X-Robots-Tag', 'noindex')
       const md = data.kind === 'home' ? homeMarkdown(data) : data.kind === 'static' ? staticMarkdown(data) : renderMarkdown(data)
       return res.end(md)
     }
 
     if (!shell) throw new Error('no shell')
+
+    if (data.kind === 'members') {
+      return sendHtml(res, renderMembersPage(shell, data), 200, PAGE_CACHE, { 'X-BallotWatch-Prerender': 'index' })
+    }
 
     if (data.kind === 'home' || data.kind === 'static') {
       const html = data.kind === 'home' ? renderHomePage(shell, data) : renderStaticPage(shell, data)

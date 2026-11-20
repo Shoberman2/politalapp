@@ -15,6 +15,7 @@ Allow: /mcp
 Allow: /llms.txt
 Allow: /llms-full.txt
 Allow: /data/
+Allow: /api/og
 Allow: /.well-known/
 Disallow: /api/briefings/
 Disallow: /api/webhooks/
@@ -22,7 +23,6 @@ Disallow: /api/checkout
 Disallow: /api/simulation/
 Disallow: /api/keys/
 Disallow: /api/metrics/
-Disallow: /api/og
 Disallow: /api/share
 Disallow: /api/prerender
 Disallow: /api/explain

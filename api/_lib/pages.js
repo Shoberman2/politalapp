@@ -9,6 +9,7 @@ import { memberGate, rollCallGate, billGate, explanationMatchesBill, isPlacehold
 import { getDataUpdatedAt } from './etlMeta.js'
 import { MAX_ROLL_CALL_ROWS, EXPLANATION_MODEL, EXPLANATION_PROMPT_VERSION, congressGovMemberUrl, bioguideUrl } from './site.js'
 import { shapeMemberRecord, houseDistrict, RECORD_VOTE_LIMIT } from '../../shared/memberRecord.js'
+import { shapeMembers, groupMembers } from '../../shared/membersIndex.js'
 
 // Bill titles are sometimes stubs ("HR 4795"); treat those as unknown.
 function realTitle(title) {
@@ -16,6 +17,12 @@ function realTitle(title) {
 }
 
 const MEMBER_VOTE_LIMIT = 50
+export const SPONSORED_LIMIT = 20
+export const COSPONSORED_LIMIT = 10
+// Rows read before the real-title and billGate filters, so skipped stubs do not
+// leave the list short.
+const BILL_SCAN = 80
+const BILLS_TIMEOUT_MS = 2500
 
 // A failed read must not render a real member as "no recorded votes" (and
 // noindex or cache them): throw, and prerender serves the uncached app shell.
@@ -35,11 +42,77 @@ export function billPath(billId) {
   return parsed ? `/bill/${parsed.congress}/${parsed.billType}/${parsed.number}` : null
 }
 
+// Sponsored and cosponsored bills for the member page. The bill list is an
+// extra: any failure or a slow answer returns null and the page renders
+// without the section.
+function shapeBillRow(b) {
+  const parsed = parseBillId(b.id)
+  if (!parsed) return null
+  return {
+    id: b.id,
+    congress: Number(parsed.congress),
+    label: formatBillNumber(parsed),
+    path: billPath(b.id),
+    title: b.title,
+    introduced_at: b.introduced_at || null,
+    source_url: /^https?:\/\//i.test(String(b.source_url || '')) ? b.source_url : null,
+  }
+}
+
+// Only bills that pass the same gate as the bill pages (a real title, and a
+// recorded vote or a summary) are listed: a thin stub is never shown as real.
+async function passingBillIds(rows) {
+  const ids = rows.filter((b) => !isPlaceholderTitle(b.title)).map((b) => b.id)
+  if (!ids.length) return new Set()
+  const [votes, summaries] = await Promise.all([
+    supabaseAdmin.from('roll_calls').select('bill_id').in('bill_id', ids),
+    supabaseAdmin.from('bills').select('id').in('id', ids).or('summary.not.is.null,crs_summary.not.is.null'),
+  ])
+  const hasVote = new Set((must(votes, 'roll_calls') || []).map((r) => r.bill_id))
+  const hasSummary = new Set((must(summaries, 'bills') || []).map((r) => r.id))
+  return new Set(rows
+    .filter((b) => billGate({ title: b.title, hasVote: hasVote.has(b.id), hasSummary: hasSummary.has(b.id) }).indexable)
+    .map((b) => b.id))
+}
+
+const byRecent = (a, b) => (b.congress - a.congress) || String(b.introduced_at || '').localeCompare(String(a.introduced_at || ''))
+
+export async function getMemberBills(id) {
+  const [sponsoredRes, cosponsoredRes] = await Promise.all([
+    supabaseAdmin.from('bills')
+      .select('id, title, introduced_at, source_url', { count: 'exact' })
+      .eq('sponsor_bioguide_id', id)
+      .order('introduced_at', { ascending: false, nullsFirst: false })
+      .limit(BILL_SCAN),
+    supabaseAdmin.from('bill_cosponsors')
+      .select('cosponsored_at, bills:bill_id ( id, title, introduced_at, source_url )', { count: 'exact' })
+      .eq('bioguide_id', id)
+      .is('withdrawn_at', null)
+      .order('cosponsored_at', { ascending: false, nullsFirst: false })
+      .limit(BILL_SCAN),
+  ])
+  const sponsoredRows = must(sponsoredRes, 'bills') || []
+  const cosponsoredRows = (must(cosponsoredRes, 'bill_cosponsors') || []).map((r) => r.bills).filter(Boolean)
+  const ok = await passingBillIds([...sponsoredRows, ...cosponsoredRows])
+  const shape = (rows, limit) => rows.filter((b) => ok.has(b.id)).map(shapeBillRow).filter(Boolean).sort(byRecent).slice(0, limit)
+  return {
+    sponsored: { total: sponsoredRes.count ?? sponsoredRows.length, items: shape(sponsoredRows, SPONSORED_LIMIT) },
+    cosponsored: { total: cosponsoredRes.count ?? cosponsoredRows.length, items: shape(cosponsoredRows, COSPONSORED_LIMIT) },
+  }
+}
+
+function boundedBills(id) {
+  let timer
+  const timeout = new Promise((resolve) => { timer = setTimeout(() => resolve(null), BILLS_TIMEOUT_MS) })
+  const read = getMemberBills(id).catch((err) => { console.error('[pages] member bills unavailable:', err.message); return null })
+  return Promise.race([read, timeout]).finally(() => clearTimeout(timer))
+}
+
 export async function getMemberPage(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
 
-  const [memberRes, termsRes, statsRes, votesRes, updatedAt] = await Promise.all([
+  const [memberRes, termsRes, statsRes, votesRes, updatedAt, bills] = await Promise.all([
     supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party, photo_url, updated_at').eq('id', id).maybeSingle(),
     supabaseAdmin.from('member_congress_terms').select('congress, chamber, state, district, party, term_start, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabaseAdmin.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count, party_loyalty_pct').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
@@ -49,6 +122,7 @@ export async function getMemberPage(bioguideId) {
       .order('voted_at', { ascending: false, nullsFirst: false })
       .limit(MEMBER_VOTE_LIMIT),
     lastRun(),
+    boundedBills(id),
   ])
   // A failed read must not render a real member as "no recorded votes" (and
   // noindex them): throw, and prerender serves the uncached app shell instead.
@@ -98,6 +172,7 @@ export async function getMemberPage(bioguideId) {
       bill: v.bills ? { id: v.bills.id, title: realTitle(v.bills.title) } : (v.bill_id ? { id: v.bill_id, title: null } : null),
       question: questions.get(v.roll_call_id) || null,
     })),
+    bills,
     source_url: bioguideUrl(member.id),
     congress_gov_url: congressGovMemberUrl(member.id),
     indexable: gate.indexable,
@@ -333,4 +408,33 @@ export async function getHomeVotes() {
     }
   })
   return { latest: shaped.find((r) => r.tally) || null, recent: shaped.slice(0, HOME_RECENT) }
+}
+
+// Public members index (/members): the same set the members sitemap lists,
+// every politician with at least one recorded vote. Sorted by name within
+// each group. Throws on a failed read so prerender serves the plain shell
+// instead of caching a partial list.
+const PAGE = 1000
+
+async function fetchAllRows(table, columns, modify, orderBy) {
+  const out = []
+  for (let from = 0; ; from += PAGE) {
+    let q = supabaseAdmin.from(table).select(columns).order(orderBy).range(from, from + PAGE - 1)
+    if (modify) q = modify(q)
+    const rows = must(await q, table) || []
+    out.push(...rows)
+    if (rows.length < PAGE) break
+  }
+  return out
+}
+
+export async function getMembersIndex() {
+  const [politicians, stats, openTerms, updatedAt] = await Promise.all([
+    fetchAllRows('politicians', 'id, name, chamber, state, district, party', null, 'id'),
+    fetchAllRows('member_stats', 'politician_id, total_votes', (q) => q.gt('total_votes', 0), 'politician_id'),
+    fetchAllRows('member_congress_terms', 'bioguide_id, congress, district', (q) => q.is('term_end', null), 'bioguide_id'),
+    lastRun(),
+  ])
+  const members = shapeMembers({ politicians, votedIds: new Set(stats.map((r) => r.politician_id)), openTerms })
+  return { kind: 'members', members, groups: groupMembers(members), total: members.length, indexable: true, updatedAt }
 }

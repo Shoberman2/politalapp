@@ -26,10 +26,10 @@ describe('api/sitemap', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('lists only members with votes, roll calls with sane tallies, and bills with real titles', async () => {
-    db.responses.politicians = { data: [{ id: 'P000197' }, { id: 'Z000000' }] }
+    db.responses.politicians = { data: [{ id: 'P000197', name: 'Nancy Pelosi' }, { id: 'Z000000', name: 'No Votes' }] }
     db.responses.member_stats = { data: [{ politician_id: 'P000197', total_votes: 890 }] }
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
-    expect(await memberEntries()).toEqual([{ path: '/politician/P000197', lastmod: '2026-09-03', changefreq: 'weekly' }])
+    expect(await memberEntries()).toEqual([{ path: '/politician/P000197-nancy-pelosi', lastmod: '2026-09-03', changefreq: 'weekly' }])
     expect(db.ops('member_stats', 'gt')[0]).toEqual(['gt', 'total_votes', 0])
     expect(db.ops('member_stats', 'order')[0]).toEqual(['order', 'politician_id'])   // stable paging key
     expect(db.ops('politicians', 'range')[0]).toEqual(['range', 0, 999])
@@ -100,13 +100,13 @@ describe('api/sitemap', () => {
 
     // A part renders a urlset.
     reset()
-    db.responses.politicians = { data: [{ id: 'P000197' }] }
+    db.responses.politicians = { data: [{ id: 'P000197', name: 'Nancy Pelosi' }] }
     db.responses.member_stats = { data: [{ politician_id: 'P000197', total_votes: 1 }] }
     db.responses.roll_calls = { data: [] }
     res = makeRes()
     await handler(req('members'), res)
     expect(res.statusCode).toBe(200)
-    expect(res.body).toContain('<url><loc>https://www.ballotwatch.io/politician/P000197</loc><changefreq>weekly</changefreq></url>')
+    expect(res.body).toContain('<url><loc>https://www.ballotwatch.io/politician/P000197-nancy-pelosi</loc><changefreq>weekly</changefreq></url>')
 
     res = makeRes()
     await handler(req('nope'), res)

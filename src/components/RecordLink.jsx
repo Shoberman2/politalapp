@@ -12,7 +12,7 @@ export default function RecordLink({ bioguideId, name, className = '' }) {
   return (
     <Link
       className={`record-link${className ? ` ${className}` : ''}`}
-      to={recordPath(id)}
+      to={recordPath(id, name)}
       aria-label={name ? `Record in 60 seconds: ${name}` : undefined}
       onClick={(e) => e.stopPropagation()}
     >

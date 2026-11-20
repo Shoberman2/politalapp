@@ -1,0 +1,13 @@
+/* /members: the public list of every member with a recorded vote. Layout only;
+   type, color and spacing come from InfoPage.css and the App.css tokens. */
+.members-index .mi-count { color: var(--ink-3); margin: 0 0 16px; }
+.members-index .mi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 10px 32px;
+}
+.members-index .mi-list a { font-weight: 600; }
+.members-index .mi-meta { color: var(--ink-3); display: block; font-size: 14px; }

@@ -23,6 +23,7 @@ import SEO from './SEO'
 import TellYourRep from './TellYourRep'
 import { YouWroteNotes } from './YouWrote'
 import { memberRef } from '../utils/tellYourRepDraft'
+import { bioguideFromSegment, memberPath, parseMemberSegment } from '../../shared/memberSlug.js'
 import '../styles/PoliticianDetail.css'
 import Term, { InfoDot } from './Term'
 
@@ -44,7 +45,9 @@ const STATE_NAMES = {
 }
 
 function PoliticianDetail() {
-  const { bioguideId } = useParams()
+  const { bioguideId: routeSegment } = useParams()
+  // The path segment is "P000197-nancy-pelosi" (or a bare id): the bioguide id is the part before the slug.
+  const bioguideId = bioguideFromSegment(routeSegment)
   const navigate = useNavigate()
 
   const [member, setMember] = useState(null)
@@ -207,7 +210,7 @@ function PoliticianDetail() {
     return (
       <div className="pol-error">
         <div className="error-message">{error || 'Member not found'}</div>
-        <button type="button" className="pol-back-button btn-outline" onClick={() => navigate('/all')}>
+        <button type="button" className="pol-back-button btn-outline" onClick={() => navigate('/members')}>
           Back to members
         </button>
       </div>
@@ -295,6 +298,8 @@ function PoliticianDetail() {
     }))
   }
 
+  // Keep the slug the server redirected to; only build one when the visit was by bare id.
+  const seoPath = parseMemberSegment(routeSegment)?.slug ? `/politician/${routeSegment}` : memberPath(bioguideId, displayName)
   const standfirst = buildStandfirst()
   const tenureItems = buildTenureTimeline()
 
@@ -303,7 +308,7 @@ function PoliticianDetail() {
       <SEO
         title={`${displayName} Voting Record`}
         description={`View ${displayName}'s congressional voting record, sponsored legislation, and campaign finance data.`}
-        path={`/politician/${bioguideId}`}
+        path={seoPath}
         schema={{
           '@type': 'Person',
           name: displayName,
@@ -385,7 +390,7 @@ function PoliticianDetail() {
             )}
           </dl>
           <div className="pol-actions">
-            <Link to={`/politician/${bioguideId}/record`} className="pol-action-btn btn-outline btn-sm">
+            <Link to={`${seoPath}/record`} className="pol-action-btn btn-outline btn-sm">
               Record in 60 seconds
             </Link>
             {member.officialWebsiteUrl && (
@@ -408,7 +413,7 @@ function PoliticianDetail() {
           kind: 'member',
           ref: memberRef(bioguideId),
           label: displayName,
-          href: `/politician/${bioguideId}`,
+          href: seoPath,
         }}
         members={[{
           bioguideId,

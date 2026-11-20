@@ -11,7 +11,8 @@
 ## Cite these URLs
 
 - Homepage: https://www.ballotwatch.io/
-- A member's record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: https://www.ballotwatch.io/politician/P000197/record)
+- Every member of Congress: https://www.ballotwatch.io/members
+- A member's record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}-{name-slug}/record (example: https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record)
 - A roll call (how every member voted): https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: https://www.ballotwatch.io/vote/119/house/2/295)
 - How it works: https://www.ballotwatch.io/how-it-works
 - Glossary (what congressional terms like roll call, cloture and cosponsor mean, in plain English): https://www.ballotwatch.io/glossary
@@ -44,8 +45,9 @@ BallotWatch is a civic reference, not a campaign site. Pages read like an editor
 
 ## Canonical URLs
 
-- Member: https://www.ballotwatch.io/politician/{bioguide_id} (example: /politician/P000197)
-- Member record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}/record (example: /politician/P000197/record). One short card per member, identical template for all: seat, votes cast and not voting this Congress, and the 10 most recent recorded votes with results, each linked to its roll call and official source.
+- Members index: https://www.ballotwatch.io/members (every member with a recorded vote, grouped by chamber)
+- Member: https://www.ballotwatch.io/politician/{bioguide_id}-{name-slug} (example: /politician/P000197-nancy-pelosi). The page lists votes plus sponsored and cosponsored bills. The bare /politician/{bioguide_id} redirects here with a 301.
+- Member record in 60 seconds: https://www.ballotwatch.io/politician/{bioguide_id}-{name-slug}/record (example: /politician/P000197-nancy-pelosi/record). One short card per member, identical template for all: seat, votes cast and not voting this Congress, and the 10 most recent recorded votes with results, each linked to its roll call and official source.
 - Roll call: https://www.ballotwatch.io/vote/{congress}/{house|senate}/{session}/{roll} (example: /vote/119/house/2/295)
 - Bill: https://www.ballotwatch.io/bill/{congress}/{type}/{number} (example: /bill/119/hr/1; types: hr, s, hjres, sjres, hconres, sconres, hres, sres)
 - Members index (free account in the browser; use the API's /api/v1/members without one): https://www.ballotwatch.io/all

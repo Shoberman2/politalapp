@@ -15,6 +15,14 @@ export const member = {
     { roll_call_id: 'house-119-2-295', position: 'Nay', voted_at: '2026-09-03', source_url: 'https://clerk.house.gov/Votes/2026295', bill: { id: '119-hr-4795', title: 'Water Resources Development Act of 2026' }, question: 'On Passage' },
     { roll_call_id: 'house-119-2-294', position: 'Yea', voted_at: '2026-09-03', source_url: 'https://clerk.house.gov/Votes/2026294', bill: null, question: 'On Motion to Adjourn' },
   ],
+  bills: {
+    sponsored: { total: 31, items: [
+      { id: '119-hr-1234', congress: 119, label: 'H.R. 1234', path: '/bill/119/hr/1234', title: 'Housing <Affordability> Act', introduced_at: '2026-03-02', source_url: 'https://www.congress.gov/bill/119th-congress/house-bill/1234' },
+    ] },
+    cosponsored: { total: 140, items: [
+      { id: '119-s-77', congress: 119, label: 'S. 77', path: '/bill/119/s/77', title: 'Clean Water Act of 2026', introduced_at: '2026-01-15', source_url: null },
+    ] },
+  },
   source_url: 'https://bioguide.congress.gov/search/bio/P000197',
   congress_gov_url: 'https://www.congress.gov/member/P000197',
   indexable: true,

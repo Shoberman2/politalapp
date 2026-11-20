@@ -22,7 +22,7 @@ describe('account gate list', () => {
 
   it('keeps the public record public', () => {
     for (const p of [
-      '/', '/politician/P000197', '/politician/P000197/', '/politician/P000197/record',
+      '/', '/members', '/politician/P000197', '/politician/P000197-nancy-pelosi', '/politician/P000197-nancy-pelosi/record', '/politician/P000197/', '/politician/P000197/record',
       '/bill/119/hr/1', '/bill/119/s/42/', '/vote/119/house/2/295', '/how-it-works', '/government',
       '/developers', '/developers/docs', '/developers/keys', '/developers/usage', '/open',
       '/methodology', '/methodology/votes', '/data-sources', '/about', '/contact', '/privacy', '/terms',

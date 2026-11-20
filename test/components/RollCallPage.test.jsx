@@ -58,7 +58,7 @@ describe('RollCallPage', { timeout: 30000 }, () => {
     expect(container.querySelector('.rc-result').className).toContain('rc-result-passed')
     expect(container.querySelector('.rc-party').textContent).toBe('By party (yes–no): D 200–10 · R 180–30')
     expect(screen.getByRole('link', { name: 'Official record' }).getAttribute('href')).toBe('https://clerk.house.gov/Votes/2026295')
-    expect(screen.getByRole('link', { name: 'Nancy Pelosi' }).getAttribute('href')).toBe('/politician/P000197')
+    expect(screen.getByRole('link', { name: 'Nancy Pelosi' }).getAttribute('href')).toBe('/politician/P000197-nancy-pelosi')
     expect(rowNames(container)).toEqual(['Aaron Bean', 'Nancy Pelosi', 'Robert Aderholt'])
     expect(container.querySelector('.rc-position-not-voting').textContent).toBe('Not Voting')
     // The "Tell your rep" hand-off sits on the page, closed until asked for.

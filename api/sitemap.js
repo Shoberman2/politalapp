@@ -20,6 +20,7 @@ import { billPath } from './_lib/pages.js'
 import { SITE_ORIGIN } from './_lib/site.js'
 import { checkRateLimit } from './_lib/rateLimit.js'
 import { recordPath } from '../shared/memberRecord.js'
+import { memberPath } from '../shared/memberSlug.js'
 import { clientIp, hashIp } from './_lib/auth.js'
 import { STATIC_PAGES } from './_lib/staticPages.js'
 
@@ -53,6 +54,7 @@ export async function pageEntries() {
   const lastmod = await latestVoteDate()
   return [
     { path: '/', lastmod, changefreq: 'daily', priority: 1.0 },
+    { path: '/members', lastmod, changefreq: 'daily', priority: 0.8 },
     ...Object.entries(STATIC_PAGES).filter(([path]) => !isGatedPath(path)).map(([path, p]) => ({
       path,
       lastmod: null,
@@ -62,20 +64,27 @@ export async function pageEntries() {
   ]
 }
 
-export async function memberEntries() {
+// Every politician with at least one recorded vote (the member pages' index gate).
+async function membersWithVotes() {
   const [politicians, stats, lastmod] = await Promise.all([
-    fetchAll('politicians', 'id'),
+    fetchAll('politicians', 'id, name'),
     fetchAll('member_stats', 'politician_id, total_votes', (q) => q.gt('total_votes', 0), 'politician_id'),
     latestVoteDate(),
   ])
   const withVotes = new Set(stats.map((s) => s.politician_id))
-  return politicians.filter((p) => withVotes.has(p.id)).map((p) => ({ path: `/politician/${p.id}`, lastmod, changefreq: 'weekly' }))
+  return { members: politicians.filter((p) => withVotes.has(p.id)), lastmod }
+}
+
+// <loc> values are the slugged canonical URLs (/politician/P000197-nancy-pelosi).
+export async function memberEntries() {
+  const { members, lastmod } = await membersWithVotes()
+  return members.map((p) => ({ path: memberPath(p.id, p.name), lastmod, changefreq: 'weekly' }))
 }
 
 // Same members and the same gate as the member pages (at least one vote).
 export async function recordEntries() {
-  const members = await memberEntries()
-  return members.map((m) => ({ ...m, path: recordPath(m.path.slice('/politician/'.length)) }))
+  const { members, lastmod } = await membersWithVotes()
+  return members.map((p) => ({ path: recordPath(p.id, p.name), lastmod, changefreq: 'weekly' }))
 }
 
 export async function voteEntries() {

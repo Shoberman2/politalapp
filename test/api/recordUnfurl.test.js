@@ -25,7 +25,7 @@ vi.mock('@vercel/og', () => ({
 }))
 
 import handler from '../../api/prerender.js'
-import ogHandler, { CACHE_OK, CACHE_FALLBACK, DATA_TIMEOUT_MS } from '../../api/og.jsx'
+import ogHandler, { CACHE_OK, CACHE_FALLBACK, DATA_TIMEOUT_MS } from '../../api/og.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
 import { shapeMemberRecord } from '../../shared/memberRecord.js'
 
@@ -67,11 +67,11 @@ describe('record card link preview (prerendered HTML)', () => {
   it('carries complete Open Graph and Twitter tags, each exactly once, with absolute URLs', async () => {
     seed()
     const res = makeRes()
-    await handler({ headers: { host: 'www.ballotwatch.io', 'x-forwarded-proto': 'https', accept: 'text/html' }, query: { kind: 'record', id: 'P000197' } }, res)
+    await handler({ headers: { host: 'www.ballotwatch.io', 'x-forwarded-proto': 'https', accept: 'text/html' }, query: { kind: 'record', id: 'P000197-nancy-pelosi' } }, res)
     expect(res.statusCode).toBe(200)
     const html = res.body
-    const canonical = 'https://www.ballotwatch.io/politician/P000197/record'
-    const image = 'https://www.ballotwatch.io/congress.jpg'
+    const canonical = 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record'
+    const image = 'https://www.ballotwatch.io/api/og?kind=record&id=P000197'
     const title = "Nancy Pelosi's record in 60 seconds (D-CA-11)"
 
     expect(metas(html, 'og:title')).toEqual([title])
@@ -90,12 +90,10 @@ describe('record card link preview (prerendered HTML)', () => {
     expect(metas(html, 'og:image:alt')).toEqual([title])
     expect(metas(html, 'twitter:card')).toEqual(['summary_large_image'])
     for (const u of [...metas(html, 'og:image'), ...metas(html, 'og:url')]) expect(u).toMatch(/^https:\/\//)
-    // Until /api/og is served in production (TODOS.md), record previews use the
-    // static 1200x630 card rather than a broken image URL.
   })
 })
 
-describe('record share image (api/og.jsx)', () => {
+describe('record share image (api/og.js)', () => {
   const record = shapeMemberRecord({
     member: { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic' },
     stats: { congress: 119, total_votes: 676, yea_count: 256, nay_count: 355, present_count: 4, not_voting_count: 61 },
@@ -121,6 +119,13 @@ describe('record share image (api/og.jsx)', () => {
     expect(text(res.element)).toContain('615')
   })
 
+  it('accepts kind=member and a slugged id, and states the tally in one line', async () => {
+    og.record.mockResolvedValue(record)
+    const res = await ogHandler(new Request('https://www.ballotwatch.io/api/og?kind=member&id=P000197-nancy-pelosi'))
+    expect(og.record).toHaveBeenCalledWith('P000197')
+    expect(text(res.element)).toContain('256 yea, 355 nay, 61 not voting in the 119th Congress')
+  })
+
   it('renders the generic card with a short cache when the database is slow or down', async () => {
     og.record.mockRejectedValue(new Error('db down'))
     let res = await ogHandler(req())
@@ -141,7 +146,7 @@ describe('record share image (api/og.jsx)', () => {
     global.fetch = vi.fn(async () => ({ ok: false, status: 503 }))
     // A fresh module, so fonts cached by the earlier tests do not mask the failure.
     vi.resetModules()
-    const { default: fresh } = await import('../../api/og.jsx')
+    const { default: fresh } = await import('../../api/og.js')
     const res = await fresh(req())
     expect(res.status).toBe(302)
     expect(res.headers.get('location')).toBe('https://www.ballotwatch.io/congress.jpg')

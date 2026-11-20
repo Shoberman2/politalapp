@@ -9,6 +9,7 @@ import AccessGate from './components/AccessGate'
 import MyPolitician from './components/MyPolitician'
 import CivicBriefing from './components/CivicBriefing'
 import AllPoliticians from './components/AllPoliticians'
+import MembersIndex from './components/MembersIndex'
 import BillsPage from './components/BillsPage'
 import BillDetail from './components/BillDetail'
 import PoliticianDetail from './components/PoliticianDetail'
@@ -104,8 +105,11 @@ function App() {
           )}
           {/* Members list, profiles and bill pages: public, no account needed. */}
           <Route path="/all" element={<AllPoliticians />} />
+          {/* Public list of every member with a recorded vote, server-rendered by api/prerender.js. */}
+          <Route path="/members" element={<MembersIndex />} />
           <Route path="/bills" element={<BillsPage />} />
           <Route path="/bill/:congress/:billType/:number" element={<BillDetail />} />
+          {/* The param is the whole segment, "P000197-nancy-pelosi"; the pages read the id with bioguideFromSegment. */}
           <Route path="/politician/:bioguideId" element={<PoliticianDetail />} />
           {/* "Record in 60 seconds" card, server-rendered by api/prerender.js. */}
           <Route path="/politician/:bioguideId/record" element={<MemberRecord />} />

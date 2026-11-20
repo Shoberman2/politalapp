@@ -80,9 +80,9 @@ describe('record in 60 seconds: rendering', () => {
     const withImage = shell.replace('</head>', '<meta property="og:image" content="https://www.ballotwatch.io/congress.jpg" />\n<meta name="twitter:image" content="https://www.ballotwatch.io/congress.jpg" />\n</head>')
     const html = renderPage(withImage, r)
     expect(html).toContain("<title>Nancy Pelosi&#39;s record in 60 seconds (D-CA-11)</title>")
-    expect(html).toContain('<link rel="canonical" href="https://www.ballotwatch.io/politician/P000197/record" />')
-    expect(html).toContain('<meta property="og:image" content="https://www.ballotwatch.io/congress.jpg" />')
-    expect(html).toContain('<meta name="twitter:image" content="https://www.ballotwatch.io/congress.jpg" />')
+    expect(html).toContain('<link rel="canonical" href="https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record" />')
+    expect(html).toContain('<meta property="og:image" content="https://www.ballotwatch.io/api/og?kind=record&amp;id=P000197" />')
+    expect(html).toContain('<meta name="twitter:image" content="https://www.ballotwatch.io/api/og?kind=record&amp;id=P000197" />')
     expect(html).toContain('<meta property="og:type" content="profile" />')
     expect(html).toContain('<meta name="robots" content="index, follow" />')
     expect(html).toContain('"@type":"ProfilePage"')
@@ -95,7 +95,7 @@ describe('record in 60 seconds: rendering', () => {
     expect(html).toContain('<dd>676</dd>')
     expect(html).toContain('61 <span class="rec-facts-sub">(9%)</span>')
     expect(html).toContain('Data recorded through October 2, 2026.')
-    expect(html).toContain('href="/politician/P000197">Full record')
+    expect(html).toContain('href="/politician/P000197-nancy-pelosi">Full record')
     expect(html).toContain('Not derived')   // the adjournment vote has no trusted tally
     expect(html).not.toMatch(/party-majority|loyalty|votes with party/i)
     expect(recordMeta(r).description.length).toBeLessThanOrEqual(200)
@@ -116,7 +116,7 @@ describe('record in 60 seconds: rendering', () => {
     const md = renderMarkdown(await getRecordPage('P000197'))
     expect(md.startsWith("# Nancy Pelosi's record in 60 seconds\n")).toBe(true)
     expect(md).toContain('- 119th Congress: 676 roll calls, 615 votes cast (256 yea, 355 nay, 4 present), 61 not voting (9%)')
-    expect(md).toContain('- Canonical: https://www.ballotwatch.io/politician/P000197/record')
+    expect(md).toContain('- Canonical: https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record')
     expect(md).toContain('| 2026-09-03 | [house-119-2-295](https://www.ballotwatch.io/vote/119/house/2/295) | On Passage | [H.R. 4795](https://www.ballotwatch.io/bill/119/hr/4795)')
     expect(md).toContain('| Nay | Passed | [record](https://clerk.house.gov/Votes/2026295) |')
   })
@@ -126,12 +126,12 @@ describe('record in 60 seconds: prerender kind, routing, sitemap', () => {
   beforeEach(() => { reset(); process.env.PRERENDER_SHELL_FROM_ORIGIN = '1'; global.fetch = vi.fn(async () => ({ ok: true, text: async () => shell })) })
 
   it('resolves kind=record and serves HTML or Markdown', async () => {
-    expect(resolveTarget({ kind: 'record', id: 'p000197' })).toEqual({ kind: 'record', id: 'P000197', path: '/politician/P000197/record' })
+    expect(resolveTarget({ kind: 'record', id: 'p000197' })).toEqual({ kind: 'record', id: 'P000197', segment: 'p000197', alias: false, path: '/politician/P000197/record' })
     expect(resolveTarget({ kind: 'record' })).toBeNull()
 
     seedPelosi()
     let res = makeRes()
-    await handler(req({ kind: 'record', id: 'P000197' }), res)
+    await handler(req({ kind: 'record', id: 'P000197-nancy-pelosi' }), res)
     expect(res.statusCode).toBe(200)
     expect(res.getHeader('x-ballotwatch-prerender')).toBe('index')
     expect(res.getHeader('vary')).toBe('Accept')
@@ -139,9 +139,9 @@ describe('record in 60 seconds: prerender kind, routing, sitemap', () => {
 
     reset(); seedPelosi()
     res = makeRes()
-    await handler(req({ kind: 'record', id: 'P000197' }, 'text/markdown'), res)
+    await handler(req({ kind: 'record', id: 'P000197-nancy-pelosi' }, 'text/markdown'), res)
     expect(res.getHeader('content-type')).toContain('text/markdown')
-    expect(res.getHeader('link')).toBe('<https://www.ballotwatch.io/politician/P000197/record>; rel="canonical"')
+    expect(res.getHeader('link')).toBe('<https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record>; rel="canonical"')
     expect(res.body).toContain("# Nancy Pelosi's record in 60 seconds")
 
     reset()
@@ -157,14 +157,14 @@ describe('record in 60 seconds: prerender kind, routing, sitemap', () => {
     const i = rewrites.findIndex((r) => r.source === '/politician/:bioguideId/record')
     expect(rewrites[i]).toEqual({ source: '/politician/:bioguideId/record', destination: '/api/prerender?kind=record&id=:bioguideId' })
     expect(i).toBeLessThan(rewrites.findIndex((r) => r.destination === '/index.html'))
-    expect(readFileSync(resolve(process.cwd(), 'public/llms.txt'), 'utf8')).toContain('/politician/{bioguide_id}/record')
+    expect(readFileSync(resolve(process.cwd(), 'public/llms.txt'), 'utf8')).toContain('/politician/{bioguide_id}-{name-slug}/record')
   })
 
   it('lists a record card for every member with votes', async () => {
-    db.responses.politicians = { data: [{ id: 'P000197' }, { id: 'Z000000' }] }
+    db.responses.politicians = { data: [{ id: 'P000197', name: 'Nancy Pelosi' }, { id: 'Z000000', name: 'No Votes' }] }
     db.responses.member_stats = { data: [{ politician_id: 'P000197', total_votes: 676 }] }
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
-    expect(await recordEntries()).toEqual([{ path: '/politician/P000197/record', lastmod: '2026-09-03', changefreq: 'weekly' }])
+    expect(await recordEntries()).toEqual([{ path: '/politician/P000197-nancy-pelosi/record', lastmod: '2026-09-03', changefreq: 'weekly' }])
     reset()
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T00:00:00Z' }] }
     expect(await buildPart(null)).toContain('<loc>https://www.ballotwatch.io/sitemap-records.xml</loc>')

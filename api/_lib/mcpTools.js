@@ -12,6 +12,7 @@ import { getDataUpdatedAt } from './etlMeta.js'
 import { SITE_ORIGIN as SITE, congressGovMemberUrl } from './site.js'
 import { loadFloorSchedule, resolveFloorWeeks } from './floorSchedule.js'
 import { recordPath } from '../../shared/memberRecord.js'
+import { memberPath } from '../../shared/memberSlug.js'
 
 const lastRun = getDataUpdatedAt
 
@@ -27,7 +28,7 @@ function memberSummary(p) {
     party: p.party,
     state: p.state,
     district: p.district ?? null,
-    canonical: `${SITE}/politician/${p.id}`,
+    canonical: `${SITE}${memberPath(p.id, p.name)}`,
     source_url: congressGovMemberUrl(p.id),
   }
 }
@@ -199,7 +200,7 @@ export async function getBill({ id }) {
     label: b.label,
     title: b.title,
     congress: b.congress,
-    sponsor: b.sponsor ? { ...b.sponsor, canonical: `${SITE}/politician/${b.sponsor.id}` } : null,
+    sponsor: b.sponsor ? { ...b.sponsor, canonical: `${SITE}${memberPath(b.sponsor.id, b.sponsor.name)}` } : null,
     introduced_at: b.introduced_at,
     policy_area: b.policy_area,
     stage: b.legislative_stage,
@@ -302,8 +303,8 @@ export async function getMemberRecord({ bioguide_id }) {
       source_url: v.source_url,
     })),
     note: 'The same facts for every member: the ten most recent recorded votes, not a curated list. Cite canonical and each vote source_url.',
-    canonical: `${SITE}${recordPath(r.id)}`,
-    member_page: `${SITE}/politician/${r.id}`,
+    canonical: `${SITE}${recordPath(r.id, r.name)}`,
+    member_page: `${SITE}${memberPath(r.id, r.name)}`,
     source_url: r.sources.congressGov,
     sources: { congress_gov: r.sources.congressGov, bioguide: r.sources.bioguide, chamber_votes: r.sources.chamberVotes },
     data_updated_at: r.updatedAt,
