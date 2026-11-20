@@ -207,22 +207,20 @@ describe('member bills (sponsored and cosponsored)', () => {
 
   const bill = (id, title, introduced_at) => ({ id, title, introduced_at, source_url: `https://www.congress.gov/bill/${id}` })
 
-  it('lists sponsored bills newest Congress first, skipping stubs and bills with no vote and no summary', async () => {
+  it('lists sponsored bills newest Congress first, skipping placeholder-title stubs', async () => {
     db.responses.bills = [
       { count: 41, data: [
         bill('118-hr-9', 'An older real bill', '2024-05-01'),
         bill('119-hr-1', 'Newest real bill', '2026-03-02'),
         bill('119-hr-2', 'HR 2', '2026-02-01'),                // placeholder title
-        bill('119-hr-3', 'Real title but thin', '2026-01-10'), // no vote, no summary
+        bill('119-hr-3', 'Real title, no vote yet', '2026-01-10'), // listed: real title
         bill('119-s-4', 'Has a floor vote', '2025-09-09'),
       ] },
-      { data: [{ id: '119-hr-1' }] },                           // bills with a summary
     ]
-    db.responses.roll_calls = { data: [{ bill_id: '119-s-4' }] }
     db.responses.bill_cosponsors = { count: 0, data: [] }
     const out = await getMemberBills('P000197')
     expect(out.sponsored.total).toBe(41)
-    expect(out.sponsored.items.map((b) => b.id)).toEqual(['119-hr-1', '119-s-4'])
+    expect(out.sponsored.items.map((b) => b.id)).toEqual(['119-hr-1', '119-hr-3', '119-s-4', '118-hr-9'])
     expect(out.sponsored.items[0]).toMatchObject({ label: 'H.R. 1', path: '/bill/119/hr/1', congress: 119, source_url: 'https://www.congress.gov/bill/119-hr-1' })
     expect(db.ops('bills', 'eq')[0]).toEqual(['eq', 'sponsor_bioguide_id', 'P000197'])
     expect(db.ops('bills', 'order')[0]).toEqual(['order', 'introduced_at', { ascending: false, nullsFirst: false }])

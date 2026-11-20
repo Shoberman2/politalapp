@@ -59,20 +59,12 @@ function shapeBillRow(b) {
   }
 }
 
-// Only bills that pass the same gate as the bill pages (a real title, and a
-// recorded vote or a summary) are listed: a thin stub is never shown as real.
-async function passingBillIds(rows) {
-  const ids = rows.filter((b) => !isPlaceholderTitle(b.title)).map((b) => b.id)
-  if (!ids.length) return new Set()
-  const [votes, summaries] = await Promise.all([
-    supabaseAdmin.from('roll_calls').select('bill_id').in('bill_id', ids),
-    supabaseAdmin.from('bills').select('id').in('id', ids).or('summary.not.is.null,crs_summary.not.is.null'),
-  ])
-  const hasVote = new Set((must(votes, 'roll_calls') || []).map((r) => r.bill_id))
-  const hasSummary = new Set((must(summaries, 'bills') || []).map((r) => r.id))
-  return new Set(rows
-    .filter((b) => billGate({ title: b.title, hasVote: hasVote.has(b.id), hasSummary: hasSummary.has(b.id) }).indexable)
-    .map((b) => b.id))
+// Member bill lists drop placeholder titles ("To amend title X...", stubs)
+// so no thin title is shown as if it were real. Real-titled bills are listed
+// even without a roll call or summary: their bill pages are noindex stubs
+// (billGate) that the client fills in, which the spec allows.
+function realTitledBillIds(rows) {
+  return new Set(rows.filter((b) => !isPlaceholderTitle(b.title)).map((b) => b.id))
 }
 
 const byRecent = (a, b) => (b.congress - a.congress) || String(b.introduced_at || '').localeCompare(String(a.introduced_at || ''))
@@ -93,7 +85,7 @@ export async function getMemberBills(id) {
   ])
   const sponsoredRows = must(sponsoredRes, 'bills') || []
   const cosponsoredRows = (must(cosponsoredRes, 'bill_cosponsors') || []).map((r) => r.bills).filter(Boolean)
-  const ok = await passingBillIds([...sponsoredRows, ...cosponsoredRows])
+  const ok = realTitledBillIds([...sponsoredRows, ...cosponsoredRows])
   const shape = (rows, limit) => rows.filter((b) => ok.has(b.id)).map(shapeBillRow).filter(Boolean).sort(byRecent).slice(0, limit)
   return {
     sponsored: { total: sponsoredRes.count ?? sponsoredRows.length, items: shape(sponsoredRows, SPONSORED_LIMIT) },

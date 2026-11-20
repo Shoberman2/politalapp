@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **A public list of every member of Congress at `/members`.** It is server-rendered, grouped by Senate, House and delegates, and linked from the homepage and the footer. It is in the sitemap and needs no account.
-- **Member pages carry the bills they sponsored (20 most recent, with the total) and cosponsored (10 most recent, with the total),** each linked to the bill page and Congress.gov. Stub titles and bills with no vote or summary are left out, and a failed read drops the section instead of the page.
+- **Member pages carry the bills they sponsored (20 most recent, with the total) and cosponsored (10 most recent, with the total),** each linked to the bill page and Congress.gov. Placeholder stub titles are left out, and a failed read drops the section instead of the page.
 - **Member links carry the name.** `/politician/P000197-nancy-pelosi` is the canonical address, for the page and its `/record` card, in the sitemaps, `llms.txt`, the MCP tools and every link in the app.
 - **Each member page has its own share image** (`/api/og?kind=record&id=...`: name, party, seat and vote tally). `api/og.jsx` is now `api/og.js` with no JSX, so Vercel builds it, and `robots.txt` lets crawlers fetch it.
 - Person data on member pages adds a description, given and family names when the stored name is two words, work location and the start of the current term.
