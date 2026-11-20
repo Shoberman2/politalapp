@@ -17,7 +17,7 @@ describe('member SEO routing config', () => {
   })
 
   it('301s /politicians to /members', () => {
-    expect(vercel.redirects).toContainEqual({ source: '/politicians', destination: '/members', permanent: true })
+    expect(vercel.redirects).toContainEqual({ source: '/politicians', destination: '/members', statusCode: 301 })
   })
 
   it('lets crawlers fetch /api/og and lists /members on llms.txt and the homepage links', () => {

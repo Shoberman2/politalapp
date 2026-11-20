@@ -23,7 +23,7 @@ describe('vercel.json routing for the members index and member aliases', () => {
   })
 
   it('301s /politicians to /members', () => {
-    expect(vercel.redirects).toContainEqual({ source: '/politicians', destination: '/members', permanent: true })
+    expect(vercel.redirects).toContainEqual({ source: '/politicians', destination: '/members', statusCode: 301 })
   })
 
   it('still hands the whole /politician segment (id and slug) to the prerender function', () => {
