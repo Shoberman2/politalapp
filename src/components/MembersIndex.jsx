@@ -46,7 +46,7 @@ export default function MembersIndex() {
       <SEO title={`Members of Congress, ${ordinalCongress(MEMBERS_CONGRESS)} Congress`} description={DESCRIPTION} path="/members" />
       <section className="ip-hero">
         <div className="ip-inner">
-          <h1 className="ip-title">Members Of Congress</h1>
+          <h1 className="ip-title">Members of Congress</h1>
           <p className="ip-lede">
             {data
               ? `${data.total} members with a recorded vote in the ${ordinalCongress(MEMBERS_CONGRESS)} Congress. Each page lists the member's votes, linked to the official roll call.`

@@ -26,7 +26,7 @@ describe('MembersIndex', () => {
     document.body.appendChild(el)
     renderPage()
     expect(services.getMembersIndex).not.toHaveBeenCalled()
-    expect(screen.getByRole('heading', { level: 1, name: 'Members Of Congress' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Members of Congress' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Nancy Pelosi' }).getAttribute('href')).toBe('/politician/P000197-nancy-pelosi')
     expect(screen.getByRole('link', { name: 'Charles Schumer' }).getAttribute('href')).toBe('/politician/S000148-charles-schumer')
     expect(screen.getByRole('heading', { level: 2, name: 'Senate' })).toBeTruthy()

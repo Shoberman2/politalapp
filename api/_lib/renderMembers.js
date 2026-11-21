@@ -12,7 +12,7 @@ import { MEMBERS_CONGRESS, MEMBER_GROUPS, memberSeat } from '../../shared/member
 
 export const MEMBERS_TITLE = `Members of Congress, ${ordinalCongress(MEMBERS_CONGRESS)} Congress | BallotWatch`
 export const MEMBERS_DESCRIPTION = `Every member of the ${ordinalCongress(MEMBERS_CONGRESS)} U.S. Congress with a recorded vote: senators, representatives and delegates, each linked to a source-cited voting record.`
-export const MEMBERS_H1 = 'Members Of Congress'
+export const MEMBERS_H1 = 'Members of Congress'
 
 function itemHtml(m) {
   return `<li><a href="${escapeHtml(memberPath(m.id, m.name))}">${escapeHtml(m.name)}</a> <span class="mi-meta">${escapeHtml(partyLetter(m.party))} · ${escapeHtml(stateName(m.state))} · ${escapeHtml(memberSeat(m))}</span></li>`
