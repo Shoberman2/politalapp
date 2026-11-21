@@ -1,4 +1,4 @@
-// Data for the "record in 60 seconds" share image (api/og.jsx?kind=record).
+// Data for the "record in 60 seconds" share image (api/og.js?kind=record).
 // Edge runtime, anon key, same public tables the app reads. Only the facts
 // the card itself shows: seat, and votes cast / not voting this Congress.
 // Never anything from campaign-finance tables.

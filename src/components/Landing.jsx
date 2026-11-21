@@ -17,6 +17,7 @@ import { LANDING_FAQ as FAQ } from '../data/landingFaq'
 import { CIVICS_PRIMER } from '../data/civicsPrimer'
 import { HOME_TITLE, HOME_DESCRIPTION, HOME_H1, HOME_FEATURES, homeJsonLdGraph } from '../data/homeSeo'
 import { isAtLargeState } from '../../shared/atLargeStates.js'
+import { recordPath } from '../../shared/memberRecord.js'
 import '../styles/Landing.css'
 
 const BILL_TYPE_LABELS = {
@@ -592,7 +593,7 @@ function Landing() {
     </div>
   )
 
-  const recordHref = featuredRecord ? `/politician/${featuredRecord.id}/record` : '/my-representative'
+  const recordHref = featuredRecord ? recordPath(featuredRecord.id, featuredRecord.name) : '/my-representative'
   const writeHref = headlineVote ? `${headlineVote.voteHref}#tell-your-rep` : '/how-it-works'
 
   // Headlines and copy come from src/data/homeSeo.js, the same text the

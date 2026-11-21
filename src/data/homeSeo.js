@@ -35,6 +35,7 @@ export const HOME_FEATURES = [
 ]
 
 export const HOME_LINKS = [
+  { href: '/members', label: 'Members of Congress' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/government', label: 'How the government works' },
   { href: '/glossary', label: 'Glossary' },

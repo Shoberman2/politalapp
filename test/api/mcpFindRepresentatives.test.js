@@ -32,7 +32,7 @@ describe('findRepresentatives', () => {
     expect(out.congress).toBe(currentCongress())
     expect(out.representatives).toEqual([{
       bioguide_id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', party: 'Democratic', state: 'CA', district: '11',
-      canonical: 'https://www.ballotwatch.io/politician/P000197', source_url: 'https://www.congress.gov/member/P000197',
+      canonical: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi', source_url: 'https://www.congress.gov/member/P000197',
     }])
     expect(out.senators.map((s) => s.bioguide_id)).toEqual(['P000145', 'S001150'])
     expect(out.senators[0].name).toBe('Alex Padilla')

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import RecordLink from './RecordLink'
+import { memberPath } from '../../shared/memberSlug.js'
 import SEO from './SEO'
 import { getAllCurrentMembers } from '../services/congress'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
@@ -107,7 +108,7 @@ function MemberCard({ member }) {
       <div className="mc-body">
         <div className="mc-role">{role}</div>
         <div className="mc-name">
-          {bioguideId ? <Link className="mc-link" to={`/politician/${bioguideId}`}>{name}</Link> : name}
+          {bioguideId ? <Link className="mc-link" to={memberPath(bioguideId, name)}>{name}</Link> : name}
         </div>
         {leaderTitle && <div className="mc-leader">{leaderTitle}</div>}
         <div className="mc-foot">

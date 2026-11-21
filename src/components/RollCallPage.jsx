@@ -7,6 +7,7 @@ import { InfoDot } from './Term'
 import { termForQuestion } from '../../shared/glossary.js'
 import { voteRef } from '../utils/tellYourRepDraft'
 import '../styles/RollCall.css'
+import { memberPath } from '../../shared/memberSlug.js'
 
 const ORD = (n) => { const v = n % 100; const s = ['th', 'st', 'nd', 'rd']; return `${n}${s[(v - 20) % 10] || s[v] || s[0]}` }
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : ''
@@ -171,7 +172,7 @@ function RollCallPage() {
                 <tbody>
                   {visible.map((v) => (
                     <tr key={v.member.id}>
-                      <td><Link to={`/politician/${v.member.id}`}>{v.member.name}</Link></td>
+                      <td><Link to={memberPath(v.member.id, v.member.name)}>{v.member.name}</Link></td>
                       <td className="rc-mono">{partyShort(v.member.party)}-{v.member.state || ''}{v.member.district ? `-${v.member.district}` : ''}</td>
                       <td className={`rc-position rc-position-${v.position.toLowerCase().replace(/\s+/g, '-')}`}>{v.position}</td>
                     </tr>

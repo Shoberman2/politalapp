@@ -107,8 +107,8 @@ describe('get_member_record', () => {
       serving_since: '2025-01-03',
       this_congress: { congress: 119, roll_calls: 400, votes_cast: 372, not_voting: 28, not_voting_pct: 7 },
       recorded_votes: 812,
-      canonical: 'https://www.ballotwatch.io/politician/P000197/record',
-      member_page: 'https://www.ballotwatch.io/politician/P000197',
+      canonical: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record',
+      member_page: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi',
       source_url: 'https://www.congress.gov/member/P000197',
       sources: {
         congress_gov: 'https://www.congress.gov/member/P000197',

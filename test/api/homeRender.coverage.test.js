@@ -64,6 +64,13 @@ describe('getHomeVotes edge cases', () => {
   })
 })
 
+describe('homepage members link', () => {
+  it('links the public members index in the HTML and Markdown', () => {
+    expect(renderHomeBody({ votes: null, updatedAt: null })).toContain('<a href="/members">Members of Congress</a>')
+    expect(homeMarkdown({ votes: null })).toContain('Members of Congress: https://www.ballotwatch.io/members')
+  })
+})
+
 describe('renderHomeBody fallbacks and escaping', () => {
   it('escapes record text and falls back for a missing heading, bill path, tally and update time', () => {
     const latest = vote({
@@ -188,8 +195,9 @@ describe('sitemap pages part', () => {
     const entries = await pageEntries()
     expect(entries.find((e) => e.path === '/').lastmod).toBe('2026-09-03')
     expect(entries.find((e) => e.path === '/this-week')).toBeUndefined()
+    expect(entries.find((e) => e.path === '/members')).toMatchObject({ lastmod: '2026-09-03', changefreq: 'daily' })
     expect(entries.find((e) => e.path === '/about').lastmod).toBeNull()
-    expect(entries).toHaveLength(1 + Object.keys(STATIC_PAGES).length)
+    expect(entries).toHaveLength(2 + Object.keys(STATIC_PAGES).length)
 
     _resetSitemapMemo?.()
     db.reset()

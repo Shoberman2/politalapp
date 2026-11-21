@@ -26,6 +26,7 @@
 
 import { parseRollCallId, rollCallPath, saneTally, tallyFromStats, deriveResult, resultKind, voteSourceUrl } from '../api/_lib/rollCallResult.js'
 import { isPlaceholderTitle } from '../api/_lib/indexGate.js'
+import { memberPath } from './memberSlug.js'
 import { isAtLargeState, isDelegateJurisdiction } from './atLargeStates.js'
 
 export const RECORD_VOTE_LIMIT = 10
@@ -35,8 +36,11 @@ const BILL_TYPE_LABELS = {
   hconres: 'H.Con.Res.', sconres: 'S.Con.Res.', hres: 'H.Res.', sres: 'S.Res.',
 }
 
-export function recordPath(bioguideId) {
-  return `/politician/${String(bioguideId || '').toUpperCase()}/record`
+// `name` is optional: with it the path carries the name slug
+// (/politician/P000197-nancy-pelosi/record), without it the bare-id form that
+// the server redirects to the slugged one.
+export function recordPath(bioguideId, name) {
+  return memberPath(bioguideId, name, '/record')
 }
 
 export function recordBill(billId) {
@@ -252,11 +256,10 @@ export function recordSummary(r, stateName = (s) => s) {
   return `${r.name}, ${seat}. ${facts}${latest}`
 }
 
-// The per-member image (api/og.jsx, edge) is not served in production: Vercel
-// does not build that .jsx function in this non-Next project (/api/og 404s,
-// which is also why api/share.js uses the static card). Until it is fixed,
-// record pages point at the same static 1200x630 card so links still unfurl.
-// TODOS.md: "Serve the dynamic share image".
-export function recordOgImagePath(_id) {
-  return '/congress.jpg'
+// The per-member share image (api/og.js, edge): 1200x630 with name, party,
+// seat and the vote tally. Takes a bare or slugged id. Falls back to the
+// static card inside the function itself when data or fonts are slow.
+export function recordOgImagePath(id) {
+  const key = String(id || '').split('-')[0].toUpperCase()
+  return `/api/og?kind=record&id=${encodeURIComponent(key)}`
 }

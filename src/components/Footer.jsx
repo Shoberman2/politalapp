@@ -15,6 +15,7 @@ const COLUMNS = [
     title: 'Explore',
     links: [
       { label: 'My representatives', to: '/my-representative' },
+      { label: 'Members of Congress', to: '/members' },
       { label: 'Bills', to: '/bills' },
       { label: 'This week', to: '/this-week' },
       SHOW_BILL_ALERTS && { label: 'Bill alerts', to: '/alerts' },

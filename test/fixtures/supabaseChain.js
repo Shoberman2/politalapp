@@ -8,7 +8,7 @@ export function makeSupabaseMock() {
   const calls = []
   const METHODS = [
     'select', 'insert', 'update', 'delete', 'upsert',
-    'eq', 'neq', 'in', 'is', 'not', 'gt', 'gte', 'lt', 'lte', 'ilike', 'like',
+    'eq', 'neq', 'in', 'is', 'not', 'gt', 'gte', 'lt', 'lte', 'ilike', 'like', 'or',
     'order', 'limit', 'range', 'maybeSingle', 'single',
   ]
 

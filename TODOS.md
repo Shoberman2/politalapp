@@ -14,8 +14,9 @@
 
 ## Serve the dynamic share image (`/api/og`)
 **Priority:** P1
-**Context:** `api/og.jsx` (edge, `@vercel/og`) returns Vercel's NOT_FOUND in production and previews, for bills and member records alike: the `.jsx` function is not built in this non-Next project. `api/share.js` and, since v0.7.0.0, the record page's `og:image` (`recordOgImagePath` in `shared/memberRecord.js`) use the static `/congress.jpg` card instead.
-**What to do:** Rename to `api/og.js` without JSX (React.createElement or the object form), or move to a build that compiles it; verify on a preview with `vercel curl`; then point `recordOgImagePath` back at `/api/og?kind=record&id=…`.
+**Status:** Code done on feat/member-pages-seo; open until verified on a preview and in production.
+**Context:** `api/og.jsx` returned Vercel's NOT_FOUND because the `.jsx` function is not built in this non-Next project. It is now `api/og.js` (no JSX, edge). Member and record pages use `/api/og?kind=record&id=ID` as `og:image` / `twitter:image`; `robots.txt` no longer disallows `/api/og`. `api/share.js` (bills) still uses the static `/congress.jpg`.
+**What to do:** After deploy, `curl -I https://www.ballotwatch.io/api/og?kind=record&id=P000197` must be 200 `image/png`. If it is not, revert `recordOgImagePath` in `shared/memberRecord.js` to `/congress.jpg`. Then close this entry, and consider pointing `api/share.js` at `/api/og?bill=...`.
 
 ## Lazy-load routes and cut the main bundle under 250 KB gzip
 **Priority:** P1

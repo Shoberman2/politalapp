@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { isFavorite, toggleFavorite } from '../services/userService'
 import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberImage'
 import RecordLink from './RecordLink'
+import { memberPath } from '../../shared/memberSlug.js'
 import '../styles/PoliticianCard.css'
 import { InfoDot } from './Term'
 
@@ -36,7 +37,7 @@ function PoliticianCard({ politician, showFavorite = false, onFavoriteChange }) 
 
   const handleClick = () => {
     if (bioguideId) {
-      navigate(`/politician/${bioguideId}`)
+      navigate(memberPath(bioguideId, displayName))
     }
   }
 

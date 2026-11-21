@@ -53,13 +53,13 @@ describe('MemberRecord', () => {
     expect(screen.getByRole('link', { name: 'On Passage' }).getAttribute('href')).toBe('/vote/119/house/2/295')
     expect(screen.getByRole('link', { name: 'H.R. 4795' }).getAttribute('href')).toBe('/bill/119/hr/4795')
     expect(screen.getByText('Passed').className).toContain('rc-result-passed')
-    expect(screen.getByRole('link', { name: 'Full record' }).getAttribute('href')).toBe('/politician/P000197')
+    expect(screen.getByRole('link', { name: 'Full record' }).getAttribute('href')).toBe('/politician/P000197-nancy-pelosi')
     expect(screen.getByRole('link', { name: 'Congress.gov' }).getAttribute('href')).toBe('https://www.congress.gov/member/P000197')
     expect(screen.getByText(/Data recorded through October 2, 2026/)).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }))
     await screen.findByText('Link copied')
-    expect(clipboard.copy).toHaveBeenCalledWith('https://www.ballotwatch.io/politician/P000197/record')
+    expect(clipboard.copy).toHaveBeenCalledWith('https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record')
   })
 
   it('renders from the prerendered record without fetching, and says so honestly when a member has no votes', async () => {

@@ -4,9 +4,11 @@
 import { rollCallPath } from './rollCallResult.js'
 import { billPath, billLabel } from './pages.js'
 import { congressOrdinal as ord } from './billCard.js'
+import { membersMarkdown } from './renderMembers.js'
 import { SITE_ORIGIN as SITE } from './site.js'
 import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { recordHeadline, recordPath, recordSeatTitle } from '../../shared/memberRecord.js'
+import { memberPath } from '../../shared/memberSlug.js'
 
 function cell(s) {
   return String(s ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim()
@@ -20,7 +22,7 @@ export function memberMarkdown(m) {
     `- Seat: ${seat}`,
     `- Party: ${m.party}`,
     `- Bioguide ID: ${m.id}`,
-    `- Canonical: ${SITE}/politician/${m.id}`,
+    `- Canonical: ${SITE}${memberPath(m.id, m.name)}`,
     `- Sources: ${m.congress_gov_url} · ${m.source_url}`,
     `- Recorded votes: ${m.voteCount}`,
   ]
@@ -34,6 +36,11 @@ export function memberMarkdown(m) {
   for (const v of m.votes) {
     const vp = rollCallPath(v.roll_call_id)
     lines.push(`| ${cell(v.voted_at)} | ${vp ? `[${cell(v.roll_call_id)}](${SITE}${vp})` : cell(v.roll_call_id)} | ${cell(v.question)} | ${v.bill ? `[${cell(billLabel(v.bill.id))}](${SITE}${billPath(v.bill.id)})${v.bill.title ? ` ${cell(v.bill.title)}` : ''}` : ''} | ${cell(v.position)} | ${v.source_url ? `[record](${v.source_url})` : ''} |`)
+  }
+  for (const [title, list] of [['Bills sponsored', m.bills?.sponsored], ['Bills cosponsored', m.bills?.cosponsored]]) {
+    if (!list?.items?.length) continue
+    lines.push('', `## ${title} (${list.total}, most recent ${list.items.length} shown)`, '')
+    for (const b of list.items) lines.push(`- [${b.label}](${SITE}${b.path}) ${cell(b.title)}${b.introduced_at ? `, introduced ${String(b.introduced_at).slice(0, 10)}` : ''}${b.source_url ? ` ([Congress.gov](${b.source_url}))` : ''}`)
   }
   lines.push('', `Full record and API: ${SITE}/llms.txt`)
   return lines.join('\n') + '\n'
@@ -52,7 +59,7 @@ export function recordMarkdown(r) {
   if (r.servingSince && r.congress) lines.push(`- Serving in the ${ord(r.congress)} Congress since: ${r.servingSince}`)
   if (r.stats) lines.push(`- ${ord(r.stats.congress)} Congress: ${r.stats.total} roll calls, ${r.stats.cast} votes cast (${r.stats.yea} yea, ${r.stats.nay} nay, ${r.stats.present} present), ${r.stats.notVoting} not voting (${r.stats.notVotingPct}%)`)
   else lines.push('- Vote totals for the current Congress: not available yet')
-  lines.push(`- Canonical: ${SITE}${recordPath(r.id)}`, `- Full record: ${SITE}/politician/${r.id}`)
+  lines.push(`- Canonical: ${SITE}${recordPath(r.id, r.name)}`, `- Full record: ${SITE}${memberPath(r.id, r.name)}`)
   lines.push(`- Sources: ${r.sources.congressGov} · ${r.sources.bioguide} · ${r.sources.chamberVotes}`)
   if (r.updatedAt) lines.push(`- Data recorded through: ${r.updatedAt}`)
   const n = r.recentVotes.length
@@ -86,7 +93,7 @@ export function rollCallMarkdown(rc) {
   if (rc.updatedAt) lines.push(`- Data updated: ${rc.updatedAt}`)
   if (rc.votes.length) {
     lines.push('', `## Every member (${rc.votes.length})`, '', '| Member | Seat | Vote |', '|---|---|---|')
-    for (const v of rc.votes) lines.push(`| [${cell(v.member.name)}](${SITE}/politician/${v.member.id}) | ${cell(v.member.party)} ${cell(v.member.state)}${v.member.district ? `-${cell(v.member.district)}` : ''} | ${cell(v.position)} |`)
+    for (const v of rc.votes) lines.push(`| [${cell(v.member.name)}](${SITE}${memberPath(v.member.id, v.member.name)}) | ${cell(v.member.party)} ${cell(v.member.state)}${v.member.district ? `-${cell(v.member.district)}` : ''} | ${cell(v.position)} |`)
   }
   lines.push('', `Full record and API: ${SITE}/llms.txt`)
   return lines.join('\n') + '\n'
@@ -99,7 +106,7 @@ export function billMarkdown(b) {
     `- Congress: ${ord(b.congress)}`,
     `- Bill ID: ${b.id}`,
   ]
-  if (b.sponsor) lines.push(`- Sponsor: [${b.sponsor.name}](${SITE}/politician/${b.sponsor.id})${b.sponsor.party ? ` (${b.sponsor.party}-${b.sponsor.state || ''})` : ''}`)
+  if (b.sponsor) lines.push(`- Sponsor: [${b.sponsor.name}](${SITE}${memberPath(b.sponsor.id, b.sponsor.name)})${b.sponsor.party ? ` (${b.sponsor.party}-${b.sponsor.state || ''})` : ''}`)
   if (b.introduced_at) lines.push(`- Introduced: ${b.introduced_at}`)
   if (b.policy_area) lines.push(`- Policy area: ${b.policy_area}`)
   if (b.legislative_stage) lines.push(`- Stage: ${b.legislative_stage}`)
@@ -124,6 +131,7 @@ export function billMarkdown(b) {
 }
 
 export function renderMarkdown(data) {
+  if (data.kind === 'members') return membersMarkdown(data)
   if (data.kind === 'member') return memberMarkdown(data)
   if (data.kind === 'record') return recordMarkdown(data)
   if (data.kind === 'vote') return rollCallMarkdown(data)

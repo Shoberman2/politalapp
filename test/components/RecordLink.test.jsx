@@ -17,7 +17,7 @@ describe('RecordLink', () => {
   it('links a lower-case id to the upper-cased record path with a named accessible label', () => {
     renderLink({ bioguideId: 'p000197', name: 'Nancy Pelosi', className: 'extra' })
     const link = screen.getByRole('link', { name: 'Record in 60 seconds: Nancy Pelosi' })
-    expect(link.getAttribute('href')).toBe('/politician/P000197/record')
+    expect(link.getAttribute('href')).toBe('/politician/P000197-nancy-pelosi/record')
     expect(link.className).toBe('record-link extra')
   })
 

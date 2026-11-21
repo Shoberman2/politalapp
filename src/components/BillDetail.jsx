@@ -16,6 +16,7 @@ import { SHOW_BILL_ALERTS } from '../config/features'
 import { getPlainEnglishExplanation } from '../services/explanations'
 import { explanationSourceLine } from '../../shared/explanationSource.js'
 import '../styles/BillDetail.css'
+import { memberPath } from '../../shared/memberSlug.js'
 
 // Feature flag (per outside-voice D16). Off by default. Gates:
 //  - "Where this bill goes" section
@@ -304,7 +305,7 @@ function BillDetail() {
         <p className="bill-masthead-byline">
           {sponsor && (
             <>
-              <Term id="sponsor">Sponsored</Term> by <Link className="bill-byline-sponsor" to={`/politician/${sponsor.bioguideId}`}>
+              <Term id="sponsor">Sponsored</Term> by <Link className="bill-byline-sponsor" to={memberPath(sponsor.bioguideId, `${sponsor.firstName || ''} ${sponsor.lastName || ''}`)}>
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
               </Link>
               <span className={`bill-byline-party ${partyClass(sponsor.party)}`}>
@@ -490,7 +491,7 @@ function BillDetail() {
           {sponsor && (
             <div className="bill-rail-card bill-sponsor-card">
               <h3 className="bill-rail-h3"><Term id="sponsor">Sponsor</Term></h3>
-              <Link to={`/politician/${sponsor.bioguideId}`} className="bill-sp-name">
+              <Link to={memberPath(sponsor.bioguideId, `${sponsor.firstName || ''} ${sponsor.lastName || ''}`)} className="bill-sp-name">
                 {sponsor.fullName || `${sponsor.firstName} ${sponsor.lastName}`}
               </Link>
               <div className="bill-sp-meta">
@@ -531,7 +532,7 @@ function BillDetail() {
               {showAllCosponsors && (
                 <div className="bill-cosp-list">
                   {cosponsors.map((c) => (
-                    <Link key={c.bioguideId} to={`/politician/${c.bioguideId}`} className="bill-cosp-item">
+                    <Link key={c.bioguideId} to={memberPath(c.bioguideId, `${c.firstName || ''} ${c.lastName || ''}`)} className="bill-cosp-item">
                       {c.fullName || `${c.firstName} ${c.lastName}`}
                       <span className={`bill-cosp-item-party ${partyClass(c.party)}`}>
                         {partyAbbrev(c.party)}

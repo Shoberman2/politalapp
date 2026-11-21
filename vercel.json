@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/politicians",
+      "destination": "/members",
+      "statusCode": 301
+    },
+    {
       "source": "/:path*",
       "has": [
         {
@@ -25,6 +30,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/members",
+      "destination": "/api/prerender?kind=members"
+    },
+    {
+      "source": "/member/:bioguideId",
+      "destination": "/api/prerender?kind=member&id=:bioguideId&alias=1"
+    },
     {
       "source": "/politician/:bioguideId/record",
       "destination": "/api/prerender?kind=record&id=:bioguideId"

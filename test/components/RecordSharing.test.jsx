@@ -20,7 +20,7 @@ import PoliticianCard from '../../src/components/PoliticianCard'
 import AllPoliticians from '../../src/components/AllPoliticians'
 import { recordShareLinks, canNativeShare } from '../../src/utils/recordShare'
 
-const URL_ = 'https://www.ballotwatch.io/politician/P000197/record'
+const URL_ = 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record'
 const TITLE = "Nancy Pelosi's record in 60 seconds"
 
 const record = shapeMemberRecord({
@@ -144,10 +144,10 @@ describe('record links on member cards', () => {
   it('PoliticianCard links to the record without also opening the profile', () => {
     renderAt('/my-representative', <PoliticianCard politician={{ bioguideId: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic' }} />)
     const link = screen.getByRole('link', { name: 'Record in 60 seconds: Nancy Pelosi' })
-    expect(link.getAttribute('href')).toBe('/politician/P000197/record')
+    expect(link.getAttribute('href')).toBe('/politician/P000197-nancy-pelosi/record')
     expect(link.textContent).toBe('Record in 60 seconds')
     fireEvent.click(link)
-    expect(screen.getByTestId('where').textContent).toBe('/politician/P000197/record')
+    expect(screen.getByTestId('where').textContent).toBe('/politician/P000197-nancy-pelosi/record')
   })
 
   it('PoliticianCard shows no record link without a valid bioguide id', () => {
@@ -161,9 +161,9 @@ describe('record links on member cards', () => {
     ], true))
     renderAt('/all', <AllPoliticians />)
     const profile = await screen.findByRole('link', { name: 'Nancy Pelosi' })
-    expect(profile.getAttribute('href')).toBe('/politician/P000197')
+    expect(profile.getAttribute('href')).toBe('/politician/P000197-nancy-pelosi')
     const recordLink = screen.getByRole('link', { name: 'Record in 60 seconds: Nancy Pelosi' })
-    expect(recordLink.getAttribute('href')).toBe('/politician/P000197/record')
+    expect(recordLink.getAttribute('href')).toBe('/politician/P000197-nancy-pelosi/record')
     expect(recordLink.closest('article.member-card')).toBe(profile.closest('article.member-card'))
   })
 })

@@ -18,6 +18,7 @@ import { resolveMemberImageUrl, handleMemberPhotoError } from '../utils/memberIm
 import { copyTextToClipboard } from '../utils/clipboard'
 import { canNativeShare, recordShareLinks } from '../utils/recordShare'
 import { toStateName } from '../utils/states'
+import { bioguideFromSegment, memberPath } from '../../shared/memberSlug.js'
 import SEO from './SEO'
 import '../styles/RollCall.css'
 import '../styles/MemberRecord.css'
@@ -68,8 +69,8 @@ function RecordSkeleton() {
 }
 
 export default function MemberRecord() {
-  const { bioguideId } = useParams()
-  const id = String(bioguideId || '').toUpperCase()
+  const { bioguideId: routeSegment } = useParams()
+  const id = bioguideFromSegment(routeSegment)
   const [record, setRecord] = useState(() => readEmbedded(id) ?? undefined)
   const [failed, setFailed] = useState(false)
   const [photoFailed, setPhotoFailed] = useState(false)
@@ -100,7 +101,7 @@ export default function MemberRecord() {
         <p>
           {failed
             ? 'Try again in a moment.'
-            : <>We don't hold a member with the id {id}. <Link to="/all">Browse members</Link>.</>}
+            : <>We don't hold a member with the id {id}. <Link to="/members">Browse members</Link>.</>}
         </p>
       </div>
     )
@@ -108,7 +109,7 @@ export default function MemberRecord() {
 
   const r = record
   const s = r.stats
-  const url = `${SITE}${recordPath(r.id)}`
+  const url = `${SITE}${recordPath(r.id, r.name)}`
   const party = partyLetter(r.party)
   const title = `${recordHeadline(r)} (${recordSeatCode(r)})`
   const description = recordSummary(r, toStateName).slice(0, 200)
@@ -136,7 +137,7 @@ export default function MemberRecord() {
 
   return (
     <article className="rec">
-      <SEO title={title} description={description} path={recordPath(r.id)} type="profile" image={`${SITE}${recordOgImagePath(r.id)}`} />
+      <SEO title={title} description={description} path={recordPath(r.id, r.name)} type="profile" image={`${SITE}${recordOgImagePath(r.id)}`} />
 
       <header className="rec-head">
         {!photoFailed ? (
@@ -216,7 +217,7 @@ export default function MemberRecord() {
       </section>
 
       <div className="rec-actions">
-        <Link className="rc-action-btn btn-outline btn-sm" to={`/politician/${r.id}`}>Full record</Link>
+        <Link className="rc-action-btn btn-outline btn-sm" to={memberPath(r.id, r.name)}>Full record</Link>
         {nativeShare && <button type="button" className="rc-action-btn btn-outline btn-sm" onClick={share}>Share</button>}
         <button type="button" className="rc-action-btn btn-outline btn-sm" onClick={copy}>Copy link</button>
         <span className="rec-copied" role="status" aria-live="polite">{copied || ''}</span>

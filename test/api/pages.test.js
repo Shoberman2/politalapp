@@ -4,7 +4,7 @@ import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 const db = makeSupabaseMock()
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
 
-import { getMemberPage, getRollCallPage, getBillPage } from '../../api/_lib/pages.js'
+import { getMemberPage, getMemberBills, getRollCallPage, getBillPage } from '../../api/_lib/pages.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
 
 // `updatedAt` comes through etlMeta's per-instance cache, so every scenario
@@ -199,5 +199,59 @@ describe('pages loaders', () => {
     expect(db.calls).toHaveLength(0)
     db.responses.bills = { data: null }
     expect(await getBillPage('119-hr-999999')).toBeNull()
+  })
+})
+
+describe('member bills (sponsored and cosponsored)', () => {
+  beforeEach(reset)
+
+  const bill = (id, title, introduced_at) => ({ id, title, introduced_at, source_url: `https://www.congress.gov/bill/${id}` })
+
+  it('lists sponsored bills newest Congress first, skipping placeholder-title stubs', async () => {
+    db.responses.bills = [
+      { count: 41, data: [
+        bill('118-hr-9', 'An older real bill', '2024-05-01'),
+        bill('119-hr-1', 'Newest real bill', '2026-03-02'),
+        bill('119-hr-2', 'HR 2', '2026-02-01'),                // placeholder title
+        bill('119-hr-3', 'Real title, no vote yet', '2026-01-10'), // listed: real title
+        bill('119-s-4', 'Has a floor vote', '2025-09-09'),
+      ] },
+    ]
+    db.responses.bill_cosponsors = { count: 0, data: [] }
+    const out = await getMemberBills('P000197')
+    expect(out.sponsored.total).toBe(41)
+    expect(out.sponsored.items.map((b) => b.id)).toEqual(['119-hr-1', '119-hr-3', '119-s-4', '118-hr-9'])
+    expect(out.sponsored.items[0]).toMatchObject({ label: 'H.R. 1', path: '/bill/119/hr/1', congress: 119, source_url: 'https://www.congress.gov/bill/119-hr-1' })
+    expect(db.ops('bills', 'eq')[0]).toEqual(['eq', 'sponsor_bioguide_id', 'P000197'])
+    expect(db.ops('bills', 'order')[0]).toEqual(['order', 'introduced_at', { ascending: false, nullsFirst: false }])
+  })
+
+  it('caps sponsored at 20 and cosponsored at 10, keeping the exact totals', async () => {
+    const many = Array.from({ length: 30 }, (_, i) => bill(`119-hr-${i + 1}`, `Real bill number ${i + 1}`, `2026-01-${String((i % 28) + 1).padStart(2, '0')}`))
+    db.responses.bills = [{ count: 312, data: many }, { data: many.map((b) => ({ id: b.id })) }]
+    db.responses.roll_calls = { data: [] }
+    db.responses.bill_cosponsors = { count: 902, data: many.map((b) => ({ cosponsored_at: '2026-02-01', bills: b })) }
+    const out = await getMemberBills('P000197')
+    expect(out.sponsored.items).toHaveLength(20)
+    expect(out.sponsored.total).toBe(312)
+    expect(out.cosponsored.items).toHaveLength(10)
+    expect(out.cosponsored.total).toBe(902)
+    expect(db.ops('bill_cosponsors', 'is')[0]).toEqual(['is', 'withdrawn_at', null])
+  })
+
+  it('does not fail the member page when the bills read errors', async () => {
+    db.responses.politicians = { data: { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic' } }
+    db.responses.member_congress_terms = { data: [] }
+    db.responses.member_stats = { data: null }
+    db.responses.votes = { count: 1, data: [{ roll_call_id: 'house-119-2-295', position: 'Nay', voted_at: '2026-09-03', source_url: null, bill_id: null, bills: null }] }
+    db.responses.roll_calls = { data: [{ id: 'house-119-2-295', question: 'On Passage' }] }
+    db.responses.bills = { data: null, error: { message: 'boom' } }
+    db.responses.bill_cosponsors = { data: null, error: { message: 'boom' } }
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const page = await getMemberPage('P000197')
+    expect(page.bills).toBeNull()
+    expect(page.voteCount).toBe(1)
+    expect(page.indexable).toBe(true)
+    err.mockRestore()
   })
 })

@@ -3,6 +3,20 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.14.0.0] - 2026-11-20
+
+### Added
+- **A public list of every member of Congress at `/members`.** It is server-rendered, grouped by Senate, House and delegates, and linked from the homepage and the footer. It is in the sitemap and needs no account.
+- **Member pages carry the bills they sponsored (20 most recent, with the total) and cosponsored (10 most recent, with the total),** each linked to the bill page and Congress.gov. Placeholder stub titles are left out, and a failed read drops the section instead of the page.
+- **Member links carry the name.** `/politician/P000197-nancy-pelosi` is the canonical address, for the page and its `/record` card, in the sitemaps, `llms.txt`, the MCP tools and every link in the app.
+- **Each member page has its own share image** (`/api/og?kind=record&id=...`: name, party, seat and vote tally). `api/og.jsx` is now `api/og.js` with no JSX, so Vercel builds it, and `robots.txt` lets crawlers fetch it.
+- Person data on member pages adds a description, given and family names when the stored name is two words, work location and the start of the current term.
+
+### Changed
+- The bare `/politician/ID`, a wrong or lowercase slug and `/member/ID` answer with a 301 to the canonical address, keeping the query string. `/politicians` is a 301 to `/members`.
+- Member breadcrumbs point at `/members` instead of the account-gated `/all`.
+- An unknown member id is a 404 whose page says "Member not found", is `noindex` and has no canonical, instead of the homepage shell.
+
 ## [0.13.1.0] - 2026-11-17
 
 ### Added
