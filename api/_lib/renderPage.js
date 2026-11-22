@@ -17,9 +17,8 @@ import {
 import { DEFAULT_SIGNED_IN_PATH } from '../../shared/access.js'
 import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { memberPath, parseGivenFamily } from '../../shared/memberSlug.js'
-import { BRAND } from '../../src/config/brand.js'
+import { memberTally, memberTallySentence, memberFaq, memberFaqJsonLd as faqJsonLd } from '../../shared/memberFaq.js'
 
-const BRAND_NAME = BRAND.name
 
 export const ordinal = congressOrdinal
 
@@ -122,69 +121,17 @@ export function memberMeta(m) {
     : `U.S. ${memberTitle(m)} for ${stateName(m.state)}${m.district ? ` district ${m.district}` : ''}`
   const stats = m.stats
   const desc = clampText(
-    `${m.name}, ${seat}. ${stats ? `${stats.total_votes} recorded votes in the ${ordinal(stats.congress)} Congress: ${stats.yea_count} yea, ${stats.nay_count} nay, ${stats.not_voting_count} not voting.` : `${m.voteCount} recorded votes.`} Every vote linked to the official roll call.`,
+    `${m.name}, ${seat}. ${stats ? `${stats.total_votes} recorded votes in the ${ordinal(stats.congress)} Congress: ${stats.yea_count} yea, ${stats.nay_count} nay, ${Number(stats.present_count) || 0} present, ${stats.not_voting_count} not voting.` : `${m.voteCount} recorded votes.`} Every vote linked to the official roll call.`,
     200,
   )
   return { title, description: desc, canonical: `${SITE}${memberPath(m.id, m.name)}`, ogImage: `${SITE}${recordOgImagePath(m.id)}` }
 }
 
 // ---------- member tally sentence and FAQ ----------
-// Built only from the member_stats row the page already shows. Returns null
-// when any count is missing, so a page without stats gets no sentence and no
-// FAQ numbers instead of invented ones.
+// Built in shared/memberFaq.js so PoliticianDetail.jsx renders the same text
+// the FAQPage JSON-LD carries.
 
-const count = (v) => (v == null || v === '' ? NaN : Number(v))
-
-export function memberTally(m) {
-  const s = m?.stats
-  if (!s) return null
-  const total = count(s.total_votes)
-  const yea = count(s.yea_count)
-  const nay = count(s.nay_count)
-  const notVoting = count(s.not_voting_count)
-  const present = count(s.present_count)
-  if (![total, yea, nay, notVoting].every(Number.isFinite) || total <= 0) return null
-  return { congress: s.congress, total, yea, nay, notVoting, present: Number.isFinite(present) && present > 0 ? present : 0 }
-}
-
-function tallyCounts(t) {
-  return `${t.yea} yea, ${t.nay} nay${t.present ? `, ${t.present} present` : ''}, ${t.notVoting} not voting`
-}
-
-function tallyIntro(m, t) {
-  return `${m.name} (${partyShort(m.party)}-${m.state}${m.district ? `-${m.district}` : ''}) has ${t.total} recorded roll-call vote${t.total === 1 ? '' : 's'} in the ${ordinal(t.congress)} Congress: ${tallyCounts(t)}.`
-}
-
-// "Every vote links to the official record" holds for every vote the page
-// lists; when the list is the latest slice only, say "shown".
-export function memberTallySentence(m) {
-  const t = memberTally(m)
-  if (!t) return ''
-  const all = (m.votes?.length || 0) >= (Number(m.voteCount) || 0)
-  return `${tallyIntro(m, t)} Every vote ${all ? '' : 'shown '}links to the official record.`
-}
-
-// Questions whose answers are on the page. Empty without stats.
-export function memberFaq(m) {
-  const t = memberTally(m)
-  if (!t) return []
-  const cong = `${ordinal(t.congress)} Congress`
-  const shown = m.votes?.length || 0
-  return [
-    {
-      q: `How did ${m.name} vote in the ${cong}?`,
-      a: `${m.name} has ${t.total} recorded roll-call vote${t.total === 1 ? '' : 's'} in the ${cong}: ${tallyCounts(t)}.${shown ? ` The table above lists ${shown < (Number(m.voteCount) || 0) ? `the latest ${shown}` : 'every one'}, and each links to the official record.` : ''}`,
-    },
-    {
-      q: `How many votes has ${m.name} missed?`,
-      a: `${m.name} has ${t.notVoting} not-voting entr${t.notVoting === 1 ? 'y' : 'ies'} among ${t.total} recorded roll-call votes in the ${cong}. Not voting means no vote was recorded for the member on that roll call. The record does not give a reason.`,
-    },
-    {
-      q: `Where does ${BRAND_NAME} get ${m.name}'s votes?`,
-      a: `From the official roll calls published by the House Clerk and the Senate, with member details from Congress.gov. Each vote on this page links to its source.`,
-    },
-  ]
-}
+export { memberTally, memberTallySentence, memberFaq }
 
 function memberFaqHtml(m) {
   const faq = memberFaq(m)
@@ -193,13 +140,8 @@ function memberFaqHtml(m) {
 }
 
 function memberFaqJsonLd(m) {
-  const faq = memberFaq(m)
-  if (!faq.length) return []
-  return [{
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faq.map(({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
-  }]
+  const block = faqJsonLd(m)
+  return block ? [block] : []
 }
 
 // The open term first, then the newest: the term the member is serving now.
@@ -290,7 +232,7 @@ export function renderMemberBody(m) {
     <div class="pol-lede">
       <h1 class="pol-name">${escapeHtml(m.name)}</h1>
       <div class="pol-kicker">${escapeHtml(memberTitle(m))} · ${escapeHtml(m.party)} · ${escapeHtml(stateName(m.state))}${m.district ? ` district ${escapeHtml(m.district)}` : ''}</div>
-      ${memberTallySentence(m) ? `<p class="pol-tally">${escapeHtml(memberTallySentence(m))}</p>\n      ` : ''}<p class="pol-standfirst">${escapeHtml(meta.description)}</p>
+      ${memberTallySentence(m) ? `<p class="pol-standfirst pol-tally">${escapeHtml(memberTallySentence(m))}</p>` : `<p class="pol-standfirst">${escapeHtml(meta.description)}</p>`}
       ${stats ? `<dl class="pol-meta-grid"><dt>Recorded votes</dt><dd><span class="pol-meta-mono">${Number(stats.total_votes) || 0}</span></dd><dt>Yea</dt><dd><span class="pol-meta-mono">${Number(stats.yea_count) || 0}</span></dd><dt>Nay</dt><dd><span class="pol-meta-mono">${Number(stats.nay_count) || 0}</span></dd><dt>Not voting</dt><dd><span class="pol-meta-mono">${Number(stats.not_voting_count) || 0}</span></dd><dt>Votes with party</dt><dd><span class="pol-meta-mono">${Number(stats.party_loyalty_pct) || 0}%</span></dd></dl>` : ''}
       <div class="pol-actions"><a class="pol-action-btn" href="${escapeHtml(recordPath(m.id, m.name))}">Record in 60 seconds</a> <a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide</a></div>
     </div>

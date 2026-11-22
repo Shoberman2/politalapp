@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **`/this-week` and `/developers` are server-rendered.** Each has its own title, description, canonical, share tags and `WebPage` data, real body text, and a Markdown view for `Accept: text/markdown`. `/this-week` lists the House floor schedule and the latest recorded votes with links to the bill and vote pages, and falls back to a short note when a read fails. Both are in the sitemap.
-- **Member pages open with the member's tally** ("Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes in the 119th Congress: ...") and end with a short FAQ, shown on the page and in the Markdown view. A `FAQPage` block carries the same questions and answers. Both are left out when the member has no vote counts.
+- **Member pages open with the member's tally** ("Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes in the 119th Congress: ...") and end with a short FAQ, shown on the prerendered page, on the React page after it loads, and in the Markdown view. One shared module (`shared/memberFaq.js`) builds the text for all three and for the `FAQPage` block, so the visible Q&A always matches the schema. The tally always names present votes, and it replaces the old count line under the name so only one tally shows. Both are left out when the member has no vote counts.
 - **The homepage's latest recorded vote names the bill's sponsor,** linked to their member page.
 
 ### Changed

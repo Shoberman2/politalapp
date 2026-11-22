@@ -206,24 +206,35 @@ describe('gated routes and /auth', () => {
 })
 
 describe('member tally sentence and FAQ', () => {
-  it('opens with the tally built from the stats row', () => {
-    expect(memberTallySentence(member)).toBe('Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes in the 119th Congress: 400 yea, 380 nay, 110 not voting. Every vote shown links to the official record.')
-    // All votes listed: the plain form.
-    expect(memberTallySentence({ ...member, voteCount: 2 })).toMatch(/Every vote links to the official record\.$/)
+  it('opens with the tally built from the stats row, in place of the standfirst', () => {
+    expect(memberTallySentence(member)).toBe('Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes in the 119th Congress: 400 yea, 380 nay, 0 present, 110 not voting.')
     const html = renderPage(shell, member)
-    expect(html).toContain('<p class="pol-tally">Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes')
+    expect(html).toContain('<p class="pol-standfirst pol-tally">Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes')
     expect(html.indexOf('pol-tally')).toBeGreaterThan(html.indexOf('<h1 class="pol-name">'))
-    expect(html.indexOf('pol-tally')).toBeLessThan(html.indexOf('pol-standfirst'))
+    // One tally on the page: the description-style standfirst is not repeated.
+    const body = html.slice(html.indexOf('<article class="pol">'))
+    expect(body.match(/recorded (roll-call )?votes in the 119th Congress/g)).toHaveLength(3) // sentence + two FAQ answers
+    expect(body).not.toContain('890 recorded votes in the 119th Congress')
   })
 
-  it('names present votes only when there are some, and skips the sentence without counts', () => {
+  it('always names present votes, and skips the sentence without counts', () => {
     expect(memberTallySentence({ ...member, stats: { ...member.stats, present_count: 3 } })).toContain('380 nay, 3 present, 110 not voting')
     expect(memberTallySentence({ ...member, stats: null })).toBe('')
     expect(memberTallySentence({ ...member, stats: { ...member.stats, nay_count: null } })).toBe('')
     const html = renderPage(shell, { ...member, stats: null })
     expect(html).not.toContain('pol-tally')
     expect(html).not.toContain('pol-faq')
+    expect(html).toContain('<p class="pol-standfirst">')
     expect(ld(html).map((b) => b['@type'])).toEqual(['Person', 'BreadcrumbList'])
+  })
+
+  it('builds the same text for the React page from the shared module', async () => {
+    const shared = await import('../../shared/memberFaq.js')
+    const facts = { name: member.name, party: member.party, state: member.state, district: member.district, stats: member.stats }
+    expect(shared.memberTallySentence(facts)).toBe(memberTallySentence(member))
+    expect(shared.memberFaq(facts)).toEqual(memberFaq(member))
+    const blocks = ld(renderPage(shell, member))
+    expect(blocks[2]).toEqual(shared.memberFaqJsonLd(facts))
   })
 
   it('adds a FAQPage block beside Person and BreadcrumbList, and the same Q&A is visible', () => {
@@ -241,7 +252,7 @@ describe('member tally sentence and FAQ', () => {
       expect(visible).toContain(`<h3>${q.name.replace(/'/g, '&#39;')}</h3>`)
       expect(visible).toContain(q.acceptedAnswer.text.replace(/'/g, '&#39;'))
     }
-    expect(faq.mainEntity[0].acceptedAnswer.text).toContain('400 yea, 380 nay, 110 not voting')
+    expect(faq.mainEntity[0].acceptedAnswer.text).toContain('400 yea, 380 nay, 0 present, 110 not voting')
     expect(faq.mainEntity[1].acceptedAnswer.text).toContain('110 not-voting entries among 890')
     expect(memberJsonLd(member)[0]['@type']).toBe('Person')
     expect(memberFaq({ ...member, stats: null })).toEqual([])

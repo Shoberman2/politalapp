@@ -97,6 +97,26 @@
   max-width: 640px;
 }
 
+.pol-tally {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: -16px 0 28px;
+  max-width: 640px;
+}
+.pol-standfirst.pol-tally { font-size: 20px; margin: 0 0 28px; }
+
+.pol-faq-item { max-width: 720px; margin: 0 0 20px; }
+.pol-faq-item h3 {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.pol-faq-item p { margin: 0; line-height: 1.55; color: var(--ink-2); }
+
 .pol-meta-grid {
   display: grid;
   grid-template-columns: auto 1fr;

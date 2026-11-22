@@ -67,3 +67,20 @@ export function recordFromPrerender(data, bioguideId) {
   if (!Array.isArray(data.recentVotes)) return null
   return data
 }
+
+/**
+ * The facts behind the member tally sentence and FAQ (shared/memberFaq.js):
+ * the same politicians row and newest member_stats row the prerendered page
+ * reads, so the text React shows matches the server's FAQPage JSON-LD.
+ * Returns null when the member or the read is missing.
+ */
+export async function getMemberFaqFacts(bioguideId) {
+  const id = String(bioguideId || '').toUpperCase()
+  if (!/^[A-Z]\d{6}$/.test(id)) return null
+  const [memberRes, statsRes] = await Promise.all([
+    supabase.from('politicians').select('name, party, state, district').eq('id', id).maybeSingle(),
+    supabase.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
+  ])
+  if (memberRes.error || statsRes.error || !memberRes.data) return null
+  return { ...memberRes.data, stats: statsRes.data || null }
+}
