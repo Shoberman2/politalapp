@@ -17,6 +17,8 @@ import {
 import { DEFAULT_SIGNED_IN_PATH } from '../../shared/access.js'
 import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { memberPath, parseGivenFamily } from '../../shared/memberSlug.js'
+import { memberTally, memberTallySentence, memberFaq, memberFaqJsonLd as faqJsonLd } from '../../shared/memberFaq.js'
+
 
 export const ordinal = congressOrdinal
 
@@ -119,10 +121,27 @@ export function memberMeta(m) {
     : `U.S. ${memberTitle(m)} for ${stateName(m.state)}${m.district ? ` district ${m.district}` : ''}`
   const stats = m.stats
   const desc = clampText(
-    `${m.name}, ${seat}. ${stats ? `${stats.total_votes} recorded votes in the ${ordinal(stats.congress)} Congress: ${stats.yea_count} yea, ${stats.nay_count} nay, ${stats.not_voting_count} not voting.` : `${m.voteCount} recorded votes.`} Every vote linked to the official roll call.`,
+    `${m.name}, ${seat}. ${stats ? `${stats.total_votes} recorded votes in the ${ordinal(stats.congress)} Congress: ${stats.yea_count} yea, ${stats.nay_count} nay, ${Number(stats.present_count) || 0} present, ${stats.not_voting_count} not voting.` : `${m.voteCount} recorded votes.`} Every vote linked to the official roll call.`,
     200,
   )
   return { title, description: desc, canonical: `${SITE}${memberPath(m.id, m.name)}`, ogImage: `${SITE}${recordOgImagePath(m.id)}` }
+}
+
+// ---------- member tally sentence and FAQ ----------
+// Built in shared/memberFaq.js so PoliticianDetail.jsx renders the same text
+// the FAQPage JSON-LD carries.
+
+export { memberTally, memberTallySentence, memberFaq }
+
+function memberFaqHtml(m) {
+  const faq = memberFaq(m)
+  if (!faq.length) return ''
+  return `<section class="pol-editorial pol-faq" aria-labelledby="pol-faq-h"><h2 class="pol-section-title" id="pol-faq-h">Questions About ${escapeHtml(m.name)}</h2>${faq.map(({ q, a }) => `<div class="pol-faq-item"><h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p></div>`).join('')}</section>`
+}
+
+function memberFaqJsonLd(m) {
+  const block = faqJsonLd(m)
+  return block ? [block] : []
 }
 
 // The open term first, then the newest: the term the member is serving now.
@@ -164,6 +183,7 @@ export function memberJsonLd(m) {
         { '@type': 'ListItem', position: 3, name: m.name, item: meta.canonical },
       ],
     },
+    ...memberFaqJsonLd(m),
   ]
 }
 
@@ -212,7 +232,7 @@ export function renderMemberBody(m) {
     <div class="pol-lede">
       <h1 class="pol-name">${escapeHtml(m.name)}</h1>
       <div class="pol-kicker">${escapeHtml(memberTitle(m))} · ${escapeHtml(m.party)} · ${escapeHtml(stateName(m.state))}${m.district ? ` district ${escapeHtml(m.district)}` : ''}</div>
-      <p class="pol-standfirst">${escapeHtml(meta.description)}</p>
+      ${memberTallySentence(m) ? `<p class="pol-standfirst pol-tally">${escapeHtml(memberTallySentence(m))}</p>` : `<p class="pol-standfirst">${escapeHtml(meta.description)}</p>`}
       ${stats ? `<dl class="pol-meta-grid"><dt>Recorded votes</dt><dd><span class="pol-meta-mono">${Number(stats.total_votes) || 0}</span></dd><dt>Yea</dt><dd><span class="pol-meta-mono">${Number(stats.yea_count) || 0}</span></dd><dt>Nay</dt><dd><span class="pol-meta-mono">${Number(stats.nay_count) || 0}</span></dd><dt>Not voting</dt><dd><span class="pol-meta-mono">${Number(stats.not_voting_count) || 0}</span></dd><dt>Votes with party</dt><dd><span class="pol-meta-mono">${Number(stats.party_loyalty_pct) || 0}%</span></dd></dl>` : ''}
       <div class="pol-actions"><a class="pol-action-btn" href="${escapeHtml(recordPath(m.id, m.name))}">Record in 60 seconds</a> <a class="pol-action-btn" href="${safeUrl(m.congress_gov_url)}" rel="noopener">Congress.gov</a> <a class="pol-action-btn" href="${safeUrl(m.source_url)}" rel="noopener">Bioguide</a></div>
     </div>
@@ -224,6 +244,7 @@ export function renderMemberBody(m) {
     <div class="rc-table-wrap"><table class="rc-table"><thead><tr><th>Date</th><th>Question</th><th>Bill</th><th>Vote</th><th>Record</th></tr></thead><tbody>${rows}</tbody></table></div>
   </section>
   ${billsHtml}
+  ${memberFaqHtml(m)}
   <footer class="rc-colophon">Data from Congress.gov, the House Clerk, and the Senate. ${m.updatedAt ? `Updated ${escapeHtml(fmtDate(m.updatedAt))}.` : ''} <a href="/methodology">Methodology</a> · <a href="/llms.txt">For agents</a></footer>
 </article>`)
 }

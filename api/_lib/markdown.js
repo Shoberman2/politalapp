@@ -5,6 +5,7 @@ import { rollCallPath } from './rollCallResult.js'
 import { billPath, billLabel } from './pages.js'
 import { congressOrdinal as ord } from './billCard.js'
 import { membersMarkdown } from './renderMembers.js'
+import { memberTallySentence, memberFaq } from './renderPage.js'
 import { SITE_ORIGIN as SITE } from './site.js'
 import { explanationSourceLine } from '../../shared/billExplainer.js'
 import { recordHeadline, recordPath, recordSeatTitle } from '../../shared/memberRecord.js'
@@ -28,6 +29,8 @@ export function memberMarkdown(m) {
   ]
   if (m.stats) lines.push(`- ${ord(m.stats.congress)} Congress: ${m.stats.total_votes} votes, ${m.stats.yea_count} yea, ${m.stats.nay_count} nay, ${m.stats.not_voting_count} not voting, votes with party ${m.stats.party_loyalty_pct}%`)
   if (m.updatedAt) lines.push(`- Data updated: ${m.updatedAt}`)
+  const tally = memberTallySentence(m)
+  if (tally) lines.push('', tally)
   if (m.terms.length) {
     lines.push('', '## Terms', '')
     for (const t of m.terms) lines.push(`- ${ord(t.congress)} Congress, ${t.chamber}, ${t.state}${t.district ? `-${t.district}` : ''}, ${t.term_start || ''}${t.term_end ? ` to ${t.term_end}` : ' to present'}`)
@@ -41,6 +44,11 @@ export function memberMarkdown(m) {
     if (!list?.items?.length) continue
     lines.push('', `## ${title} (${list.total}, most recent ${list.items.length} shown)`, '')
     for (const b of list.items) lines.push(`- [${b.label}](${SITE}${b.path}) ${cell(b.title)}${b.introduced_at ? `, introduced ${String(b.introduced_at).slice(0, 10)}` : ''}${b.source_url ? ` ([Congress.gov](${b.source_url}))` : ''}`)
+  }
+  const faq = memberFaq(m)
+  if (faq.length) {
+    lines.push('', '## Questions', '')
+    for (const { q, a } of faq) lines.push(`### ${q}`, '', a, '')
   }
   lines.push('', `Full record and API: ${SITE}/llms.txt`)
   return lines.join('\n') + '\n'

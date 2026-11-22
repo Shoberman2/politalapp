@@ -24,6 +24,8 @@ import TellYourRep from './TellYourRep'
 import { YouWroteNotes } from './YouWrote'
 import { memberRef } from '../utils/tellYourRepDraft'
 import { bioguideFromSegment, memberPath, parseMemberSegment } from '../../shared/memberSlug.js'
+import { getMemberFaqFacts } from '../services/memberRecord'
+import { memberTallySentence, memberFaq } from '../../shared/memberFaq.js'
 import '../styles/PoliticianDetail.css'
 import Term, { InfoDot } from './Term'
 
@@ -59,6 +61,17 @@ function PoliticianDetail() {
   const [donationsLoading, setDonationsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [imageError, setImageError] = useState(false)
+  const [faqFacts, setFaqFacts] = useState(null)
+
+  // Tally sentence and FAQ: the same text as the server's FAQPage JSON-LD.
+  useEffect(() => {
+    let active = true
+    setFaqFacts(null)
+    getMemberFaqFacts(bioguideId)
+      .then((facts) => { if (active) setFaqFacts(facts) })
+      .catch((err) => console.warn('[PoliticianDetail] Tally unavailable:', err.message))
+    return () => { active = false }
+  }, [bioguideId])
 
   useEffect(() => {
     fetchMemberData()
@@ -301,6 +314,8 @@ function PoliticianDetail() {
   // Keep the slug the server redirected to; only build one when the visit was by bare id.
   const seoPath = parseMemberSegment(routeSegment)?.slug ? `/politician/${routeSegment}` : memberPath(bioguideId, displayName)
   const standfirst = buildStandfirst()
+  const tallySentence = faqFacts ? memberTallySentence(faqFacts) : ''
+  const faq = faqFacts ? memberFaq(faqFacts) : []
   const tenureItems = buildTenureTimeline()
 
   return (
@@ -348,6 +363,7 @@ function PoliticianDetail() {
           </h1>
           <div className="pol-kicker">{title}{currentTerm?.congress ? ` · ${currentTerm.congress}th Congress` : ''}</div>
           {standfirst && <p className="pol-standfirst">{standfirst}</p>}
+          {tallySentence && <p className="pol-tally">{tallySentence}</p>}
           {SHOW_SPONSOR_FILTER && bioguideId && (
             <SponsorActivityBadge bioguideId={bioguideId} congress={currentTerm?.congress || CONGRESS_MAX} />
           )}
@@ -590,6 +606,18 @@ function PoliticianDetail() {
           </div>
         )}
       </section>
+
+      {faq.length > 0 && (
+        <section className="pol-editorial pol-faq" aria-labelledby="pol-faq-h">
+          <h2 className="pol-section-title" id="pol-faq-h">Questions About {faqFacts.name}</h2>
+          {faq.map(({ q, a }) => (
+            <div key={q} className="pol-faq-item">
+              <h3>{q}</h3>
+              <p>{a}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {photoAttribution && (
         <div className="pol-photo-attribution">

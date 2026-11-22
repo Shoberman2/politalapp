@@ -7,6 +7,7 @@
 
 import { chrome, escapeHtml, injectIntoShell, fmtDate, clampText, ordinal } from './renderPage.js'
 import { rollCallPath } from './rollCallResult.js'
+import { memberPath } from '../../shared/memberSlug.js'
 import { SITE_ORIGIN as SITE } from './site.js'
 import { staticPageTitle } from './staticPages.js'
 import { staticContent } from './staticContent.js'
@@ -37,6 +38,14 @@ export function homeMeta() {
   return { title: HOME_TITLE, description: HOME_DESCRIPTION, canonical: `${SITE}/` }
 }
 
+// The only member the vote data names is the bill's sponsor, already read with
+// the bill. Linked to their member page; left out when the bill has none.
+function sponsorHtml(v) {
+  const sp = v.bill?.sponsor
+  if (!sp?.id || !sp?.name) return ''
+  return `<p class="home-vote-sponsor">Sponsor: <a href="${escapeHtml(memberPath(sp.id, sp.name))}">${escapeHtml(sp.name)}</a></p>`
+}
+
 function latestVoteHtml(v) {
   const path = rollCallPath(v.id)
   const bill = v.bill
@@ -48,6 +57,7 @@ function latestVoteHtml(v) {
       <p class="home-vote-meta">${escapeHtml(v.chamber)} roll call ${v.roll} · ${escapeHtml(ordinal(v.congress))} Congress${v.voted_at ? ` · ${escapeHtml(fmtDate(v.voted_at))}` : ''}</p>
       <p class="home-vote-question"><a href="${path}">${escapeHtml(voteHeading(v))}</a>${bill}</p>
       ${standfirst ? `<p class="home-vote-standfirst">${escapeHtml(clampText(standfirst, 220))}</p>` : ''}
+      ${sponsorHtml(v)}
       <p class="home-vote-tally">${escapeHtml(voteSummary(v))}</p>
       <p><a href="${path}">How each member voted</a> · <a href="${path}#tell-your-rep">Write to your rep about this vote</a></p>
     </section>`
@@ -137,6 +147,7 @@ export function homeMarkdown(data) {
     lines.push(`- ${latest.chamber} roll call ${latest.roll}, ${ordinal(latest.congress)} Congress${latest.voted_at ? `, ${latest.voted_at}` : ''}`)
     lines.push(`- Question: ${voteHeading(latest)}`)
     if (latest.bill) lines.push(`- Bill: ${latest.bill.path ? `[${latest.bill.label}](${SITE}${latest.bill.path})` : latest.bill.label}${latest.bill.title ? ` ${latest.bill.title}` : ''}`)
+    if (latest.bill?.sponsor) lines.push(`- Sponsor: [${latest.bill.sponsor.name}](${SITE}${memberPath(latest.bill.sponsor.id, latest.bill.sponsor.name)})`)
     if (latest.tally) lines.push(`- Tally: ${latest.tally.yea} yea, ${latest.tally.nay} nay`)
     if (latest.result) lines.push(`- Result (derived from tally and question): ${latest.result}`)
     lines.push(`- Every member's vote: ${SITE}${rollCallPath(latest.id)}`)

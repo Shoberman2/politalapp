@@ -226,6 +226,7 @@ function AllPoliticians() {
         title="Current Members and Delegates of Congress"
         description={`Browse the current congressional roster of ${composition.rosterTotal} members and delegates. Filter by chamber, party, and state.`}
         path="/all"
+        canonicalPath="/members"
       />
 
       <header className="page-masthead">

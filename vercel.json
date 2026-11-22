@@ -59,6 +59,26 @@
       "destination": "/api/prerender?kind=home"
     },
     {
+      "source": "/this-week",
+      "destination": "/api/prerender?kind=this-week"
+    },
+    {
+      "source": "/developers",
+      "destination": "/api/prerender?kind=developers"
+    },
+    {
+      "source": "/:page(all|bills|my-representative)",
+      "destination": "/api/prerender?kind=shell&page=:page"
+    },
+    {
+      "source": "/auth",
+      "destination": "/api/prerender?kind=shell&page=auth"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "/api/prerender?kind=shell&page=auth"
+    },
+    {
       "source": "/:page(how-it-works|glossary|government|methodology|data-sources|about|contact|privacy|terms|open)",
       "destination": "/api/prerender?kind=static&page=:page"
     },
@@ -104,6 +124,24 @@
     }
   ],
   "headers": [
+    {
+      "source": "/auth",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/auth/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
     {
       "source": "/assets/(.*)",
       "headers": [

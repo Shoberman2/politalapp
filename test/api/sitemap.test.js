@@ -76,6 +76,14 @@ describe('api/sitemap', () => {
     expect(pages.filter((p) => isGatedPath(p))).toEqual([])
   })
 
+  it('lists /this-week (dated by the newest vote) and /developers (undated), and none of the gated routes', async () => {
+    db.responses.roll_calls = { data: [{ voted_at: '2026-09-03' }] }
+    const entries = await pageEntries()
+    expect(entries.find((e) => e.path === '/this-week')).toEqual({ path: '/this-week', lastmod: '2026-09-03', changefreq: 'daily', priority: 0.7 })
+    expect(entries.find((e) => e.path === '/developers')).toEqual({ path: '/developers', lastmod: null, changefreq: 'monthly', priority: 0.6 })
+    for (const gated of ['/all', '/bills', '/my-representative', '/auth']) expect(entries.map((e) => e.path)).not.toContain(gated)
+  })
+
   it('serves the index on the canonical origin only, memoizes parts, rate-limits per ip, and 503s when the database fails', async () => {
     // One roll_calls response serves both the newest-vote lookup and the bill part count.
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T00:00:00Z' }], count: 2 }

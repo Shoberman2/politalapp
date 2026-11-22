@@ -29,11 +29,13 @@ function useDropStaleServerJsonLd(path) {
 // `fullTitle` sets the whole <title> (for the homepage, whose title already
 // names the site); `title` gets " | BallotWatch" appended.
 // `noindex` keeps a page (sign-in, its callback) out of search results.
-function SEO({ title, fullTitle: fullTitleProp, description, path = '/', type = 'website', image, article, schema, noindex = false }) {
+function SEO({ title, fullTitle: fullTitleProp, description, path = '/', canonicalPath, type = 'website', image, article, schema, noindex = false }) {
   useDropStaleServerJsonLd(path)
   const fullTitle = fullTitleProp || (title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - Congressional Voting Records, Bill Tracker & Representative Lookup`)
   const desc = description || DEFAULT_DESCRIPTION
-  const url = `${BASE_URL}${path}`
+  // `canonicalPath` names the page this one duplicates (the gated /all points
+  // at the public /members), matching what the server sends.
+  const url = `${BASE_URL}${canonicalPath || path}`
   const img = image || DEFAULT_IMAGE
   const serverLd = hasServerJsonLd(path)
 
