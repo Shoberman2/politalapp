@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { shapeMemberRecord, RECORD_VOTE_LIMIT } from '../../shared/memberRecord.js'
+import { shapeMemberRecord, RECORD_VOTE_LIMIT, houseDistrict } from '../../shared/memberRecord.js'
 
 /**
  * The "record in 60 seconds" card for one member, shaped by the same pure
@@ -70,17 +70,32 @@ export function recordFromPrerender(data, bioguideId) {
 
 /**
  * The facts behind the member tally sentence and FAQ (shared/memberFaq.js):
- * the same politicians row and newest member_stats row the prerendered page
- * reads, so the text React shows matches the server's FAQPage JSON-LD.
- * Returns null when the member or the read is missing.
+ * the same politicians row, newest member_stats row and seat rule the
+ * prerendered page uses (api/_lib/pages.js getMemberPage), so the text React
+ * shows matches the server's FAQPage JSON-LD. politicians.district is often
+ * null for House members, so the newest open term supplies the seat, exactly
+ * as on the server. Returns null when the member or a read is missing.
  */
 export async function getMemberFaqFacts(bioguideId) {
   const id = String(bioguideId || '').toUpperCase()
   if (!/^[A-Z]\d{6}$/.test(id)) return null
-  const [memberRes, statsRes] = await Promise.all([
-    supabase.from('politicians').select('name, party, state, district').eq('id', id).maybeSingle(),
+  const [memberRes, termsRes, statsRes] = await Promise.all([
+    supabase.from('politicians').select('name, chamber, party, state, district').eq('id', id).maybeSingle(),
+    supabase.from('member_congress_terms').select('congress, district, term_end').eq('bioguide_id', id).order('congress', { ascending: false }),
     supabase.from('member_stats').select('congress, total_votes, yea_count, nay_count, present_count, not_voting_count').eq('politician_id', id).order('congress', { ascending: false }).limit(1).maybeSingle(),
   ])
-  if (memberRes.error || statsRes.error || !memberRes.data) return null
-  return { ...memberRes.data, stats: statsRes.data || null }
+  if (memberRes.error || termsRes.error || statsRes.error || !memberRes.data) return null
+  const member = memberRes.data
+  const terms = termsRes.data || []
+  const currentTerm = terms.find((t) => !t.term_end) || terms[0] || null
+  const district = member.chamber === 'house'
+    ? houseDistrict(member.state, member.district ?? currentTerm?.district ?? null)
+    : null
+  return {
+    name: member.name,
+    party: member.party,
+    state: member.state,
+    district: district == null ? null : String(district),
+    stats: statsRes.data || null,
+  }
 }

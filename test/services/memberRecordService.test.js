@@ -4,7 +4,9 @@ import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 const db = makeSupabaseMock()
 vi.mock('../../src/lib/supabase', () => ({ supabase: { from: (t) => db.from(t) } }))
 
-import { getMemberRecord, recordFromPrerender } from '../../src/services/memberRecord.js'
+import { getMemberRecord, recordFromPrerender, getMemberFaqFacts } from '../../src/services/memberRecord.js'
+import { memberTallySentence, memberFaq } from '../../shared/memberFaq.js'
+import { memberTallySentence as serverTally, memberFaq as serverFaq } from '../../api/_lib/renderPage.js'
 
 const member = { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic' }
 
@@ -98,5 +100,33 @@ describe('services/memberRecord recordFromPrerender', () => {
     expect(recordFromPrerender({ ...data, id: undefined }, 'P000197')).toBeNull()
     expect(recordFromPrerender(data, 'S000148')).toBeNull()
     expect(recordFromPrerender({ kind: 'record', id: 'P000197' }, 'P000197')).toBeNull()
+  })
+})
+
+describe('services/memberRecord getMemberFaqFacts', () => {
+  beforeEach(() => db.reset())
+  const stats = { congress: 119, total_votes: 689, yea_count: 272, nay_count: 396, present_count: 2, not_voting_count: 19 }
+
+  it('takes the House seat from the open term when politicians.district is null, as the server does', async () => {
+    db.responses.politicians = { data: { name: 'Alexandria Ocasio-Cortez', chamber: 'house', party: 'Democrat', state: 'NY', district: null }, error: null }
+    db.responses.member_congress_terms = { data: [{ congress: 119, district: '14', term_end: null }, { congress: 118, district: '14', term_end: '2025-01-03' }], error: null }
+    db.responses.member_stats = { data: stats, error: null }
+    const facts = await getMemberFaqFacts('o000172')
+    expect(facts).toEqual({ name: 'Alexandria Ocasio-Cortez', party: 'Democrat', state: 'NY', district: '14', stats })
+    expect(memberTallySentence(facts)).toBe('Alexandria Ocasio-Cortez (D-NY-14) has 689 recorded roll-call votes in the 119th Congress: 272 yea, 396 nay, 2 present, 19 not voting.')
+    // The server page object for the same member yields the same text.
+    const serverMember = { ...facts, id: 'O000172', chamber: 'house', votes: [], voteCount: 689 }
+    expect(serverTally(serverMember)).toBe(memberTallySentence(facts))
+    expect(serverFaq(serverMember)).toEqual(memberFaq(facts))
+  })
+
+  it('gives senators no district, and returns null on a failed read or a malformed id', async () => {
+    db.responses.politicians = { data: { name: 'Charles Schumer', chamber: 'senate', party: 'Democrat', state: 'NY', district: null }, error: null }
+    db.responses.member_congress_terms = { data: [{ congress: 119, district: null, term_end: null }], error: null }
+    db.responses.member_stats = { data: { ...stats, present_count: 0 }, error: null }
+    expect(memberTallySentence(await getMemberFaqFacts('S000148'))).toMatch(/^Charles Schumer \(D-NY\) has 689 .*0 present/)
+    db.responses.member_stats = { data: null, error: { message: 'timeout' } }
+    expect(await getMemberFaqFacts('S000148')).toBeNull()
+    expect(await getMemberFaqFacts('nope')).toBeNull()
   })
 })
