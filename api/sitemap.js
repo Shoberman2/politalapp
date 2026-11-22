@@ -1,6 +1,6 @@
 // Generated sitemaps on the canonical domain.
 //   /sitemap.xml           -> index pointing at the parts below
-//   /sitemap-pages.xml     -> the homepage and the static info pages, minus
+//   /sitemap-pages.xml     -> the homepage, /members, /this-week, /developers and the static info pages, minus
 //                             the ones that need an account (shared/access.js)
 //   /sitemap-members.xml   -> every member with at least one recorded vote
 //   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members
@@ -55,6 +55,10 @@ export async function pageEntries() {
   return [
     { path: '/', lastmod, changefreq: 'daily', priority: 1.0 },
     { path: '/members', lastmod, changefreq: 'daily', priority: 0.8 },
+    // This week lists the latest recorded votes, so it moves with them.
+    { path: '/this-week', lastmod, changefreq: 'daily', priority: 0.7 },
+    // Static developer text: no honest modified date, so none is claimed.
+    { path: '/developers', lastmod: null, changefreq: 'monthly', priority: 0.6 },
     ...Object.entries(STATIC_PAGES).filter(([path]) => !isGatedPath(path)).map(([path, p]) => ({
       path,
       lastmod: null,

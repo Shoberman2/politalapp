@@ -373,7 +373,7 @@ export async function getHomeVotes() {
   const billIds = [...new Set(rows.map((r) => r.bill_id).filter(Boolean))]
   const [statsRes, billsRes] = await Promise.all([
     supabaseAdmin.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', ids),
-    billIds.length ? supabaseAdmin.from('bills').select('id, title').in('id', billIds) : Promise.resolve({ data: [] }),
+    billIds.length ? supabaseAdmin.from('bills').select('id, title, sponsor_bioguide_id, sponsor_name').in('id', billIds) : Promise.resolve({ data: [] }),
   ])
   const statsById = new Map((must(statsRes, 'roll_call_stats') || []).map((s) => [s.roll_call_id, s]))
   const billsById = new Map((must(billsRes, 'bills') || []).map((b) => [b.id, b]))
@@ -393,7 +393,7 @@ export async function getHomeVotes() {
       question: r.question || null,
       description: r.description || null,
       voted_at: r.voted_at,
-      bill: r.bill_id ? { id: r.bill_id, label: billLabel(r.bill_id), path: billPath(r.bill_id), title: realTitle(b?.title) } : null,
+      bill: r.bill_id ? { id: r.bill_id, label: billLabel(r.bill_id), path: billPath(r.bill_id), title: realTitle(b?.title), sponsor: b?.sponsor_bioguide_id && b?.sponsor_name ? { id: b.sponsor_bioguide_id, name: b.sponsor_name } : null } : null,
       tally: sane ? { yea: t.yea, nay: t.nay } : null,
       result,
       resultKind: resultKind(result),

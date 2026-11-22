@@ -188,16 +188,17 @@ describe('middleware', () => {
 })
 
 describe('sitemap pages part', () => {
-  it('gives the homepage the latest vote date, info pages none, leaves /this-week (no server-rendered copy) out, and omits lastmod when there are no votes', async () => {
+  it('gives the homepage, /members and /this-week the latest vote date, info pages and /developers none, and omits lastmod when there are no votes', async () => {
     const { pageEntries, _resetSitemapMemo } = await import('../../api/sitemap.js')
     _resetSitemapMemo?.()
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
     const entries = await pageEntries()
     expect(entries.find((e) => e.path === '/').lastmod).toBe('2026-09-03')
-    expect(entries.find((e) => e.path === '/this-week')).toBeUndefined()
+    expect(entries.find((e) => e.path === '/this-week')).toMatchObject({ lastmod: '2026-09-03', changefreq: 'daily' })
+    expect(entries.find((e) => e.path === '/developers').lastmod).toBeNull()
     expect(entries.find((e) => e.path === '/members')).toMatchObject({ lastmod: '2026-09-03', changefreq: 'daily' })
     expect(entries.find((e) => e.path === '/about').lastmod).toBeNull()
-    expect(entries).toHaveLength(2 + Object.keys(STATIC_PAGES).length)
+    expect(entries).toHaveLength(4 + Object.keys(STATIC_PAGES).length)
 
     _resetSitemapMemo?.()
     db.reset()

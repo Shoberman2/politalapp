@@ -1,7 +1,9 @@
 // Server-rendered record pages for members, bills, and roll calls, plus the
 // homepage (kind=home, reached through middleware.js because the static
 // index.html wins over a vercel.json rewrite for `/`) and the static info
-// pages (kind=static&page=about, ...).
+// pages (kind=static&page=about, ...). /this-week and /developers (kind=this-week,
+// kind=developers) carry real text; /all, /bills, /my-representative and /auth
+// (kind=shell) get their own <head> and keep the app shell as the body.
 //
 // vercel.json rewrites /members, /politician/:id, /politician/:id/record,
 // /bill/:congress/:type/:number, and /vote/:congress/:chamber/:session/:roll
@@ -22,6 +24,11 @@ import { renderMarkdown } from './_lib/markdown.js'
 import { renderMembersPage, notFoundHtml } from './_lib/renderMembers.js'
 import { renderHomePage, homeMarkdown, renderStaticPage, staticMarkdown } from './_lib/renderHome.js'
 import { STATIC_PAGES } from './_lib/staticPages.js'
+import {
+  renderThisWeekPage, thisWeekMarkdown, renderDevelopersPage, developersMarkdown,
+  renderGatedShell, renderAuthShell, GATED_SHELL_PAGES, AUTH_ROBOTS, THIS_WEEK_PATH, DEVELOPERS_PATH,
+} from './_lib/renderInfo.js'
+import { loadFloorSchedule, resolveFloorWeeks } from './_lib/floorSchedule.js'
 import { getDataUpdatedAt } from './_lib/etlMeta.js'
 import { buildRollCallId, rollCallPath } from './_lib/rollCallResult.js'
 import { originFrom } from './_lib/request.js'
@@ -111,6 +118,14 @@ export function resolveTarget(query) {
     return null
   }
   if (q.kind === 'members') return { kind: 'members', id: 'members', path: '/members' }
+  if (q.kind === 'this-week') return { kind: 'this-week', id: 'this-week', path: THIS_WEEK_PATH }
+  if (q.kind === 'developers') return { kind: 'developers', id: 'developers', path: DEVELOPERS_PATH }
+  // Head-only pages: the routes that need an account, and /auth.
+  if (q.kind === 'shell' && q.page) {
+    const path = `/${String(Array.isArray(q.page) ? q.page[0] : q.page).toLowerCase()}`
+    if (path === '/auth' || Object.hasOwn(GATED_SHELL_PAGES, path)) return { kind: 'shell', id: path, path }
+    return null
+  }
   // The rewrite passes the whole path segment ("P000197-nancy-pelosi"). The id
   // is the part before the first hyphen; the slug is checked after the member
   // is loaded, because only then do we know the right one.
@@ -145,8 +160,24 @@ async function loadHome() {
   return { kind: 'home', votes, updatedAt, indexable: true }
 }
 
+// /this-week reads the same two sources the React page does. Each read has its
+// own budget and a failed one drops its column, so the page always renders.
+async function loadThisWeek() {
+  const [schedule, votes, updatedAt] = await Promise.all([
+    withTimeout(loadFloorSchedule(resolveFloorWeeks()), HOME_READ_TIMEOUT_MS, 'floor schedule')
+      .then((r) => (r.allFailed ? null : r.data))
+      .catch((err) => { console.error('[prerender] floor schedule unavailable:', err.message); return null }),
+    withTimeout(getHomeVotes(), HOME_READ_TIMEOUT_MS, 'recent votes').catch((err) => { console.error('[prerender] recent votes unavailable:', err.message); return null }),
+    withTimeout(getDataUpdatedAt(), HOME_READ_TIMEOUT_MS, 'etl meta').catch(() => null),
+  ])
+  return { kind: 'this-week', path: THIS_WEEK_PATH, schedule, votes, updatedAt, indexable: true }
+}
+
 async function loadData(target) {
   if (target.kind === 'home') return loadHome()
+  if (target.kind === 'this-week') return loadThisWeek()
+  if (target.kind === 'developers') return { kind: 'developers', path: DEVELOPERS_PATH, indexable: true }
+  if (target.kind === 'shell') return { kind: 'shell', path: target.path, indexable: target.path !== '/auth' }
   if (target.kind === 'static') return { kind: 'static', path: target.path, page: STATIC_PAGES[target.path], indexable: true }
   if (target.kind === 'member') return getMemberPage(target.id)
   if (target.kind === 'record') return getRecordPage(target.id)
@@ -240,7 +271,11 @@ export default async function handler(req, res) {
 
     const cache = data.kind === 'home'
       ? (data.votes ? HOME_CACHE : HOME_DEGRADED_CACHE)
-      : data.kind === 'static' ? STATIC_CACHE : PAGE_CACHE
+      : data.kind === 'this-week' ? (data.schedule || data.votes ? HOME_CACHE : HOME_DEGRADED_CACHE)
+        : data.kind === 'static' || data.kind === 'developers' || data.kind === 'shell' ? STATIC_CACHE : PAGE_CACHE
+
+    // The app-shell pages (/all, /bills, /my-representative, /auth) have no text view.
+    if (markdown && data.kind === 'shell') { res.statusCode = 404; res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.end('No Markdown view of this page\n') }
 
     if (markdown) {
       res.statusCode = 200
@@ -249,7 +284,11 @@ export default async function handler(req, res) {
       res.setHeader('Vary', 'Accept')
       res.setHeader('Link', `<${SITE}${data.kind === 'member' || data.kind === 'record' ? memberPath(data.id, data.name, data.kind === 'record' ? '/record' : '') : target.path}>; rel="canonical"`)
       if (!data.indexable) res.setHeader('X-Robots-Tag', 'noindex')
-      const md = data.kind === 'home' ? homeMarkdown(data) : data.kind === 'static' ? staticMarkdown(data) : renderMarkdown(data)
+      const md = data.kind === 'home' ? homeMarkdown(data)
+        : data.kind === 'static' ? staticMarkdown(data)
+          : data.kind === 'this-week' ? thisWeekMarkdown(data)
+            : data.kind === 'developers' ? developersMarkdown()
+              : renderMarkdown(data)
       return res.end(md)
     }
 
@@ -257,6 +296,19 @@ export default async function handler(req, res) {
 
     if (data.kind === 'members') {
       return sendHtml(res, renderMembersPage(shell, data), 200, PAGE_CACHE, { 'X-BallotWatch-Prerender': 'index' })
+    }
+
+    if (data.kind === 'this-week') {
+      return sendHtml(res, renderThisWeekPage(shell, data), 200, cache, { 'X-BallotWatch-Prerender': data.schedule || data.votes ? 'index' : 'index:no-data' })
+    }
+    if (data.kind === 'developers') {
+      return sendHtml(res, renderDevelopersPage(shell), 200, cache, { 'X-BallotWatch-Prerender': 'index' })
+    }
+    if (data.kind === 'shell') {
+      if (data.path === '/auth') {
+        return sendHtml(res, renderAuthShell(shell), 200, cache, { 'X-Robots-Tag': AUTH_ROBOTS, 'X-BallotWatch-Prerender': 'shell:noindex' })
+      }
+      return sendHtml(res, renderGatedShell(shell, data.path), 200, cache, { 'X-BallotWatch-Prerender': 'shell:head' })
     }
 
     if (data.kind === 'home' || data.kind === 'static') {

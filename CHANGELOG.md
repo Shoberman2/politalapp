@@ -3,6 +3,17 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.14.1.0] - 2026-11-21
+
+### Added
+- **`/this-week` and `/developers` are server-rendered.** Each has its own title, description, canonical, share tags and `WebPage` data, real body text, and a Markdown view for `Accept: text/markdown`. `/this-week` lists the House floor schedule and the latest recorded votes with links to the bill and vote pages, and falls back to a short note when a read fails. Both are in the sitemap.
+- **Member pages open with the member's tally** ("Nancy Pelosi (D-CA-11) has 890 recorded roll-call votes in the 119th Congress: ...") and end with a short FAQ, shown on the page and in the Markdown view. A `FAQPage` block carries the same questions and answers. Both are left out when the member has no vote counts.
+- **The homepage's latest recorded vote names the bill's sponsor,** linked to their member page.
+
+### Changed
+- `/all`, `/bills` and `/my-representative` each send their own title, description and share tags. They stay behind the account gate, stay out of the sitemap and still serve the app shell as their body. `/all` names `/members`, its public version, as its canonical.
+- `/auth` and `/auth/*` are `noindex, follow`, in the page and in an `X-Robots-Tag` header.
+
 ## [0.14.0.0] - 2026-11-20
 
 ### Added
