@@ -4,8 +4,8 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: () => { throw new Error('no db in this test') } } }))
 
-import { build, parseOpenApi, LLMS_FULL, SERVER_CARD } from '../../scripts/build-llms-full.mjs'
-import { TOOL_NAMES } from '../../api/mcp.js'
+import { build, parseOpenApi, LLMS_FULL, SERVER_CARD, SERVER_JSON, REGISTRY_NAME } from '../../scripts/build-llms-full.mjs'
+import { TOOL_NAMES, SERVER_INFO } from '../../api/mcp.js'
 import { OPEN_DATA_TABLES } from '../../shared/openData.js'
 
 const root = process.cwd()
@@ -16,7 +16,21 @@ describe('generated agent files are up to date', () => {
     const files = await build()
     expect(read(LLMS_FULL)).toBe(files[LLMS_FULL])
     expect(read(SERVER_CARD)).toBe(files[SERVER_CARD])
+    expect(read(SERVER_JSON)).toBe(files[SERVER_JSON])
   }, 60000)
+
+  it('the registry listing names the live endpoint and the version the server reports', () => {
+    const listing = JSON.parse(read(SERVER_JSON))
+    expect(listing).toMatchObject({
+      name: REGISTRY_NAME,
+      version: SERVER_INFO.version,
+      remotes: [{ type: 'streamable-http', url: 'https://www.ballotwatch.io/mcp' }],
+      websiteUrl: 'https://www.ballotwatch.io',
+    })
+    expect(listing.description.length).toBeLessThanOrEqual(100)
+    expect(listing.packages).toBeUndefined()
+    expect(JSON.parse(read(SERVER_CARD)).name).toBe(listing.name)
+  })
 
   it('llms-full covers every API path, MCP tool and open-data table', () => {
     const text = read(LLMS_FULL)

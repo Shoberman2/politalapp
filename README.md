@@ -308,6 +308,10 @@ Agent surfaces:
   - `search_bills`, `get_bill`, `explain_bill` (cached explanations only), and
     `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
     loader as `/api/v1/floor/schedule`).
+  - `search` and `fetch`: the generic pair ChatGPT deep research and company
+    knowledge require. `search(query)` returns `{ results: [{ id, title, url }] }`
+    and `fetch(id)` returns `{ id, title, text, url, metadata }` with the record
+    as Markdown; both also return the object as structured content.
   - Prompts: `my_representatives`, `member_record`, `how_did_they_vote`,
     `this_week_in_congress`, `explain_a_bill`.
   - "Serving now" comes from the record, not from `term_end` (which is never

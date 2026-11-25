@@ -9,6 +9,7 @@ vi.mock('../../api/_lib/roster.js', async (original) => ({ ...(await original())
 
 import {
   searchMembers, getMemberVotes, getMemberBills, compareMembers, getRecentVotes, getRollCall, searchBills,
+  search, fetchDocument, parseDocumentId,
   currentCongress, _resetRollCallSearchCache,
 } from '../../api/_lib/mcpTools.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
@@ -394,5 +395,138 @@ describe('search_bills', () => {
     expect((await searchBills({ query: '   ' })).error).toBe('Query is required.')
     expect((await searchBills({ query: 'x', stage: 'pending' })).error).toMatch(/stage must be one of/)
     expect((await searchBills({ query: 'x', sponsor: 'pelosi' })).error).toMatch(/looks wrong/)
+  })
+})
+
+describe('search and fetch (the generic pair ChatGPT deep research calls)', () => {
+  const BILL = { id: `${C}-hr-1`, title: 'One Big Beautiful Bill Act', introduced_at: '2025-05-20', policy_area: null, source_url: 'https://www.congress.gov/bill/119th-congress/house-bill/1', legislative_stage: 'enacted' }
+  const PASSAGE = { id: `house-${C}-1-145`, bill_id: `${C}-hr-1`, question: 'On Passage', description: null, voted_at: '2025-05-22', bills: { id: `${C}-hr-1`, title: 'One Big Beautiful Bill Act' } }
+  const OHIO = makeRoster([
+    { id: 'M001242', name: 'Bernie Moreno', chamber: 'senate', state: 'OH', party: 'Republican' },
+    { id: 'H001104', name: 'Jon Husted', chamber: 'senate', state: 'OH', party: 'Republican' },
+    { id: 'V000137', name: 'J. Vance', chamber: 'senate', state: 'OH', party: 'Republican', serving: false },
+    { id: 'C001126', name: 'Mike Carey', chamber: 'house', state: 'OH', district: '15', party: 'Republican' },
+    { id: 'B001281', name: 'Joyce Beatty', chamber: 'house', state: 'OH', district: '3', party: 'Democrat' },
+    { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democrat' },
+  ], C)
+  const shape = (r) => Object.keys(r).sort().join(',')
+
+  beforeEach(() => { mocks.getRoster.mockResolvedValue(OHIO) })
+
+  it('search returns { results: [{ id, title, url }] } for a name, with members who left marked', async () => {
+    db.responses.bills = { data: [] }
+    db.responses.roll_calls = { data: [] }
+    const out = await search({ query: 'Nancy Pelosi' })
+    expect(out).toEqual({ results: [{ id: 'member:P000197', title: 'Nancy Pelosi, U.S. House (D-CA-11): voting record', url: `${SITE}/politician/P000197-nancy-pelosi` }] })
+    const vance = await search({ query: 'Senator Vance' })
+    expect(vance.results[0]).toEqual({ id: 'member:V000137', title: 'J. Vance, U.S. Senator (R-OH), no longer serving: voting record', url: `${SITE}/politician/V000137-j-vance` })
+  })
+
+  it('search turns a ZIP code into the members who represent it', async () => {
+    const out = await search({ query: '43215' })
+    expect(out.results.map((r) => r.id)).toEqual(['member:M001242', 'member:H001104', 'member:C001126', 'member:B001281'])
+    expect(out.results.every((r) => shape(r) === 'id,title,url' && r.url.startsWith(`${SITE}/politician/`))).toBe(true)
+    // The ZIP path never runs a bill or vote search.
+    expect(db.tables().filter((t) => t === 'bills' || t === 'roll_calls')).toEqual([])
+  })
+
+  it('search finds a bill number inside a question, then its roll calls', async () => {
+    db.responses.bills = (call) => (hasOp(call, 'eq', 'id', `${C}-hr-1`) ? { data: BILL } : { data: [] })
+    db.responses.roll_calls = (call) => (hasOp(call, 'eq', 'bill_id', `${C}-hr-1`) ? { data: [PASSAGE], count: 1 } : { data: [] })
+    db.responses.roll_call_stats = { data: [{ roll_call_id: PASSAGE.id, dem_yea: 0, dem_nay: 212, rep_yea: 214, rep_nay: 2, ind_yea: 1, ind_nay: 0 }] }
+    const out = await search({ query: 'How did the House vote on H.R. 1?' })
+    expect(out.results).toEqual([
+      { id: `bill:${C}-hr-1`, title: 'H.R. 1: One Big Beautiful Bill Act', url: `${SITE}/bill/${C}/hr/1` },
+      { id: `vote:house-${C}-1-145`, title: 'House roll call 145, 2025-05-22: On Passage on H.R. 1 One Big Beautiful Bill Act (Passed 215-214)', url: `${SITE}/vote/${C}/house/1/145` },
+    ])
+  })
+
+  it('search titles a bill by its number alone when the title is missing or a stub', async () => {
+    db.responses.bills = { data: [{ ...BILL, id: `${C}-hr-915`, title: 'HR 915' }, { ...BILL, id: `${C}-hr-916`, title: null }] }
+    db.responses.roll_calls = { data: [] }
+    const out = await search({ query: 'reconciliation' })
+    expect(out.results.map((r) => r.title)).toEqual(['H.R. 915', 'H.R. 916'])
+  })
+
+  it('search survives a failing part and answers an empty query with no results', async () => {
+    db.responses.bills = { data: null, error: { message: 'down' } }
+    db.responses.roll_calls = { data: null, error: { message: 'down' } }
+    expect((await search({ query: 'Joyce Beatty' })).results.map((r) => r.id)).toEqual(['member:B001281'])
+    db.reset()
+    expect(await search({ query: '   ' })).toEqual({ results: [] })
+    expect(await search({})).toEqual({ results: [] })
+    expect(db.calls).toHaveLength(0)
+  })
+
+  it('reads an id from search, a bare id, or a BallotWatch URL', () => {
+    expect(parseDocumentId('member:p000197')).toEqual({ type: 'member', id: 'P000197' })
+    expect(parseDocumentId('P000197')).toEqual({ type: 'member', id: 'P000197' })
+    expect(parseDocumentId(`bill:${C}-hr-1`)).toEqual({ type: 'bill', id: `${C}-hr-1` })
+    expect(parseDocumentId('bill:H.R. 1')).toEqual({ type: 'bill', id: `${C}-hr-1` })
+    expect(parseDocumentId('118-s-5')).toEqual({ type: 'bill', id: '118-s-5' })
+    expect(parseDocumentId('vote:House-119-1-145')).toEqual({ type: 'vote', id: 'house-119-1-145' })
+    expect(parseDocumentId('senate-119-2-279')).toEqual({ type: 'vote', id: 'senate-119-2-279' })
+    expect(parseDocumentId('https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record?x=1')).toEqual({ type: 'member', id: 'P000197' })
+    expect(parseDocumentId('https://www.ballotwatch.io/bill/119/hr/1')).toEqual({ type: 'bill', id: '119-hr-1' })
+    expect(parseDocumentId('https://www.ballotwatch.io/vote/119/house/1/145#top')).toEqual({ type: 'vote', id: 'house-119-1-145' })
+    for (const bad of ['', 'nonsense', 'member:nonsense', 'vote:119-hr-1', 'https://www.ballotwatch.io/about']) expect(parseDocumentId(bad), bad).toBeNull()
+  })
+
+  it('fetch returns a member record as Markdown with string metadata', async () => {
+    db.responses.politicians = { data: { id: 'V000137', name: 'J. Vance', chamber: 'senate', state: 'OH', district: null, party: 'Republican', photo_url: null } }
+    db.responses.member_congress_terms = { data: [{ congress: C, chamber: 'senate', state: 'OH', district: null, party: 'R', term_start: '2025-01-03', term_end: null }] }
+    db.responses.member_stats = { data: { congress: C, total_votes: 1, yea_count: 1, nay_count: 0, present_count: 0, not_voting_count: 0 } }
+    db.responses.votes = { data: [{ roll_call_id: `senate-${C}-1-1`, position: 'Yea', voted_at: '2025-01-09', source_url: null, bill_id: null, bills: null }], count: 1 }
+    db.responses.roll_calls = { data: [{ id: `senate-${C}-1-1`, question: 'On the Motion', description: null, bill_id: null }] }
+    db.responses.roll_call_stats = { data: [] }
+    const out = await fetchDocument({ id: 'member:V000137' })
+    expect(shape(out)).toBe('id,metadata,text,title,url')
+    expect(out).toMatchObject({ id: 'member:V000137', title: 'J. Vance, U.S. Senator (R-OH), no longer serving: voting record', url: `${SITE}/politician/V000137-j-vance` })
+    expect(out.text).toContain('# J. Vance\'s record in 60 seconds')
+    expect(out.text).toContain('On the Motion')
+    expect(out.text).toContain('This member is no longer serving in Congress.')
+    expect(out.metadata).toEqual({ type: 'member', bioguide_id: 'V000137', source_url: 'https://www.congress.gov/member/V000137', data_updated_at: '2026-11-24T06:51:34Z' })
+  })
+
+  it('fetch returns a bill with its explanation source and recorded votes', async () => {
+    db.responses.bills = { data: { ...BILL, summary: null, crs_summary: 'Official summary text.', sponsor_bioguide_id: null, sponsor_name: null, sponsor_party: null, sponsor_state: null, updated_at: '2026-01-01' } }
+    db.responses.roll_calls = { data: [{ id: PASSAGE.id, question: 'On Passage', description: null, voted_at: '2025-05-22' }] }
+    db.responses.roll_call_stats = { data: [{ roll_call_id: PASSAGE.id, dem_yea: 0, dem_nay: 212, rep_yea: 214, rep_nay: 2, ind_yea: 1, ind_nay: 0 }] }
+    db.responses.bill_explanations = { data: null }
+    const out = await fetchDocument({ id: `${SITE}/bill/${C}/hr/1` })
+    expect(out).toMatchObject({ id: `bill:${C}-hr-1`, title: 'H.R. 1: One Big Beautiful Bill Act', url: `${SITE}/bill/${C}/hr/1` })
+    expect(out.text).toContain('# H.R. 1: One Big Beautiful Bill Act')
+    expect(out.text).toContain('Official summary text.')
+    expect(out.text).toMatch(/\| 2025-05-22 \| House \| On Passage \| 215-214 \| Passed \|/)
+    expect(out.metadata).toEqual({ type: 'bill', bill_id: `${C}-hr-1`, stage: 'enacted', source_url: BILL.source_url, data_updated_at: '2026-11-24T06:51:34Z' })
+  })
+
+  it('fetch returns a roll call with every member grouped by position', async () => {
+    const voter = (id, name, party, state, position) => ({ position, source_url: null, voted_at: '2025-05-22', politicians: { id, name, party, state, district: null, chamber: 'house' } })
+    db.responses.roll_calls = { data: { id: PASSAGE.id, bill_id: `${C}-hr-1`, question: 'On Passage', description: null, voted_at: '2025-05-22', updated_at: '2026-01-01' } }
+    db.responses.roll_call_stats = { data: { dem_yea: 0, dem_nay: 212, rep_yea: 214, rep_nay: 2, ind_yea: 1, ind_nay: 0 } }
+    db.responses.votes = { data: [voter('P000197', 'Nancy Pelosi', 'Democrat', 'CA', 'Nay'), voter('C001126', 'Mike Carey', 'Republican', 'OH', 'Yea'), voter('B001281', 'Joyce Beatty', 'Democrat', 'OH', 'Nay')] }
+    db.responses.bills = { data: { id: `${C}-hr-1`, title: 'One Big Beautiful Bill Act', source_url: BILL.source_url, policy_area: null } }
+    const out = await fetchDocument({ id: `vote:house-${C}-1-145` })
+    expect(out).toMatchObject({ id: `vote:house-${C}-1-145`, url: `${SITE}/vote/${C}/house/1/145`, title: 'House roll call 145, 2025-05-22: On Passage on H.R. 1 One Big Beautiful Bill Act (Passed 215-214)' })
+    expect(out.text).toContain(`# House roll call 145, ${C}th Congress, session 1`)
+    expect(out.text).toContain('- Tally: 215 yea, 214 nay')
+    expect(out.text).toContain('- Result (derived from tally and question): Passed')
+    expect(out.text).toContain('**Yea (1):** Mike Carey (R-OH-15)')
+    expect(out.text).toContain('**Nay (2):** Joyce Beatty (D-OH-3); Nancy Pelosi (D-CA-11)')
+    expect(out.text).not.toMatch(/[A-Z]\d{6}/)
+    expect(out.metadata).toMatchObject({ type: 'roll_call', roll_call_id: `house-${C}-1-145`, result: 'Passed', source_url: `https://clerk.house.gov/Votes/${1789 + 2 * (C - 1)}145` })
+    expect(Object.values(out.metadata).every((v) => typeof v === 'string')).toBe(true)
+  })
+
+  it('fetch reports an unknown id or a missing record as an error', async () => {
+    expect((await fetchDocument({ id: 'nonsense' })).error).toMatch(/Unknown id\. Use an id returned by search/)
+    expect((await fetchDocument({})).error).toMatch(/Unknown id/)
+    db.responses.politicians = { data: null }
+    expect((await fetchDocument({ id: 'member:Z999999' })).error).toBe('No member with Bioguide ID Z999999')
+    db.responses.bills = { data: null }
+    expect((await fetchDocument({ id: 'bill:119-hr-99999' })).error).toBe('No bill 119-hr-99999')
+    db.responses.roll_calls = { data: null }
+    expect((await fetchDocument({ id: `vote:house-${C}-2-4999` })).error).toMatch(/No roll call/)
   })
 })

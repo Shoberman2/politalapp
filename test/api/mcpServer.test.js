@@ -17,6 +17,8 @@ vi.mock('../../api/_lib/mcpTools.js', () => ({
   getMemberBills: vi.fn(async () => ({ sponsored: { total: 0, bills: [] } })),
   compareMembers: vi.fn(async () => ({ same_vote_pct: 50 })),
   getRecentVotes: vi.fn(async (args) => ({ args, votes: [] })),
+  search: vi.fn(async ({ query }) => ({ results: query === 'boom' ? [{ id: 1 }] : [{ id: 'member:P000197', title: 'Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi' }] })),
+  fetchDocument: vi.fn(async ({ id }) => (id === 'member:P000197' ? { id, title: 'Nancy Pelosi', text: '# Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi', metadata: { type: 'member' } } : { error: 'Unknown id.' })),
   BILL_STAGES: ['introduced', 'enacted'],
 }))
 
@@ -37,15 +39,43 @@ function res() {
 }
 
 describe('MCP server', () => {
-  it('lists the thirteen documented tools through the public protocol', async () => {
+  it('lists the fifteen documented tools through the public protocol', async () => {
     const client = await connectedClient()
     const { tools } = await client.listTools()
     expect(tools.map((t) => t.name).sort()).toEqual([...TOOL_NAMES].sort())
-    expect(TOOL_NAMES).toHaveLength(13)
+    expect(TOOL_NAMES).toHaveLength(15)
     expect(TOOL_NAMES).toEqual(expect.arrayContaining([
       'find_representatives', 'get_member', 'get_member_votes', 'get_roll_call', 'search_bills', 'get_bill', 'explain_bill', 'get_floor_schedule', 'get_member_record',
-      'search_members', 'get_member_bills', 'compare_members', 'get_recent_votes',
+      'search_members', 'get_member_bills', 'compare_members', 'get_recent_votes', 'search', 'fetch',
     ]))
+  })
+
+  it('serves search and fetch in the shape ChatGPT deep research expects: JSON text plus the same structured content', async () => {
+    const client = await connectedClient()
+    const { tools } = await client.listTools()
+    const byName = Object.fromEntries(tools.map((t) => [t.name, t]))
+    expect(byName.search.inputSchema.required).toEqual(['query'])
+    expect(byName.search.outputSchema.properties.results.items.required).toEqual(['id', 'title', 'url'])
+    expect(byName.fetch.inputSchema.required).toEqual(['id'])
+    expect(byName.fetch.outputSchema.required).toEqual(['id', 'title', 'text', 'url'])
+    // Only these two declare an output schema; the rest return JSON text alone.
+    expect(tools.filter((t) => t.outputSchema).map((t) => t.name).sort()).toEqual(['fetch', 'search'])
+
+    const found = await client.callTool({ name: 'search', arguments: { query: 'Nancy Pelosi' } })
+    expect(found.isError).toBeFalsy()
+    expect(found.structuredContent).toEqual({ results: [{ id: 'member:P000197', title: 'Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi' }] })
+    expect(JSON.parse(found.content[0].text)).toEqual(found.structuredContent)
+
+    const doc = await client.callTool({ name: 'fetch', arguments: { id: 'member:P000197' } })
+    expect(doc.structuredContent).toEqual({ id: 'member:P000197', title: 'Nancy Pelosi', text: '# Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi', metadata: { type: 'member' } })
+    expect(JSON.parse(doc.content[0].text)).toEqual(doc.structuredContent)
+
+    // An error carries no structured content and is flagged, not thrown.
+    const missing = await client.callTool({ name: 'fetch', arguments: { id: 'nope' } })
+    expect(missing.isError).toBe(true)
+    expect(missing.structuredContent).toBeUndefined()
+    // Other tools still return text only.
+    expect((await client.callTool({ name: 'get_member', arguments: { bioguide_id: 'P000197' } })).structuredContent).toBeUndefined()
   })
 
   it('marks every tool read-only with a title, so clients can run them without a confirmation step', async () => {

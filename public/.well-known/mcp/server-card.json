@@ -572,6 +572,60 @@
         "idempotentHint": true,
         "openWorldHint": false
       }
+    },
+    {
+      "name": "search",
+      "title": "Search the record",
+      "description": "One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "e.g. \"Nancy Pelosi\", \"43215\", \"H.R. 1\", \"veterans health\""
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Search the record",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "fetch",
+      "title": "Fetch a record",
+      "description": "The full text of one record from search, as Markdown with its sources: a member's record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io URL.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "An id returned by search, or a ballotwatch.io record URL"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Fetch a record",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
     }
   ],
   "prompts": [

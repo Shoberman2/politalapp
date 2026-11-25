@@ -15,7 +15,8 @@ import { SITE_ORIGIN as SITE, congressGovMemberUrl } from './site.js'
 import { loadFloorSchedule, resolveFloorWeeks } from './floorSchedule.js'
 import { getRoster, searchRoster, currentCongress, stateCode, partyName } from './roster.js'
 import { recordPath, normalizePosition, partyLetter } from '../../shared/memberRecord.js'
-import { memberPath } from '../../shared/memberSlug.js'
+import { memberPath, parseMemberSegment } from '../../shared/memberSlug.js'
+import { recordMarkdown, billMarkdown } from './markdown.js'
 
 export { currentCongress }
 
@@ -807,5 +808,153 @@ export async function getFloorSchedule({ week } = {}) {
       })),
     })),
     canonical: `${SITE}/this-week`,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// search, fetch
+// ---------------------------------------------------------------------------
+// The two generic tools ChatGPT deep research and company knowledge require
+// (https://developers.openai.com/api/docs/mcp): search(query) returns
+// { results: [{ id, title, url }] } and fetch(id) returns
+// { id, title, text, url, metadata }. Ids are "member:P000197",
+// "bill:119-hr-1" and "vote:house-119-1-145".
+
+const SEARCH_STOPWORDS = new Set([
+  'a', 'an', 'and', 'the', 'of', 'on', 'in', 'for', 'to', 'by', 'at', 'with', 'about', 'from', 'is', 'are', 'was', 'were', 'did', 'does', 'do',
+  'how', 'what', 'who', 'which', 'when', 'vote', 'votes', 'voted', 'voting', 'bill', 'bills', 'congress', 'record', 'records',
+  'senate', 'house', 'senator', 'senators', 'representative', 'representatives', 'rep', 'sen', 'member', 'members', 'roll', 'call',
+])
+const BILL_NUMBER = /\b(\d{2,3}-[a-z]+-\d+|(?:h\.?\s*r\.?|s\.?|h\.?\s*j\.?\s*res\.?|s\.?\s*j\.?\s*res\.?|h\.?\s*con\.?\s*res\.?|s\.?\s*con\.?\s*res\.?|h\.?\s*res\.?|s\.?\s*res\.?)\s*\d+)\b/i
+const SEARCH_LIMIT = 12
+
+function memberTitle(m) {
+  const seat = m.chamber === 'senate' ? 'U.S. Senator' : 'U.S. House'
+  const district = m.chamber === 'house' && m.district && m.district !== '0' ? `-${m.district}` : ''
+  return `${m.name}, ${seat} (${partyLetter(m.party)}-${m.state}${district})${m.serving === false ? ', no longer serving' : ''}: voting record`
+}
+
+// "H.R. 1: Title", or the number alone when the title is missing or a stub.
+function billTitle(label, title) {
+  return isPlaceholderTitle(title) ? label : `${label}: ${title}`
+}
+
+function voteTitle(v) {
+  const about = v.bill ? ` on ${v.bill.label}${v.bill.title ? ` ${v.bill.title}` : ''}` : v.description ? `: ${v.description}` : ''
+  const outcome = v.result_derived && v.tally ? ` (${v.result_derived} ${v.tally.yea}-${v.tally.nay})` : ''
+  return `${v.chamber === 'senate' ? 'Senate' : 'House'} roll call ${v.roll}, ${v.voted_at}: ${v.question || 'recorded vote'}${about}${outcome}`.slice(0, 300)
+}
+
+export async function search({ query } = {}) {
+  const q = String(query || '').trim()
+  const results = []
+  const add = (id, title, url) => { if (url && !results.some((r) => r.id === id)) results.push({ id, title, url }) }
+  if (!q) return { results }
+
+  // A ZIP code: the members who represent it.
+  if (/^\d{5}(-\d{4})?$/.test(q)) {
+    const reps = await findRepresentatives({ zip: q }).catch(() => null)
+    for (const m of [...(reps?.senators || []), ...(reps?.representatives || [])]) add(`member:${m.bioguide_id}`, memberTitle(m), m.canonical)
+    return { results }
+  }
+
+  const number = BILL_NUMBER.exec(q)
+  const billId = number ? normalizeBillId(number[1]) : null
+  const words = q.replace(BILL_NUMBER, ' ').toLowerCase().replace(/['’]/g, '').split(/[^a-z0-9]+/).filter((w) => w.length >= 2 && !SEARCH_STOPWORDS.has(w)).slice(0, 6)
+  const soft = (promise) => promise.catch((err) => { console.warn('[mcp] search part failed:', err?.message); return null })
+  const [members, bill, bills, votes, billVotes] = await Promise.all([
+    words.length ? soft(searchMembers({ query: words.join(' '), limit: 5 })) : null,
+    billId ? soft(searchBills({ query: billId })) : null,
+    words.length ? soft(searchBills({ query: words.join(' '), limit: 6 })) : null,
+    words.length ? soft(getRecentVotes({ query: words.join(' '), limit: 5 })) : null,
+    billId ? soft(getRecentVotes({ bill: billId, limit: 5 })) : null,
+  ])
+  for (const b of bill?.results || []) add(`bill:${b.id}`, billTitle(b.label, b.title), b.canonical)
+  for (const m of members?.members || []) add(`member:${m.bioguide_id}`, memberTitle(m), m.canonical)
+  for (const v of billVotes?.votes || []) add(`vote:${v.roll_call_id}`, voteTitle(v), v.canonical)
+  for (const b of bills?.results || []) add(`bill:${b.id}`, billTitle(b.label, b.title), b.canonical)
+  for (const v of votes?.votes || []) add(`vote:${v.roll_call_id}`, voteTitle(v), v.canonical)
+  return { results: results.slice(0, SEARCH_LIMIT) }
+}
+
+// "member:P000197", a bare id, or a BallotWatch URL -> { type, id }.
+export function parseDocumentId(input) {
+  let s = String(input || '').trim()
+  const url = /^https?:\/\/[^/]+(\/.*)$/i.exec(s)
+  if (url) {
+    const path = url[1].split(/[?#]/)[0]
+    let m = /^\/politician\/([^/]+)/.exec(path)
+    if (m) s = `member:${parseMemberSegment(m[1])?.id || ''}`
+    else if ((m = /^\/bill\/(\d+)\/([a-z]+)\/(\d+)/i.exec(path))) s = `bill:${m[1]}-${m[2]}-${m[3]}`
+    else if ((m = /^\/vote\/(\d+)\/(house|senate)\/(\d+)\/(\d+)/i.exec(path))) s = `vote:${m[2]}-${m[1]}-${m[3]}-${m[4]}`
+  }
+  const typed = /^(member|bill|vote):(.+)$/i.exec(s)
+  const type = typed ? typed[1].toLowerCase() : null
+  const rest = (typed ? typed[2] : s).trim()
+  if ((!type || type === 'member') && bioguide(rest)) return { type: 'member', id: bioguide(rest) }
+  if ((!type || type === 'vote') && parseRollCallId(rest)) return { type: 'vote', id: rest.toLowerCase() }
+  if (!type || type === 'bill') {
+    const billId = normalizeBillId(rest)
+    if (billId) return { type: 'bill', id: billId }
+  }
+  return null
+}
+
+export async function fetchDocument({ id } = {}) {
+  const doc = parseDocumentId(id)
+  if (!doc) return { error: 'Unknown id. Use an id returned by search: member:P000197, bill:119-hr-1 or vote:house-119-1-145.' }
+  const meta = (extra) => Object.fromEntries(Object.entries(extra).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))
+
+  if (doc.type === 'member') {
+    const r = await getRecordPage(doc.id)
+    if (!r) return { error: `No member with Bioguide ID ${doc.id}` }
+    const serving = await servingNow(r.id)
+    const status = serving === false ? '\nThis member is no longer serving in Congress.\n' : ''
+    return {
+      id: `member:${r.id}`,
+      title: memberTitle({ ...r, serving }),
+      text: recordMarkdown(r) + status,
+      url: `${SITE}${memberPath(r.id, r.name)}`,
+      metadata: meta({ type: 'member', bioguide_id: r.id, source_url: r.sources.congressGov, data_updated_at: r.updatedAt }),
+    }
+  }
+  if (doc.type === 'bill') {
+    const b = await getBillPage(doc.id)
+    if (!b) return { error: `No bill ${doc.id}` }
+    return {
+      id: `bill:${b.id}`,
+      title: billTitle(b.label, b.title),
+      text: billMarkdown(b),
+      url: `${SITE}${billPath(b.id)}`,
+      metadata: meta({ type: 'bill', bill_id: b.id, stage: b.legislative_stage, source_url: b.source_url, data_updated_at: b.updatedAt }),
+    }
+  }
+  const parts = parseRollCallId(doc.id)
+  const out = await getRollCall({ congress: parts.congress, chamber: parts.chamberKey, session: parts.session, roll: parts.roll, format: 'compact' })
+  if (out.error) return { error: out.error }
+  const lines = [
+    `# ${out.chamber === 'senate' ? 'Senate' : 'House'} roll call ${out.roll}, ${out.congress}th Congress, session ${out.session}`,
+    '',
+    `- Question: ${out.question || ''}`,
+  ]
+  if (out.description) lines.push(`- Description: ${out.description}`)
+  if (out.bill) lines.push(`- Bill: [${out.bill.label}](${out.bill.canonical})${out.bill.title ? ` ${out.bill.title}` : ''}`)
+  if (out.voted_at) lines.push(`- Date: ${out.voted_at}`)
+  if (out.tally) lines.push(`- Tally: ${out.tally.yea} yea, ${out.tally.nay} nay${out.tally.present ? `, ${out.tally.present} present` : ''}${out.tally.notVoting ? `, ${out.tally.notVoting} not voting` : ''}`)
+  if (out.by_party) lines.push(`- By party: D ${out.by_party.dem.yea}-${out.by_party.dem.nay}, R ${out.by_party.rep.yea}-${out.by_party.rep.nay}, I ${out.by_party.ind.yea}-${out.by_party.ind.nay}`)
+  if (out.result_derived) lines.push(`- Result (derived from tally and question): ${out.result_derived}`)
+  lines.push(`- Canonical: ${out.canonical}`)
+  if (out.source_url) lines.push(`- Official record: ${out.source_url}`)
+  if (out.data_updated_at) lines.push(`- Data updated: ${out.data_updated_at}`)
+  lines.push('', '## How members voted', '')
+  for (const [position, names] of Object.entries(out.votes_by_position || {})) {
+    lines.push(`**${position} (${names.length}):** ${names.map((n) => n.replace(/ [A-Z]\d{6}$/, '')).join('; ')}`, '')
+  }
+  return {
+    id: `vote:${out.roll_call_id}`,
+    title: voteTitle(out),
+    text: lines.join('\n'),
+    url: out.canonical,
+    metadata: meta({ type: 'roll_call', roll_call_id: out.roll_call_id, result: out.result_derived, source_url: out.source_url, data_updated_at: out.data_updated_at }),
   }
 }

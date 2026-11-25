@@ -4,6 +4,8 @@
 //
 //   public/llms-full.txt                    everything an agent needs, one file
 //   public/.well-known/mcp/server-card.json the MCP server card
+//   server.json                             the listing published to the official
+//                                           MCP registry (mcp-publisher publish)
 //
 // Sources: public/llms.txt (site map, URL patterns, citation rules),
 // docs/api/openapi.yaml (endpoints and parameters), api/mcp.js (the tools the
@@ -24,6 +26,10 @@ const read = (p) => readFileSync(path(p), 'utf8')
 
 export const LLMS_FULL = 'public/llms-full.txt'
 export const SERVER_CARD = 'public/.well-known/mcp/server-card.json'
+export const SERVER_JSON = 'server.json'
+// The name the server is listed under in the official MCP registry. The
+// io.ballotwatch namespace is proven by a TXT record on ballotwatch.io.
+export const REGISTRY_NAME = 'io.ballotwatch/congress'
 
 // ---------------------------------------------------------------------------
 // OpenAPI: a small reader for this repo's spec layout (2-space YAML, paths at
@@ -248,7 +254,7 @@ export async function build() {
   const text = out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
 
   const card = {
-    name: 'io.ballotwatch/congress',
+    name: REGISTRY_NAME,
     title: 'BallotWatch',
     version: serverInfo.version,
     description: 'The U.S. congressional record: members, roll-call votes, bills and the House weekly floor schedule, sourced from Congress.gov, the House Clerk and the Senate. Every result carries a canonical BallotWatch URL and an official source_url.',
@@ -267,7 +273,20 @@ export async function build() {
     prompts: prompts.map((p) => ({ name: p.name, title: p.title, description: p.description, arguments: p.arguments || [] })),
   }
   const cardText = JSON.stringify(card, null, 2) + '\n'
-  return { [LLMS_FULL]: text, [SERVER_CARD]: cardText }
+
+  // The registry caps the description at 100 characters.
+  const listing = {
+    $schema: 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    name: REGISTRY_NAME,
+    title: 'BallotWatch',
+    description: 'U.S. Congress record: who represents you, how members voted, bills, floor schedule. Cited.',
+    version: serverInfo.version,
+    websiteUrl: S,
+    repository: card.repository,
+    remotes: card.remotes,
+  }
+  if (listing.description.length > 100) throw new Error('server.json description is over 100 characters')
+  return { [LLMS_FULL]: text, [SERVER_CARD]: cardText, [SERVER_JSON]: JSON.stringify(listing, null, 2) + '\n' }
 }
 
 async function main() {

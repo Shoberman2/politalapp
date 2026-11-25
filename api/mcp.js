@@ -172,6 +172,25 @@ export const TOOLS = [
     inputSchema: { week: DATE.optional().describe('YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.') },
     run: tools.getFloorSchedule,
   },
+  // The generic pair ChatGPT deep research and company knowledge call
+  // (https://developers.openai.com/api/docs/mcp). Both return structured
+  // content in the documented shape as well as the JSON text.
+  {
+    name: 'search',
+    title: 'Search the record',
+    description: 'One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.',
+    inputSchema: { query: z.string().max(200).describe('e.g. "Nancy Pelosi", "43215", "H.R. 1", "veterans health"') },
+    outputSchema: { results: z.array(z.object({ id: z.string(), title: z.string(), url: z.string() })) },
+    run: tools.search,
+  },
+  {
+    name: 'fetch',
+    title: 'Fetch a record',
+    description: 'The full text of one record from search, as Markdown with its sources: a member\'s record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io URL.',
+    inputSchema: { id: z.string().max(200).describe('An id returned by search, or a ballotwatch.io record URL') },
+    outputSchema: { id: z.string(), title: z.string(), text: z.string(), url: z.string(), metadata: z.record(z.string()).optional() },
+    run: tools.fetchDocument,
+  },
 ]
 
 export const TOOL_NAMES = TOOLS.map((t) => t.name)
@@ -217,8 +236,13 @@ export const PROMPTS = [
   },
 ]
 
-function text(obj) {
-  return { content: [{ type: 'text', text: JSON.stringify(obj) }], isError: Boolean(obj && obj.error) }
+// `structured` also returns the object as structuredContent (tools that
+// declare an outputSchema must, unless the result is an error).
+function text(obj, structured = false) {
+  const isError = Boolean(obj && obj.error)
+  const result = { content: [{ type: 'text', text: JSON.stringify(obj) }], isError }
+  if (structured && !isError) result.structuredContent = obj
+  return result
 }
 
 // `onToolCall` (optional) hears every tool call with its outcome, for
@@ -226,11 +250,13 @@ function text(obj) {
 export function buildServer({ onToolCall } = {}) {
   const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS })
   for (const t of TOOLS) {
-    server.registerTool(t.name, { title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: { title: t.title, ...READ_ONLY } }, async (args) => {
+    const config = { title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: { title: t.title, ...READ_ONLY } }
+    if (t.outputSchema) config.outputSchema = t.outputSchema
+    server.registerTool(t.name, config, async (args) => {
       const started = Date.now()
       let result
       try {
-        result = text(await t.run(args))
+        result = text(await t.run(args), Boolean(t.outputSchema))
       } catch (err) {
         console.error(`[mcp] ${t.name} failed:`, err?.message)
         result = text({ error: 'Lookup failed; try again shortly.' })
