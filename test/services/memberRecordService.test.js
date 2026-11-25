@@ -3,6 +3,9 @@ import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 
 const db = makeSupabaseMock()
 vi.mock('../../src/lib/supabase', () => ({ supabase: { from: (t) => db.from(t) } }))
+// renderPage.js is imported for two pure helpers; its server database client
+// must not need real credentials to load.
+vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: vi.fn() } }))
 
 import { getMemberRecord, recordFromPrerender, getMemberFaqFacts } from '../../src/services/memberRecord.js'
 import { memberTallySentence, memberFaq } from '../../shared/memberFaq.js'
