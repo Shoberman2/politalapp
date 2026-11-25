@@ -30,6 +30,8 @@ export const SERVER_INFO = {
   ],
 }
 
+const MAX_BATCH_MESSAGES = 10
+
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
   .refine((s) => { const d = new Date(`${s}T00:00:00Z`); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s }, 'Not a real calendar date')
 const BIOGUIDE = z.string().max(7).describe('Bioguide ID, e.g. P000197')
@@ -349,7 +351,7 @@ export default async function handler(req, res) {
       usage: 'POST JSON-RPC 2.0 messages to this URL with headers Content-Type: application/json and Accept: application/json, text/event-stream. Stateless: no session required.',
       tools: TOOL_NAMES,
       prompts: PROMPTS.map((p) => p.name),
-      limits: `${ANON_PER_MINUTE} requests per minute and ${ANON_PER_DAY} per day per IP`,
+      limits: `${ANON_PER_MINUTE} requests per minute and ${ANON_PER_DAY} per day per IP, up to ${MAX_BATCH_MESSAGES} messages per batch`,
       docs: `${SITE_ORIGIN}/llms.txt`,
       server_card: `${SITE_ORIGIN}/.well-known/mcp/server-card.json`,
       open_data: `${SITE_ORIGIN}/data/full/manifest.json`,
@@ -367,6 +369,10 @@ export default async function handler(req, res) {
     body = await readJsonBody(req)
   } catch {
     return sendJson(res, 400, { jsonrpc: '2.0', error: { code: -32700, message: 'Parse error' }, id: null })
+  }
+
+  if (Array.isArray(body) && body.length > MAX_BATCH_MESSAGES) {
+    return sendJson(res, 400, { jsonrpc: '2.0', error: { code: -32600, message: `A batch may contain at most ${MAX_BATCH_MESSAGES} messages.` }, id: null })
   }
 
   const toolCalls = []

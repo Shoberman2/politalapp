@@ -90,7 +90,9 @@ async function rollCallContext(ids) {
   const unique = [...new Set((ids || []).filter(Boolean))]
   if (!unique.length) return out
   const { data, error } = await supabaseAdmin.from('roll_calls').select('id, question, description, bill_id, bills:bill_id ( id, title )').in('id', unique)
-  if (error) return out
+  // A failed read throws: without the question a named ballot cannot be told
+  // from a real "Not Voting", and every vote would lose its bill unnoticed.
+  if (error) throw new Error(`roll_calls: ${error.message || 'query failed'}`)
   for (const rc of data || []) out.set(rc.id, rc)
   return out
 }
@@ -143,6 +145,7 @@ async function locate({ address, zip, congress }) {
   // The table holds one Congress's district lines. For another Congress's
   // roster it would pair a ZIP with the wrong seat, so it is skipped.
   const tableCongress = await zipDistrictsCongress().catch(() => null)
+  if (tableCongress !== congress) console.warn(`[mcp] ZIP district table is for Congress ${tableCongress}, roster is ${congress}: using the ZIP centroid. Rebuild with scripts/build-zip-districts.mjs.`)
   const all = tableCongress === congress ? await zipDistricts(z).catch(() => null) : null
   if (all?.length) {
     // Districts holding under 1% of the ZIP's land are named, not expanded
@@ -179,11 +182,17 @@ async function locate({ address, zip, congress }) {
   }
 }
 
-// Which chambers' membership could not be checked against a recent roll call.
+// What to say when a chamber's membership is not read from a roll call of
+// this Congress: carried from the outgoing Congress, or not checked at all.
 function rosterCaveat(roster, chambers) {
-  const unknown = chambers.filter((c) => !roster.servingAsOf?.[c])
-  if (!unknown.length) return null
-  return `The ${unknown.map((c) => (c === 'house' ? 'House' : 'Senate')).join(' and ')} membership could not be checked against a recent roll call, so "serving" here means holding a term in the ${ordinal(roster.congress)} Congress; a member who has since left may still be listed.`
+  const name = (c) => (c === 'house' ? 'House' : 'Senate')
+  const carried = chambers.filter((c) => roster.carried?.[c])
+  const unknown = chambers.filter((c) => !roster.servingAsOf?.[c] && !roster.carried?.[c])
+  const notes = []
+  if (carried.length) notes.push(`The ${carried.map(name).join(' and ')} has held no roll call in the ${ordinal(roster.congress)} Congress yet, so its members are listed as of the ${ordinal(roster.congress - 1)} Congress: newly elected members may be missing and members who left may still be listed.`)
+  if (chambers.includes('house') && roster.carried?.delegates) notes.push('Delegate membership is carried from the previous Congress until new term records arrive.')
+  if (unknown.length) notes.push(`The ${unknown.map(name).join(' and ')} membership could not be checked against a recent roll call, so "serving" here means holding a term in the ${ordinal(roster.congress)} Congress; a member who has since left may still be listed.`)
+  return notes.join(' ') || null
 }
 
 export async function findRepresentatives({ address, zip } = {}) {
@@ -207,17 +216,20 @@ export async function findRepresentatives({ address, zip } = {}) {
 
   const representatives = []
   const vacant = []
+  const unplaced = []
   for (const place of found.places) {
     const want = place.district == null ? null : String(place.district)
     const seat = serving.filter((m) => m.chamber === 'house' && m.state === place.state
       && (want == null || m.district === want || (want === '0' && m.district == null)))
-    if (!seat.length && want != null) vacant.push(districtName(place))
+    if (!seat.length && want != null) (serving.some((m) => m.chamber === 'house' && m.state === place.state && m.district == null) ? unplaced : vacant).push(districtName(place))
     for (const m of seat.sort(byName)) if (!representatives.includes(m)) representatives.push(m)
   }
 
   const location = { ...found.location }
   const addNote = (note) => { if (note) location.note = location.note ? `${location.note} ${note}` : note }
   if (vacant.length) addNote(`No sitting House member is recorded for ${vacant.join(', ')}; the seat may be vacant.`)
+  // A member sworn in recently can sit without a district on record.
+  if (unplaced.length) addNote(`The member for ${unplaced.join(', ')} cannot be named: BallotWatch has no district on record yet for some sitting House members from that state. See https://www.house.gov/representatives/find-your-representative.`)
   addNote(rosterCaveat(roster, ['house', 'senate']))
   return {
     location,
@@ -232,6 +244,8 @@ export async function findRepresentatives({ address, zip } = {}) {
 // ---------------------------------------------------------------------------
 // search_members
 // ---------------------------------------------------------------------------
+
+const matchTier = (score) => (score >= 80 ? 'full_name' : score >= 40 ? 'family_name' : 'close_spelling')
 
 export async function searchMembers({ query, state, chamber, party, include_former = false, limit = 20 } = {}) {
   const q = String(query || '').trim()
@@ -256,12 +270,14 @@ export async function searchMembers({ query, state, chamber, party, include_form
     query: q || null,
     congress: roster.congress,
     total: hits.length,
-    members: hits.slice(0, cap).map(({ member }) => ({ ...memberSummary(member), serving: member.serving })),
+    members: hits.slice(0, cap).map(({ member, score }) => ({ ...memberSummary(member), serving: member.serving, ...(score == null ? {} : { match: matchTier(score) }) })),
     serving_as_of: roster.servingAsOf,
   }
   const notes = []
   if (!hits.length) notes.push(`No member of the ${ordinal(roster.congress)} Congress matches. Only members who have served in this Congress are in the record.`)
   else if (hits.length > cap) notes.push(`Showing ${cap} of ${hits.length}. Narrow with state, chamber or party, or raise limit (max 60).`)
+  // A family-name or close-spelling match can be a different person.
+  if (hits.length && hits[0].score != null && hits[0].score < 80) notes.push('No member in the record has that full name. These share the family name or a close spelling and may be someone else; a member who left before this Congress is not in the record.')
   if (titleMiss) notes.push(`No ${titled === 'house' ? 'House member' : 'senator'} matches that name; these matches are from the other chamber.`)
   const caveat = rosterCaveat(roster, [...new Set(hits.slice(0, cap).map(({ member }) => member.chamber))].filter((c) => c === 'house' || c === 'senate'))
   if (caveat) notes.push(caveat)
@@ -277,7 +293,8 @@ export async function searchMembers({ query, state, chamber, party, include_form
 export async function getMember({ bioguide_id }) {
   const m = await getMemberPage(bioguide_id)
   if (!m) return { error: `No member with Bioguide ID ${bioguide_id}. Use search_members to find one by name.` }
-  const [context, serving] = await Promise.all([rollCallContext(m.votes.slice(0, 10).map((v) => v.roll_call_id)), servingNow(m.id)])
+  // The page already carries each question; the roll call only adds the bill.
+  const [context, serving] = await Promise.all([rollCallContext(m.votes.slice(0, 10).map((v) => v.roll_call_id)).catch(() => new Map()), servingNow(m.id)])
   return {
     ...memberSummary(m),
     serving,
@@ -387,18 +404,28 @@ export async function getMemberVotes({ bioguide_id, since, until, bill, position
     supabaseAdmin.from('politicians').select('id, name, chamber').eq('id', id).maybeSingle(),
     lastRun(),
   ])
-  if (votes.error) return { error: 'Vote lookup failed' }
+  let pastEnd = null
+  if (votes.error?.code === 'PGRST103') {
+    // An offset beyond the last row is refused outright; count the rows instead.
+    pastEnd = await matching({ count: 'exact', head: true })
+    if (pastEnd.error) return { error: 'Vote lookup failed' }
+  } else if (votes.error) return { error: 'Vote lookup failed' }
   if (!member) return { error: `No member with Bioguide ID ${id}. Use search_members to find one by name.` }
 
-  let rows = votes.data || []
-  const total = votes.count ?? rows.length
+  let rows = pastEnd ? [] : votes.data || []
+  const total = pastEnd ? pastEnd.count ?? 0 : votes.count ?? rows.length
   if (rows.length && (from > 0 || from + rows.length < total)) {
     const edgeDays = [...new Set([rows[0].voted_at, rows[rows.length - 1].voted_at].filter(Boolean))]
     const days = edgeDays.length ? await matching().in('voted_at', edgeDays).limit(PAGE) : null
     if (days && !days.error) rows = fixEdgeDays(rows, days.data || [])
   }
   rows = [...rows].sort(voteOrder)
-  const context = await rollCallContext(rows.map((v) => v.roll_call_id))
+  let context
+  try {
+    context = await rollCallContext(rows.map((v) => v.roll_call_id))
+  } catch {
+    return { error: 'Vote lookup failed' }
+  }
   const out = {
     bioguide_id: id,
     name: member.name,
@@ -469,7 +496,7 @@ export async function getMemberRecord({ bioguide_id }) {
   const r = await getRecordPage(id)
   if (!r) return { error: `No member with Bioguide ID ${id}` }
   const [context, serving, servingSince] = await Promise.all([
-    rollCallContext(r.recentVotes.map((v) => v.roll_call_id)),
+    rollCallContext(r.recentVotes.map((v) => v.roll_call_id)).catch(() => new Map()),
     servingNow(r.id),
     verifiedServingSince(r.id, r.servingSince),
   ])
@@ -598,7 +625,12 @@ export async function compareMembers({ bioguide_id_a, bioguide_id_b }) {
   }
   const bothVoted = agreed + split.length
   const recent = split.sort((x, y) => rollCallOrder(x.rollCallId, y.rollCallId)).slice(0, 10)
-  const context = await rollCallContext(recent.map((r) => r.rollCallId))
+  let context
+  try {
+    context = await rollCallContext(recent.map((r) => r.rollCallId))
+  } catch {
+    return { error: 'Vote lookup failed' }
+  }
   const who = (m) => ({ bioguide_id: m.id, name: m.name, party: m.party, state: m.state, canonical: `${SITE}${memberPath(m.id, m.name)}` })
   return {
     congress,
@@ -624,7 +656,7 @@ export async function compareMembers({ bioguide_id_a, bioguide_id_b }) {
         source_url: voteSourceUrl(r.rollCallId, null),
       }
     }),
-    note: `Counted over every roll call of the ${congress}th Congress that lists both members. same_vote_pct is voted_the_same divided by both_voted_yea_or_nay; roll calls where either member was Present or Not Voting are left out. A count, not a judgment: most roll calls are procedural or lopsided.`,
+    note: `Counted over every roll call of the ${ordinal(congress)} Congress that lists both members. same_vote_pct is voted_the_same divided by both_voted_yea_or_nay; roll calls where either member was Present or Not Voting are left out. A count, not a judgment: most roll calls are procedural or lopsided.`,
     data_updated_at: updatedAt,
   }
 }
@@ -808,7 +840,12 @@ export async function getRecentVotes({ chamber, since, until, query, bill, limit
   let total
   if (wordy) {
     const haystack = (r) => `${r.question || ''} ${r.description || ''} ${r.bills?.title || ''}`.toLowerCase().replace(/['\u2019]/g, '')
-    rows = (await congressRollCalls(await recordCongress())).filter((r) => {
+    const latest = await recordCongress()
+    const first = Math.max(119, since ? currentCongress(new Date(since)) : 119)
+    const last = Math.min(latest, until ? currentCongress(new Date(`${until}T23:59:59Z`)) : latest)
+    const records = []
+    for (let c = first; c <= last; c++) records.push(...await congressRollCalls(c))
+    rows = records.filter((r) => {
       if (!r.voted_at) return false
       if (wantChamber && !r.id.startsWith(`${wantChamber}-`)) return false
       if (since && r.voted_at < since) return false
@@ -819,16 +856,30 @@ export async function getRecentVotes({ chamber, since, until, query, bill, limit
     })
     total = rows.length
   } else {
-    let q = supabaseAdmin.from('roll_calls').select(ROLL_CALL_COLUMNS, { count: 'exact' }).not('voted_at', 'is', null)
-    if (wantChamber) q = q.like('id', `${wantChamber}-%`)
-    if (since) q = q.gte('voted_at', since)
-    if (until) q = q.lte('voted_at', until)
-    if (billId) q = q.eq('bill_id', billId)
-    // Over-read so the newest day is ordered by roll number, not by id text.
-    const res = await q.order('voted_at', { ascending: false }).order('id', { ascending: false }).limit(cap * 2 + 20)
+    const matching = (options) => {
+      let q = supabaseAdmin.from('roll_calls').select(ROLL_CALL_COLUMNS, options).not('voted_at', 'is', null)
+      if (wantChamber) q = q.like('id', `${wantChamber}-%`)
+      if (since) q = q.gte('voted_at', since)
+      if (until) q = q.lte('voted_at', until)
+      if (billId) q = q.eq('bill_id', billId)
+      return q
+    }
+    const res = await matching({ count: 'exact' }).order('voted_at', { ascending: false }).order('id').limit(cap + 1)
     if (res.error) return { error: 'Vote lookup failed' }
     rows = res.data || []
     total = res.count ?? rows.length
+    // A textual id sort cannot distinguish roll 99 from roll 100. If the
+    // page splits a day, collect that day before sorting by numeric roll.
+    if (rows.length > cap && rows[cap].voted_at === rows[cap - 1].voted_at && total > rows.length) {
+      const day = rows[cap].voted_at
+      rows = rows.filter((r) => r.voted_at > day)
+      for (let from = 0; ; from += PAGE) {
+        const edge = await matching().eq('voted_at', day).order('id').range(from, from + PAGE - 1)
+        if (edge.error) return { error: 'Vote lookup failed' }
+        rows.push(...edge.data)
+        if (edge.data.length < PAGE) break
+      }
+    }
   }
 
   const page = rows.map((r) => ({ ...r, meta: parseRollCallId(r.id) })).filter((r) => r.meta).sort(newestFirst).slice(0, cap)
@@ -1051,7 +1102,7 @@ const SEARCH_STOPWORDS = new Set([
   'how', 'what', 'who', 'which', 'when', 'vote', 'votes', 'voted', 'voting', 'bill', 'bills', 'congress', 'record', 'records',
   'senate', 'house', 'senator', 'senators', 'representative', 'representatives', 'rep', 'sen', 'member', 'members', 'roll', 'call',
 ])
-const BILL_NUMBER = /\b(\d{2,3}-[a-z]+-\d+|(?:h\.?\s*r\.?|s\.?|h\.?\s*j\.?\s*res\.?|s\.?\s*j\.?\s*res\.?|h\.?\s*con\.?\s*res\.?|s\.?\s*con\.?\s*res\.?|h\.?\s*res\.?|s\.?\s*res\.?)\s*\d+)\b/i
+const BILL_NUMBER = /(?<![.'’])\b(\d{2,3}-[a-z]+-\d+|(?:h\.?\s*r\.?|s\.?|h\.?\s*j\.?\s*res\.?|s\.?\s*j\.?\s*res\.?|h\.?\s*con\.?\s*res\.?|s\.?\s*con\.?\s*res\.?|h\.?\s*res\.?|s\.?\s*res\.?)\s*\d+)\b/i
 const SEARCH_LIMIT = 12
 
 function memberTitle(m) {
@@ -1067,7 +1118,7 @@ function billTitle(label, title) {
 
 // "House roll call 327", "senate vote no. 12", "vote:house-119-2-327".
 const ROLL_CALL_ID = /\b(house|senate)-(\d{2,3})-(\d)-(\d{1,4})\b/i
-const ROLL_CALL_NUMBER = /\b(?:(house|senate)\s+)?(?:roll\s*call|roll|vote)(?:\s+(?:no\.?|number))?\s*#?\s*(\d{1,4})\b/i
+const ROLL_CALL_NUMBER = /\b(?:(house|senate)\s+)?(?:roll\s*call|roll|vote)(?:\s+(?:no\.?|number))?\s*#?\s*(\d{1,4})\b(?!-)/i
 
 // The roll calls a query names outright: an id, or a roll number in either
 // chamber and session of the Congress on record (a few candidates at most).
@@ -1116,7 +1167,7 @@ export async function search({ query } = {}) {
   // family name that merely appears in the query ("Laken Riley Act") trails.
   const memberHits = async () => {
     const roster = await getRoster()
-    return searchRoster(roster, { query: words.join(' ') }).slice(0, 5)
+    return searchRoster(roster, { query: words.join(' ') }).filter((h) => h.score != null).slice(0, 5)
   }
   const [rollCalls, members, bill, bills, votes, billVotes] = await Promise.all([
     soft(namedRollCalls(q)),
@@ -1209,7 +1260,9 @@ export async function fetchDocument({ id } = {}) {
     return {
       id: `bill:${b.id}`,
       title: billTitle(b.label, b.title),
-      text: billMarkdown(b),
+      text: billMarkdown({ ...b, rollCalls: b.rollCalls.map((r) => tiedSenate(r.chamber, r.tally)
+        ? { ...r, result: `Outcome unverified. [Official record](${voteSourceUrl(r.id, null)})` }
+        : r) }),
       url: `${SITE}${billPath(b.id)}`,
       metadata: meta({ type: 'bill', bill_id: b.id, stage: b.legislative_stage, source_url: b.source_url, data_updated_at: b.updatedAt }),
     }
@@ -1218,7 +1271,7 @@ export async function fetchDocument({ id } = {}) {
   const out = await getRollCall({ congress, chamber: chamberKey, session, roll, format: 'compact' })
   if (out.error) return { error: out.error }
   const lines = [
-    `# ${out.chamber === 'senate' ? 'Senate' : 'House'} roll call ${out.roll}, ${out.congress}th Congress, session ${out.session}`,
+    `# ${out.chamber === 'senate' ? 'Senate' : 'House'} roll call ${out.roll}, ${ordinal(out.congress)} Congress, session ${out.session}`,
     '',
     `- Question: ${out.question || ''}`,
   ]

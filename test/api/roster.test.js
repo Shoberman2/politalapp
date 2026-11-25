@@ -118,6 +118,63 @@ describe('getRoster: who is serving comes from the newest complete roll call', (
     expect(roster.byId.get('V000137').serving).toBe(false)
   })
 
+  it.each([true, false, null])('uses the official current flag (%s) for a member omitted from the latest vote, then recent votes if unknown', async (currentMember) => {
+    const speaker = { id: 'J000299', name: 'Mike Johnson', chamber: 'house', state: 'LA', district: '4' }
+    seedRosterTables(db, { politicians: [...POLITICIANS, speaker], terms: TERMS, seated: SEATED })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ member: { currentMember } }))))
+    const votes = db.responses.votes
+    db.responses.votes = (call) => {
+      const recent = call.ops.find(([op, field]) => op === 'in' && field === 'roll_call_id')
+      if (!recent) return votes(call)
+      expect(recent[2]).toContain('house-119-2-5')
+      return { data: [{ politician_id: speaker.id }] }
+    }
+    const roster = await getRoster(119)
+    expect(roster.byId.get(speaker.id).serving).toBe(currentMember !== false)
+    expect(roster.byId.get('T000489').serving).toBe(false)
+    expect(roster.byId.get('V000137').serving).toBe(false)
+  })
+
+  it('marks the outgoing Senate and delegates as provisional when only the new House has voted', async () => {
+    seedRosterTables(db, { politicians: POLITICIANS, terms: TERMS, seated: SEATED })
+    const rollCalls = db.responses.roll_calls
+    db.responses.member_congress_terms = ({ ops }) => ({ data: ops.some(([op,,v]) => op === 'eq' && v === 120) ? [] : TERMS })
+    db.responses.roll_calls = (call) => call.ops.some(([op,,v]) => op === 'like' && v === 'senate-120-%') ? { data: [] } : rollCalls(call)
+    const roster = await getRoster(120)
+    expect(roster.congress).toBe(120)
+    expect(roster.carried).toEqual({ house: false, senate: true, delegates: true })
+    expect(roster.servingAsOf.senate).toBeNull()
+    expect(roster.byId.get('H001104').serving).toBe(true)
+    expect(roster.byId.get('S001150').serving).toBe(true)
+    expect(roster.byId.get('N000147').serving).toBe(true)
+  })
+
+  it('retains names on the second page of politicians', async () => {
+    seedRosterTables(db, { politicians: [], terms: TERMS, seated: SEATED })
+    const first = filler('H', 1000).map((id) => ({ id, name: id, chamber: 'house', state: 'CA' }))
+    db.responses.politicians = ({ ops }) => ({ data: ops.find(([op]) => op === 'range')[1] === 0 ? first : POLITICIANS })
+    const roster = await getRoster(119)
+    expect(searchRoster(roster, { query: 'Jon Husted' })[0].member.name).toBe('Jon Husted')
+  })
+
+  it('bounds concurrent and total district requests before a new Congress has district data', async () => {
+    const ids = filler('H', 430)
+    const politicians = ids.map((id) => ({ id, name: id, chamber: 'house', state: 'TX' }))
+    seedRosterTables(db, { politicians, terms: [], seated: { house: ids, senate: [] } })
+    let active = 0
+    let peak = 0
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      peak = Math.max(peak, ++active)
+      await Promise.resolve()
+      active--
+      return new Response('', { status: 503 })
+    }))
+    const roster = await getRoster(120)
+    expect(roster.members.filter((m) => m.serving)).toHaveLength(430)
+    expect(fetch).toHaveBeenCalledTimes(20)
+    expect(peak).toBeLessThanOrEqual(5)
+  })
+
   it('leaves the district unknown when Congress.gov does not answer', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
     seedRosterTables(db, { politicians: POLITICIANS, terms: TERMS, seated: SEATED })
@@ -243,5 +300,7 @@ describe('member name search', () => {
     expect(partyName('Republican')).toBe('Republican')
     expect(partyName('I')).toBe('Independent')
     expect(currentCongress(new Date('2026-11-25T00:00:00Z'))).toBe(119)
+    expect(currentCongress(new Date('2027-01-03T16:59:59Z'))).toBe(119)
+    expect(currentCongress(new Date('2027-01-03T17:00:00Z'))).toBe(120)
   })
 })

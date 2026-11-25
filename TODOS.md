@@ -10,7 +10,7 @@
 **Priority:** High
 **Blocked by:** Owner action at api.data.gov and in the Vercel dashboard
 **Context:** Until v0.7.0.0 both keys were inlined into the public JS bundle (`VITE_CONGRESS_API_KEY`, `VITE_FEC_API_KEY`), so the current values are public. The proxy now reads them server-side only, but moving a leaked key protects nothing until it is replaced. The iOS app also embeds `CONGRESS_API_KEY` via `ios/scripts/make-secrets.sh`.
-**What to do:** Issue new keys; set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel; delete the `VITE_` names; give iOS its own key (or route iOS through `/api/proxy`); remove the `VITE_` fallbacks in `api/_lib/upstreamProxy.js`.
+**What to do:** Issue new keys; set `CONGRESS_API_KEY` and `FEC_API_KEY` in Vercel; delete the `VITE_` names; give iOS its own key (or route iOS through `/api/proxy`); remove the `VITE_` fallbacks in `api/_lib/upstreamProxy.js` and `api/_lib/roster.js`.
 
 ## Serve the dynamic share image (`/api/og`)
 **Priority:** P1
@@ -74,7 +74,7 @@
 ## Keep member_congress_terms current
 **Priority:** High
 **Blocked by:** Nothing
-**Context:** `term_end` is null on every row of `member_congress_terms` (14,834 of 14,834 on 2026-11-25), and members sworn in mid-Congress have votes but no term row (4 on that date: G000607, W000832, G000608, B001328). Anything that reads "current members" from that table lists people who left (Vance and Rubio as senators, Sylvester Turner in TX-18) and misses their replacements. The MCP tools no longer depend on it: `api/_lib/roster.js` reads who is serving from the newest complete roll call and asks Congress.gov for a missing district. The members index (`shared/membersIndex.js`, the "former" group) and `src/services/memberTerms.js` still trust `term_end`. `term_start` is the Congress's first day on every 119th-Congress row, so the record card says "Serving in the 119th Congress since: 2025-01-03" for a member sworn in later (Christian Menefee, February 2026); the MCP tools give the date only when the member's first vote is within 45 days of it.
+**Context:** `term_end` is null on every row of `member_congress_terms` (14,834 of 14,834 on 2026-11-25), and members sworn in mid-Congress have votes but no term row (4 on that date: G000607, W000832, G000608, B001328). Anything that reads "current members" from that table lists people who left (Vance and Rubio as senators, Sylvester Turner in TX-18) and misses their replacements. The MCP roster uses roll calls and Congress.gov for voting members. It still uses term rows for delegates and districts, and labels outgoing membership when a new Congress has incomplete records. The members index (`shared/membersIndex.js`, the "former" group) and `src/services/memberTerms.js` still trust `term_end`. `term_start` is the Congress's first day on every 119th-Congress row, so the record card says "Serving in the 119th Congress since: 2025-01-03" for a member sworn in later (Christian Menefee, February 2026); the MCP tools give the date only when the member's first vote is within 45 days of it.
 **What to do:** In the daily ETL, upsert a term row for every member in the Congress.gov current-member list and set `term_end` (and `reason_for_end`) for members who drop off it. Then let `shared/membersIndex.js` use the same rule as `api/_lib/roster.js`, or the fixed column.
 
 ## Fill votes.bill_id from the roll call

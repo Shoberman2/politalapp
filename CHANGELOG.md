@@ -3,6 +3,18 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.15.0.0] - 2026-11-25
+
+### Added
+
+- Six read-only MCP tools for member lookup, sponsored and cosponsored bills, voting comparisons, recent roll calls, and citable document search and retrieval. Five prompts guide common congressional research questions.
+- ZIP lookups use the Census district relationship file and report smaller overlaps. Member lookup reconciles terms, roll calls and Congress.gov records.
+
+### Changed
+
+- Member votes support bill, position and date filters. Large roll calls group members by position. Vote and member records identify missing evidence, including Senate tie-breaks and named Speaker ballots.
+- MCP POSTs accept up to ten JSON-RPC messages per batch. Larger batches receive HTTP 400 before any message runs.
+
 ## [0.14.1.0] - 2026-11-21
 
 ### Added

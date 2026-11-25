@@ -5,11 +5,14 @@
 // `member_congress_terms` one row per Congress served, but neither says when a
 // member left: term_end is never filled in, and a member sworn in mid-Congress
 // has votes before they have a term row. So "serving" is read off the record
-// itself: every sitting member is listed in every roll call of their chamber
-// (as Yea, Nay, Present or Not Voting), which makes the newest complete roll
-// call the membership list. Delegates and the Resident Commissioner do not
-// vote on the House floor, so they count as serving while they hold a term in
-// the current Congress.
+// itself: a roll call lists the sitting members of its chamber (as Yea, Nay,
+// Present or Not Voting), which makes the newest complete roll call the
+// membership list. One sitting member is the exception: the Speaker is left
+// off every roll call he does not vote on. So a member the newest roll call
+// omits is checked against Congress.gov's "current member" flag and, failing
+// that, the roll calls just before it. Delegates and the Resident
+// Commissioner do not vote on the House floor, so they count as serving while
+// they hold a term in the current Congress.
 
 import { supabaseAdmin } from './supabase.js'
 import { parseRollCallId } from './rollCallResult.js'
@@ -29,10 +32,18 @@ const LATEST_SCAN = 60
 // loaded roll call is short by dozens).
 const SEATED_SAMPLE = 3
 const SEATED_SLACK = 3
+// How far back a member left off the newest roll call is still looked for,
+// when Congress.gov cannot say whether they sit.
+const RECENT_ROLL_CALLS = 40
+const MAX_RECENT_ROWS = 1000
+const ROSTER_PAGE = 1000
 const DISTRICT_LOOKUP_TIMEOUT_MS = 4000
 
 export function currentCongress(date = new Date()) {
-  return Math.floor((date.getUTCFullYear() - 1789) / 2) + 1
+  const year = date.getUTCFullYear()
+  // Congressional terms change at noon Eastern on January 3 of odd years.
+  const effectiveYear = year % 2 && date.getTime() < Date.UTC(year, 0, 3, 17) ? year - 1 : year
+  return Math.floor((effectiveYear - 1789) / 2) + 1
 }
 
 function must(res, what) {
@@ -60,6 +71,7 @@ function seatDistrict(chamber, state, district) {
 
 // The members listed in the chamber's newest complete roll call, or null when
 // the record cannot say (no votes yet this Congress, or a read failed).
+// `recent` is the roll calls just before it, for members it leaves out.
 async function seatedIn(chamber, congress) {
   const rcs = must(await supabaseAdmin.from('roll_calls')
     .select('id, voted_at')
@@ -80,53 +92,108 @@ async function seatedIn(chamber, congress) {
   const fullest = Math.max(0, ...sample.map((s) => s.rows.length))
   const pick = sample.find((s) => s.rows.length >= MIN_SEATED[chamber] && s.rows.length >= fullest - SEATED_SLACK)
   if (!pick) return null
-  return { ids: new Set(pick.rows.map((r) => r.politician_id)), asOf: pick.rc.voted_at, rollCallId: pick.rc.id }
+  const after = newestFirst.findIndex((r) => r.id === pick.rc.id) + 1
+  return {
+    ids: new Set(pick.rows.map((r) => r.politician_id)),
+    asOf: pick.rc.voted_at,
+    rollCallId: pick.rc.id,
+    recent: newestFirst.slice(after, after + RECENT_ROLL_CALLS).map((r) => r.id),
+  }
 }
 
-// A member sworn in mid-Congress has no term row yet, so no district. Ask
-// Congress.gov once per instance; a failure leaves the district unknown.
-const districtMemo = new Map()
+// One member's Congress.gov record: whether they sit in Congress now, and
+// their district. Asked only for the few members the roll calls leave open (a
+// member sworn in mid-Congress has no term row, so no district; the Speaker
+// is left off every roll call he does not vote on). Remembered per instance,
+// a failure for a shorter time, and capped per load so a Congress with no
+// term rows cannot fan out to hundreds of requests on the shared key.
+const memberMemo = new Map()
+const MEMBER_MEMO_MS = 60 * 60 * 1000
+const MEMBER_RETRY_MS = 10 * 60 * 1000
+const MAX_MEMBER_LOOKUPS = 20
+const MEMBER_LOOKUP_CONCURRENCY = 5
+const UNKNOWN_MEMBER = { current: null, district: null }
 
-async function lookupDistrict(bioguideId) {
-  if (districtMemo.has(bioguideId)) return districtMemo.get(bioguideId)
+async function lookupMember(bioguideId, budget) {
+  const hit = memberMemo.get(bioguideId)
+  if (hit && Date.now() < hit.until) return hit.value
   const key = process.env.CONGRESS_API_KEY || process.env.VITE_CONGRESS_API_KEY
-  if (!key) return null
+  if (!key || budget.left <= 0) return UNKNOWN_MEMBER
+  budget.left -= 1
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), DISTRICT_LOOKUP_TIMEOUT_MS)
+  let value = UNKNOWN_MEMBER
+  let ok = false
   try {
     const res = await fetch(`https://api.congress.gov/v3/member/${encodeURIComponent(bioguideId)}?format=json&api_key=${encodeURIComponent(key)}`, { signal: ctrl.signal })
-    if (!res.ok) return null
-    const body = await res.json()
-    const terms = body?.member?.terms || []
-    const raw = terms[terms.length - 1]?.district ?? body?.member?.district ?? null
-    const district = raw == null ? null : String(raw)
-    districtMemo.set(bioguideId, district)
-    return district
+    if (res.ok) {
+      const member = (await res.json())?.member || {}
+      const terms = member.terms || []
+      const raw = terms[terms.length - 1]?.district ?? member.district ?? null
+      value = { current: typeof member.currentMember === 'boolean' ? member.currentMember : null, district: raw == null ? null : String(raw) }
+      ok = true
+    }
   } catch {
-    return null
+    // Unknown; asked again after MEMBER_RETRY_MS.
   } finally {
     clearTimeout(timer)
   }
+  memberMemo.set(bioguideId, { value, until: Date.now() + (ok ? MEMBER_MEMO_MS : MEMBER_RETRY_MS) })
+  return value
 }
 
+async function forEachMemberBatch(members, visit) {
+  for (let i = 0; i < members.length; i += MEMBER_LOOKUP_CONCURRENCY) {
+    await Promise.all(members.slice(i, i + MEMBER_LOOKUP_CONCURRENCY).map(visit))
+  }
+}
+
+// Every row of politicians (one page holds the whole table today).
+async function allPoliticians() {
+  const rows = []
+  for (let from = 0; ; from += ROSTER_PAGE) {
+    const page = must(await supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party').order('id').range(from, from + ROSTER_PAGE - 1), 'politicians')
+    rows.push(...page)
+    if (page.length < ROSTER_PAGE) break
+  }
+  return rows
+}
+
+const termsOf = (congress) =>
+  supabaseAdmin.from('member_congress_terms').select('bioguide_id, chamber, state, district, party').eq('congress', congress).limit(ROSTER_PAGE).then((r) => must(r, 'member_congress_terms'))
+
 async function loadRoster(congress, { fallBack = true } = {}) {
-  const [politicians, terms, house, senate] = await Promise.all([
-    supabaseAdmin.from('politicians').select('id, name, chamber, state, district, party').order('id').limit(1000).then((r) => must(r, 'politicians')),
-    supabaseAdmin.from('member_congress_terms').select('bioguide_id, chamber, state, district, party').eq('congress', congress).limit(1000).then((r) => must(r, 'member_congress_terms')),
-    seatedIn('house', congress).catch((err) => { console.warn('[roster] house membership unknown:', err.message); return null }),
-    seatedIn('senate', congress).catch((err) => { console.warn('[roster] senate membership unknown:', err.message); return null }),
-  ])
+  const quiet = (chamber, of) => seatedIn(chamber, of).catch((err) => { console.warn(`[roster] ${chamber} membership unknown:`, err.message); return null })
+  const [politicians, terms, houseNow, senateNow] = await Promise.all([allPoliticians(), termsOf(congress), quiet('house', congress), quiet('senate', congress)])
   // The first days of a new Congress: no terms loaded and no roll call yet.
   // The outgoing Congress is the newest record there is, and says so.
-  if (fallBack && congress > 1 && !terms.length && !house && !senate) return loadRoster(congress - 1, { fallBack: false })
+  if (fallBack && congress > 1 && !terms.length && !houseNow && !senateNow) return loadRoster(congress - 1, { fallBack: false })
+  let house = houseNow
+  let senate = senateNow
+  // A new Congress one chamber into its first votes: the House has a roll
+  // call, the Senate has none, and no term rows exist yet. The other chamber
+  // (and the delegates, who are on no roll call) are carried from the
+  // outgoing Congress and marked as carried, never read as "nobody serves".
+  // Districts are never carried: a new Congress can sit under a new map.
+  const carried = { house: false, senate: false, delegates: false }
+  let held = terms
+  if (fallBack && congress > 1 && !terms.length) {
+    const previous = await termsOf(congress - 1).catch(() => [])
+    if (previous.length) { held = previous; carried.delegates = true }
+    if (!house) { house = await quiet('house', congress - 1); carried.house = Boolean(house || previous.length) }
+    if (!senate) { senate = await quiet('senate', congress - 1); carried.senate = Boolean(senate || previous.length) }
+  }
   const seated = { house, senate }
+  const holdsTerm = new Set(held.map((t) => t.bioguide_id))
   const termById = new Map(terms.map((t) => [t.bioguide_id, t]))
   const rows = new Map(politicians.map((p) => [p.id, p]))
   // A term without a politicians row still yields a citable stub.
-  for (const t of terms) {
-    if (!rows.has(t.bioguide_id)) rows.set(t.bioguide_id, { id: t.bioguide_id, name: t.bioguide_id, chamber: t.chamber, state: t.state, district: t.district, party: t.party })
+  for (const t of held) {
+    if (held !== terms && !carried[t.chamber] && !isDelegateJurisdiction(t.state)) continue
+    if (!rows.has(t.bioguide_id)) rows.set(t.bioguide_id, { id: t.bioguide_id, name: t.bioguide_id, chamber: t.chamber, state: t.state, district: held === terms ? t.district : null, party: t.party })
   }
 
+  const open = []
   const members = [...rows.values()].map((p) => {
     const term = termById.get(p.id) || null
     const chamber = p.chamber || term?.chamber || null
@@ -135,27 +202,66 @@ async function loadRoster(congress, { fallBack = true } = {}) {
     const list = seated[chamber]
     // Voting seats follow the newest roll call; when it cannot say, and for
     // delegates, holding a term in this Congress is the fallback.
-    const serving = !delegate && list ? list.ids.has(p.id) : Boolean(term)
-    return {
+    const member = {
       id: p.id,
       name: p.name,
       chamber,
       state,
-      district: seatDistrict(chamber, state, term?.district ?? p.district),
+      district: seatDistrict(chamber, state, term?.district ?? (held === terms ? p.district : null)),
       party: partyName(p.party || term?.party),
-      serving,
+      serving: !delegate && list ? list.ids.has(p.id) : holdsTerm.has(p.id),
     }
+    // Left off the newest roll call: gone, or simply not listed on it.
+    if (!delegate && list && !member.serving && (chamber === 'house' || chamber === 'senate')) open.push(member)
+    return member
   })
 
+  // Congress.gov settles the open cases; where it cannot, a member listed on
+  // a recent roll call still counts (the Speaker's longest gap in the 119th
+  // Congress was 16 roll calls).
+  const budget = { left: MAX_MEMBER_LOOKUPS }
+  const unsettled = []
+  const occupiedHouse = new Set(members.filter((m) => m.serving && m.chamber === 'house' && m.district != null).map((m) => m.state + '-' + m.district))
+  const senatorsByState = new Map()
+  for (const m of members) {
+    if (m.serving && m.chamber === 'senate') senatorsByState.set(m.state, (senatorsByState.get(m.state) || 0) + 1)
+  }
+  // A replacement already recorded in the seat rules out its former holder,
+  // even if the former holder was listed on a recent roll call.
+  const unfilled = open.filter((m) => m.chamber === 'senate'
+    ? (senatorsByState.get(m.state) || 0) < 2
+    : !occupiedHouse.has(m.state + '-' + m.district))
+  await forEachMemberBatch(unfilled, async (m) => {
+    const known = await lookupMember(m.id, budget)
+    if (known.current == null) unsettled.push(m)
+    else m.serving = known.current
+  })
+  for (const chamber of ['house', 'senate']) {
+    const ids = unsettled.filter((m) => m.chamber === chamber).map((m) => m.id)
+    const recent = seated[chamber]?.recent || []
+    if (!ids.length || !recent.length) continue
+    // Few enough ids per read that every row fits in one response.
+    const step = Math.max(1, Math.floor(MAX_RECENT_ROWS / recent.length))
+    for (let i = 0; i < ids.length; i += step) {
+      const res = await supabaseAdmin.from('votes').select('politician_id').in('politician_id', ids.slice(i, i + step)).in('roll_call_id', recent).limit(MAX_RECENT_ROWS)
+      if (res.error) { console.warn('[roster] recent roll calls unread:', res.error.message); break }
+      const listed = new Set((res.data || []).map((r) => r.politician_id))
+      for (const m of unsettled) if (m.chamber === chamber && listed.has(m.id)) m.serving = true
+    }
+  }
+
   const missing = members.filter((m) => m.serving && m.chamber === 'house' && m.district == null)
-  await Promise.all(missing.map(async (m) => { m.district = seatDistrict('house', m.state, await lookupDistrict(m.id)) }))
+  await forEachMemberBatch(missing, async (m) => { m.district = seatDistrict('house', m.state, (await lookupMember(m.id, budget)).district) })
 
   return {
     congress,
     members,
     byId: new Map(members.map((m) => [m.id, m])),
-    // The dates the membership was read from, per chamber (null when unknown).
-    servingAsOf: { house: house?.asOf || null, senate: senate?.asOf || null },
+    // The dates the membership was read from, per chamber: null when unknown,
+    // and when the chamber was carried from the outgoing Congress.
+    servingAsOf: { house: carried.house ? null : house?.asOf || null, senate: carried.senate ? null : senate?.asOf || null },
+    // Which parts were carried from the Congress before this one.
+    carried,
   }
 }
 
@@ -175,7 +281,7 @@ export function getRoster(congress = currentCongress()) {
 
 export function _resetRosterCache() {
   memo = null
-  districtMemo.clear()
+  memberMemo.clear()
 }
 
 // ---------------------------------------------------------------------------
