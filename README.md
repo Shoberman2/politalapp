@@ -292,9 +292,11 @@ Agent surfaces:
 - `/mcp` is a stateless Streamable HTTP MCP server. Every tool only reads the
   public record (each is annotated read-only):
   - `find_representatives`: an address or ZIP code to its sitting senators and
-    House member. A ZIP that spans districts returns every district it touches
-    (`api/_lib/data/zipDistricts.js`, built from the Census ZCTA relationship
-    file by `scripts/build-zip-districts.mjs`).
+    House member. A ZIP that spans districts returns each district holding 1%
+    or more of its land with that district's member, and names any smaller
+    overlap in `location.minor_overlaps` (`api/_lib/data/zipDistricts.js`,
+    built from the Census ZCTA relationship file by
+    `scripts/build-zip-districts.mjs`).
   - `search_members`: a name (nicknames and close spellings work), state,
     chamber or party to members and their Bioguide IDs.
   - `get_member`, `get_member_record` (the "record in 60 seconds" facts, no
@@ -303,8 +305,11 @@ Agent surfaces:
     `compare_members` (how often two members of one chamber voted the same
     way).
   - `get_recent_votes` (roll calls newest first, by chamber, dates, bill or
-    words) and `get_roll_call` (one roll call; members come back as short
-    strings unless filtered).
+    words) and `get_roll_call` (one roll call with its party split; members
+    come back as short strings when more than 60 match). Neither states a
+    result the record cannot support: a tied Senate tally (the Vice
+    President's vote is not stored) has no derived result, and the Speaker's
+    election, a vote by name, has no member positions.
   - `search_bills`, `get_bill`, `explain_bill` (cached explanations only), and
     `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
     loader as `/api/v1/floor/schedule`).

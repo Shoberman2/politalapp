@@ -13,8 +13,8 @@
 // A ZCTA (ZIP Code Tabulation Area) is the Census Bureau's area for a ZIP
 // code. PO-box-only ZIP codes have no ZCTA; the tool falls back to the ZIP
 // centroid for those. Shares are of the ZCTA's land area, not of its
-// residents: the file carries no population. Parts under MIN_SHARE_PCT of the
-// ZCTA are dropped as boundary slivers.
+// residents: the file carries no population. Every district holding any of the
+// ZCTA's land is kept; a part under MIN_SHARE_PCT is recorded as share 0.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
@@ -70,9 +70,13 @@ export function buildZipDistricts(text) {
     const shares = list
       .map(([key, a]) => ({ key, pct: total > 0 ? (size(a) / total) * 100 : 100 / list.length }))
       .sort((a, b) => b.pct - a.pct || a.key.localeCompare(b.key))
-    const kept = shares.filter((s) => s.pct >= MIN_SHARE_PCT)
+    // Every district with any of the ZIP's land is kept. A share under
+    // MIN_SHARE_PCT is written as 0 ("under 1%"): often a boundary sliver, but
+    // sometimes a populated corner of another state, so the lookup names it
+    // instead of dropping it.
+    const kept = shares.filter((s) => s.pct > 0)
     const use = kept.length ? kept : shares.slice(0, 1)
-    out[zip] = use.length === 1 ? use[0].key : use.map((s) => `${s.key}:${Math.max(1, Math.round(s.pct))}`).join(',')
+    out[zip] = use.length === 1 ? use[0].key : use.map((s) => `${s.key}:${s.pct >= MIN_SHARE_PCT ? Math.max(1, Math.round(s.pct)) : 0}`).join(',')
   }
   return out
 }
@@ -86,7 +90,7 @@ export function renderModule(map) {
     `// Source: ${SOURCE_URL}`,
     `export const ZIP_DISTRICTS_CONGRESS = ${CONGRESS}`,
     `export const ZIP_DISTRICTS_SOURCE = ${JSON.stringify(SOURCE_URL)}`,
-    '// "zip=STATEdistrict" or "zip=STATEdistrict:pct,STATEdistrict:pct", joined by ";".',
+    '// "zip=STATEdistrict" or "zip=STATEdistrict:pct,STATEdistrict:pct", joined by ";". pct 0 means under 1% of the land.',
     `export const ZIP_DISTRICTS = ${JSON.stringify(body)}`,
     '',
   ].join('\n')

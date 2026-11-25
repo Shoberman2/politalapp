@@ -6,9 +6,13 @@ const db = makeSupabaseMock()
 const mocks = vi.hoisted(() => ({ getRoster: vi.fn() }))
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
 vi.mock('../../api/_lib/roster.js', async (original) => ({ ...(await original()), getRoster: mocks.getRoster }))
+vi.mock('../../api/_lib/geocode.js', () => ({
+  geocodeAddress: vi.fn(async () => { throw new Error('Unexpected address lookup') }),
+  geocodeZip: vi.fn(async () => { throw new Error('Unexpected ZIP centroid lookup') }),
+}))
 
 import {
-  searchMembers, getMemberVotes, getMemberBills, compareMembers, getRecentVotes, getRollCall, searchBills,
+  searchMembers, getMemberVotes, getMemberBills, compareMembers, getRecentVotes, getRollCall, searchBills, getBill,
   search, fetchDocument, parseDocumentId,
   currentCongress, _resetRollCallSearchCache,
 } from '../../api/_lib/mcpTools.js'
@@ -16,6 +20,9 @@ import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
 
 const C = currentCongress()
 const SITE = 'https://www.ballotwatch.io'
+const TIE_NOTE = "The senators' votes are tied. The Vice President may have cast the deciding vote, which is not in this record; see source_url for the official result."
+const NAMED_BALLOT_NOTE = "Members voted for a candidate by name. BallotWatch records only Yea, Nay, Present and Not Voting, so each member's choice is not in this record; see source_url for the official record."
+const BAD_SINCE = 'since must be a real date in YYYY-MM-DD form, e.g. 2026-02-28.'
 const hasOp = (call, name, ...args) => call.ops.some((o) => o[0] === name && args.every((a, i) => o[i + 1] === a))
 
 const ROSTER = makeRoster([
@@ -46,6 +53,7 @@ describe('search_members', () => {
         bioguide_id: 'S000148', name: 'Charles Schumer', chamber: 'senate', party: 'Democrat', state: 'NY', district: null,
         canonical: `${SITE}/politician/S000148-charles-schumer`, source_url: 'https://www.congress.gov/member/S000148', serving: true,
       }],
+      serving_as_of: { house: '2026-11-19', senate: '2026-11-20' },
       data_updated_at: '2026-11-24T06:51:34Z',
     })
     expect((await searchMembers({ query: 'Vance' })).members[0]).toMatchObject({ bioguide_id: 'V000137', serving: false })
@@ -61,7 +69,27 @@ describe('search_members', () => {
     expect((await searchMembers({ state: 'OH', include_former: true })).members.map((m) => m.name)).toEqual(['J. Vance'])
     const none = await searchMembers({ query: 'Nobody Here' })
     expect(none.members).toEqual([])
-    expect(none.note).toMatch(/No member of the \d+th Congress matches/)
+    expect(none.note).toBe(`No member of the ${C}th Congress matches. Only members who have served in this Congress are in the record.`)
+  })
+
+  it.each([
+    ['Rep. Chuck Schumer', 'S000148', 'House member'],
+    ['Sen. Nancy Pelosi', 'P000197', 'senator'],
+  ])('reports a title mismatch for %s and supplies the other chamber match', async (query, id, title) => {
+    const chamber = title === 'senator' ? 'senate' : 'house'
+    const surname = query.split(' ').at(-1)
+    const sameSurname = { id: 'Q123456', name: `Sam ${surname}`, chamber, state: 'NY', party: 'Independent' }
+    mocks.getRoster.mockResolvedValue(makeRoster([...ROSTER.members, sameSurname], C))
+    const out = await searchMembers({ query })
+    expect(out.members.map((m) => m.bioguide_id)).toEqual([id])
+    expect(out.note).toBe(`No ${title} matches that name; these matches are from the other chamber.`)
+  })
+
+  it('honors an explicit chamber and uses the ordinal of the roster Congress', async () => {
+    mocks.getRoster.mockResolvedValue({ ...ROSTER, congress: 121 })
+    const out = await searchMembers({ query: 'Rep. Chuck Schumer', chamber: 'house' })
+    expect(out.members).toEqual([])
+    expect(out.note).toBe('No member of the 121st Congress matches. Only members who have served in this Congress are in the record.')
   })
 
   it('rejects an empty search and an unknown state before reading anything', async () => {
@@ -106,7 +134,7 @@ describe('get_member_votes', () => {
     })
     expect(out.votes[1]).toMatchObject({ description: 'A description', position: 'Not Voting', bill: { id: `${C}-hr-915`, label: 'H.R. 915', title: null } })
     expect(out.note).toBe('Showing 2 of 689. Pass offset 2 for the next page.')
-    expect(db.ops('votes', 'range')[0]).toEqual(['range', 0, 49])
+    expect(db.ops('votes', 'range')[0]).toEqual(['range', 0, 24])
   })
 
   it('filters by bill, position and dates, and pages with offset', async () => {
@@ -133,13 +161,72 @@ describe('get_member_votes', () => {
     expect(db.tables()).not.toContain('votes')
   })
 
+  it('requeries both edge days to select the correct numeric rolls across a page boundary', async () => {
+    seed()
+    const newer = '2026-11-19'
+    const older = '2026-11-18'
+    const row = (roll, voted_at) => ({ roll_call_id: `house-${C}-2-${roll}`, position: 'Yea', voted_at })
+    // The database sorts roll_call_id as text: 9 precedes 10 and 8 precedes 11.
+    db.responses.votes = (call) => {
+      if (hasOp(call, 'range', 1, 2)) return { data: [row(10, newer), row(8, older)], count: 4 }
+      if (hasOp(call, 'in', 'voted_at')) return { data: [row(9, newer), row(10, newer), row(8, older), row(11, older)] }
+      throw new Error('Unexpected votes query')
+    }
+    const out = await getMemberVotes({ bioguide_id: 'P000197', limit: 2, offset: 1, position: 'yea' })
+    expect(out.votes.map((v) => v.roll_call_id)).toEqual([`house-${C}-2-9`, `house-${C}-2-11`])
+    expect(db.ops('votes', 'in')).toEqual([
+      ['in', 'position', ['Yea', 'Aye', 'Yes']],
+      ['in', 'position', ['Yea', 'Aye', 'Yes']],
+      ['in', 'voted_at', [newer, older]],
+    ])
+    expect(db.ops('votes', 'eq')).toEqual(Array(2).fill(['eq', 'politician_id', 'P000197']))
+  })
+
+  it.each([[0, 10], [1, 9]])('returns the numeric roll for offset %i within a single day', async (offset, roll) => {
+    seed()
+    const day = '2026-11-19'
+    const rows = [9, 10].map((n) => ({ roll_call_id: `house-${C}-2-${n}`, voted_at: day, position: 'Yea' }))
+    db.responses.votes = (call) => hasOp(call, 'in', 'voted_at')
+      ? { data: rows }
+      : { data: [rows[offset]], count: 2 }
+    const out = await getMemberVotes({ bioguide_id: 'P000197', limit: 1, offset })
+    expect(out.votes.map((v) => v.roll_call_id)).toEqual([`house-${C}-2-${roll}`])
+    expect(db.ops('votes', 'range')).toEqual([['range', offset, offset]])
+    expect(db.ops('votes', 'in')).toEqual([['in', 'voted_at', [day]]])
+  })
+
+  it('sorts complete same-day results by roll number and withholds named ballot positions', async () => {
+    seed()
+    const id = (roll) => `house-${C}-1-${roll}`
+    db.responses.votes = { data: [9, 10].map((roll) => ({ roll_call_id: id(roll), voted_at: '2025-01-03', position: 'Not Voting' })) }
+    db.responses.roll_calls = { data: [{ id: id(9), question: 'On Adjournment' }, { id: id(10), question: 'Election of Speaker' }] }
+    const out = await getMemberVotes({ bioguide_id: 'P000197' })
+    expect(out.votes.map(({ roll_call_id, position, position_note }) => [roll_call_id, position, position_note])).toEqual([
+      [id(10), null, NAMED_BALLOT_NOTE], [id(9), 'Not Voting', undefined],
+    ])
+    expect(db.tables().filter((t) => t === 'votes')).toEqual(['votes'])
+  })
+
+  it.each([
+    [{ bill: 'H.R. 1', position: 'Yea' }, 0, 'No vote by Nancy Pelosi on H.R. 1 matches the position or date filter. Drop the filter to see every recorded vote on the bill.'],
+    [{ bill: 'H.R. 1' }, 0, 'Nancy Pelosi is not listed in the 2 recorded floor vote(s) on H.R. 1 (the other chamber voted, or the member was not seated).'],
+    [{ bill: 'H.R. 1', offset: 30 }, 12, 'offset 30 is past the end: 12 vote(s) match.'],
+    [{ until: '2026-02-28' }, 0, 'No recorded vote by Nancy Pelosi matches the position or date filter.'],
+  ])('explains an empty vote page for %j', async (args, count, note) => {
+    seed()
+    db.responses.votes = { data: [], count }
+    const out = await getMemberVotes({ bioguide_id: 'P000197', ...args })
+    expect(out).toMatchObject({ total: count, votes: [], note })
+  })
+
   it('reports an unknown member, a malformed id and bad arguments as errors', async () => {
     db.responses.politicians = { data: null }
     db.responses.votes = { data: [], count: 0 }
     expect((await getMemberVotes({ bioguide_id: 'Z999999' })).error).toBe('No member with Bioguide ID Z999999. Use search_members to find one by name.')
     db.reset()
     expect((await getMemberVotes({ bioguide_id: 'pelosi' })).error).toMatch(/looks wrong.*search_members/)
-    expect((await getMemberVotes({ bioguide_id: 'P000197', since: '2026-01' })).error).toBe('since must be a date in YYYY-MM-DD form')
+    expect((await getMemberVotes({ bioguide_id: 'P000197', since: '2026-01' })).error).toBe(BAD_SINCE)
+    expect((await getMemberVotes({ bioguide_id: 'P000197', since: '2026-02-30' })).error).toBe(BAD_SINCE)
     expect((await getMemberVotes({ bioguide_id: 'P000197', position: 'maybe' })).error).toBe('position must be Yea, Nay, Present or Not Voting')
     expect((await getMemberVotes({ bioguide_id: 'P000197', bill: 'the big one' })).error).toMatch(/Bill id looks wrong/)
     expect(db.calls).toHaveLength(0)
@@ -200,6 +287,8 @@ describe('compare_members', () => {
       member_a: { bioguide_id: 'S000148', name: 'Charles Schumer', canonical: `${SITE}/politician/S000148-charles-schumer` },
       member_b: { bioguide_id: 'C001098', name: 'Ted Cruz' },
     })
+    expect(db.tables().indexOf('politicians')).toBeLessThan(db.tables().indexOf('votes'))
+    expect(db.ops('votes', 'like')).toEqual(Array(2).fill(['like', 'roll_call_id', `senate-${C}-%`]))
     // Newest first, each with both positions and the official record.
     expect(out.recent_differences.map((d) => [d.roll_call_id, d.position_a, d.position_b])).toEqual([[rc(3), 'Yea', 'Nay'], [rc(2), 'Nay', 'Yea']])
     expect(out.recent_differences[0]).toMatchObject({ question: 'On the Nomination', description: 'Confirmation: A Judge', bill: null, canonical: `${SITE}/vote/${C}/senate/2/3` })
@@ -214,13 +303,16 @@ describe('compare_members', () => {
     const empty = await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'C001098' })
     expect(empty).toMatchObject({ both_voted_yea_or_nay: 0, same_vote_pct: null, recent_differences: [] })
 
+    const successfulReads = db.tables().filter((t) => t === 'votes').length
+    expect(successfulReads).toBe(2)
     db.responses.politicians = { data: [
       { id: 'S000148', name: 'Charles Schumer', chamber: 'senate', party: 'Democrat', state: 'NY' },
       { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', party: 'Democrat', state: 'CA' },
     ] }
-    expect((await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'P000197' })).error).toMatch(/different chambers never vote on the same roll call/)
+    expect((await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'P000197' })).error).toBe('Charles Schumer sits in the senate and Nancy Pelosi in the house; members of different chambers never vote on the same roll call.')
     db.responses.politicians = { data: [{ id: 'S000148', name: 'Charles Schumer', chamber: 'senate' }] }
-    expect((await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'Z999999' })).error).toMatch(/No member with Bioguide ID Z999999/)
+    expect((await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'Z999999' })).error).toBe('No member with Bioguide ID Z999999. Use search_members to find one by name.')
+    expect(db.tables().filter((t) => t === 'votes')).toHaveLength(successfulReads)
     expect((await compareMembers({ bioguide_id_a: 'S000148', bioguide_id_b: 'S000148' })).error).toBe('Give two different members.')
     expect((await compareMembers({ bioguide_id_a: 'x', bioguide_id_b: 'S000148' })).error).toMatch(/looks wrong/)
   })
@@ -240,7 +332,7 @@ describe('get_recent_votes', () => {
     { roll_call_id: `senate-${C}-2-279`, dem_yea: 0, dem_nay: 43, rep_yea: 49, rep_nay: 0, ind_yea: 0, ind_nay: 0 },
   ]
 
-  it('lists roll calls newest first, by roll number within a day, with tally, party split and result', async () => {
+  it('lists roll calls newest first, by roll number within a day, with tally and result', async () => {
     db.responses.roll_calls = { data: ROWS, count: 1627 }
     db.responses.roll_call_stats = { data: STATS }
     const out = await getRecentVotes({ limit: 3 })
@@ -250,12 +342,12 @@ describe('get_recent_votes', () => {
       roll_call_id: `senate-${C}-2-279`, chamber: 'senate', congress: C, session: 2, roll: 279, voted_at: '2026-11-20',
       question: 'On the Nomination', description: 'Confirmation: Jane Doe to be U.S. District Judge', bill: null,
       tally: { yea: 49, nay: 43 },
-      by_party: { dem: { yea: 0, nay: 43 }, rep: { yea: 49, nay: 0 }, ind: { yea: 0, nay: 0 } },
       result_derived: 'Confirmed',
       canonical: `${SITE}/vote/${C}/senate/2/279`,
       source_url: `https://www.senate.gov/legislative/LIS/roll_call_votes/vote${C}2/vote_${C}_2_00279.htm`,
     })
-    expect(out.votes[1]).toMatchObject({ tally: null, by_party: null, result_derived: null })
+    expect(out.votes[1]).toMatchObject({ tally: null, result_derived: null })
+    expect(out.votes.map((v) => Object.hasOwn(v, 'by_party'))).toEqual([false, false, false])
     expect(out.votes[2]).toMatchObject({ chamber: 'house', bill: { id: `${C}-hr-4464`, label: 'H.R. 4464', title: 'Preventive Health Savings Act' }, tally: { yea: 220, nay: 200 }, result_derived: 'Passed' })
     expect(out.note).toBe('Showing the newest 3 of 1627. Narrow with since, until, chamber, bill or query, or raise limit (max 50).')
     expect(out.data_updated_at).toBe('2026-11-24T06:51:34Z')
@@ -280,16 +372,61 @@ describe('get_recent_votes', () => {
     expect(judge.votes.map((v) => v.roll_call_id)).toEqual([`senate-${C}-2-279`, `senate-${C}-2-270`])
     const reads = db.tables().filter((t) => t === 'roll_calls').length
     expect((await getRecentVotes({ query: 'preventive health' })).votes.map((v) => v.roll_call_id)).toEqual([`house-${C}-2-99`])
-    expect((await getRecentVotes({ query: 'H.R. 4464' })).votes).toHaveLength(1)
     expect((await getRecentVotes({ query: 'judge', chamber: 'house' })).votes).toEqual([])
     expect((await getRecentVotes({ query: 'judge', since: '2026-11-19' })).votes.map((v) => v.roll_call_id)).toEqual([`senate-${C}-2-279`])
     // One scan of the Congress serves every keyword search for five minutes.
     expect(db.tables().filter((t) => t === 'roll_calls').length).toBe(reads)
   })
 
+  it('extracts a bill number as a filter and excludes bill labels from keyword text', async () => {
+    const id = `${C}-hr-4464`
+    db.responses.roll_calls = (call) => {
+      if (hasOp(call, 'eq', 'bill_id', id)) return { data: [ROWS[0]], count: 1 }
+      if (hasOp(call, 'range', 0, 999)) return { data: ROWS }
+      throw new Error('Unexpected roll-call query')
+    }
+    const ids = (out) => out.votes.map((v) => v.roll_call_id)
+    expect(ids(await getRecentVotes({ query: 'H.R. 4464' }))).toEqual([ROWS[0].id])
+    expect(db.ops('roll_calls', 'eq')).toEqual([['eq', 'bill_id', id]])
+    expect(db.ops('roll_calls', 'range')).toEqual([])
+    expect(ids(await getRecentVotes({ query: 'passage H.R. 4464' }))).toEqual([ROWS[0].id])
+    expect(ids(await getRecentVotes({ query: 'judge H.R. 4464' }))).toEqual([])
+    expect(ids(await getRecentVotes({ query: 'hr' }))).toEqual([])
+  })
+
+  it('shares one cold keyword scan between concurrent requests', async () => {
+    db.responses.roll_calls = { data: ROWS }
+    const [judges, health] = await Promise.all([
+      getRecentVotes({ query: 'district judge' }),
+      getRecentVotes({ query: 'preventive health' }),
+    ])
+    expect(judges.votes.map((v) => v.roll_call_id)).toEqual([ROWS[2].id, ROWS[3].id])
+    expect(health.votes.map((v) => v.roll_call_id)).toEqual([ROWS[0].id])
+    expect(db.ops('roll_calls', 'range')).toEqual([['range', 0, 999]])
+  })
+
+  it('withholds outcomes for a tied Senate vote and a named ballot', async () => {
+    const tie = { ...ROWS[2], question: 'On Passage' }
+    const named = { ...ROWS[1], question: 'Election of the Speaker' }
+    db.responses.roll_calls = { data: [tie, named] }
+    db.responses.roll_call_stats = { data: [
+      { roll_call_id: tie.id, dem_nay: 50, rep_yea: 50 },
+      { roll_call_id: named.id, dem_nay: 210, rep_yea: 220 },
+    ] }
+    const out = await getRecentVotes()
+    expect(out.votes).toMatchObject([
+      { roll_call_id: tie.id, tally: { yea: 50, nay: 50 }, result_derived: null, result_note: TIE_NOTE },
+      { roll_call_id: named.id, tally: null, result_derived: null, note: NAMED_BALLOT_NOTE },
+    ])
+  })
+
   it('rejects malformed arguments without reading anything', async () => {
     expect((await getRecentVotes({ chamber: 'lords' })).error).toBe('chamber must be house or senate')
-    expect((await getRecentVotes({ since: 'last week' })).error).toBe('since must be a date in YYYY-MM-DD form')
+    expect((await getRecentVotes({ since: 'last week' })).error).toBe(BAD_SINCE)
+    expect((await getRecentVotes({ since: '2026-02-30' })).error).toBe(BAD_SINCE)
+    expect((await getRecentVotes({ query: 'a ?' })).error).toBe('query needs a word of two or more letters, or a bill number such as "H.R. 1".')
+    // A bare number would match every roll call that mentions a number containing it.
+    expect((await getRecentVotes({ query: '42' })).error).toBe('query needs a word of two or more letters, or a bill number such as "H.R. 1".')
     expect((await getRecentVotes({ bill: 'the big one' })).error).toMatch(/Bill id looks wrong/)
     expect(db.calls).toHaveLength(0)
   })
@@ -313,7 +450,7 @@ describe('get_roll_call', () => {
     expect(out).toMatchObject({
       roll_call_id: ID, chamber: 'house', congress: C, session: 1, roll: 145, question: 'On Passage',
       bill: { id: `${C}-hr-1`, label: 'H.R. 1', title: 'One Big Beautiful Bill Act', canonical: `${SITE}/bill/${C}/hr/1` },
-      by_party: { dem: { yea: 0, nay: 212 }, rep: { yea: 214, nay: 2 }, ind: { yea: 1, nay: 0 } },
+      by_party: null,
       result_derived: 'Passed', members_listed: 72,
       canonical: `${SITE}/vote/${C}/house/1/145`,
     })
@@ -325,7 +462,7 @@ describe('get_roll_call', () => {
     expect(out.votes_by_position.Nay).toContain('Nancy Pelosi (D-CA-11) P000197')
     expect(out.votes_by_position.Yea).toContain('Member 01 (R-TX) X100001')
     expect(out.votes_by_position.Yea.length + out.votes_by_position.Nay.length).toBe(72)
-    expect(out.votes_note).toMatch(/Name \(Party-State-District\) BioguideID/)
+    expect(out.votes_note).toBe('More than 60 members match, so each entry is the string "Name (Party-State-District) BioguideID". Narrow with state, party, position or bioguide_ids to 60 or fewer for one object per member, or pass format "full".')
     expect(JSON.stringify(out).length).toBeLessThan(5000)
   })
 
@@ -348,6 +485,75 @@ describe('get_roll_call', () => {
     expect((await getRollCall({ ...args, state: 'LA', format: 'compact' })).votes_by_position).toEqual({ Yea: ['Mike Johnson (R-LA-4) J000299'] })
   })
 
+  it('counts independents using their own party and preserves unknown positions in compact output', async () => {
+    seed(0)
+    db.responses.roll_call_stats = { data: { dem_yea: 1, dem_nay: 1, rep_yea: 1 } }
+    db.responses.votes.data[0].position = 'Nay'
+    db.responses.votes.data[1].position = 'Yea'
+    db.responses.votes.data.push(
+      voter('S000033', 'Bernie Sanders', 'Independent', 'VT', 'Yea'),
+      voter('X100000', 'Unknown Position', 'Independent', 'TX', 'Paired'),
+    )
+    const out = await getRollCall({ ...args, format: 'compact' })
+    expect(out.tally).toEqual({ yea: 2, nay: 1, present: 0, notVoting: 1 })
+    expect(out.by_party).toEqual({ dem: { yea: 0, nay: 1 }, rep: { yea: 1, nay: 0 }, ind: { yea: 1, nay: 0 } })
+    expect(out.votes_by_position).toEqual({
+      Yea: ['Bernie Sanders (I-VT) S000033', 'Mike Johnson (R-LA-4) J000299'],
+      Nay: ['Nancy Pelosi (D-CA-11) P000197'],
+      Other: ['Unknown Position (I-TX) X100000: Paired'],
+    })
+    expect((await getRollCall({ ...args, state: 'LA' })).by_party).toEqual(out.by_party)
+  })
+
+  it('gives no party split when the listed members do not add up to the tally on each side', async () => {
+    seed(0)
+    // The tally says 2 yea, 1 nay; the two parties' rows say 1 yea, 2 nay. Same total, different vote.
+    db.responses.roll_call_stats = { data: { dem_yea: 1, dem_nay: 1, rep_yea: 1 } }
+    db.responses.votes.data[0].position = 'Nay'
+    db.responses.votes.data[1].position = 'Yea'
+    db.responses.votes.data.push(voter('S000033', 'Bernie Sanders', 'Independent', 'VT', 'Nay'))
+    const out = await getRollCall(args)
+    expect(out.tally).toMatchObject({ yea: 2, nay: 1 })
+    expect(out.by_party).toBeNull()
+  })
+
+  it('does not derive a result from a tied Senate tally', async () => {
+    db.responses.roll_calls = { data: { id: `senate-${C}-1-1`, question: 'On Passage', voted_at: '2025-01-03' } }
+    db.responses.roll_call_stats = { data: { dem_nay: 50, rep_yea: 50 } }
+    const out = await getRollCall({ ...args, chamber: 'senate', roll: 1 })
+    expect(out.tally).toEqual({ yea: 50, nay: 50, present: 0, notVoting: 0 })
+    expect(out.result_derived).toBeNull()
+    expect(out.result_note).toBe(TIE_NOTE)
+  })
+
+  const missingPositionsNote = "No member's position on this roll call is in the record; see source_url for the official record."
+  it.each([
+    ['Election of the Speaker', 2, NAMED_BALLOT_NOTE],
+    ['On Passage', 20, missingPositionsNote],
+    ['On Passage', 60, missingPositionsNote],
+    ['On Passage', 61, missingPositionsNote],
+  ])('withholds positions and tallies for %s with %i missing positions', async (question, size, note) => {
+    seed(size - 2)
+    db.responses.roll_calls.data.question = question
+    db.responses.votes.data = db.responses.votes.data.map((v) => ({ ...v, position: 'Not Voting', politicians: { ...v.politicians, state: 'CA' } }))
+    const fields = { positions_recorded: false, tally: null, by_party: null, result_derived: null, note, members_listed: size }
+    const out = await getRollCall({ ...args, format: 'full' })
+    expect(out).toMatchObject(fields)
+    expect(out.votes).toBeUndefined()
+    expect(out.votes_by_position).toBeUndefined()
+    const filtered = await getRollCall({ ...args, bioguide_ids: ['P000197', 'J000299'], format: 'compact' })
+    expect(filtered).toMatchObject({ ...fields, members_matched: 2 })
+    expect(filtered.votes).toEqual([
+      { bioguide_id: 'J000299', name: 'Mike Johnson', party: 'Republican', state: 'CA', district: '4', position: null },
+      { bioguide_id: 'P000197', name: 'Nancy Pelosi', party: 'Democrat', state: 'CA', district: '11', position: null },
+    ])
+    expect(filtered.votes_by_position).toBeUndefined()
+    const allCA = await getRollCall({ ...args, state: 'CA' })
+    expect(allCA.members_matched).toBe(size)
+    if (size > 60) expect(allCA.votes).toBeUndefined()
+    else expect(allCA.votes.map((v) => v.position)).toEqual(Array(size).fill(null))
+  })
+
   it('reports a missing roll call and bad filters as errors', async () => {
     db.responses.roll_calls = { data: null }
     expect((await getRollCall({ congress: C, chamber: 'house', session: 2, roll: 4999 })).error).toBe(`No roll call house-${C}-2-4999. Use get_recent_votes to list roll calls.`)
@@ -361,17 +567,46 @@ describe('search_bills', () => {
   const HIT = { id: `${C}-hr-1`, title: 'One Big Beautiful Bill Act', introduced_at: '2025-05-20', policy_area: 'Economics and Public Finance', source_url: 'https://www.congress.gov/bill/119th-congress/house-bill/1', legislative_stage: 'enacted' }
 
   it('looks a bill number up directly, and answers a missing number with nothing rather than a title search', async () => {
-    db.responses.bills = { data: HIT }
+    db.responses.bills = { data: [HIT] }
     const found = await searchBills({ query: 'H.R. 1' })
     expect(found.results).toEqual([{ id: `${C}-hr-1`, label: 'H.R. 1', title: 'One Big Beautiful Bill Act', introduced_at: '2025-05-20', policy_area: 'Economics and Public Finance', stage: 'enacted', canonical: `${SITE}/bill/${C}/hr/1`, source_url: HIT.source_url }])
     expect(db.ops('bills', 'eq')[0]).toEqual(['eq', 'id', `${C}-hr-1`])
+    expect(db.ops('bills', 'limit')).toEqual([['limit', 1]])
+    expect(db.ops('bills', 'maybeSingle')).toEqual([])
 
     db.reset()
     db.responses.etl_metadata = { data: { value: '2026-11-24T06:51:34Z' } }
-    db.responses.bills = { data: null }
-    const missing = await searchBills({ query: 'hr 99999', congress: 118 })
+    db.responses.bills = { data: [] }
+    const missing = await searchBills({ query: '118-hr-99999' })
     expect(missing).toMatchObject({ results: [], note: 'No bill 118-hr-99999 is in the record.' })
-    expect(db.tables().filter((t) => t === 'bills')).toHaveLength(1)
+    const missingWithCongress = await searchBills({ query: 'hr 99999', congress: 118 })
+    expect(missingWithCongress).toMatchObject({ results: [], note: 'No bill 118-hr-99999 matches those filters.' })
+    expect(db.ops('bills', 'eq')).toEqual(Array(2).fill(['eq', 'id', '118-hr-99999']))
+    expect(db.ops('bills', 'ilike')).toEqual([])
+    expect(db.tables().filter((t) => t === 'bills')).toEqual(['bills', 'bills'])
+  })
+
+  it('applies all bill filters to a direct lookup, including a contradictory Congress', async () => {
+    const id = '119-hr-1'
+    db.responses.bills = (call) => ({ data: hasOp(call, 'like', 'id', '118-%') ? [] : [{ ...HIT, id }] })
+    const out = await searchBills({ query: id, congress: 118, stage: 'enacted', sponsor: 'a000055', has_vote: true })
+    expect(out).toEqual({ query: id, results: [], note: 'No bill 119-hr-1 matches those filters.', data_updated_at: '2026-11-24T06:51:34Z' })
+    expect(db.ops('bills', 'eq')).toEqual([['eq', 'id', id], ['eq', 'legislative_stage', 'enacted'], ['eq', 'sponsor_bioguide_id', 'A000055']])
+    expect(db.ops('bills', 'like')).toEqual([['like', 'id', '118-%']])
+    expect(db.ops('bills', 'select')[0][1]).toContain('roll_calls!inner ( id )')
+    expect(db.ops('bills', 'limit')).toEqual([['limit', 1]])
+    expect(db.ops('bills', 'ilike')).toEqual([])
+  })
+
+  it('supports Congress alone and rejects punctuation without querying bills', async () => {
+    db.responses.bills = { data: [{ ...HIT, id: '119-hr-1' }] }
+    const out = await searchBills({ congress: 119 })
+    expect(out.query).toBeNull()
+    expect(out.results.map((b) => b.id)).toEqual(['119-hr-1'])
+    expect(db.ops('bills', 'like')).toEqual([['like', 'id', '119-%']])
+    expect(db.ops('bills', 'ilike')).toEqual([])
+    expect(await searchBills({ query: '%%%%' })).toEqual({ error: 'query has no letters or digits to search for.' })
+    expect(db.tables().filter((t) => t === 'bills')).toEqual(['bills'])
   })
 
   it('requires every word in the title and applies the filters', async () => {
@@ -391,10 +626,25 @@ describe('search_bills', () => {
     expect((await searchBills({ query: 'zzzz' })).note).toMatch(/No bill title matches every word/)
     // A filter alone is a valid search.
     expect((await searchBills({ stage: 'enacted' })).error).toBeUndefined()
-    expect((await searchBills({})).error).toBe('Query is required.')
-    expect((await searchBills({ query: '   ' })).error).toBe('Query is required.')
+    expect((await searchBills({})).error).toBe('Give title words, a bill number, or a filter (congress, stage, sponsor or has_vote).')
+    expect((await searchBills({ query: '   ' })).error).toBe('Give title words, a bill number, or a filter (congress, stage, sponsor or has_vote).')
     expect((await searchBills({ query: 'x', stage: 'pending' })).error).toMatch(/stage must be one of/)
     expect((await searchBills({ query: 'x', sponsor: 'pelosi' })).error).toMatch(/looks wrong/)
+  })
+})
+
+describe('get_bill', () => {
+  it('preserves a tied Senate tally without inferring defeat', async () => {
+    const id = `senate-${C}-1-125`
+    const billId = `${C}-hr-1`
+    db.responses.bills = { data: { id: billId, title: 'One Big Beautiful Bill Act' } }
+    db.responses.roll_calls = { data: [{ id, question: 'On Passage', voted_at: '2025-07-01' }] }
+    db.responses.roll_call_stats = { data: [{ roll_call_id: id, dem_nay: 50, rep_yea: 50 }] }
+    const out = await getBill({ id: billId })
+    expect(out.recorded_votes).toEqual([{
+      roll_call_id: id, chamber: 'senate', voted_at: '2025-07-01', question: 'On Passage',
+      tally: { yea: 50, nay: 50 }, result_derived: null, result_note: TIE_NOTE, canonical: `${SITE}/vote/${C}/senate/1/125`,
+    }])
   })
 })
 
@@ -431,7 +681,7 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
   })
 
   it('search finds a bill number inside a question, then its roll calls', async () => {
-    db.responses.bills = (call) => (hasOp(call, 'eq', 'id', `${C}-hr-1`) ? { data: BILL } : { data: [] })
+    db.responses.bills = (call) => (hasOp(call, 'eq', 'id', `${C}-hr-1`) ? { data: [BILL] } : { data: [] })
     db.responses.roll_calls = (call) => (hasOp(call, 'eq', 'bill_id', `${C}-hr-1`) ? { data: [PASSAGE], count: 1 } : { data: [] })
     db.responses.roll_call_stats = { data: [{ roll_call_id: PASSAGE.id, dem_yea: 0, dem_nay: 212, rep_yea: 214, rep_nay: 2, ind_yea: 1, ind_nay: 0 }] }
     const out = await search({ query: 'How did the House vote on H.R. 1?' })
@@ -439,6 +689,38 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
       { id: `bill:${C}-hr-1`, title: 'H.R. 1: One Big Beautiful Bill Act', url: `${SITE}/bill/${C}/hr/1` },
       { id: `vote:house-${C}-1-145`, title: 'House roll call 145, 2025-05-22: On Passage on H.R. 1 One Big Beautiful Bill Act (Passed 215-214)', url: `${SITE}/vote/${C}/house/1/145` },
     ])
+  })
+
+  it.each([
+    ['House roll call 327', 'house', 327],
+    ['senate vote no. 12', 'senate', 12],
+  ])('search looks up %s by roll number in both sessions without searching title words', async (query, chamber, roll) => {
+    const id = (session) => `${chamber}-${C}-${session}-${roll}`
+    db.responses.roll_calls = (call) => hasOp(call, 'in', 'id') ? { data: [
+      { id: id(1), question: 'On Passage', voted_at: '2025-11-20' },
+      { id: id(2), question: 'On Passage', voted_at: '2026-11-19' },
+    ] } : { data: [] }
+    const out = await search({ query })
+    expect(out.results.map((r) => r.id)).toEqual([`vote:${id(2)}`, `vote:${id(1)}`])
+    expect(db.ops('roll_calls', 'in')).toEqual([['in', 'id', [id(2), id(1)]]])
+    expect(db.ops('roll_calls', 'range')).toEqual([])
+    expect(db.tables()).not.toContain('bills')
+  })
+
+  it('puts a typed roll-call ID before the bill explicitly named in the same query', async () => {
+    const id = 'house-119-2-327'
+    db.responses.bills = (call) => hasOp(call, 'eq', 'id', `${C}-hr-1`) ? { data: [BILL] } : { data: [] }
+    db.responses.roll_calls = (call) => hasOp(call, 'in', 'id')
+      ? { data: [{ id, question: 'On Passage', voted_at: '2026-11-19' }] }
+      : { data: [] }
+    const out = await search({ query: `vote:${id} H.R. 1` })
+    expect(out.results).toEqual([
+      { id: `vote:${id}`, title: 'House roll call 327, 2026-11-19: On Passage', url: `${SITE}/vote/119/house/2/327` },
+      { id: `bill:${C}-hr-1`, title: 'H.R. 1: One Big Beautiful Bill Act', url: `${SITE}/bill/${C}/hr/1` },
+    ])
+    expect(db.ops('roll_calls', 'in')).toEqual([['in', 'id', [id]]])
+    expect(db.ops('roll_calls', 'range')).toEqual([])
+    expect(db.ops('bills', 'ilike')).toEqual([])
   })
 
   it('search puts a member whose family name only appears in the query after the bills it is about', async () => {
@@ -484,6 +766,40 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
     for (const bad of ['', 'nonsense', 'member:nonsense', 'vote:119-hr-1', 'https://www.ballotwatch.io/about']) expect(parseDocumentId(bad), bad).toBeNull()
   })
 
+  it('accepts only complete record paths on BallotWatch hosts', async () => {
+    for (const url of [
+      'https://ballotwatch.io/politician/P000197-nancy-pelosi',
+      'https://ballotwatch.io/politician/P000197-nancy-pelosi.md',
+      'https://www.ballotwatch.io/politician/P000197-nancy-pelosi/record.md',
+    ]) expect(parseDocumentId(url), url).toEqual({ type: 'member', id: 'P000197' })
+    expect(parseDocumentId('https://ballotwatch.io/bill/119/hr/1.md')).toEqual({ type: 'bill', id: '119-hr-1' })
+    expect(parseDocumentId('https://ballotwatch.io/vote/119/house/2/327.md')).toEqual({ type: 'vote', id: 'house-119-2-327' })
+    for (const url of [
+      'https://example.org/bill/119/hr/1',
+      'https://ballotwatch.io.example.org/politician/P000197-nancy-pelosi',
+      `${SITE}/archive/bill/119/hr/1`,
+      `${SITE}/bill/119/hr`,
+      `${SITE}/bill/119/hr/1/history`,
+      `${SITE}/politician/P000197-nancy-pelosi/record/extra`,
+      `${SITE}/vote/119/house/2`,
+      `${SITE}/vote/119/house/2/327/extra`,
+    ]) expect(parseDocumentId(url), url).toBeNull()
+    expect((await fetchDocument({ id: 'https://example.org/bill/119/hr/1' })).error).toBe('Unknown id. Use an id returned by search: member:P000197, bill:119-hr-1 or vote:house-119-1-145.')
+    expect(db.calls).toEqual([])
+  })
+
+  it('fetches a roster-only member as a citable stub', async () => {
+    db.responses.politicians = { data: null }
+    const out = await fetchDocument({ id: 'member:B001281' })
+    expect(out).toEqual({
+      id: 'member:B001281',
+      title: 'Joyce Beatty, U.S. House (D-OH-3): voting record',
+      text: '# Joyce Beatty\n\n- Seat: U.S. House, OH-3\n- Party: Democrat\n- Bioguide ID: B001281\n- Official profile: https://www.congress.gov/member/B001281\n\nBallotWatch has no votes on record for this member yet.\n',
+      url: `${SITE}/politician/B001281-joyce-beatty`,
+      metadata: { type: 'member', bioguide_id: 'B001281', source_url: 'https://www.congress.gov/member/B001281' },
+    })
+  })
+
   it('fetch returns a member record as Markdown with string metadata', async () => {
     db.responses.politicians = { data: { id: 'V000137', name: 'J. Vance', chamber: 'senate', state: 'OH', district: null, party: 'Republican', photo_url: null } }
     db.responses.member_congress_terms = { data: [{ congress: C, chamber: 'senate', state: 'OH', district: null, party: 'R', term_start: '2025-01-03', term_end: null }] }
@@ -498,6 +814,38 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
     expect(out.text).toContain('On the Motion')
     expect(out.text).toContain('This member is no longer serving in Congress.')
     expect(out.metadata).toEqual({ type: 'member', bioguide_id: 'V000137', source_url: 'https://www.congress.gov/member/V000137', data_updated_at: '2026-11-24T06:51:34Z' })
+  })
+
+  it('omits an unverified term start and a tied Senate result from member Markdown', async () => {
+    const rollId = `senate-${C}-1-1`
+    db.responses.politicians = { data: { id: 'M001242', name: 'Bernie Moreno', chamber: 'senate', state: 'OH', party: 'Republican' } }
+    db.responses.member_congress_terms = { data: [{ congress: C, chamber: 'senate', state: 'OH', party: 'R', term_start: '2025-01-03' }] }
+    db.responses.votes = [
+      { data: [{ roll_call_id: rollId, position: 'Yea', voted_at: '2025-03-01' }], count: 1 },
+      { data: [{ voted_at: '2025-03-01' }] },
+    ]
+    db.responses.roll_calls = { data: [{ id: rollId, question: 'On Passage' }] }
+    db.responses.roll_call_stats = { data: [{ roll_call_id: rollId, dem_nay: 50, rep_yea: 50 }] }
+    const out = await fetchDocument({ id: 'member:M001242' })
+    expect(out.text).not.toMatch(/^- Serving .* since:/m)
+    expect(out.text).toContain('| On Passage |  | Yea |  | [record]')
+    expect(out.text).not.toContain('Failed on a tie')
+  })
+
+  it('omits a Speaker ballot position and appends the ballot note to member Markdown', async () => {
+    const rollId = `house-${C}-1-1`
+    db.responses.politicians = { data: { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democrat' } }
+    db.responses.member_congress_terms = { data: [{ congress: C, chamber: 'house', state: 'CA', district: '11', party: 'D', term_start: '2025-01-03' }] }
+    db.responses.votes = [
+      { data: [{ roll_call_id: rollId, position: 'Not Voting', voted_at: '2025-01-03' }], count: 1 },
+      { data: [{ voted_at: '2025-01-03' }] },
+    ]
+    db.responses.roll_calls = { data: [{ id: rollId, question: 'Election of the Speaker' }] }
+    db.responses.roll_call_stats = { data: [] }
+    const out = await fetchDocument({ id: 'member:P000197' })
+    expect(out.text).toContain(`- Serving in the ${C}th Congress since: 2025-01-03`)
+    expect(out.text).toContain('| Election of the Speaker |  |  |  | [record]')
+    expect(out.text.endsWith(`\n${NAMED_BALLOT_NOTE}\n`)).toBe(true)
   })
 
   it('fetch returns a bill with its explanation source and recorded votes', async () => {
@@ -529,6 +877,36 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
     expect(out.text).not.toMatch(/[A-Z]\d{6}/)
     expect(out.metadata).toMatchObject({ type: 'roll_call', roll_call_id: `house-${C}-1-145`, result: 'Passed', source_url: `https://clerk.house.gov/Votes/${1789 + 2 * (C - 1)}145` })
     expect(Object.values(out.metadata).every((v) => typeof v === 'string')).toBe(true)
+  })
+
+  it('prints party totals and the tie caveat in vote Markdown', async () => {
+    const id = `senate-${C}-1-125`
+    db.responses.roll_calls = { data: { id, question: 'On Passage', voted_at: '2025-07-01' } }
+    db.responses.roll_call_stats = { data: { dem_nay: 2, rep_yea: 2 } }
+    db.responses.votes = { data: [
+      ['S000033', 'Bernie Sanders', 'Independent', 'VT', 'Nay'],
+      ['K000383', 'Angus King', 'Independent', 'ME', 'Yea'],
+      ['S000148', 'Charles Schumer', 'Democrat', 'NY', 'Nay'],
+      ['M001242', 'Bernie Moreno', 'Republican', 'OH', 'Yea'],
+    ].map(([id, name, party, state, position]) => ({ position, politicians: { id, name, party, state, chamber: 'senate' } })) }
+    const out = await fetchDocument({ id: `vote:${id}` })
+    expect(out.text).toContain('- By party (yea-nay): Democrats 0-1, Republicans 1-0, Independents 1-1')
+    expect(out.text).toContain(`- Result: not derived. ${TIE_NOTE}`)
+    expect(out.metadata.result).toBeUndefined()
+  })
+
+  it('prints the named-ballot note and members listed without a vote breakdown', async () => {
+    const id = `house-${C}-1-1`
+    db.responses.roll_calls = { data: { id, question: 'Election of the Speaker', voted_at: '2025-01-03' } }
+    db.responses.roll_call_stats = { data: { dem_nay: 215, rep_yea: 220 } }
+    db.responses.votes = { data: [
+      { position: 'Not Voting', politicians: { id: 'P000197', name: 'Nancy Pelosi', party: 'Democrat', state: 'CA' } },
+      { position: 'Not Voting', politicians: { id: 'J000299', name: 'Mike Johnson', party: 'Republican', state: 'LA' } },
+    ] }
+    const out = await fetchDocument({ id: `vote:${id}` })
+    expect(out.text).toContain(`${NAMED_BALLOT_NOTE} 2 members are listed on this roll call.`)
+    expect(out.text).not.toMatch(/^- (?:Tally|By party|Result)|^\*\*Not Voting/m)
+    expect(out.metadata.result).toBeUndefined()
   })
 
   it('fetch reports an unknown id or a missing record as an error', async () => {

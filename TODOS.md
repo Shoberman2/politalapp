@@ -69,12 +69,12 @@
 **What to do:** Add a pg_cron job (or a step in the daily ETL) that deletes `api_usage` rows where `key_id IS NULL AND created_at < now() - interval '30 days'` in batches, and set `RATE_LIMIT_SALT` in the Vercel project.
 
 ## ~~ZIP-to-district crosswalk for the MCP find_representatives tool~~
-**Status:** Done (2026-11-25). `find_representatives` returns every district a ZIP touches from the Census Bureau's 119th Congressional District to ZCTA relationship file (`api/_lib/data/zipDistricts.js`, built by `scripts/build-zip-districts.mjs`), with the centroid path as fallback for ZIPs that have no Census area. Shares are of land area. The HUD crosswalk's residential ratios would be a better share and need a HUD API token; re-run the build script when the 120th Congress districts are published.
+**Status:** Done (2026-11-25). `find_representatives` returns every district holding 1% or more of a ZIP's land, and names smaller overlaps, from the Census Bureau's 119th Congressional District to ZCTA relationship file (`api/_lib/data/zipDistricts.js`, built by `scripts/build-zip-districts.mjs`), with the centroid path as fallback for ZIPs that have no Census area. Shares are of land area. The HUD crosswalk's residential ratios would be a better share and need a HUD API token; re-run the build script when the 120th Congress districts are published.
 
 ## Keep member_congress_terms current
 **Priority:** High
 **Blocked by:** Nothing
-**Context:** `term_end` is null on every row of `member_congress_terms` (14,834 of 14,834 on 2026-11-25), and members sworn in mid-Congress have votes but no term row (4 on that date: G000607, W000832, G000608, B001328). Anything that reads "current members" from that table lists people who left (Vance and Rubio as senators, Sylvester Turner in TX-18) and misses their replacements. The MCP tools no longer depend on it: `api/_lib/roster.js` reads who is serving from the newest complete roll call and asks Congress.gov for a missing district. The members index (`shared/membersIndex.js`, the "former" group) and `src/services/memberTerms.js` still trust `term_end`.
+**Context:** `term_end` is null on every row of `member_congress_terms` (14,834 of 14,834 on 2026-11-25), and members sworn in mid-Congress have votes but no term row (4 on that date: G000607, W000832, G000608, B001328). Anything that reads "current members" from that table lists people who left (Vance and Rubio as senators, Sylvester Turner in TX-18) and misses their replacements. The MCP tools no longer depend on it: `api/_lib/roster.js` reads who is serving from the newest complete roll call and asks Congress.gov for a missing district. The members index (`shared/membersIndex.js`, the "former" group) and `src/services/memberTerms.js` still trust `term_end`. `term_start` is the Congress's first day on every 119th-Congress row, so the record card says "Serving in the 119th Congress since: 2025-01-03" for a member sworn in later (Christian Menefee, February 2026); the MCP tools give the date only when the member's first vote is within 45 days of it.
 **What to do:** In the daily ETL, upsert a term row for every member in the Congress.gov current-member list and set `term_end` (and `reason_for_end`) for members who drop off it. Then let `shared/membersIndex.js` use the same rule as `api/_lib/roster.js`, or the fixed column.
 
 ## Fill votes.bill_id from the roll call
@@ -82,6 +82,21 @@
 **Blocked by:** Nothing
 **Context:** `votes.bill_id` is null on rows whose roll call names a bill (`roll_calls.bill_id`), for example every row of `house-119-2-327` (H.R. 4464). The MCP tools now read the bill from the roll call (`rollCallContext` in `api/_lib/mcpTools.js`). The member page loader (`getMemberPage` in `api/_lib/pages.js`) still reads `votes.bill_id`, so those votes show a question such as "On Motion to Suspend the Rules and Pass" with no bill.
 **What to do:** Backfill `votes.bill_id` from `roll_calls.bill_id` and set it in the loader, or read the bill through the roll call in `getMemberPage` and `getRecordPage`.
+
+## Tied Senate votes show "Failed on a tie" on the site
+**Priority:** High
+**Context:** `deriveResult` in `api/_lib/rollCallResult.js` (and its twin in `src/services/floorVotes.js`) reads a 50-50 Senate tally as "Failed on a tie". The Vice President's tie-breaking vote is not stored, so the vote page for `senate-119-1-372` says H.R. 1 failed on passage; it passed 51-50. 18 Senate roll calls of the 119th Congress are tied on the senators' tally (2026-11-25). The MCP tools now return no derived result for a tied Senate tally and say why (`tiedSenate` in `api/_lib/mcpTools.js`); the vote pages, the bill pages and the member record card still print the wrong word.
+**What to do:** Store the official result (and the Vice President's vote) from the Senate roll-call XML in the ETL, or return null from `deriveResult` for a tied Senate tally.
+
+## The Speaker's election is stored as 434 members "Not Voting"
+**Priority:** Medium
+**Context:** `house-119-1-2` ("Election of the Speaker") is a vote by name. The ETL keeps only Yea, Nay, Present and Not Voting, so all 434 rows read "Not Voting", and each member's not-voting count for the Congress includes it. The MCP tools withhold positions on that roll call (`namedBallot` in `api/_lib/mcpTools.js`); the vote page and member pages still show "Not Voting". The next one is the first week of January 2027.
+**What to do:** Load the candidate each member named, or mark the roll call so the pages and `member_stats` leave it out.
+
+## roll_call_stats counts Senate independents as Democrats
+**Priority:** Low
+**Context:** `roll_call_stats` puts Angus King and Bernie Sanders in `dem_yea` / `dem_nay` (`senate-119-1-372`: dem 0-47, ind 0-0), while the one House independent is counted under `ind_*`. The vote page prints those columns as a party split. `get_roll_call` now counts the split from the member rows; `get_recent_votes` returns the tally only.
+**What to do:** Decide whether the columns are party or caucus, compute them one way for both chambers, and label the vote page to match.
 
 ## List the MCP server in registries
 **Priority:** Medium

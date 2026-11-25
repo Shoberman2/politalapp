@@ -52,7 +52,7 @@
     {
       "name": "find_representatives",
       "title": "Find representatives",
-      "description": "Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns every district it touches (location.districts) and the member for each, so ask for a street address when the answer must be exact.",
+      "description": "Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns each district holding 1% or more of its land (location.districts) and the member for each; a district holding less is named in location.minor_overlaps without its members. Ask for a street address when the answer must be exact.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -75,13 +75,13 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       }
     },
     {
       "name": "search_members",
       "title": "Search members",
-      "description": "Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as \"Chuck Schumer\" or \"AOC\" into the Bioguide ID the other tools need. Nicknames, titles and close spellings are accepted. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.",
+      "description": "Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as \"Chuck Schumer\" or \"AOC\" into the Bioguide ID the other tools need. Nicknames, close spellings, titles (\"Rep.\", \"Sen.\") and a seat hint such as \"(R-TX)\" are understood. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -222,7 +222,7 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 100,
-            "description": "Default 50"
+            "description": "Default 25"
           },
           "offset": {
             "type": "integer",
@@ -306,7 +306,7 @@
     {
       "name": "get_recent_votes",
       "title": "Get recent votes",
-      "description": "Roll-call votes, newest first, with the question, bill, tally, party split and derived result. Use for \"what did Congress vote on this week\" or to find a roll call before calling get_roll_call. Filter by chamber, date range, bill, or words in the question, description or bill title (query \"nomination\", \"appropriations\", \"H.R. 1\").",
+      "description": "Roll-call votes, newest first, with the question, bill, tally and derived result. Use for \"what did Congress vote on this week\" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query \"nomination\", \"appropriations\"). A bill number in query (\"H.R. 1\") is treated as that bill.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -334,7 +334,7 @@
           "query": {
             "type": "string",
             "maxLength": 100,
-            "description": "Words that must all appear in the question, description or bill title"
+            "description": "Words that must all appear in the question, description or bill title, and/or a bill number"
           },
           "limit": {
             "type": "integer",
@@ -357,7 +357,7 @@
     {
       "name": "get_roll_call",
       "title": "Get roll call",
-      "description": "One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. Without a filter, every member comes back as a short string grouped by position. Filter by state, party, position or bioguide_ids to get one object per member, e.g. bioguide_ids to see how specific members voted or party \"R\" with position \"Nay\" for who broke ranks.",
+      "description": "One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format \"full\") to get one object per member, e.g. bioguide_ids to see how specific members voted or party \"R\" with position \"Nay\" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -570,13 +570,13 @@
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       }
     },
     {
       "name": "search",
       "title": "Search the record",
-      "description": "One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.",
+      "description": "One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, a roll call (\"House roll call 327\"), or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -603,7 +603,7 @@
     {
       "name": "fetch",
       "title": "Fetch a record",
-      "description": "The full text of one record from search, as Markdown with its sources: a member's record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io URL.",
+      "description": "The full text of one record from search, as Markdown with its sources: a member's record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io record URL. Returns { id, title, text, url, metadata } as JSON.",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -63,9 +63,13 @@ describe('getRoster: who is serving comes from the newest complete roll call', (
     // A term without a politicians row is still a citable stub.
     expect(m('S001150')).toMatchObject({ name: 'S001150', serving: true, party: 'Democrat' })
     expect(roster.servingAsOf).toEqual({ house: '2026-11-19', senate: '2026-11-19' })
-    // The newest roll call is the highest roll number on the newest day.
-    expect(db.ops('votes', 'eq').map((o) => o[2])).toEqual(expect.arrayContaining(['house-119-2-12', 'senate-119-2-12']))
-    expect(db.ops('votes', 'eq').map((o) => o[2])).not.toContain('house-119-2-4')
+    expect(db.ops('roll_calls', 'order')).toEqual(Array(2).fill(['order', 'voted_at', { ascending: false }]))
+    expect(db.ops('roll_calls', 'limit')).toEqual([['limit', 60], ['limit', 60]])
+    for (const chamber of ['house', 'senate']) {
+      expect(db.ops('votes', 'eq').map((o) => o[2]).filter((id) => id.startsWith(chamber))).toEqual([
+        `${chamber}-119-2-12`, `${chamber}-119-2-5`, `${chamber}-119-2-4`,
+      ])
+    }
   })
 
   it('skips a roll call that is still being ingested', async () => {
@@ -74,6 +78,22 @@ describe('getRoster: who is serving comes from the newest complete roll call', (
     expect(roster.byId.get('M001245').serving).toBe(true)
     expect(roster.byId.get('V000137').serving).toBe(false)
     expect(db.ops('votes', 'eq').map((o) => o[2])).toEqual(expect.arrayContaining(['house-119-2-12', 'house-119-2-5']))
+  })
+
+  it.each([
+    [400, '2026-11-19', true],
+    [430, '2026-11-20', false],
+  ])('uses the relative completeness of a House roll call with %i rows', async (newestRows, asOf, menefee) => {
+    const house = [...filler('H', 430), 'M001245', ...filler('X', 2)]
+    seedRosterTables(db, { politicians: POLITICIANS, terms: TERMS, seated: { ...SEATED, house }, newestRows })
+    const rollCalls = db.responses.roll_calls
+    db.responses.roll_calls = (call) => {
+      const { data } = rollCalls(call)
+      return { data: data.map((r) => r.id === 'house-119-2-12' ? { ...r, voted_at: '2026-11-20' } : r) }
+    }
+    const roster = await getRoster(119)
+    expect(roster.servingAsOf.house).toBe(asOf)
+    expect(roster.byId.get('M001245').serving).toBe(menefee)
   })
 
   it('falls back to holding a term when no roll call can say', async () => {
@@ -128,6 +148,10 @@ describe('member name search', () => {
     { id: 'J000293', name: 'Ron Johnson', chamber: 'senate', state: 'WI', party: 'Republican' },
     { id: 'N000147', name: 'Eleanor Norton', chamber: 'house', state: 'DC', district: '0', party: 'Democrat' },
     { id: 'D000594', name: 'Monica De La Cruz', chamber: 'house', state: 'TX', district: '15', party: 'Republican' },
+    { id: 'C001125', name: 'Troy Carter', chamber: 'house', state: 'LA', district: '2', party: 'Democrat' },
+    { id: 'B001298', name: 'Don Bacon', chamber: 'house', state: 'NE', district: '2', party: 'Republican' },
+    { id: 'C001103', name: 'Earl Carter', chamber: 'house', state: 'GA', district: '1', party: 'Republican' },
+    { id: 'G000586', name: 'Jesús García', chamber: 'house', state: 'IL', district: '4', party: 'Democrat' },
     { id: 'C001098', name: 'Ted Cruz', chamber: 'senate', state: 'TX', party: 'Republican' },
     { id: 'M001242', name: 'Bernie Moreno', chamber: 'senate', state: 'OH', party: 'Republican' },
     { id: 'H001104', name: 'Jon Husted', chamber: 'senate', state: 'OH', party: 'Republican' },
@@ -158,10 +182,42 @@ describe('member name search', () => {
   })
 
   it('reads a seat hint and applies filters', () => {
-    expect(parseMemberQuery('Sen. Ted Cruz (R-TX)')).toEqual({ tokens: ['ted', 'cruz'], party: 'Republican', state: 'TX' })
+    expect(parseMemberQuery('Sen. Ted Cruz (R-TX)')).toEqual({ tokens: ['ted', 'cruz'], party: 'Republican', state: 'TX', district: null, chamber: 'senate' })
     expect(find({ query: 'Johnson (R-WI)' })).toEqual(['J000293'])
     expect(find({ query: 'Johnson', chamber: 'house', state: 'South Dakota' })).toEqual(['J000301'])
     expect(find({ query: 'Cruz', party: 'D' })).toEqual([])
+  })
+
+  it('parses lowercase seat hints, numbered districts, at-large seats and dotted initials', () => {
+    expect(parseMemberQuery('Troy Carter (d-la)')).toEqual({ tokens: ['troy', 'carter'], party: 'Democrat', state: 'LA', district: null, chamber: null })
+    expect(parseMemberQuery('Don Bacon R-NE-2')).toEqual({ tokens: ['don', 'bacon'], party: 'Republican', state: 'NE', district: '2', chamber: null })
+    expect(parseMemberQuery('(D-AK-AL)')).toEqual({ tokens: [], party: 'Democrat', state: 'AK', district: '0', chamber: null })
+    expect(parseMemberQuery('A. O. C.')).toEqual({ tokens: ['aoc'], party: null, state: null, district: null, chamber: null })
+    expect(find({ query: 'Troy Carter (d-la)' })).toEqual(['C001125'])
+    expect(find({ query: 'Don Bacon R-NE-2' })).toEqual(['B001298'])
+    expect(find({ query: 'Don Bacon R-NE-1' })).toEqual([])
+    expect(find({ query: 'A. O. C.' })).toEqual(['O000172'])
+  })
+
+  it('uses titles for chamber selection, with an explicit override', () => {
+    for (const title of ['Rep.', 'Representative', 'Congressman', 'Congresswoman', 'Delegate', 'Speaker']) {
+      expect(parseMemberQuery(`${title} Johnson`).chamber).toBe('house')
+    }
+    for (const title of ['Sen.', 'Senator']) expect(parseMemberQuery(`${title} Johnson`).chamber).toBe('senate')
+    expect(find({ query: 'Rep. Johnson' })).toEqual(['J000301', 'J000299'])
+    expect(find({ query: 'Rep. Ron Johnson' })).toEqual(['J000301', 'J000299'])
+    expect(find({ query: 'Rep. Ron Johnson', ignoreTitle: true })).toEqual(['J000293'])
+    expect(find({ query: 'Rep. Ron Johnson', chamber: 'senate' })).toEqual(['J000293'])
+    expect(find({ query: 'Sen. Mike Johnson R-LA-4' })).toEqual(['J000299'])
+  })
+
+  it('applies state, chamber and party filters to Bioguide searches and resolves additional nicknames', () => {
+    expect(find({ query: 'p000197', state: 'CA', chamber: 'house', party: 'D' })).toEqual(['P000197'])
+    expect(find({ query: 'P000197', state: 'NY' })).toEqual([])
+    expect(find({ query: 'P000197', chamber: 'senate' })).toEqual([])
+    expect(find({ query: 'P000197', party: 'R' })).toEqual([])
+    expect(find({ query: 'Buddy Carter' })).toEqual(['C001103'])
+    expect(find({ query: 'Chuy Garcia' })).toEqual(['G000586'])
   })
 
   it('lists sitting members in seat order without a name, and former ones only on request', () => {

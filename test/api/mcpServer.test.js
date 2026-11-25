@@ -22,8 +22,9 @@ vi.mock('../../api/_lib/mcpTools.js', () => ({
   BILL_STAGES: ['introduced', 'enacted'],
 }))
 
-import { buildServer, TOOL_NAMES, PROMPTS, SERVER_INFO } from '../../api/mcp.js'
+import { buildServer, TOOL_NAMES, PROMPTS, SERVER_INFO, TOOLS, toolAnnotations } from '../../api/mcp.js'
 import handler from '../../api/mcp.js'
+import { getMemberVotes } from '../../api/_lib/mcpTools.js'
 
 async function connectedClient() {
   const [clientT, serverT] = InMemoryTransport.createLinkedPair()
@@ -50,16 +51,15 @@ describe('MCP server', () => {
     ]))
   })
 
-  it('serves search and fetch in the shape ChatGPT deep research expects: JSON text plus the same structured content', async () => {
+  it('serves search as structured content and JSON text, and fetch as JSON text alone', async () => {
     const client = await connectedClient()
     const { tools } = await client.listTools()
     const byName = Object.fromEntries(tools.map((t) => [t.name, t]))
     expect(byName.search.inputSchema.required).toEqual(['query'])
     expect(byName.search.outputSchema.properties.results.items.required).toEqual(['id', 'title', 'url'])
     expect(byName.fetch.inputSchema.required).toEqual(['id'])
-    expect(byName.fetch.outputSchema.required).toEqual(['id', 'title', 'text', 'url'])
-    // Only these two declare an output schema; the rest return JSON text alone.
-    expect(tools.filter((t) => t.outputSchema).map((t) => t.name).sort()).toEqual(['fetch', 'search'])
+    expect(byName.fetch.outputSchema).toBeUndefined()
+    expect(tools.filter((t) => t.outputSchema).map((t) => t.name)).toEqual(['search'])
 
     const found = await client.callTool({ name: 'search', arguments: { query: 'Nancy Pelosi' } })
     expect(found.isError).toBeFalsy()
@@ -67,8 +67,10 @@ describe('MCP server', () => {
     expect(JSON.parse(found.content[0].text)).toEqual(found.structuredContent)
 
     const doc = await client.callTool({ name: 'fetch', arguments: { id: 'member:P000197' } })
-    expect(doc.structuredContent).toEqual({ id: 'member:P000197', title: 'Nancy Pelosi', text: '# Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi', metadata: { type: 'member' } })
-    expect(JSON.parse(doc.content[0].text)).toEqual(doc.structuredContent)
+    expect(doc.isError).toBeFalsy()
+    expect(doc.structuredContent).toBeUndefined()
+    expect(doc.content.map((c) => c.type)).toEqual(['text'])
+    expect(JSON.parse(doc.content[0].text)).toEqual({ id: 'member:P000197', title: 'Nancy Pelosi', text: '# Nancy Pelosi', url: 'https://www.ballotwatch.io/politician/P000197-nancy-pelosi', metadata: { type: 'member' } })
 
     // An error carries no structured content and is flagged, not thrown.
     const missing = await client.callTool({ name: 'fetch', arguments: { id: 'nope' } })
@@ -84,7 +86,9 @@ describe('MCP server', () => {
     for (const t of tools) {
       expect(t.title, t.name).toBeTruthy()
       expect(t.description.length, t.name).toBeGreaterThan(40)
-      expect(t.annotations, t.name).toEqual({ title: t.title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false })
+      const expected = { title: t.title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: ['find_representatives', 'get_floor_schedule'].includes(t.name) }
+      expect(t.annotations, t.name).toEqual(expected)
+      expect(toolAnnotations(TOOLS.find(({ name }) => name === t.name)), t.name).toEqual(expected)
       expect(t.inputSchema.type).toBe('object')
     }
     expect(client.getServerVersion()).toMatchObject({ name: 'ballotwatch', title: 'BallotWatch', version: SERVER_INFO.version, websiteUrl: 'https://www.ballotwatch.io' })
@@ -165,6 +169,19 @@ describe('MCP server', () => {
     expect(tooLong.isError).toBe(true)
     const badDate = await client.callTool({ name: 'get_member_votes', arguments: { bioguide_id: 'P000197', since: '2026-01' } })
     expect(badDate.isError).toBe(true)
+  })
+
+  it('rejects impossible calendar dates at the protocol boundary and documents the vote limit', async () => {
+    const client = await connectedClient()
+    const { tools } = await client.listTools()
+    expect(tools.find((t) => t.name === 'get_member_votes').inputSchema.properties.limit.description).toBe('Default 25')
+    getMemberVotes.mockClear()
+    const invalid = await client.callTool({ name: 'get_member_votes', arguments: { bioguide_id: 'P000197', since: '2026-02-30' } })
+    expect(invalid.isError).toBe(true)
+    expect(getMemberVotes).not.toHaveBeenCalled()
+    const valid = await client.callTool({ name: 'get_member_votes', arguments: { bioguide_id: 'P000197', since: '2024-02-29' } })
+    expect(valid.isError).toBeFalsy()
+    expect(getMemberVotes).toHaveBeenCalledExactlyOnceWith({ bioguide_id: 'P000197', since: '2024-02-29' })
   })
 
   it('serves a manifest on GET and a 405 to stream probes', async () => {

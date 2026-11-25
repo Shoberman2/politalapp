@@ -21,7 +21,14 @@ const TTL_MS = 10 * 60 * 1000
 // A roll call with fewer rows than this is still being ingested (or is not a
 // full-chamber vote) and cannot say who is seated.
 const MIN_SEATED = { house: 400, senate: 90 }
-const LATEST_SCAN = 8
+// A vote series can put dozens of roll calls on one date; read enough of the
+// newest to order them by roll number here (the table has no numeric column).
+const LATEST_SCAN = 60
+// How many of the newest roll calls are compared, and how far a roll call may
+// fall short of the fullest of them (a seat or two changes hands; a half-
+// loaded roll call is short by dozens).
+const SEATED_SAMPLE = 3
+const SEATED_SLACK = 3
 const DISTRICT_LOOKUP_TIMEOUT_MS = 4000
 
 export function currentCongress(date = new Date()) {
@@ -64,11 +71,16 @@ async function seatedIn(chamber, congress) {
     .map((r) => ({ ...r, meta: parseRollCallId(r.id) }))
     .filter((r) => r.meta)
     .sort((a, b) => String(b.voted_at).localeCompare(String(a.voted_at)) || b.meta.session - a.meta.session || b.meta.roll - a.meta.roll)
-  for (const rc of newestFirst.slice(0, 3)) {
-    const rows = must(await supabaseAdmin.from('votes').select('politician_id').eq('roll_call_id', rc.id).limit(MAX_ROLL_CALL_ROWS), 'votes')
-    if (rows.length >= MIN_SEATED[chamber]) return { ids: new Set(rows.map((r) => r.politician_id)), asOf: rc.voted_at, rollCallId: rc.id }
-  }
-  return null
+  const sample = await Promise.all(newestFirst.slice(0, SEATED_SAMPLE).map(async (rc) => ({
+    rc,
+    rows: must(await supabaseAdmin.from('votes').select('politician_id').eq('roll_call_id', rc.id).limit(MAX_ROLL_CALL_ROWS), 'votes'),
+  })))
+  // The newest roll call that is as full as its neighbours: one still being
+  // loaded lists fewer members and would mark the rest as gone.
+  const fullest = Math.max(0, ...sample.map((s) => s.rows.length))
+  const pick = sample.find((s) => s.rows.length >= MIN_SEATED[chamber] && s.rows.length >= fullest - SEATED_SLACK)
+  if (!pick) return null
+  return { ids: new Set(pick.rows.map((r) => r.politician_id)), asOf: pick.rc.voted_at, rollCallId: pick.rc.id }
 }
 
 // A member sworn in mid-Congress has no term row yet, so no district. Ask
@@ -175,6 +187,12 @@ const TITLES = new Set([
   'delegate', 'del', 'speaker', 'leader', 'whip', 'chair', 'chairman', 'chairwoman', 'mr', 'mrs', 'ms', 'dr', 'hon', 'the',
 ])
 const SUFFIXES = new Set(['jr', 'sr', 'ii', 'iii', 'iv'])
+// A title that says which chamber the person means.
+const TITLE_CHAMBER = {
+  sen: 'senate', senator: 'senate',
+  rep: 'house', representative: 'house', congressman: 'house', congresswoman: 'house', congressmember: 'house', congressperson: 'house',
+  delegate: 'house', del: 'house', speaker: 'house',
+}
 
 // Given names people use interchangeably. The record stores whichever form
 // the member uses ("Bernie Sanders" but "Charles Schumer"), so a search has to
@@ -196,6 +214,7 @@ const NICKNAME_GROUPS = [
   ['rebecca', 'becca', 'becky'], ['jennifer', 'jen', 'jenny'], ['kimberly', 'kim'], ['pamela', 'pam'], ['sandra', 'sandy'],
   ['teresa', 'terri', 'terry'], ['barbara', 'barb'], ['marcus', 'marc'], ['randall', 'randy'], ['rodney', 'rod'],
   ['bradley', 'brad'], ['clifford', 'cliff'], ['dennis', 'denny'], ['wesley', 'wes'], ['maxwell', 'max'], ['valerie', 'val'],
+  ['earl', 'buddy'], ['jesus', 'chuy'],
 ]
 const NICKNAMES = new Map()
 for (const group of NICKNAME_GROUPS) {
@@ -273,15 +292,23 @@ export function stateCode(value) {
   return STATE_NAMES[abbr] ? abbr : null
 }
 
-// Strip a title and a trailing "(R-TX)" from what a person typed.
+// Read what a person typed: the name words, the chamber a title implies
+// ("Rep.", "Senator") and a seat hint such as "(R-TX)" or "d-la-2".
 export function parseMemberQuery(query) {
   const raw = String(query || '')
-  const hint = /\(?\b([DRI])-([A-Za-z]{2})(?:-(\d{1,2}|AL))?\)?/.exec(raw)
-  const tokens = nameTokens(hint ? raw.replace(hint[0], ' ') : raw).filter((t) => !TITLES.has(t) && !SUFFIXES.has(t))
+  const hint = /\(?(?<![A-Za-z])([DRI])-([A-Za-z]{2})(?![A-Za-z])(?:-(\d{1,2}|AL))?\)?/i.exec(raw)
+  const words = nameTokens(hint ? raw.replace(hint[0], ' ') : raw)
+  const title = words.find((t) => TITLE_CHAMBER[t])
+  let tokens = words.filter((t) => !TITLES.has(t) && !SUFFIXES.has(t))
+  // "A. O. C." is the initials "aoc".
+  if (tokens.length > 1 && tokens.every((t) => t.length === 1)) tokens = [tokens.join('')]
+  const state = hint ? stateCode(hint[2]) : null
   return {
     tokens,
-    party: hint ? partyName(hint[1]) : null,
-    state: hint ? stateCode(hint[2]) : null,
+    party: hint && state ? partyName(hint[1]) : null,
+    state,
+    district: hint && state && hint[3] ? (/^al$/i.test(hint[3]) ? '0' : String(Number(hint[3]))) : null,
+    chamber: title ? TITLE_CHAMBER[title] : null,
   }
 }
 
@@ -289,22 +316,25 @@ const seatOrder = (m) => `${m.chamber === 'senate' ? 0 : 1}-${m.state || ''}-${S
 
 // Members matching a name and/or filters, best match first. Without a name
 // the list is the filtered roster in seat order.
-export function searchRoster(roster, { query, state, chamber, party, includeFormer = false } = {}) {
+export function searchRoster(roster, { query, state, chamber, party, includeFormer = false, ignoreTitle = false } = {}) {
   const parsed = parseMemberQuery(query)
   const wantState = state ? stateCode(state) : parsed.state
   const wantParty = party ? partyName(party) : parsed.party
-  const wantChamber = chamber ? String(chamber).toLowerCase() : null
+  // An explicit chamber wins over the one a title implies; a district in the
+  // seat hint means the House.
+  const wantChamber = chamber ? String(chamber).toLowerCase() : (parsed.district ? 'house' : ignoreTitle ? null : parsed.chamber)
   const pool = roster.members.filter((m) =>
     (!wantState || m.state === wantState)
     && (!wantChamber || m.chamber === wantChamber)
-    && (!wantParty || m.party === wantParty))
+    && (!wantParty || m.party === wantParty)
+    && (!parsed.district || m.district === parsed.district))
 
   if (!parsed.tokens.length) {
     return pool.filter((m) => includeFormer || m.serving).sort((a, b) => seatOrder(a).localeCompare(seatOrder(b))).map((m) => ({ member: m, score: null }))
   }
-  // A Bioguide ID typed as the query is a direct hit.
+  // A Bioguide ID typed as the query is a direct hit, within the filters.
   const asId = String(query || '').trim().toUpperCase()
-  if (/^[A-Z]\d{6}$/.test(asId) && roster.byId.has(asId)) return [{ member: roster.byId.get(asId), score: 100 }]
+  if (/^[A-Z]\d{6}$/.test(asId) && roster.byId.has(asId)) return pool.filter((m) => m.id === asId).map((member) => ({ member, score: 100 }))
 
   // A name search also covers members who have left (serving: false), so
   // "how did Vance vote as a senator" still resolves.

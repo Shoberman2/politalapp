@@ -31,13 +31,17 @@ export const SERVER_INFO = {
 }
 
 const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
+  .refine((s) => { const d = new Date(`${s}T00:00:00Z`); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s }, 'Not a real calendar date')
 const BIOGUIDE = z.string().max(7).describe('Bioguide ID, e.g. P000197')
 const CHAMBER = z.enum(['house', 'senate'])
 const POSITION = z.enum(['Yea', 'Nay', 'Present', 'Not Voting'])
 const STATE = z.string().max(30).describe('State or territory, by name or two-letter code, e.g. "Ohio" or "OH"')
 const PARTY = z.string().max(20).describe('D, R or I (or Democrat, Republican, Independent)')
 
-// Every tool only reads the public record.
+// Every tool only reads the public record. Most read BallotWatch's own
+// database; a tool marked `live` also calls a public service at request time
+// (the Census geocoder, the House floor schedule), which is what
+// openWorldHint tells a client.
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
 
 // One list drives registration, the discovery document, and the tests.
@@ -45,14 +49,15 @@ export const TOOLS = [
   {
     name: 'find_representatives',
     title: 'Find representatives',
-    description: 'Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns every district it touches (location.districts) and the member for each, so ask for a street address when the answer must be exact.',
+    description: 'Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns each district holding 1% or more of its land (location.districts) and the member for each; a district holding less is named in location.minor_overlaps without its members. Ask for a street address when the answer must be exact.',
     inputSchema: { address: z.string().max(200).optional().describe('Full street address'), zip: z.string().max(10).optional().describe('5-digit ZIP code') },
+    live: true,
     run: tools.findRepresentatives,
   },
   {
     name: 'search_members',
     title: 'Search members',
-    description: 'Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as "Chuck Schumer" or "AOC" into the Bioguide ID the other tools need. Nicknames, titles and close spellings are accepted. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.',
+    description: 'Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as "Chuck Schumer" or "AOC" into the Bioguide ID the other tools need. Nicknames, close spellings, titles ("Rep.", "Sen.") and a seat hint such as "(R-TX)" are understood. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.',
     inputSchema: {
       query: z.string().max(100).optional().describe('Full or partial name, e.g. "Pelosi" or "Sen. Ted Cruz". Omit to list by the filters.'),
       state: STATE.optional(),
@@ -87,7 +92,7 @@ export const TOOLS = [
       position: POSITION.optional(),
       since: DATE.optional().describe('YYYY-MM-DD, inclusive'),
       until: DATE.optional().describe('YYYY-MM-DD, inclusive'),
-      limit: z.number().int().min(1).max(100).optional().describe('Default 50'),
+      limit: z.number().int().min(1).max(100).optional().describe('Default 25'),
       offset: z.number().int().min(0).max(100000).optional().describe('Skip this many votes (for the next page)'),
     },
     run: tools.getMemberVotes,
@@ -109,13 +114,13 @@ export const TOOLS = [
   {
     name: 'get_recent_votes',
     title: 'Get recent votes',
-    description: 'Roll-call votes, newest first, with the question, bill, tally, party split and derived result. Use for "what did Congress vote on this week" or to find a roll call before calling get_roll_call. Filter by chamber, date range, bill, or words in the question, description or bill title (query "nomination", "appropriations", "H.R. 1").',
+    description: 'Roll-call votes, newest first, with the question, bill, tally and derived result. Use for "what did Congress vote on this week" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query "nomination", "appropriations"). A bill number in query ("H.R. 1") is treated as that bill.',
     inputSchema: {
       chamber: CHAMBER.optional(),
       since: DATE.optional().describe('YYYY-MM-DD, inclusive'),
       until: DATE.optional().describe('YYYY-MM-DD, inclusive'),
       bill: z.string().max(40).optional().describe('Only roll calls on this bill: 119-hr-1 or "H.R. 1"'),
-      query: z.string().max(100).optional().describe('Words that must all appear in the question, description or bill title'),
+      query: z.string().max(100).optional().describe('Words that must all appear in the question, description or bill title, and/or a bill number'),
       limit: z.number().int().min(1).max(50).optional().describe('Default 20'),
     },
     run: tools.getRecentVotes,
@@ -123,7 +128,7 @@ export const TOOLS = [
   {
     name: 'get_roll_call',
     title: 'Get roll call',
-    description: 'One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. Without a filter, every member comes back as a short string grouped by position. Filter by state, party, position or bioguide_ids to get one object per member, e.g. bioguide_ids to see how specific members voted or party "R" with position "Nay" for who broke ranks.',
+    description: 'One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format "full") to get one object per member, e.g. bioguide_ids to see how specific members voted or party "R" with position "Nay" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.',
     inputSchema: {
       congress: z.number().int().min(1).max(200),
       chamber: CHAMBER,
@@ -170,15 +175,17 @@ export const TOOLS = [
     title: 'Get House floor schedule',
     description: 'What the House may take up this week and next (or the week containing a given date), read live from the Majority Leader\'s schedule on docs.house.gov: each item\'s label, title, procedure, and bill page. Use for "what is Congress voting on this week". House only; the Senate publishes no equivalent. Cite each week\'s source_url.',
     inputSchema: { week: DATE.optional().describe('YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.') },
+    live: true,
     run: tools.getFloorSchedule,
   },
   // The generic pair ChatGPT deep research and company knowledge call
-  // (https://developers.openai.com/api/docs/mcp). Both return structured
-  // content in the documented shape as well as the JSON text.
+  // (https://developers.openai.com/api/docs/mcp), each returning one text
+  // item holding the documented JSON. search also returns it as structured
+  // content; fetch does not, so a long document is not sent twice.
   {
     name: 'search',
     title: 'Search the record',
-    description: 'One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.',
+    description: 'One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, a roll call ("House roll call 327"), or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.',
     inputSchema: { query: z.string().max(200).describe('e.g. "Nancy Pelosi", "43215", "H.R. 1", "veterans health"') },
     outputSchema: { results: z.array(z.object({ id: z.string(), title: z.string(), url: z.string() })) },
     run: tools.search,
@@ -186,14 +193,17 @@ export const TOOLS = [
   {
     name: 'fetch',
     title: 'Fetch a record',
-    description: 'The full text of one record from search, as Markdown with its sources: a member\'s record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io URL.',
+    description: 'The full text of one record from search, as Markdown with its sources: a member\'s record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io record URL. Returns { id, title, text, url, metadata } as JSON.',
     inputSchema: { id: z.string().max(200).describe('An id returned by search, or a ballotwatch.io record URL') },
-    outputSchema: { id: z.string(), title: z.string(), text: z.string(), url: z.string(), metadata: z.record(z.string()).optional() },
     run: tools.fetchDocument,
   },
 ]
 
 export const TOOL_NAMES = TOOLS.map((t) => t.name)
+
+export function toolAnnotations(t) {
+  return { title: t.title, ...READ_ONLY, openWorldHint: Boolean(t.live) }
+}
 
 // Ready-made questions a client can offer as slash commands. Each one names
 // the tools to use, so the answer is built from the record and cited.
@@ -250,7 +260,7 @@ function text(obj, structured = false) {
 export function buildServer({ onToolCall } = {}) {
   const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS })
   for (const t of TOOLS) {
-    const config = { title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: { title: t.title, ...READ_ONLY } }
+    const config = { title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: toolAnnotations(t) }
     if (t.outputSchema) config.outputSchema = t.outputSchema
     server.registerTool(t.name, config, async (args) => {
       const started = Date.now()
