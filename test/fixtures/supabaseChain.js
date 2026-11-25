@@ -1,8 +1,9 @@
 // Stand-in for a supabase-js client. `from(table)` returns a chainable,
 // thenable query builder: every builder method records its call and returns
 // the builder; awaiting the builder resolves to the canned response for that
-// table. A table's response is one { data, error, count } object, or an array
-// of them consumed in order (the last one repeats).
+// table. A table's response is one { data, error, count } object, an array
+// of them consumed in order (the last one repeats), or a function of the
+// recorded call ({ table, ops }) for tables read more than one way.
 export function makeSupabaseMock() {
   const responses = {}
   const calls = []
@@ -12,8 +13,9 @@ export function makeSupabaseMock() {
     'order', 'limit', 'range', 'maybeSingle', 'single',
   ]
 
-  function respond(table) {
+  function respond(table, call) {
     const r = responses[table]
+    if (typeof r === 'function') return r(call) || { data: null, error: null }
     if (Array.isArray(r)) return r.length > 1 ? r.shift() : (r[0] || { data: null, error: null })
     return r || { data: null, error: null }
   }
@@ -25,7 +27,7 @@ export function makeSupabaseMock() {
     for (const m of METHODS) {
       chain[m] = (...args) => { call.ops.push([m, ...args]); return chain }
     }
-    chain.then = (resolve, reject) => Promise.resolve(respond(table)).then(resolve, reject)
+    chain.then = (resolve, reject) => Promise.resolve(respond(table, call)).then(resolve, reject)
     return chain
   }
 

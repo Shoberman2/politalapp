@@ -127,9 +127,10 @@ async function loadMcp() {
   const [a, b] = InMemoryTransport.createLinkedPair()
   await Promise.all([server.connect(a), client.connect(b)])
   const { tools } = await client.listTools()
+  const { prompts } = await client.listPrompts()
   await client.close()
   await server.close()
-  return { tools, instructions: mcp.INSTRUCTIONS, serverInfo: mcp.SERVER_INFO }
+  return { tools, prompts, instructions: mcp.INSTRUCTIONS, serverInfo: mcp.SERVER_INFO }
 }
 
 function describeToolArgs(schema) {
@@ -157,7 +158,7 @@ export async function build() {
   const { METHODOLOGY_PAGES } = await import('../src/data/openSource.js')
   const llms = read('public/llms.txt').trim()
   const api = parseOpenApi(read('docs/api/openapi.yaml'))
-  const { tools, instructions, serverInfo } = await loadMcp()
+  const { tools, prompts, instructions, serverInfo } = await loadMcp()
   const S = od.SITE_ORIGIN
 
   const out = []
@@ -219,6 +220,11 @@ export async function build() {
   for (const t of tools) {
     out.push('', `## ${t.name}${t.title ? ` (${t.title})` : ''}`, '', t.description, 'Arguments:', ...describeToolArgs(t.inputSchema))
   }
+  out.push('', '## Prompts', '', 'Ready-made questions, offered as slash commands by clients that support MCP prompts. Each one tells the model which tools to call and to cite its sources.')
+  for (const p of prompts) {
+    const args = (p.arguments || []).map((a) => a.name).join(', ')
+    out.push(`  - ${p.name}(${args})${p.title ? ` "${p.title}"` : ''}: ${p.description}`)
+  }
 
   h('5. Data sources')
   out.push(`Every upstream source and how often BallotWatch reads it (${S}/data-sources):`)
@@ -251,13 +257,14 @@ export async function build() {
     remotes: [{ type: 'streamable-http', url: `${S}/mcp` }],
     transport: { type: 'streamable-http', endpoint: `${S}/mcp`, stateless: true },
     authentication: { required: false, schemes: [] },
-    serverInfo: { name: serverInfo.name, version: serverInfo.version },
-    capabilities: { tools: { listChanged: false } },
+    serverInfo: { name: serverInfo.name, title: serverInfo.title, version: serverInfo.version },
+    capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },
     instructions,
     limits: '60 requests per minute and 5,000 per day per IP',
     documentation: { llms: `${S}/llms.txt`, llmsFull: `${S}/llms-full.txt`, openapi: `${S}/openapi.yaml`, openData: od.MANIFEST_URL },
     license: { code: 'MIT', data: od.DATA_LICENSE.id },
-    tools: tools.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema })),
+    tools: tools.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations })),
+    prompts: prompts.map((p) => ({ name: p.name, title: p.title, description: p.description, arguments: p.arguments || [] })),
   }
   const cardText = JSON.stringify(card, null, 2) + '\n'
   return { [LLMS_FULL]: text, [SERVER_CARD]: cardText }

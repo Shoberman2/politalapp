@@ -4,7 +4,9 @@ import { resolve } from 'path'
 import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 
 const db = makeSupabaseMock()
+const roster = vi.hoisted(() => ({ getRoster: vi.fn() }))
 vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
+vi.mock('../../api/_lib/roster.js', async (original) => ({ ...(await original()), getRoster: roster.getRoster }))
 
 import { getFloorSchedule, getMemberRecord } from '../../api/_lib/mcpTools.js'
 import { _resetFloorScheduleMemo, SENATE_NOTE } from '../../api/_lib/floorSchedule.js'
@@ -74,7 +76,12 @@ describe('get_floor_schedule', () => {
 })
 
 describe('get_member_record', () => {
-  beforeEach(() => { db.reset(); _resetEtlMetaCache() })
+  beforeEach(() => {
+    db.reset()
+    _resetEtlMetaCache()
+    roster.getRoster.mockReset()
+    roster.getRoster.mockResolvedValue({ byId: new Map([['P000197', { id: 'P000197', serving: true }]]) })
+  })
 
   function seed() {
     db.responses.politicians = { data: { id: 'P000197', name: 'Nancy Pelosi', chamber: 'house', state: 'CA', district: '11', party: 'Democratic', photo_url: null } }
@@ -104,6 +111,7 @@ describe('get_member_record', () => {
     const out = await getMemberRecord({ bioguide_id: 'p000197' })
     expect(out).toMatchObject({
       bioguide_id: 'P000197', name: 'Nancy Pelosi', party: 'Democratic', chamber: 'house', state: 'CA', district: '11',
+      serving: true,
       serving_since: '2025-01-03',
       this_congress: { congress: 119, roll_calls: 400, votes_cast: 372, not_voting: 28, not_voting_pct: 7 },
       recorded_votes: 812,
@@ -120,6 +128,7 @@ describe('get_member_record', () => {
     expect(out.recent_votes[0]).toEqual({
       voted_at: '2026-09-18',
       question: 'On Passage',
+      description: null,
       bill: { id: '119-hr-4931', label: 'H.R. 4931', title: 'A real bill title', canonical: 'https://www.ballotwatch.io/bill/119/hr/4931' },
       position: 'Yea',
       result: expect.any(String),
@@ -131,6 +140,23 @@ describe('get_member_record', () => {
     // The card never reads campaign-finance tables.
     expect(db.tables().some((t) => /fec|donor|contribution|donation/i.test(t))).toBe(false)
     expect(db.ops('votes', 'limit')[0]).toEqual(['limit', 10])
+  })
+
+  it('names the bill from the roll call when the vote row has none, and reports serving as unknown when the roster cannot be read', async () => {
+    seed()
+    roster.getRoster.mockRejectedValue(new Error('down'))
+    db.responses.votes = { data: [
+      { roll_call_id: 'house-119-2-327', position: 'Yea', voted_at: '2026-11-19', source_url: null, bill_id: null, bills: null },
+    ], count: 1 }
+    db.responses.roll_calls = { data: [
+      { id: 'house-119-2-327', question: 'On Motion to Suspend the Rules and Pass', description: 'Suspension', bill_id: '119-hr-4464', bills: { id: '119-hr-4464', title: 'Preventive Health Savings Act' } },
+    ] }
+    const out = await getMemberRecord({ bioguide_id: 'P000197' })
+    expect(out.serving).toBeNull()
+    expect(out.recent_votes[0]).toMatchObject({
+      description: 'Suspension',
+      bill: { id: '119-hr-4464', label: 'H.R. 4464', title: 'Preventive Health Savings Act', canonical: 'https://www.ballotwatch.io/bill/119/hr/4464' },
+    })
   })
 
   it('reports an unknown member and a malformed id as errors', async () => {

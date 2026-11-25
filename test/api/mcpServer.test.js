@@ -13,9 +13,14 @@ vi.mock('../../api/_lib/mcpTools.js', () => ({
   explainBill: vi.fn(async () => ({ plain_english: null })),
   getFloorSchedule: vi.fn(async ({ week } = {}) => ({ weeks: week ? [{ week }] : [] })),
   getMemberRecord: vi.fn(async ({ bioguide_id }) => (bioguide_id === 'P000197' ? { name: 'Nancy Pelosi', canonical: 'https://www.ballotwatch.io/politician/P000197/record' } : { error: `No member with Bioguide ID ${bioguide_id}` })),
+  searchMembers: vi.fn(async ({ query }) => ({ query, members: [{ bioguide_id: 'S000148', name: 'Charles Schumer' }] })),
+  getMemberBills: vi.fn(async () => ({ sponsored: { total: 0, bills: [] } })),
+  compareMembers: vi.fn(async () => ({ same_vote_pct: 50 })),
+  getRecentVotes: vi.fn(async (args) => ({ args, votes: [] })),
+  BILL_STAGES: ['introduced', 'enacted'],
 }))
 
-import { buildServer, TOOL_NAMES } from '../../api/mcp.js'
+import { buildServer, TOOL_NAMES, PROMPTS, SERVER_INFO } from '../../api/mcp.js'
 import handler from '../../api/mcp.js'
 
 async function connectedClient() {
@@ -32,12 +37,61 @@ function res() {
 }
 
 describe('MCP server', () => {
-  it('lists the nine documented tools through the public protocol', async () => {
+  it('lists the thirteen documented tools through the public protocol', async () => {
     const client = await connectedClient()
     const { tools } = await client.listTools()
     expect(tools.map((t) => t.name).sort()).toEqual([...TOOL_NAMES].sort())
-    expect(TOOL_NAMES).toHaveLength(9)
-    expect(TOOL_NAMES).toEqual(expect.arrayContaining(['get_floor_schedule', 'get_member_record']))
+    expect(TOOL_NAMES).toHaveLength(13)
+    expect(TOOL_NAMES).toEqual(expect.arrayContaining([
+      'find_representatives', 'get_member', 'get_member_votes', 'get_roll_call', 'search_bills', 'get_bill', 'explain_bill', 'get_floor_schedule', 'get_member_record',
+      'search_members', 'get_member_bills', 'compare_members', 'get_recent_votes',
+    ]))
+  })
+
+  it('marks every tool read-only with a title, so clients can run them without a confirmation step', async () => {
+    const client = await connectedClient()
+    const { tools } = await client.listTools()
+    for (const t of tools) {
+      expect(t.title, t.name).toBeTruthy()
+      expect(t.description.length, t.name).toBeGreaterThan(40)
+      expect(t.annotations, t.name).toEqual({ title: t.title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false })
+      expect(t.inputSchema.type).toBe('object')
+    }
+    expect(client.getServerVersion()).toMatchObject({ name: 'ballotwatch', title: 'BallotWatch', version: SERVER_INFO.version, websiteUrl: 'https://www.ballotwatch.io' })
+    expect(client.getInstructions()).toMatch(/search_members/)
+  })
+
+  it('offers prompts that name the tools to use and ask for citations', async () => {
+    const client = await connectedClient()
+    const { prompts } = await client.listPrompts()
+    expect(prompts.map((p) => p.name)).toEqual(PROMPTS.map((p) => p.name))
+    expect(prompts.map((p) => p.name)).toEqual(['my_representatives', 'member_record', 'how_did_they_vote', 'this_week_in_congress', 'explain_a_bill'])
+    const vote = await client.getPrompt({ name: 'how_did_they_vote', arguments: { member: 'Nancy Pelosi', bill: 'H.R. 1' } })
+    expect(vote.messages).toHaveLength(1)
+    expect(vote.messages[0].role).toBe('user')
+    expect(vote.messages[0].content.text).toMatch(/How did Nancy Pelosi vote on H\.R\. 1\?.*search_members.*get_member_votes.*source_url/s)
+    const week = await client.getPrompt({ name: 'this_week_in_congress' })
+    expect(week.messages[0].content.text).toMatch(/get_floor_schedule.*get_recent_votes/s)
+    // Every tool a prompt names exists.
+    for (const p of PROMPTS) {
+      const args = Object.fromEntries(Object.keys(p.argsSchema).map((k) => [k, 'x']))
+      for (const name of p.text(args).match(/\b(?:find|search|get|explain|compare)_[a-z_]+/g) || []) expect(TOOL_NAMES, `${p.name} names ${name}`).toContain(name)
+    }
+  })
+
+  it('serves the new lookup tools and validates their arguments', async () => {
+    const client = await connectedClient()
+    const found = await client.callTool({ name: 'search_members', arguments: { query: 'Chuck Schumer' } })
+    expect(found.isError).toBeFalsy()
+    expect(JSON.parse(found.content[0].text).members[0].bioguide_id).toBe('S000148')
+    const recent = await client.callTool({ name: 'get_recent_votes', arguments: { chamber: 'senate', since: '2026-11-01', limit: 5 } })
+    expect(JSON.parse(recent.content[0].text).args).toEqual({ chamber: 'senate', since: '2026-11-01', limit: 5 })
+    expect((await client.callTool({ name: 'get_recent_votes', arguments: { chamber: 'lords' } })).isError).toBe(true)
+    expect((await client.callTool({ name: 'get_recent_votes', arguments: { limit: 500 } })).isError).toBe(true)
+    expect((await client.callTool({ name: 'search_members', arguments: { limit: 0 } })).isError).toBe(true)
+    expect((await client.callTool({ name: 'get_roll_call', arguments: { congress: 119, chamber: 'house', session: 1, roll: 1, position: 'Maybe' } })).isError).toBe(true)
+    expect((await client.callTool({ name: 'search_bills', arguments: { query: 'x', stage: 'pending' } })).isError).toBe(true)
+    expect((await client.callTool({ name: 'compare_members', arguments: { bioguide_id_a: 'S000148' } })).isError).toBe(true)
   })
 
   it('documents every tool in llms.txt and the README', async () => {
@@ -69,6 +123,8 @@ describe('MCP server', () => {
     const ok = await client.callTool({ name: 'get_member', arguments: { bioguide_id: 'P000197' } })
     expect(ok.isError).toBeFalsy()
     expect(JSON.parse(ok.content[0].text)).toEqual({ name: 'Nancy Pelosi' })
+    // Compact JSON: no indentation spent on an agent's context window.
+    expect(ok.content[0].text).toBe('{"name":"Nancy Pelosi"}')
     const bad = await client.callTool({ name: 'get_roll_call', arguments: { congress: 119, chamber: 'house', session: 2, roll: 999999 } })
     expect(bad.isError).toBe(true)
   })
@@ -86,6 +142,7 @@ describe('MCP server', () => {
     await handler({ method: 'GET', headers: {} }, r)
     expect(r.statusCode).toBe(200)
     expect(JSON.parse(r.body).tools).toEqual(TOOL_NAMES)
+    expect(JSON.parse(r.body).prompts).toEqual(PROMPTS.map((p) => p.name))
     const probe = res()
     await handler({ method: 'GET', headers: { accept: 'text/event-stream' } }, probe)
     expect(probe.statusCode).toBe(405)

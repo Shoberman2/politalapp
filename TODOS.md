@@ -68,11 +68,20 @@
 **Context:** Anonymous API requests (shipped 2026-09-05) insert an `api_usage` row with `ip_hash` and `key_id = NULL`. Nothing deletes them, so the table grows with crawler traffic (up to 5,000 rows per IP per day). The hash is an HMAC keyed by `RATE_LIMIT_SALT`; set that secret in Vercel so it is not the development default.
 **What to do:** Add a pg_cron job (or a step in the daily ETL) that deletes `api_usage` rows where `key_id IS NULL AND created_at < now() - interval '30 days'` in batches, and set `RATE_LIMIT_SALT` in the Vercel project.
 
-## ZIP-to-district crosswalk for the MCP find_representatives tool
+## ~~ZIP-to-district crosswalk for the MCP find_representatives tool~~
+**Status:** Done (2026-11-25). `find_representatives` returns every district a ZIP touches from the Census Bureau's 119th Congressional District to ZCTA relationship file (`api/_lib/data/zipDistricts.js`, built by `scripts/build-zip-districts.mjs`), with the centroid path as fallback for ZIPs that have no Census area. Shares are of land area. The HUD crosswalk's residential ratios would be a better share and need a HUD API token; re-run the build script when the 120th Congress districts are published.
+
+## Keep member_congress_terms current
+**Priority:** High
+**Blocked by:** Nothing
+**Context:** `term_end` is null on every row of `member_congress_terms` (14,834 of 14,834 on 2026-11-25), and members sworn in mid-Congress have votes but no term row (4 on that date: G000607, W000832, G000608, B001328). Anything that reads "current members" from that table lists people who left (Vance and Rubio as senators, Sylvester Turner in TX-18) and misses their replacements. The MCP tools no longer depend on it: `api/_lib/roster.js` reads who is serving from the newest complete roll call and asks Congress.gov for a missing district. The members index (`shared/membersIndex.js`, the "former" group) and `src/services/memberTerms.js` still trust `term_end`.
+**What to do:** In the daily ETL, upsert a term row for every member in the Congress.gov current-member list and set `term_end` (and `reason_for_end`) for members who drop off it. Then let `shared/membersIndex.js` use the same rule as `api/_lib/roster.js`, or the fixed column.
+
+## Fill votes.bill_id from the roll call
 **Priority:** Medium
-**Blocked by:** Downloading the HUD USPS ZIP-to-congressional-district crosswalk
-**Context:** `api/_lib/geocode.js` resolves a ZIP by its centroid through the Census geocoder and flags the answer as `precision: zip`. ZIPs that straddle districts get one answer. The HUD crosswalk lists every district a ZIP touches with residential ratios.
-**What to do:** Ship the crosswalk as static JSON under `public/data/`, return every district with its share, and keep the centroid path as fallback.
+**Blocked by:** Nothing
+**Context:** `votes.bill_id` is null on rows whose roll call names a bill (`roll_calls.bill_id`), for example every row of `house-119-2-327` (H.R. 4464). The MCP tools now read the bill from the roll call (`rollCallContext` in `api/_lib/mcpTools.js`). The member page loader (`getMemberPage` in `api/_lib/pages.js`) still reads `votes.bill_id`, so those votes show a question such as "On Motion to Suspend the Rules and Pass" with no bill.
+**What to do:** Backfill `votes.bill_id` from `roll_calls.bill_id` and set it in the loader, or read the bill through the roll call in `getMemberPage` and `getRecordPage`.
 
 ## List the MCP server in registries
 **Priority:** Medium

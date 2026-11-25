@@ -5,20 +5,34 @@
 import { supabaseAdmin } from './supabase.js'
 import { getOrCreateExplanation, explanationPayload } from './explanations.js'
 import { explanationSourceLine } from '../../shared/billExplainer.js'
-import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, billPath, billLabel } from './pages.js'
-import { buildRollCallId, rollCallPath, voteSourceUrl } from './rollCallResult.js'
+import { getMemberPage, getRecordPage, getRollCallPage, getBillPage, getMemberBills as loadMemberBills, billPath, billLabel } from './pages.js'
+import { buildRollCallId, parseRollCallId, rollCallPath, voteSourceUrl, deriveResult, saneTally, tallyFromStats } from './rollCallResult.js'
 import { geocodeAddress, geocodeZip } from './geocode.js'
+import { zipDistricts } from './zipDistricts.js'
 import { getDataUpdatedAt } from './etlMeta.js'
+import { isPlaceholderTitle } from './indexGate.js'
 import { SITE_ORIGIN as SITE, congressGovMemberUrl } from './site.js'
 import { loadFloorSchedule, resolveFloorWeeks } from './floorSchedule.js'
-import { recordPath } from '../../shared/memberRecord.js'
+import { getRoster, searchRoster, currentCongress, stateCode, partyName } from './roster.js'
+import { recordPath, normalizePosition, partyLetter } from '../../shared/memberRecord.js'
 import { memberPath } from '../../shared/memberSlug.js'
 
-const lastRun = getDataUpdatedAt
+export { currentCongress }
 
-export function currentCongress(date = new Date()) {
-  return Math.floor((date.getUTCFullYear() - 1789) / 2) + 1
+const lastRun = getDataUpdatedAt
+const BIOGUIDE = /^[A-Z]\d{6}$/
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+const PAGE = 1000
+
+const clamp = (value, min, max, fallback) => Math.min(max, Math.max(min, Number(value) || fallback))
+const lower = (s) => (s == null ? null : String(s).toLowerCase())
+
+function bioguide(input) {
+  const id = String(input || '').trim().toUpperCase()
+  return BIOGUIDE.test(id) ? id : null
 }
+
+const badBioguide = (input) => ({ error: `Bioguide ID "${input}" looks wrong; expected a letter and six digits, e.g. P000197. Use search_members to find one by name.` })
 
 function memberSummary(p) {
   return {
@@ -33,110 +47,476 @@ function memberSummary(p) {
   }
 }
 
-export async function findRepresentatives({ address, zip } = {}) {
-  let geo = null
-  if (address && String(address).trim()) geo = await geocodeAddress(String(address).trim())
-  else if (zip) geo = await geocodeZip(zip)
-  if (!geo || !geo.state) return { error: 'Could not resolve that location to a state and district.' }
+function billRef(id, title) {
+  if (!id) return null
+  return { id, label: billLabel(id), title: isPlaceholderTitle(title) ? null : title, canonical: `${SITE}${billPath(id)}` }
+}
 
-  const congress = currentCongress()
-  const [{ data: terms }, updatedAt] = await Promise.all([
-    supabaseAdmin
-      .from('member_congress_terms')
-      .select('bioguide_id, chamber, state, district, party')
-      .eq('congress', congress)
-      .eq('state', geo.state)
-      .is('term_end', null),
-    lastRun(),
-  ])
-  const rows = terms || []
-  const senators = rows.filter((t) => t.chamber === 'senate')
-  const wantDistrict = geo.district == null ? null : String(geo.district)
-  const house = rows.filter((t) => t.chamber === 'house' && (wantDistrict == null || String(t.district ?? '0') === wantDistrict || (wantDistrict === '0' && !t.district)))
-  const ids = [...new Set([...senators, ...house].map((t) => t.bioguide_id))]
-  const { data: people } = ids.length ? await supabaseAdmin.from('politicians').select('id, name, chamber, party, state, district').in('id', ids) : { data: [] }
-  const byId = new Map((people || []).map((p) => [p.id, p]))
-  const rep = (t) => {
-    const p = byId.get(t.bioguide_id)
-    return memberSummary(p ? { ...p, district: t.district ?? p.district } : { id: t.bioguide_id, name: t.bioguide_id, chamber: t.chamber, party: t.party, state: t.state, district: t.district })
+// A vote row's question, description and bill. `votes.bill_id` is often empty
+// even when the roll call names a bill, so the roll call is the source.
+async function rollCallContext(ids) {
+  const out = new Map()
+  const unique = [...new Set((ids || []).filter(Boolean))]
+  if (!unique.length) return out
+  const { data, error } = await supabaseAdmin.from('roll_calls').select('id, question, description, bill_id, bills:bill_id ( id, title )').in('id', unique)
+  if (error) return out
+  for (const rc of data || []) out.set(rc.id, rc)
+  return out
+}
+
+function voteBill(vote, rc) {
+  const id = vote.bills?.id || vote.bill?.id || vote.bill_id || rc?.bills?.id || rc?.bill_id || null
+  return billRef(id, vote.bills?.title ?? vote.bill?.title ?? rc?.bills?.title ?? null)
+}
+
+// The Congress the record is in: the current one, or the one before it in the
+// first days of a new Congress (see getRoster).
+async function recordCongress() {
+  try {
+    return (await getRoster()).congress
+  } catch {
+    return currentCongress()
   }
+}
+
+// Is this member in Congress now? null when the roster cannot be read.
+async function servingNow(id) {
+  try {
+    const roster = await getRoster()
+    return roster.byId.get(id)?.serving ?? null
+  } catch (err) {
+    console.warn('[mcp] roster unavailable:', err?.message)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// find_representatives
+// ---------------------------------------------------------------------------
+
+const districtName = (p) => `${p.state}-${p.district === '0' ? 'at large' : p.district}`
+
+async function locate({ address, zip }) {
+  if (address) {
+    const geo = zip ? await geocodeAddress(address).catch(() => null) : await geocodeAddress(address)
+    if (geo?.state) {
+      return {
+        location: { state: geo.state, district: geo.district, precision: geo.precision, matched_address: geo.matchedAddress || null, note: geo.note || null },
+        places: [{ state: geo.state, district: geo.district }],
+      }
+    }
+    if (!zip) return null
+  }
+  const z = String(zip || '').trim().slice(0, 5)
+  if (!/^\d{5}$/.test(z)) return null
+  const parts = await zipDistricts(z).catch(() => null)
+  if (parts?.length === 1) {
+    return { location: { state: parts[0].state, district: parts[0].district, precision: 'zip', matched_address: null, note: null }, places: parts }
+  }
+  if (parts?.length) {
+    const states = [...new Set(parts.map((p) => p.state))]
+    return {
+      location: {
+        state: states.length === 1 ? states[0] : null,
+        district: null,
+        precision: 'zip',
+        matched_address: null,
+        note: `ZIP ${z} spans ${parts.length} congressional districts (${parts.map(districtName).join(', ')}). A street address gives the exact one. land_share_pct is each district's share of the ZIP's land area, not of its residents.`,
+        districts: parts,
+      },
+      places: parts,
+    }
+  }
+  // No Census area for this ZIP (PO boxes, single buildings): use its centroid.
+  const geo = await geocodeZip(z)
+  if (!geo?.state) return null
   return {
     location: { state: geo.state, district: geo.district, precision: geo.precision, matched_address: geo.matchedAddress || null, note: geo.note || null },
-    congress,
-    senators: senators.map(rep),
-    representatives: house.map(rep),
+    places: [{ state: geo.state, district: geo.district }],
+  }
+}
+
+export async function findRepresentatives({ address, zip } = {}) {
+  const addr = String(address || '').trim()
+  const z = String(zip || '').trim()
+  if (!addr && !z) return { error: 'Give a street address or a 5-digit ZIP code.' }
+  const found = await locate({ address: addr, zip: z })
+  if (!found) return { error: 'Could not resolve that location to a state and district.' }
+
+  const congress = currentCongress()
+  const [roster, updatedAt] = await Promise.all([getRoster(congress), lastRun()])
+  const serving = roster.members.filter((m) => m.serving)
+  const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''))
+  const states = [...new Set(found.places.map((p) => p.state))]
+  const senators = serving.filter((m) => m.chamber === 'senate' && states.includes(m.state)).sort(byName)
+
+  const representatives = []
+  const vacant = []
+  for (const place of found.places) {
+    const want = place.district == null ? null : String(place.district)
+    const seat = serving.filter((m) => m.chamber === 'house' && m.state === place.state
+      && (want == null || m.district === want || (want === '0' && m.district == null)))
+    if (!seat.length && want != null) vacant.push(districtName(place))
+    for (const m of seat.sort(byName)) if (!representatives.includes(m)) representatives.push(m)
+  }
+
+  const location = { ...found.location }
+  if (vacant.length) {
+    const note = `No sitting House member is recorded for ${vacant.join(', ')}; the seat may be vacant.`
+    location.note = location.note ? `${location.note} ${note}` : note
+  }
+  return {
+    location,
+    congress: roster.congress,
+    senators: senators.map(memberSummary),
+    representatives: representatives.map(memberSummary),
     data_updated_at: updatedAt,
   }
 }
 
+// ---------------------------------------------------------------------------
+// search_members
+// ---------------------------------------------------------------------------
+
+export async function searchMembers({ query, state, chamber, party, include_former = false, limit = 20 } = {}) {
+  const q = String(query || '').trim()
+  if (!q && !state && !chamber && !party) return { error: 'Give a name, or filter by state, chamber or party.' }
+  if (state && !stateCode(state)) return { error: `"${state}" is not a state or territory. Use its name or two-letter code, e.g. "Ohio" or "OH".` }
+  const cap = clamp(limit, 1, 60, 20)
+  const [roster, updatedAt] = await Promise.all([getRoster(), lastRun()])
+  const hits = searchRoster(roster, { query: q, state, chamber, party, includeFormer: Boolean(include_former) })
+  const out = {
+    query: q || null,
+    congress: roster.congress,
+    total: hits.length,
+    members: hits.slice(0, cap).map(({ member }) => ({ ...memberSummary(member), serving: member.serving })),
+  }
+  if (!hits.length) out.note = `No member of the ${roster.congress}th Congress matches. Only members who have served in this Congress are in the record.`
+  else if (hits.length > cap) out.note = `Showing ${cap} of ${hits.length}. Narrow with state, chamber or party, or raise limit (max 60).`
+  out.data_updated_at = updatedAt
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// get_member, get_member_votes, get_member_record, get_member_bills
+// ---------------------------------------------------------------------------
+
 export async function getMember({ bioguide_id }) {
   const m = await getMemberPage(bioguide_id)
-  if (!m) return { error: `No member with Bioguide ID ${bioguide_id}` }
+  if (!m) return { error: `No member with Bioguide ID ${bioguide_id}. Use search_members to find one by name.` }
+  const [context, serving] = await Promise.all([rollCallContext(m.votes.slice(0, 10).map((v) => v.roll_call_id)), servingNow(m.id)])
   return {
     ...memberSummary(m),
+    serving,
     photo_url: m.photo_url,
     terms: m.terms,
     stats: m.stats,
     recorded_votes: m.voteCount,
-    latest_votes: m.votes.slice(0, 10).map((v) => ({
-      roll_call_id: v.roll_call_id,
-      voted_at: v.voted_at,
-      question: v.question,
-      bill: v.bill ? { id: v.bill.id, label: billLabel(v.bill.id), title: v.bill.title, canonical: `${SITE}${billPath(v.bill.id)}` } : null,
-      position: v.position,
-      source_url: v.source_url,
-      canonical: `${SITE}${rollCallPath(v.roll_call_id)}`,
-    })),
+    latest_votes: m.votes.slice(0, 10).map((v) => {
+      const rc = context.get(v.roll_call_id)
+      return {
+        roll_call_id: v.roll_call_id,
+        voted_at: v.voted_at,
+        question: v.question,
+        description: rc?.description || null,
+        bill: voteBill(v, rc),
+        position: v.position,
+        source_url: v.source_url,
+        canonical: `${SITE}${rollCallPath(v.roll_call_id)}`,
+      }
+    }),
     data_updated_at: m.updatedAt,
   }
 }
 
-export async function getMemberVotes({ bioguide_id, since, limit = 50 }) {
-  const id = String(bioguide_id || '').toUpperCase()
-  const cap = Math.min(100, Math.max(1, Number(limit) || 50))
-  let q = supabaseAdmin
-    .from('votes')
-    .select('roll_call_id, position, voted_at, source_url, bill_id, bills:bill_id ( id, title )', { count: 'exact' })
-    .eq('politician_id', id)
-    .order('voted_at', { ascending: false, nullsFirst: false })
-    .limit(cap)
-  if (since != null && since !== '') {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(since))) return { error: 'since must be a date in YYYY-MM-DD form' }
-    q = q.gte('voted_at', since)
+// The spellings the clerks print for each position.
+const POSITION_SPELLINGS = {
+  Yea: ['Yea', 'Aye', 'Yes'],
+  Nay: ['Nay', 'No'],
+  Present: ['Present'],
+  'Not Voting': ['Not Voting'],
+}
+
+export async function getMemberVotes({ bioguide_id, since, until, bill, position, limit = 50, offset = 0 }) {
+  const id = bioguide(bioguide_id)
+  if (!id) return badBioguide(bioguide_id)
+  const cap = clamp(limit, 1, 100, 50)
+  const from = Math.max(0, Math.floor(Number(offset) || 0))
+  for (const [name, value] of [['since', since], ['until', until]]) {
+    if (value != null && value !== '' && !DATE.test(String(value))) return { error: `${name} must be a date in YYYY-MM-DD form` }
   }
-  const [{ data, count, error }, updatedAt] = await Promise.all([q, lastRun()])
-  if (error) return { error: 'Vote lookup failed' }
-  const rollIds = [...new Set((data || []).map((v) => v.roll_call_id).filter(Boolean))]
-  const questions = new Map()
-  if (rollIds.length) {
-    const { data: rcs } = await supabaseAdmin.from('roll_calls').select('id, question').in('id', rollIds)
-    for (const rc of rcs || []) questions.set(rc.id, rc.question)
+  const wantPosition = position ? normalizePosition(position) : null
+  if (wantPosition && !POSITION_SPELLINGS[wantPosition]) return { error: 'position must be Yea, Nay, Present or Not Voting' }
+
+  let billId = null
+  let billRollCalls = null
+  if (bill != null && bill !== '') {
+    billId = normalizeBillId(bill)
+    if (!billId) return { error: 'Bill id looks wrong. Use 119-hr-1 or "H.R. 1".' }
+    const { data, error } = await supabaseAdmin.from('roll_calls').select('id').eq('bill_id', billId)
+    if (error) return { error: 'Vote lookup failed' }
+    billRollCalls = (data || []).map((r) => r.id)
   }
+
+  let votesQuery = Promise.resolve({ data: [], count: 0, error: null })
+  if (!billRollCalls || billRollCalls.length) {
+    let q = supabaseAdmin
+      .from('votes')
+      .select('roll_call_id, position, voted_at, source_url, bill_id, bills:bill_id ( id, title )', { count: 'exact' })
+      .eq('politician_id', id)
+    if (since) q = q.gte('voted_at', since)
+    if (until) q = q.lte('voted_at', until)
+    if (wantPosition) q = q.in('position', POSITION_SPELLINGS[wantPosition])
+    if (billRollCalls) q = q.in('roll_call_id', billRollCalls)
+    votesQuery = q.order('voted_at', { ascending: false, nullsFirst: false }).order('roll_call_id', { ascending: false }).range(from, from + cap - 1)
+  }
+  const [votes, { data: member }, updatedAt] = await Promise.all([
+    votesQuery,
+    supabaseAdmin.from('politicians').select('id, name, chamber').eq('id', id).maybeSingle(),
+    lastRun(),
+  ])
+  if (votes.error) return { error: 'Vote lookup failed' }
+  if (!member) return { error: `No member with Bioguide ID ${id}. Use search_members to find one by name.` }
+
+  const rows = votes.data || []
+  const context = await rollCallContext(rows.map((v) => v.roll_call_id))
+  const total = votes.count ?? rows.length
+  const out = {
+    bioguide_id: id,
+    name: member.name,
+    total,
+    offset: from,
+    canonical: `${SITE}${memberPath(id, member.name)}`,
+    votes: rows.map((v) => {
+      const rc = context.get(v.roll_call_id)
+      return {
+        roll_call_id: v.roll_call_id,
+        voted_at: v.voted_at,
+        question: rc?.question || null,
+        description: rc?.description || null,
+        bill: voteBill(v, rc),
+        position: normalizePosition(v.position),
+        source_url: voteSourceUrl(v.roll_call_id, v.source_url),
+        canonical: `${SITE}${rollCallPath(v.roll_call_id)}`,
+      }
+    }),
+  }
+  if (billId && !rows.length) {
+    out.note = billRollCalls.length
+      ? `${member.name} is not listed in the ${billRollCalls.length} recorded floor vote(s) on ${billLabel(billId)} (the other chamber voted, or the member was not seated).`
+      : `No recorded floor vote on ${billLabel(billId)} is in the record. Many bills pass by voice vote or never reach the floor.`
+  } else if (from + rows.length < total) {
+    out.note = `Showing ${rows.length} of ${total}. Pass offset ${from + rows.length} for the next page.`
+  }
+  out.data_updated_at = updatedAt
+  return out
+}
+
+// The "record in 60 seconds" card's facts (shared/memberRecord.js), from the
+// same loader as /politician/:id/record. Never any campaign-finance data.
+export async function getMemberRecord({ bioguide_id }) {
+  const id = String(bioguide_id || '').trim().toUpperCase()
+  if (!BIOGUIDE.test(id)) return { error: `Bioguide ID "${bioguide_id}" looks wrong; expected a letter and six digits, e.g. P000197.` }
+  const r = await getRecordPage(id)
+  if (!r) return { error: `No member with Bioguide ID ${id}` }
+  const [context, serving] = await Promise.all([rollCallContext(r.recentVotes.map((v) => v.roll_call_id)), servingNow(r.id)])
+  const s = r.stats
+  return {
+    bioguide_id: r.id,
+    name: r.name,
+    party: r.party,
+    chamber: r.chamber,
+    state: r.state,
+    district: r.district,
+    serving,
+    serving_since: r.servingSince,
+    this_congress: s
+      ? { congress: s.congress, roll_calls: s.total, votes_cast: s.cast, not_voting: s.notVoting, not_voting_pct: s.notVotingPct }
+      : null,
+    recorded_votes: r.voteCount,
+    recent_votes: r.recentVotes.map((v) => {
+      const rc = context.get(v.roll_call_id)
+      const title = v.bill?.title ?? rc?.bills?.title ?? null
+      return {
+        voted_at: v.voted_at,
+        question: v.question,
+        description: rc?.description || null,
+        bill: v.bill ? { id: v.bill.id, label: v.bill.label, title: isPlaceholderTitle(title) ? null : title, canonical: `${SITE}${v.bill.path}` } : null,
+        position: v.position,
+        // Derived from the tally only when it passes the sanity check; else null.
+        result: v.result,
+        canonical: v.path ? `${SITE}${v.path}` : null,
+        source_url: v.source_url,
+      }
+    }),
+    note: 'The same facts for every member: the ten most recent recorded votes, not a curated list. Cite canonical and each vote source_url.',
+    canonical: `${SITE}${recordPath(r.id, r.name)}`,
+    member_page: `${SITE}${memberPath(r.id, r.name)}`,
+    source_url: r.sources.congressGov,
+    sources: { congress_gov: r.sources.congressGov, bioguide: r.sources.bioguide, chamber_votes: r.sources.chamberVotes },
+    data_updated_at: r.updatedAt,
+  }
+}
+
+export async function getMemberBills({ bioguide_id }) {
+  const id = bioguide(bioguide_id)
+  if (!id) return badBioguide(bioguide_id)
+  const [{ data: member, error }, bills, updatedAt] = await Promise.all([
+    supabaseAdmin.from('politicians').select('id, name').eq('id', id).maybeSingle(),
+    loadMemberBills(id),
+    lastRun(),
+  ])
+  if (error) return { error: 'Bill lookup failed' }
+  if (!member) return { error: `No member with Bioguide ID ${id}. Use search_members to find one by name.` }
+  const shape = (b) => ({ id: b.id, label: b.label, title: b.title, introduced_at: b.introduced_at, canonical: `${SITE}${b.path}`, source_url: b.source_url })
   return {
     bioguide_id: id,
-    total: count ?? (data || []).length,
-    canonical: `${SITE}/politician/${id}`,
-    votes: (data || []).map((v) => ({
-      roll_call_id: v.roll_call_id,
-      voted_at: v.voted_at,
-      question: questions.get(v.roll_call_id) || null,
-      bill: v.bills ? { id: v.bills.id, label: billLabel(v.bills.id), title: v.bills.title, canonical: `${SITE}${billPath(v.bills.id)}` } : null,
-      position: v.position,
-      source_url: voteSourceUrl(v.roll_call_id, v.source_url),
-      canonical: `${SITE}${rollCallPath(v.roll_call_id)}`,
-    })),
+    name: member.name,
+    sponsored: { total: bills.sponsored.total, bills: bills.sponsored.items.map(shape) },
+    cosponsored: { total: bills.cosponsored.total, bills: bills.cosponsored.items.map(shape) },
+    note: 'Newest first; bills whose title is only a number are left out. BallotWatch has not recorded a sponsor for every bill, so these lists can be incomplete: source_url is the member\'s full list on Congress.gov.',
+    canonical: `${SITE}${memberPath(id, member.name)}`,
+    source_url: congressGovMemberUrl(id),
     data_updated_at: updatedAt,
   }
 }
 
-export async function getRollCall({ congress, chamber, session, roll }) {
+// ---------------------------------------------------------------------------
+// compare_members
+// ---------------------------------------------------------------------------
+
+async function memberPositions(id, congress) {
+  const out = new Map()
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabaseAdmin.from('votes')
+      .select('roll_call_id, position, voted_at')
+      .eq('politician_id', id)
+      .order('roll_call_id')
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`votes: ${error.message || 'query failed'}`)
+    for (const v of data || []) {
+      if (parseRollCallId(v.roll_call_id)?.congress === congress) out.set(v.roll_call_id, v)
+    }
+    if ((data || []).length < PAGE) break
+  }
+  return out
+}
+
+const rollCallOrder = (a, b) => {
+  const x = parseRollCallId(a), y = parseRollCallId(b)
+  return (y.session - x.session) || (y.roll - x.roll)
+}
+
+export async function compareMembers({ bioguide_id_a, bioguide_id_b }) {
+  const a = bioguide(bioguide_id_a)
+  const b = bioguide(bioguide_id_b)
+  if (!a) return badBioguide(bioguide_id_a)
+  if (!b) return badBioguide(bioguide_id_b)
+  if (a === b) return { error: 'Give two different members.' }
+  const congress = await recordCongress()
+  const [{ data: people, error }, votesA, votesB, updatedAt] = await Promise.all([
+    supabaseAdmin.from('politicians').select('id, name, chamber, party, state, district').in('id', [a, b]),
+    memberPositions(a, congress),
+    memberPositions(b, congress),
+    lastRun(),
+  ])
+  if (error) return { error: 'Member lookup failed' }
+  const memberA = (people || []).find((p) => p.id === a)
+  const memberB = (people || []).find((p) => p.id === b)
+  if (!memberA || !memberB) return { error: `No member with Bioguide ID ${memberA ? b : a}. Use search_members to find one by name.` }
+  if (memberA.chamber !== memberB.chamber) {
+    return { error: `${memberA.name} sits in the ${memberA.chamber} and ${memberB.name} in the ${memberB.chamber}; members of different chambers never vote on the same roll call.` }
+  }
+
+  let shared = 0
+  let agreed = 0
+  const split = []
+  for (const [rollCallId, va] of votesA) {
+    const vb = votesB.get(rollCallId)
+    if (!vb) continue
+    shared += 1
+    const pa = normalizePosition(va.position), pb = normalizePosition(vb.position)
+    const cast = (p) => p === 'Yea' || p === 'Nay'
+    if (!cast(pa) || !cast(pb)) continue
+    if (pa === pb) agreed += 1
+    else split.push({ rollCallId, voted_at: va.voted_at, a: pa, b: pb })
+  }
+  const bothVoted = agreed + split.length
+  const recent = split.sort((x, y) => rollCallOrder(x.rollCallId, y.rollCallId)).slice(0, 10)
+  const context = await rollCallContext(recent.map((r) => r.rollCallId))
+  const who = (m) => ({ bioguide_id: m.id, name: m.name, party: m.party, state: m.state, canonical: `${SITE}${memberPath(m.id, m.name)}` })
+  return {
+    congress,
+    chamber: memberA.chamber,
+    member_a: who(memberA),
+    member_b: who(memberB),
+    roll_calls_both_listed: shared,
+    both_voted_yea_or_nay: bothVoted,
+    voted_the_same: agreed,
+    voted_differently: split.length,
+    same_vote_pct: bothVoted ? Math.round((agreed / bothVoted) * 1000) / 10 : null,
+    recent_differences: recent.map((r) => {
+      const rc = context.get(r.rollCallId)
+      return {
+        roll_call_id: r.rollCallId,
+        voted_at: r.voted_at,
+        question: rc?.question || null,
+        description: rc?.description || null,
+        bill: voteBill({}, rc),
+        position_a: r.a,
+        position_b: r.b,
+        canonical: `${SITE}${rollCallPath(r.rollCallId)}`,
+        source_url: voteSourceUrl(r.rollCallId, null),
+      }
+    }),
+    note: `Counted over every roll call of the ${congress}th Congress that lists both members. same_vote_pct is voted_the_same divided by both_voted_yea_or_nay; roll calls where either member was Present or Not Voting are left out. A count, not a judgment: most roll calls are procedural or lopsided.`,
+    data_updated_at: updatedAt,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// get_roll_call, get_recent_votes
+// ---------------------------------------------------------------------------
+
+// Above this many members the list comes back as short strings grouped by
+// position instead of one object per member (a full House roll call is 435).
+const FULL_ROWS_MAX = 60
+const POSITION_ORDER = ['Yea', 'Nay', 'Present', 'Not Voting']
+
+export async function getRollCall({ congress, chamber, session, roll, state, party, position, bioguide_ids, format } = {}) {
   const id = buildRollCallId({ congress, chamber, session, roll })
   if (!id) return { error: 'Need congress, chamber (house|senate), session, and roll number.' }
+  const wantState = state ? stateCode(state) : null
+  if (state && !wantState) return { error: `"${state}" is not a state or territory. Use its name or two-letter code.` }
+  const wantParty = party ? partyName(party) : null
+  const wantPosition = position ? normalizePosition(position) : null
+  if (wantPosition && !POSITION_ORDER.includes(wantPosition)) return { error: 'position must be Yea, Nay, Present or Not Voting' }
+  const wantIds = Array.isArray(bioguide_ids) && bioguide_ids.length ? new Set(bioguide_ids.map((x) => String(x).trim().toUpperCase())) : null
+
   const rc = await getRollCallPage(id)
-  if (!rc) return { error: `No roll call ${id}` }
-  return {
+  if (!rc) return { error: `No roll call ${id}. Use get_recent_votes to list roll calls.` }
+
+  // politicians.district is empty for most House members; the roster has it.
+  let roster = null
+  if (rc.chamberKey === 'house' && rc.congress === currentCongress()) roster = await getRoster(rc.congress).catch(() => null)
+  const all = rc.votes.map((v) => ({
+    bioguide_id: v.member.id,
+    name: v.member.name,
+    party: v.member.party,
+    state: v.member.state,
+    district: roster?.byId.get(v.member.id)?.district ?? v.member.district ?? null,
+    position: normalizePosition(v.position),
+  }))
+  const filtered = wantState || wantParty || wantPosition || wantIds
+  const rows = all.filter((v) =>
+    (!wantState || v.state === wantState)
+    && (!wantParty || partyName(v.party) === wantParty)
+    && (!wantPosition || v.position === wantPosition)
+    && (!wantIds || wantIds.has(v.bioguide_id)))
+
+  const out = {
     roll_call_id: rc.id,
-    chamber: rc.chamber,
+    chamber: rc.chamberKey,
     congress: rc.congress,
     session: rc.session,
     roll: rc.roll,
@@ -147,13 +527,148 @@ export async function getRollCall({ congress, chamber, session, roll }) {
     tally: rc.tally,
     by_party: rc.party,
     result_derived: rc.result,
-    votes: rc.votes.map((v) => ({ bioguide_id: v.member.id, name: v.member.name, party: v.member.party, state: v.member.state, district: v.member.district, position: v.position })),
+    members_listed: all.length,
+  }
+  if (filtered) out.members_matched = rows.length
+  if (format === 'full' || (format !== 'compact' && rows.length <= FULL_ROWS_MAX)) {
+    out.votes = rows
+  } else {
+    const groups = {}
+    for (const p of POSITION_ORDER) {
+      const names = rows.filter((v) => v.position === p).map((v) => {
+        const seat = v.district && v.district !== '0' ? `-${v.district}` : ''
+        return `${v.name} (${partyLetter(v.party)}-${v.state}${seat}) ${v.bioguide_id}`
+      })
+      if (names.length) groups[p] = names
+    }
+    out.votes_by_position = groups
+    out.votes_note = 'Each entry is "Name (Party-State-District) BioguideID". Filter by state, party, position or bioguide_ids for one object per member, or pass format "full".'
+  }
+  return {
+    ...out,
     canonical: `${SITE}${rollCallPath(rc.id)}`,
     source_url: rc.source_url,
     data_quality: rc.indexable ? 'ok' : rc.noindexReason,
     data_updated_at: rc.updatedAt,
   }
 }
+
+const ROLL_CALL_COLUMNS = 'id, bill_id, question, description, voted_at, bills:bill_id ( id, title )'
+const KEYWORD_TTL_MS = 5 * 60 * 1000
+const keywordMemo = new Map()
+
+// Every roll call of one Congress with its bill title, for keyword search
+// (about 1,000 rows a year). Cached per instance for five minutes.
+async function congressRollCalls(congress) {
+  const hit = keywordMemo.get(congress)
+  if (hit && Date.now() - hit.at < KEYWORD_TTL_MS) return hit.rows
+  const rows = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabaseAdmin.from('roll_calls')
+      .select(ROLL_CALL_COLUMNS)
+      .or(`id.like.house-${congress}-%,id.like.senate-${congress}-%`)
+      .order('id')
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`roll_calls: ${error.message || 'query failed'}`)
+    rows.push(...(data || []))
+    if ((data || []).length < PAGE) break
+  }
+  keywordMemo.set(congress, { at: Date.now(), rows })
+  return rows
+}
+
+export function _resetRollCallSearchCache() {
+  keywordMemo.clear()
+}
+
+const newestFirst = (a, b) =>
+  String(b.voted_at || '').localeCompare(String(a.voted_at || '')) || lower(a.meta.chamber).localeCompare(lower(b.meta.chamber)) || (b.meta.session - a.meta.session) || (b.meta.roll - a.meta.roll)
+
+export async function getRecentVotes({ chamber, since, until, query, bill, limit = 20 } = {}) {
+  const cap = clamp(limit, 1, 50, 20)
+  const wantChamber = chamber ? String(chamber).toLowerCase() : null
+  if (wantChamber && !['house', 'senate'].includes(wantChamber)) return { error: 'chamber must be house or senate' }
+  for (const [name, value] of [['since', since], ['until', until]]) {
+    if (value != null && value !== '' && !DATE.test(String(value))) return { error: `${name} must be a date in YYYY-MM-DD form` }
+  }
+  let billId = null
+  if (bill != null && bill !== '') {
+    billId = normalizeBillId(bill)
+    if (!billId) return { error: 'Bill id looks wrong. Use 119-hr-1 or "H.R. 1".' }
+  }
+  const words = String(query || '').toLowerCase().replace(/['\u2019]/g, '').split(/[^a-z0-9.]+/).map((w) => w.replace(/^\.+|\.+$/g, '')).filter((w) => w.length >= 2).slice(0, 8)
+
+  let rows
+  let total
+  if (words.length) {
+    const haystack = (r) => `${r.question || ''} ${r.description || ''} ${r.bills?.title || ''} ${r.bill_id ? billLabel(r.bill_id) : ''} ${r.bill_id || ''}`.toLowerCase().replace(/['\u2019]/g, '')
+    rows = (await congressRollCalls(await recordCongress())).filter((r) => {
+      if (!r.voted_at) return false
+      if (wantChamber && !r.id.startsWith(`${wantChamber}-`)) return false
+      if (since && r.voted_at < since) return false
+      if (until && r.voted_at > until) return false
+      if (billId && r.bill_id !== billId) return false
+      const text = haystack(r)
+      return words.every((w) => text.includes(w))
+    })
+    total = rows.length
+  } else {
+    let q = supabaseAdmin.from('roll_calls').select(ROLL_CALL_COLUMNS, { count: 'exact' }).not('voted_at', 'is', null)
+    if (wantChamber) q = q.like('id', `${wantChamber}-%`)
+    if (since) q = q.gte('voted_at', since)
+    if (until) q = q.lte('voted_at', until)
+    if (billId) q = q.eq('bill_id', billId)
+    // Over-read so the newest day is ordered by roll number, not by id text.
+    const res = await q.order('voted_at', { ascending: false }).order('id', { ascending: false }).limit(cap * 2 + 20)
+    if (res.error) return { error: 'Vote lookup failed' }
+    rows = res.data || []
+    total = res.count ?? rows.length
+  }
+
+  const page = rows.map((r) => ({ ...r, meta: parseRollCallId(r.id) })).filter((r) => r.meta).sort(newestFirst).slice(0, cap)
+  const statsById = new Map()
+  if (page.length) {
+    const { data } = await supabaseAdmin.from('roll_call_stats').select('roll_call_id, dem_yea, dem_nay, rep_yea, rep_nay, ind_yea, ind_nay').in('roll_call_id', page.map((r) => r.id))
+    for (const s of data || []) statsById.set(s.roll_call_id, s)
+  }
+  const updatedAt = await lastRun()
+  const out = {
+    total,
+    votes: page.map((r) => {
+      const stats = statsById.get(r.id)
+      const t = tallyFromStats(stats)
+      const sane = t.yea != null && saneTally(t.yea, t.nay, r.meta.chamber)
+      return {
+        roll_call_id: r.id,
+        chamber: r.meta.chamberKey,
+        congress: r.meta.congress,
+        session: r.meta.session,
+        roll: r.meta.roll,
+        voted_at: r.voted_at,
+        question: r.question || null,
+        description: r.description || null,
+        bill: billRef(r.bill_id, r.bills?.title ?? null),
+        tally: sane ? { yea: t.yea, nay: t.nay } : null,
+        by_party: sane && stats ? {
+          dem: { yea: stats.dem_yea || 0, nay: stats.dem_nay || 0 },
+          rep: { yea: stats.rep_yea || 0, nay: stats.rep_nay || 0 },
+          ind: { yea: stats.ind_yea || 0, nay: stats.ind_nay || 0 },
+        } : null,
+        result_derived: sane ? deriveResult(r.question, t.yea, t.nay, r.meta.chamber, r.description) : null,
+        canonical: `${SITE}${rollCallPath(r.id)}`,
+        source_url: voteSourceUrl(r.id, null),
+      }
+    }),
+  }
+  if (!page.length) out.note = 'No roll call matches. The record covers recorded (roll-call) votes only; voice votes and unanimous consent are not in it.'
+  else if (total > page.length) out.note = `Showing the newest ${page.length} of ${total}. Narrow with since, until, chamber, bill or query, or raise limit (max 50).`
+  out.data_updated_at = updatedAt
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// search_bills, get_bill, explain_bill
+// ---------------------------------------------------------------------------
 
 // Accepts "119-hr-1", "hr1", "H.R. 1", "s. 5051" (current Congress assumed).
 export function normalizeBillId(input, congress = currentCongress()) {
@@ -166,24 +681,43 @@ export function normalizeBillId(input, congress = currentCongress()) {
   return `${congress}-${type}-${m[2]}`
 }
 
-export async function searchBills({ query, limit = 20 }) {
+export const BILL_STAGES = ['introduced', 'referred', 'subcommittee', 'committee', 'floor', 'passed_one', 'passed_both', 'enacted', 'dead']
+const BILL_COLUMNS = 'id, title, introduced_at, policy_area, source_url, legislative_stage'
+
+export async function searchBills({ query, congress, stage, sponsor, has_vote, limit = 20 } = {}) {
   const q = String(query || '').trim()
-  if (!q) return { error: 'Query is required.' }
-  const cap = Math.min(50, Math.max(1, Number(limit) || 20))
-  const direct = normalizeBillId(q)
+  const sponsorId = sponsor ? bioguide(sponsor) : null
+  if (sponsor && !sponsorId) return badBioguide(sponsor)
+  if (stage && !BILL_STAGES.includes(stage)) return { error: `stage must be one of ${BILL_STAGES.join(', ')}` }
+  if (!q && !sponsorId && !stage && !has_vote) return { error: 'Query is required.' }
+  const cap = clamp(limit, 1, 50, 20)
+  const wantCongress = congress ? Math.floor(Number(congress)) : null
   const updatedAt = await lastRun()
+
+  const direct = q ? normalizeBillId(q, wantCongress || currentCongress()) : null
   if (direct) {
-    const { data } = await supabaseAdmin.from('bills').select('id, title, introduced_at, policy_area, source_url, legislative_stage').eq('id', direct).maybeSingle()
+    const { data } = await supabaseAdmin.from('bills').select(BILL_COLUMNS).eq('id', direct).maybeSingle()
     if (data) return { query: q, results: [billHit(data)], data_updated_at: updatedAt }
+    return { query: q, results: [], note: `No bill ${direct} is in the record.`, data_updated_at: updatedAt }
   }
-  const { data, error } = await supabaseAdmin
-    .from('bills')
-    .select('id, title, introduced_at, policy_area, source_url, legislative_stage')
-    .ilike('title', `%${q.replace(/[%_*\\]/g, ' ').trim()}%`)
-    .order('introduced_at', { ascending: false, nullsFirst: false })
-    .limit(cap)
+
+  // Every word must appear in the title, in any order.
+  const cleaned = q.replace(/[%_*\\,()"]/g, ' ').split(/\s+/).filter(Boolean)
+  const long = cleaned.filter((w) => w.length >= 2)
+  const words = (long.length ? long : cleaned).slice(0, 8)
+  let search = supabaseAdmin.from('bills').select(has_vote ? `${BILL_COLUMNS}, roll_calls!inner ( id )` : BILL_COLUMNS)
+  for (const w of words) search = search.ilike('title', `%${w}%`)
+  if (wantCongress) search = search.like('id', `${wantCongress}-%`)
+  if (stage) search = search.eq('legislative_stage', stage)
+  if (sponsorId) search = search.eq('sponsor_bioguide_id', sponsorId)
+  const { data, error } = await search.order('introduced_at', { ascending: false, nullsFirst: false }).limit(cap)
   if (error) return { error: 'Search failed' }
-  return { query: q, results: (data || []).map(billHit), data_updated_at: updatedAt }
+  const results = (data || []).map(billHit)
+  const out = { query: q || null, results }
+  if (results.length === cap) out.note = `Showing the ${cap} most recently introduced matches; more may exist. Add words, or filter by congress, stage, sponsor or has_vote.`
+  else if (!results.length) out.note = 'No bill title matches every word. Search covers titles only; try fewer or different words, or a bill number such as "H.R. 1".'
+  out.data_updated_at = updatedAt
+  return out
 }
 
 function billHit(b) {
@@ -194,7 +728,7 @@ export async function getBill({ id }) {
   const billId = normalizeBillId(id)
   if (!billId) return { error: 'Bill id looks wrong. Use 119-hr-1 or "H.R. 1".' }
   const b = await getBillPage(billId)
-  if (!b) return { error: `No bill ${billId}` }
+  if (!b) return { error: `No bill ${billId}. Use search_bills to find one by title.` }
   return {
     id: b.id,
     label: b.label,
@@ -205,7 +739,7 @@ export async function getBill({ id }) {
     policy_area: b.policy_area,
     stage: b.legislative_stage,
     official_summary: b.crs_summary || null,
-    recorded_votes: b.rollCalls.map((r) => ({ roll_call_id: r.id, chamber: r.chamber, voted_at: r.voted_at, question: r.question, tally: r.tally, result_derived: r.result, canonical: `${SITE}${rollCallPath(r.id)}` })),
+    recorded_votes: b.rollCalls.map((r) => ({ roll_call_id: r.id, chamber: lower(r.chamber), voted_at: r.voted_at, question: r.question, tally: r.tally, result_derived: r.result, canonical: `${SITE}${rollCallPath(r.id)}` })),
     canonical: `${SITE}${billPath(b.id)}`,
     source_url: b.source_url,
     data_updated_at: b.updatedAt,
@@ -220,7 +754,7 @@ export async function explainBill({ id }) {
   const billId = normalizeBillId(id)
   if (!billId) return { error: 'Bill id looks wrong. Use 119-hr-1 or "H.R. 1".' }
   const b = await getBillPage(billId)
-  if (!b) return { error: `No bill ${billId}` }
+  if (!b) return { error: `No bill ${billId}. Use search_bills to find one by title.` }
   const out = b.explanation ? null : await getOrCreateExplanation(b.id, { allowGenerate: false }).catch(() => null)
   const e = b.explanation || (out?.status === 'ok' ? explanationPayload(out.row) : null)
   return {
@@ -240,6 +774,10 @@ export async function explainBill({ id }) {
     data_updated_at: b.updatedAt,
   }
 }
+
+// ---------------------------------------------------------------------------
+// get_floor_schedule
+// ---------------------------------------------------------------------------
 
 // House floor schedule, read live from docs.house.gov through the same loader
 // as GET /api/v1/floor/schedule (api/_lib/floorSchedule.js), so there is no
@@ -269,44 +807,5 @@ export async function getFloorSchedule({ week } = {}) {
       })),
     })),
     canonical: `${SITE}/this-week`,
-  }
-}
-
-// The "record in 60 seconds" card's facts (shared/memberRecord.js), from the
-// same loader as /politician/:id/record. Never any campaign-finance data.
-export async function getMemberRecord({ bioguide_id }) {
-  const id = String(bioguide_id || '').trim().toUpperCase()
-  if (!/^[A-Z]\d{6}$/.test(id)) return { error: `Bioguide ID "${bioguide_id}" looks wrong; expected a letter and six digits, e.g. P000197.` }
-  const r = await getRecordPage(id)
-  if (!r) return { error: `No member with Bioguide ID ${id}` }
-  const s = r.stats
-  return {
-    bioguide_id: r.id,
-    name: r.name,
-    party: r.party,
-    chamber: r.chamber,
-    state: r.state,
-    district: r.district,
-    serving_since: r.servingSince,
-    this_congress: s
-      ? { congress: s.congress, roll_calls: s.total, votes_cast: s.cast, not_voting: s.notVoting, not_voting_pct: s.notVotingPct }
-      : null,
-    recorded_votes: r.voteCount,
-    recent_votes: r.recentVotes.map((v) => ({
-      voted_at: v.voted_at,
-      question: v.question,
-      bill: v.bill ? { id: v.bill.id, label: v.bill.label, title: v.bill.title, canonical: `${SITE}${v.bill.path}` } : null,
-      position: v.position,
-      // Derived from the tally only when it passes the sanity check; else null.
-      result: v.result,
-      canonical: v.path ? `${SITE}${v.path}` : null,
-      source_url: v.source_url,
-    })),
-    note: 'The same facts for every member: the ten most recent recorded votes, not a curated list. Cite canonical and each vote source_url.',
-    canonical: `${SITE}${recordPath(r.id, r.name)}`,
-    member_page: `${SITE}${memberPath(r.id, r.name)}`,
-    source_url: r.sources.congressGov,
-    sources: { congress_gov: r.sources.congressGov, bioguide: r.sources.bioguide, chamber_votes: r.sources.chamberVotes },
-    data_updated_at: r.updatedAt,
   }
 }

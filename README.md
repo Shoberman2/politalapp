@@ -289,12 +289,30 @@ Agent surfaces:
   columns, data sources, methodology, and citation format.
 - `/.well-known/mcp/server-card.json` (also `/mcp/server-card`) is the MCP
   server card: endpoint, transport, no auth, and the tool list.
-- `/mcp` is a stateless Streamable HTTP MCP server with `find_representatives`,
-  `get_member`, `get_member_record` (the "record in 60 seconds" facts, no
-  campaign-finance data), `get_member_votes`, `get_roll_call`, `search_bills`,
-  `get_bill`, `explain_bill` (cached explanations only), and
-  `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
-  loader as `/api/v1/floor/schedule`).
+- `/mcp` is a stateless Streamable HTTP MCP server. Every tool only reads the
+  public record (each is annotated read-only):
+  - `find_representatives`: an address or ZIP code to its sitting senators and
+    House member. A ZIP that spans districts returns every district it touches
+    (`api/_lib/data/zipDistricts.js`, built from the Census ZCTA relationship
+    file by `scripts/build-zip-districts.mjs`).
+  - `search_members`: a name (nicknames and close spellings work), state,
+    chamber or party to members and their Bioguide IDs.
+  - `get_member`, `get_member_record` (the "record in 60 seconds" facts, no
+    campaign-finance data), `get_member_votes` (filter by bill, position or
+    dates), `get_member_bills` (sponsored and cosponsored), and
+    `compare_members` (how often two members of one chamber voted the same
+    way).
+  - `get_recent_votes` (roll calls newest first, by chamber, dates, bill or
+    words) and `get_roll_call` (one roll call; members come back as short
+    strings unless filtered).
+  - `search_bills`, `get_bill`, `explain_bill` (cached explanations only), and
+    `get_floor_schedule` (House weekly floor schedule from docs.house.gov, same
+    loader as `/api/v1/floor/schedule`).
+  - Prompts: `my_representatives`, `member_record`, `how_did_they_vote`,
+    `this_week_in_congress`, `explain_a_bill`.
+  - "Serving now" comes from the record, not from `term_end` (which is never
+    filled in): a voting member is serving when the newest complete roll call
+    of their chamber lists them (`api/_lib/roster.js`).
 - Member, member-record (`/politician/:id/record`), bill, and roll-call pages
   return full HTML without JavaScript and answer `Accept: text/markdown` with a
   compact Markdown record.
