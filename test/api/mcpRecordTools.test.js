@@ -441,6 +441,18 @@ describe('search and fetch (the generic pair ChatGPT deep research calls)', () =
     ])
   })
 
+  it('search puts a member whose family name only appears in the query after the bills it is about', async () => {
+    mocks.getRoster.mockResolvedValue(makeRoster([
+      { id: 'R000622', name: 'Josh Riley', chamber: 'house', state: 'NY', district: '19', party: 'Democrat' },
+      { id: 'C001126', name: 'Mike Carey', chamber: 'house', state: 'OH', district: '15', party: 'Republican' },
+    ], C))
+    db.responses.bills = { data: [{ ...BILL, id: `${C}-s-5`, title: 'Laken Riley Act' }] }
+    db.responses.roll_calls = { data: [] }
+    expect((await search({ query: 'Laken Riley Act' })).results.map((r) => r.id)).toEqual([`bill:${C}-s-5`, 'member:R000622'])
+    // A full name still leads.
+    expect((await search({ query: 'Josh Riley' })).results.map((r) => r.id)).toEqual(['member:R000622', `bill:${C}-s-5`])
+  })
+
   it('search titles a bill by its number alone when the title is missing or a stub', async () => {
     db.responses.bills = { data: [{ ...BILL, id: `${C}-hr-915`, title: 'HR 915' }, { ...BILL, id: `${C}-hr-916`, title: null }] }
     db.responses.roll_calls = { data: [] }

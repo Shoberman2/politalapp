@@ -862,18 +862,31 @@ export async function search({ query } = {}) {
   const billId = number ? normalizeBillId(number[1]) : null
   const words = q.replace(BILL_NUMBER, ' ').toLowerCase().replace(/['’]/g, '').split(/[^a-z0-9]+/).filter((w) => w.length >= 2 && !SEARCH_STOPWORDS.has(w)).slice(0, 6)
   const soft = (promise) => promise.catch((err) => { console.warn('[mcp] search part failed:', err?.message); return null })
+  // Members with their match score: a full-name match leads the results; a
+  // family name that merely appears in the query ("Laken Riley Act") trails.
+  const memberHits = async () => {
+    const roster = await getRoster()
+    return searchRoster(roster, { query: words.join(' ') }).slice(0, 5)
+  }
   const [members, bill, bills, votes, billVotes] = await Promise.all([
-    words.length ? soft(searchMembers({ query: words.join(' '), limit: 5 })) : null,
+    words.length ? soft(memberHits()) : null,
     billId ? soft(searchBills({ query: billId })) : null,
     words.length ? soft(searchBills({ query: words.join(' '), limit: 6 })) : null,
     words.length ? soft(getRecentVotes({ query: words.join(' '), limit: 5 })) : null,
     billId ? soft(getRecentVotes({ bill: billId, limit: 5 })) : null,
   ])
+  const addMember = ({ member }) => add(`member:${member.id}`, memberTitle(member), `${SITE}${memberPath(member.id, member.name)}`)
+  const strong = (members || []).filter((h) => h.score >= 80)
+  const weak = (members || []).filter((h) => h.score < 80)
   for (const b of bill?.results || []) add(`bill:${b.id}`, billTitle(b.label, b.title), b.canonical)
-  for (const m of members?.members || []) add(`member:${m.bioguide_id}`, memberTitle(m), m.canonical)
+  strong.forEach(addMember)
   for (const v of billVotes?.votes || []) add(`vote:${v.roll_call_id}`, voteTitle(v), v.canonical)
   for (const b of bills?.results || []) add(`bill:${b.id}`, billTitle(b.label, b.title), b.canonical)
   for (const v of votes?.votes || []) add(`vote:${v.roll_call_id}`, voteTitle(v), v.canonical)
+  const top = results.slice(0, SEARCH_LIMIT - Math.min(weak.length, 2))
+  results.length = 0
+  results.push(...top)
+  weak.forEach(addMember)
   return { results: results.slice(0, SEARCH_LIMIT) }
 }
 
