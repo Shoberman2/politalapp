@@ -1,7 +1,7 @@
 {
   "name": "io.ballotwatch/congress",
   "title": "BallotWatch",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The U.S. congressional record: members, roll-call votes, bills and the House weekly floor schedule, sourced from Congress.gov, the House Clerk and the Senate. Every result carries a canonical BallotWatch URL and an official source_url.",
   "websiteUrl": "https://www.ballotwatch.io",
   "repository": {
@@ -25,14 +25,18 @@
   },
   "serverInfo": {
     "name": "ballotwatch",
-    "version": "1.0.0"
+    "title": "BallotWatch",
+    "version": "1.1.0"
   },
   "capabilities": {
     "tools": {
       "listChanged": false
+    },
+    "prompts": {
+      "listChanged": false
     }
   },
-  "instructions": "BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call \"result_derived\" is computed from the tally and question. Bill ids look like 119-hr-1.",
+  "instructions": "BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call \"result_derived\" is computed from the tally and question. Bill ids look like 119-hr-1. Members are addressed by Bioguide ID (e.g. P000197): get one from a name with search_members, or from an address or ZIP code with find_representatives. Recorded votes cover the 119th Congress (January 2025 onward).",
   "limits": "60 requests per minute and 5,000 per day per IP",
   "documentation": {
     "llms": "https://www.ballotwatch.io/llms.txt",
@@ -48,7 +52,7 @@
     {
       "name": "find_representatives",
       "title": "Find representatives",
-      "description": "Resolve a U.S. street address or ZIP code to its two senators and House member. Addresses resolve to an exact district; a ZIP resolves by centroid and may span districts.",
+      "description": "Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns each district holding 1% or more of its land (location.districts) and the member for each; a district holding less is named in location.minor_overlaps without its members. Ask for a street address when the answer must be exact.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -65,12 +69,70 @@
         },
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Find representatives",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "search_members",
+      "title": "Search members",
+      "description": "Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as \"Chuck Schumer\" or \"AOC\" into the Bioguide ID the other tools need. Nicknames, close spellings, titles (\"Rep.\", \"Sen.\") and a seat hint such as \"(R-TX)\" are understood. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Full or partial name, e.g. \"Pelosi\" or \"Sen. Ted Cruz\". Omit to list by the filters."
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "State or territory, by name or two-letter code, e.g. \"Ohio\" or \"OH\""
+          },
+          "chamber": {
+            "type": "string",
+            "enum": [
+              "house",
+              "senate"
+            ]
+          },
+          "party": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "D, R or I (or Democrat, Republican, Independent)"
+          },
+          "include_former": {
+            "type": "boolean",
+            "description": "Also list members who left during this Congress when no name is given"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60,
+            "description": "Default 20"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Search members",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
       "name": "get_member",
       "title": "Get member",
-      "description": "A member of Congress by Bioguide ID: seat, party, terms, vote statistics, and latest votes.",
+      "description": "A member of Congress by Bioguide ID: seat, party, whether they are serving now, terms, vote statistics, and their ten latest votes.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -85,28 +147,26 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get member",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
-      "name": "get_member_votes",
-      "title": "Get member votes",
-      "description": "Recorded votes for a member, newest first, with the question, bill, position, and official source.",
+      "name": "get_member_record",
+      "title": "Get member record",
+      "description": "A member's record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote's source_url.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "bioguide_id": {
             "type": "string",
-            "maxLength": 7
-          },
-          "since": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-            "description": "YYYY-MM-DD"
-          },
-          "limit": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100
+            "maxLength": 7,
+            "description": "Bioguide ID, e.g. P000197"
           }
         },
         "required": [
@@ -114,12 +174,190 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get member record",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_member_votes",
+      "title": "Get member votes",
+      "description": "Recorded votes for a member, newest first, with the question, bill, position, and official source. Pass bill to answer \"how did this member vote on H.R. 1\" (every roll call on that bill), position to list only their Nay or Not Voting votes, and since / until for a date range. Page with offset.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bioguide_id": {
+            "type": "string",
+            "maxLength": 7,
+            "description": "Bioguide ID, e.g. P000197"
+          },
+          "bill": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "Only votes on this bill: 119-hr-1 or \"H.R. 1\""
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "Yea",
+              "Nay",
+              "Present",
+              "Not Voting"
+            ]
+          },
+          "since": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "YYYY-MM-DD, inclusive"
+          },
+          "until": {
+            "$ref": "#/properties/since",
+            "description": "YYYY-MM-DD, inclusive"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Default 25"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Skip this many votes (for the next page)"
+          }
+        },
+        "required": [
+          "bioguide_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get member votes",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_member_bills",
+      "title": "Get member bills",
+      "description": "Bills a member sponsored (the newest 20) and cosponsored (the newest 10), with totals. The lists can be incomplete; each result links the member's full list on Congress.gov.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bioguide_id": {
+            "type": "string",
+            "maxLength": 7,
+            "description": "Bioguide ID, e.g. P000197"
+          }
+        },
+        "required": [
+          "bioguide_id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get member bills",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "compare_members",
+      "title": "Compare two members",
+      "description": "How often two members of the same chamber voted the same way this Congress: the roll calls both voted Yea or Nay on, how many matched, and their ten most recent differing votes. A plain count over the whole record, not a score.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bioguide_id_a": {
+            "type": "string",
+            "maxLength": 7,
+            "description": "Bioguide ID, e.g. P000197"
+          },
+          "bioguide_id_b": {
+            "$ref": "#/properties/bioguide_id_a"
+          }
+        },
+        "required": [
+          "bioguide_id_a",
+          "bioguide_id_b"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Compare two members",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_recent_votes",
+      "title": "Get recent votes",
+      "description": "Roll-call votes, newest first, with the question, bill, tally and derived result. Use for \"what did Congress vote on this week\" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query \"nomination\", \"appropriations\"). A bill number in query (\"H.R. 1\") is treated as that bill.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "chamber": {
+            "type": "string",
+            "enum": [
+              "house",
+              "senate"
+            ]
+          },
+          "since": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "YYYY-MM-DD, inclusive"
+          },
+          "until": {
+            "$ref": "#/properties/since",
+            "description": "YYYY-MM-DD, inclusive"
+          },
+          "bill": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "Only roll calls on this bill: 119-hr-1 or \"H.R. 1\""
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Words that must all appear in the question, description or bill title, and/or a bill number"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Default 20"
+          }
+        },
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get recent votes",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
       "name": "get_roll_call",
       "title": "Get roll call",
-      "description": "One roll-call vote with the tally, party split, derived result, and how every member voted.",
+      "description": "One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format \"full\") to get one object per member, e.g. bioguide_ids to see how specific members voted or party \"R\" with position \"Nay\" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -144,6 +382,42 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 5000
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "State or territory, by name or two-letter code, e.g. \"Ohio\" or \"OH\""
+          },
+          "party": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "D, R or I (or Democrat, Republican, Independent)"
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "Yea",
+              "Nay",
+              "Present",
+              "Not Voting"
+            ]
+          },
+          "bioguide_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 7
+            },
+            "maxItems": 50,
+            "description": "Only these members"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "full"
+            ],
+            "description": "\"full\" forces one object per member; \"compact\" forces grouped strings. Default: full for 60 members or fewer."
           }
         },
         "required": [
@@ -154,31 +428,72 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get roll call",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
       "name": "search_bills",
       "title": "Search bills",
-      "description": "Search bills by title keyword or bill number (e.g. \"H.R. 1\", \"119-s-5051\").",
+      "description": "Search bills by words in the title (every word must appear) or by bill number (e.g. \"H.R. 1\", \"119-s-5051\"), most recently introduced first. Narrow with congress, stage (e.g. enacted), sponsor (a Bioguide ID) or has_vote for bills that reached a recorded floor vote.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "query": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Title words or a bill number. Optional when another filter is given."
+          },
+          "congress": {
+            "type": "integer",
+            "minimum": 93,
+            "maximum": 200,
+            "description": "e.g. 119"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "introduced",
+              "referred",
+              "subcommittee",
+              "committee",
+              "floor",
+              "passed_one",
+              "passed_both",
+              "enacted",
+              "dead"
+            ]
+          },
+          "sponsor": {
+            "type": "string",
+            "maxLength": 7,
+            "description": "Bioguide ID of the sponsor"
+          },
+          "has_vote": {
+            "type": "boolean",
+            "description": "Only bills with a recorded floor vote"
           },
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 50
+            "maximum": 50,
+            "description": "Default 20"
           }
         },
-        "required": [
-          "query"
-        ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Search bills",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -199,6 +514,13 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get bill",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -218,6 +540,13 @@
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Explain bill",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
     },
     {
@@ -235,27 +564,129 @@
         },
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Get House floor schedule",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
       }
     },
     {
-      "name": "get_member_record",
-      "title": "Get member record",
-      "description": "A member's record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote's source_url.",
+      "name": "search",
+      "title": "Search the record",
+      "description": "One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, a roll call (\"House roll call 327\"), or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "bioguide_id": {
+          "query": {
             "type": "string",
-            "maxLength": 7,
-            "description": "Bioguide ID, e.g. P000197"
+            "maxLength": 200,
+            "description": "e.g. \"Nancy Pelosi\", \"43215\", \"H.R. 1\", \"veterans health\""
           }
         },
         "required": [
-          "bioguide_id"
+          "query"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Search the record",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
       }
+    },
+    {
+      "name": "fetch",
+      "title": "Fetch a record",
+      "description": "The full text of one record from search, as Markdown with its sources: a member's record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io record URL. Returns { id, title, text, url, metadata } as JSON.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "An id returned by search, or a ballotwatch.io record URL"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "title": "Fetch a record",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "my_representatives",
+      "title": "Who represents me",
+      "description": "The senators and House member for an address or ZIP code, with how each has voted lately.",
+      "arguments": [
+        {
+          "name": "location",
+          "description": "Street address or 5-digit ZIP code",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "member_record",
+      "title": "A member's voting record",
+      "description": "A neutral summary of how one member of Congress votes.",
+      "arguments": [
+        {
+          "name": "member",
+          "description": "Member name, e.g. \"Nancy Pelosi\"",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "how_did_they_vote",
+      "title": "How a member voted on a bill",
+      "description": "One member's recorded votes on one bill.",
+      "arguments": [
+        {
+          "name": "member",
+          "description": "Member name",
+          "required": true
+        },
+        {
+          "name": "bill",
+          "description": "Bill number or title words, e.g. \"H.R. 1\"",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "this_week_in_congress",
+      "title": "This week in Congress",
+      "description": "What the House plans to take up this week and what both chambers voted on in the last seven days.",
+      "arguments": []
+    },
+    {
+      "name": "explain_a_bill",
+      "title": "Explain a bill",
+      "description": "What a bill does in plain English, where it stands, and how the floor votes went.",
+      "arguments": [
+        {
+          "name": "bill",
+          "description": "Bill number or title words, e.g. \"H.R. 1\"",
+          "required": true
+        }
+      ]
     }
   ]
 }

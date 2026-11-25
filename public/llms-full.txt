@@ -82,9 +82,14 @@ The app pages need a free account in the browser: your representatives, the Bill
 
 ## MCP server
 
-- Endpoint: https://www.ballotwatch.io/mcp (Streamable HTTP, stateless, no auth; same per-IP limits as the API). POST JSON-RPC with `Accept: application/json, text/event-stream`. A GET returns a plain-JSON manifest.
-- Tools: find_representatives(address | zip), get_member(bioguide_id), get_member_record(bioguide_id), get_member_votes(bioguide_id, since?, limit?), get_roll_call(congress, chamber, session, roll), search_bills(query, limit?), get_bill(id), explain_bill(id), get_floor_schedule(week?)
+- Endpoint: https://www.ballotwatch.io/mcp (Streamable HTTP, stateless, no auth; same per-IP limits as the API). POST JSON-RPC with `Accept: application/json, text/event-stream`. A batch accepts up to 10 messages. A GET returns a plain-JSON manifest.
+- Tools: find_representatives(address | zip), search_members(query?, state?, chamber?, party?), get_member(bioguide_id), get_member_record(bioguide_id), get_member_votes(bioguide_id, bill?, position?, since?, until?, limit?, offset?), get_member_bills(bioguide_id), compare_members(bioguide_id_a, bioguide_id_b), get_recent_votes(chamber?, since?, until?, bill?, query?, limit?), get_roll_call(congress, chamber, session, roll, state?, party?, position?, bioguide_ids?, format?), search_bills(query?, congress?, stage?, sponsor?, has_vote?, limit?), get_bill(id), explain_bill(id), get_floor_schedule(week?), search(query), fetch(id)
+- Start from a name with search_members (nicknames and close spellings work; it returns the Bioguide ID the other tools take), or from an address or ZIP code with find_representatives. Both return sitting members: a member who left office is marked `serving: false` and is never listed as someone's representative. A ZIP code that spans districts returns every district it touches.
+- get_recent_votes lists roll calls newest first (filter by chamber, dates, bill or words); get_roll_call returns one roll call, with members grouped by position when more than 60 match. Request format "full" for individual vote objects. get_member_votes with `bill` answers "how did this member vote on H.R. 1". compare_members counts how often two members of one chamber voted the same way this Congress.
 - get_member_record returns the "record in 60 seconds" facts (seat, votes cast / not voting this Congress, ten most recent votes; no campaign-finance data) and the card URL /politician/{bioguide_id}/record. get_floor_schedule returns the House weekly floor schedule (this week and next, or the week containing `week`) from docs.house.gov; the Senate publishes no equivalent.
+- search and fetch are the generic pair ChatGPT deep research and company knowledge call: search(query) takes a name, a ZIP code, a bill number or title words and returns { results: [{ id, title, url }] }; fetch(id) returns { id, title, text, url, metadata } with the record as Markdown. Ids look like member:P000197, bill:119-hr-1 and vote:house-119-1-145; fetch also takes a ballotwatch.io record URL. Other clients get more from the specific tools above.
+- Prompts (shown as slash commands in clients that support them): my_representatives, member_record, how_did_they_vote, this_week_in_congress, explain_a_bill.
+- Recorded votes cover the 119th Congress (January 2025 onward). Every tool only reads the public record.
 
 ## Sitemaps and bulk
 
@@ -322,45 +327,99 @@ List the open-data bulk files (latest snapshot manifest). The manifest of the la
 # 4. MCP server
 
 Endpoint: https://www.ballotwatch.io/mcp. Transport: Streamable HTTP, stateless, no auth (same per-IP limits as the API). POST JSON-RPC 2.0 with Content-Type: application/json and Accept: application/json, text/event-stream. A plain GET returns a JSON manifest.
-Server: ballotwatch 1.0.0. Server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json.
-Instructions the server sends: BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1.
+Server: ballotwatch 1.1.0. Server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json.
+Instructions the server sends: BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1. Members are addressed by Bioguide ID (e.g. P000197): get one from a name with search_members, or from an address or ZIP code with find_representatives. Recorded votes cover the 119th Congress (January 2025 onward).
 
 ## find_representatives (Find representatives)
 
-Resolve a U.S. street address or ZIP code to its two senators and House member. Addresses resolve to an exact district; a ZIP resolves by centroid and may span districts.
+Resolve a U.S. street address or ZIP code to its two senators and House member, sitting members only. An address resolves to one exact district. A ZIP code that spans districts returns each district holding 1% or more of its land (location.districts) and the member for each; a district holding less is named in location.minor_overlaps without its members. Ask for a street address when the answer must be exact.
 Arguments:
   - address (string, optional, max length 200): Full street address
   - zip (string, optional, max length 10): 5-digit ZIP code
 
+## search_members (Search members)
+
+Find members of Congress by name, or list them by state, chamber or party. Use this first to turn a name such as "Chuck Schumer" or "AOC" into the Bioguide ID the other tools need. Nicknames, close spellings, titles ("Rep.", "Sen.") and a seat hint such as "(R-TX)" are understood. A name search also returns members who left during this Congress, marked serving: false; a list without a name shows sitting members only unless include_former is true.
+Arguments:
+  - query (string, optional, max length 100): Full or partial name, e.g. "Pelosi" or "Sen. Ted Cruz". Omit to list by the filters.
+  - state (string, optional, max length 30): State or territory, by name or two-letter code, e.g. "Ohio" or "OH"
+  - chamber (one of house|senate, optional)
+  - party (string, optional, max length 20): D, R or I (or Democrat, Republican, Independent)
+  - include_former (boolean, optional): Also list members who left during this Congress when no name is given
+  - limit (integer, optional, min 1, max 60): Default 20
+
 ## get_member (Get member)
 
-A member of Congress by Bioguide ID: seat, party, terms, vote statistics, and latest votes.
+A member of Congress by Bioguide ID: seat, party, whether they are serving now, terms, vote statistics, and their ten latest votes.
+Arguments:
+  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+
+## get_member_record (Get member record)
+
+A member's record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote's source_url.
 Arguments:
   - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
 
 ## get_member_votes (Get member votes)
 
-Recorded votes for a member, newest first, with the question, bill, position, and official source.
+Recorded votes for a member, newest first, with the question, bill, position, and official source. Pass bill to answer "how did this member vote on H.R. 1" (every roll call on that bill), position to list only their Nay or Not Voting votes, and since / until for a date range. Page with offset.
 Arguments:
-  - bioguide_id (string, required, max length 7)
-  - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD
-  - limit (integer, optional, min 1, max 100)
+  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+  - bill (string, optional, max length 40): Only votes on this bill: 119-hr-1 or "H.R. 1"
+  - position (one of Yea|Nay|Present|Not Voting, optional)
+  - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
+  - until (any, optional): YYYY-MM-DD, inclusive
+  - limit (integer, optional, min 1, max 100): Default 25
+  - offset (integer, optional, min 0, max 100000): Skip this many votes (for the next page)
+
+## get_member_bills (Get member bills)
+
+Bills a member sponsored (the newest 20) and cosponsored (the newest 10), with totals. The lists can be incomplete; each result links the member's full list on Congress.gov.
+Arguments:
+  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+
+## compare_members (Compare two members)
+
+How often two members of the same chamber voted the same way this Congress: the roll calls both voted Yea or Nay on, how many matched, and their ten most recent differing votes. A plain count over the whole record, not a score.
+Arguments:
+  - bioguide_id_a (string, required, max length 7): Bioguide ID, e.g. P000197
+  - bioguide_id_b (any, required)
+
+## get_recent_votes (Get recent votes)
+
+Roll-call votes, newest first, with the question, bill, tally and derived result. Use for "what did Congress vote on this week" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query "nomination", "appropriations"). A bill number in query ("H.R. 1") is treated as that bill.
+Arguments:
+  - chamber (one of house|senate, optional)
+  - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
+  - until (any, optional): YYYY-MM-DD, inclusive
+  - bill (string, optional, max length 40): Only roll calls on this bill: 119-hr-1 or "H.R. 1"
+  - query (string, optional, max length 100): Words that must all appear in the question, description or bill title, and/or a bill number
+  - limit (integer, optional, min 1, max 50): Default 20
 
 ## get_roll_call (Get roll call)
 
-One roll-call vote with the tally, party split, derived result, and how every member voted.
+One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format "full") to get one object per member, e.g. bioguide_ids to see how specific members voted or party "R" with position "Nay" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.
 Arguments:
   - congress (integer, required, min 1, max 200)
   - chamber (one of house|senate, required)
   - session (integer, required, min 1, max 3)
   - roll (integer, required, min 1, max 5000)
+  - state (string, optional, max length 30): State or territory, by name or two-letter code, e.g. "Ohio" or "OH"
+  - party (string, optional, max length 20): D, R or I (or Democrat, Republican, Independent)
+  - position (one of Yea|Nay|Present|Not Voting, optional)
+  - bioguide_ids (array, optional): Only these members
+  - format (one of compact|full, optional): "full" forces one object per member; "compact" forces grouped strings. Default: full for 60 members or fewer.
 
 ## search_bills (Search bills)
 
-Search bills by title keyword or bill number (e.g. "H.R. 1", "119-s-5051").
+Search bills by words in the title (every word must appear) or by bill number (e.g. "H.R. 1", "119-s-5051"), most recently introduced first. Narrow with congress, stage (e.g. enacted), sponsor (a Bioguide ID) or has_vote for bills that reached a recorded floor vote.
 Arguments:
-  - query (string, required, max length 100)
-  - limit (integer, optional, min 1, max 50)
+  - query (string, optional, max length 100): Title words or a bill number. Optional when another filter is given.
+  - congress (integer, optional, min 93, max 200): e.g. 119
+  - stage (one of introduced|referred|subcommittee|committee|floor|passed_one|passed_both|enacted|dead, optional)
+  - sponsor (string, optional, max length 7): Bioguide ID of the sponsor
+  - has_vote (boolean, optional): Only bills with a recorded floor vote
+  - limit (integer, optional, min 1, max 50): Default 20
 
 ## get_bill (Get bill)
 
@@ -380,11 +439,26 @@ What the House may take up this week and next (or the week containing a given da
 Arguments:
   - week (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.
 
-## get_member_record (Get member record)
+## search (Search the record)
 
-A member's record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote's source_url.
+One search across members, bills and roll-call votes: a name, a ZIP code, a bill number, a roll call ("House roll call 327"), or words from a bill title or vote. Returns results as { id, title, url } for fetch. When you know what you are looking for, the specific tools (search_members, search_bills, get_recent_votes, find_representatives) give more detail and filters.
 Arguments:
-  - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
+  - query (string, required, max length 200): e.g. "Nancy Pelosi", "43215", "H.R. 1", "veterans health"
+
+## fetch (Fetch a record)
+
+The full text of one record from search, as Markdown with its sources: a member's record (seat, votes cast this Congress, ten most recent votes), a bill (plain-English explanation, official summary, recorded votes), or a roll call (question, tally, party split and how every member voted). Takes an id from search (member:P000197, bill:119-hr-1, vote:house-119-1-145) or a ballotwatch.io record URL. Returns { id, title, text, url, metadata } as JSON.
+Arguments:
+  - id (string, required, max length 200): An id returned by search, or a ballotwatch.io record URL
+
+## Prompts
+
+Ready-made questions, offered as slash commands by clients that support MCP prompts. Each one tells the model which tools to call and to cite its sources.
+  - my_representatives(location) "Who represents me": The senators and House member for an address or ZIP code, with how each has voted lately.
+  - member_record(member) "A member's voting record": A neutral summary of how one member of Congress votes.
+  - how_did_they_vote(member, bill) "How a member voted on a bill": One member's recorded votes on one bill.
+  - this_week_in_congress() "This week in Congress": What the House plans to take up this week and what both chambers voted on in the last seven days.
+  - explain_a_bill(bill) "Explain a bill": What a bill does in plain English, where it stands, and how the floor votes went.
 
 # 5. Data sources
 

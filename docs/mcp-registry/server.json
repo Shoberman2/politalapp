@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.ballotwatch/congress",
+  "title": "BallotWatch",
+  "description": "U.S. Congress record: who represents you, how members voted, bills, floor schedule. Cited.",
+  "version": "1.1.0",
+  "websiteUrl": "https://www.ballotwatch.io",
+  "repository": {
+    "url": "https://github.com/Shoberman2/politalapp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.ballotwatch.io/mcp"
+    }
+  ]
+}

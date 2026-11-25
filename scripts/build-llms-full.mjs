@@ -4,6 +4,9 @@
 //
 //   public/llms-full.txt                    everything an agent needs, one file
 //   public/.well-known/mcp/server-card.json the MCP server card
+//   docs/mcp-registry/server.json           the listing published to the official
+//                                           MCP registry (mcp-publisher publish
+//                                           docs/mcp-registry/server.json)
 //
 // Sources: public/llms.txt (site map, URL patterns, citation rules),
 // docs/api/openapi.yaml (endpoints and parameters), api/mcp.js (the tools the
@@ -24,6 +27,10 @@ const read = (p) => readFileSync(path(p), 'utf8')
 
 export const LLMS_FULL = 'public/llms-full.txt'
 export const SERVER_CARD = 'public/.well-known/mcp/server-card.json'
+export const SERVER_JSON = 'docs/mcp-registry/server.json'
+// The name the server is listed under in the official MCP registry. The
+// io.ballotwatch namespace is proven by a TXT record on ballotwatch.io.
+export const REGISTRY_NAME = 'io.ballotwatch/congress'
 
 // ---------------------------------------------------------------------------
 // OpenAPI: a small reader for this repo's spec layout (2-space YAML, paths at
@@ -127,9 +134,10 @@ async function loadMcp() {
   const [a, b] = InMemoryTransport.createLinkedPair()
   await Promise.all([server.connect(a), client.connect(b)])
   const { tools } = await client.listTools()
+  const { prompts } = await client.listPrompts()
   await client.close()
   await server.close()
-  return { tools, instructions: mcp.INSTRUCTIONS, serverInfo: mcp.SERVER_INFO }
+  return { tools, prompts, instructions: mcp.INSTRUCTIONS, serverInfo: mcp.SERVER_INFO }
 }
 
 function describeToolArgs(schema) {
@@ -157,7 +165,7 @@ export async function build() {
   const { METHODOLOGY_PAGES } = await import('../src/data/openSource.js')
   const llms = read('public/llms.txt').trim()
   const api = parseOpenApi(read('docs/api/openapi.yaml'))
-  const { tools, instructions, serverInfo } = await loadMcp()
+  const { tools, prompts, instructions, serverInfo } = await loadMcp()
   const S = od.SITE_ORIGIN
 
   const out = []
@@ -219,6 +227,11 @@ export async function build() {
   for (const t of tools) {
     out.push('', `## ${t.name}${t.title ? ` (${t.title})` : ''}`, '', t.description, 'Arguments:', ...describeToolArgs(t.inputSchema))
   }
+  out.push('', '## Prompts', '', 'Ready-made questions, offered as slash commands by clients that support MCP prompts. Each one tells the model which tools to call and to cite its sources.')
+  for (const p of prompts) {
+    const args = (p.arguments || []).map((a) => a.name).join(', ')
+    out.push(`  - ${p.name}(${args})${p.title ? ` "${p.title}"` : ''}: ${p.description}`)
+  }
 
   h('5. Data sources')
   out.push(`Every upstream source and how often BallotWatch reads it (${S}/data-sources):`)
@@ -242,7 +255,7 @@ export async function build() {
   const text = out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n'
 
   const card = {
-    name: 'io.ballotwatch/congress',
+    name: REGISTRY_NAME,
     title: 'BallotWatch',
     version: serverInfo.version,
     description: 'The U.S. congressional record: members, roll-call votes, bills and the House weekly floor schedule, sourced from Congress.gov, the House Clerk and the Senate. Every result carries a canonical BallotWatch URL and an official source_url.',
@@ -251,16 +264,30 @@ export async function build() {
     remotes: [{ type: 'streamable-http', url: `${S}/mcp` }],
     transport: { type: 'streamable-http', endpoint: `${S}/mcp`, stateless: true },
     authentication: { required: false, schemes: [] },
-    serverInfo: { name: serverInfo.name, version: serverInfo.version },
-    capabilities: { tools: { listChanged: false } },
+    serverInfo: { name: serverInfo.name, title: serverInfo.title, version: serverInfo.version },
+    capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },
     instructions,
     limits: '60 requests per minute and 5,000 per day per IP',
     documentation: { llms: `${S}/llms.txt`, llmsFull: `${S}/llms-full.txt`, openapi: `${S}/openapi.yaml`, openData: od.MANIFEST_URL },
     license: { code: 'MIT', data: od.DATA_LICENSE.id },
-    tools: tools.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema })),
+    tools: tools.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations })),
+    prompts: prompts.map((p) => ({ name: p.name, title: p.title, description: p.description, arguments: p.arguments || [] })),
   }
   const cardText = JSON.stringify(card, null, 2) + '\n'
-  return { [LLMS_FULL]: text, [SERVER_CARD]: cardText }
+
+  // The registry caps the description at 100 characters.
+  const listing = {
+    $schema: 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    name: REGISTRY_NAME,
+    title: 'BallotWatch',
+    description: 'U.S. Congress record: who represents you, how members voted, bills, floor schedule. Cited.',
+    version: serverInfo.version,
+    websiteUrl: S,
+    repository: card.repository,
+    remotes: card.remotes,
+  }
+  if (listing.description.length > 100) throw new Error('server.json description is over 100 characters')
+  return { [LLMS_FULL]: text, [SERVER_CARD]: cardText, [SERVER_JSON]: JSON.stringify(listing, null, 2) + '\n' }
 }
 
 async function main() {
