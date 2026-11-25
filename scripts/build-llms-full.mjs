@@ -4,8 +4,9 @@
 //
 //   public/llms-full.txt                    everything an agent needs, one file
 //   public/.well-known/mcp/server-card.json the MCP server card
-//   server.json                             the listing published to the official
-//                                           MCP registry (mcp-publisher publish)
+//   docs/mcp-registry/server.json           the listing published to the official
+//                                           MCP registry (mcp-publisher publish
+//                                           docs/mcp-registry/server.json)
 //
 // Sources: public/llms.txt (site map, URL patterns, citation rules),
 // docs/api/openapi.yaml (endpoints and parameters), api/mcp.js (the tools the
@@ -26,7 +27,7 @@ const read = (p) => readFileSync(path(p), 'utf8')
 
 export const LLMS_FULL = 'public/llms-full.txt'
 export const SERVER_CARD = 'public/.well-known/mcp/server-card.json'
-export const SERVER_JSON = 'server.json'
+export const SERVER_JSON = 'docs/mcp-registry/server.json'
 // The name the server is listed under in the official MCP registry. The
 // io.ballotwatch namespace is proven by a TXT record on ballotwatch.io.
 export const REGISTRY_NAME = 'io.ballotwatch/congress'

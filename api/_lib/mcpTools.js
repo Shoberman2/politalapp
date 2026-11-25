@@ -639,12 +639,13 @@ export async function getRecentVotes({ chamber, since, until, query, bill, limit
       const stats = statsById.get(r.id)
       const t = tallyFromStats(stats)
       const sane = t.yea != null && saneTally(t.yea, t.nay, r.meta.chamber)
+      const { chamberKey, congress, session, roll } = r.meta
       return {
         roll_call_id: r.id,
-        chamber: r.meta.chamberKey,
-        congress: r.meta.congress,
-        session: r.meta.session,
-        roll: r.meta.roll,
+        chamber: chamberKey,
+        congress,
+        session,
+        roll,
         voted_at: r.voted_at,
         question: r.question || null,
         description: r.description || null,
@@ -942,8 +943,8 @@ export async function fetchDocument({ id } = {}) {
       metadata: meta({ type: 'bill', bill_id: b.id, stage: b.legislative_stage, source_url: b.source_url, data_updated_at: b.updatedAt }),
     }
   }
-  const parts = parseRollCallId(doc.id)
-  const out = await getRollCall({ congress: parts.congress, chamber: parts.chamberKey, session: parts.session, roll: parts.roll, format: 'compact' })
+  const { congress, chamberKey, session, roll } = parseRollCallId(doc.id)
+  const out = await getRollCall({ congress, chamber: chamberKey, session, roll, format: 'compact' })
   if (out.error) return { error: out.error }
   const lines = [
     `# ${out.chamber === 'senate' ? 'Senate' : 'House'} roll call ${out.roll}, ${out.congress}th Congress, session ${out.session}`,
