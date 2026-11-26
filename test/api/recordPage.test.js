@@ -5,7 +5,7 @@ import { makeSupabaseMock } from '../fixtures/supabaseChain.js'
 import { shell } from '../fixtures/pages.js'
 
 const db = makeSupabaseMock()
-vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t) } }))
+vi.mock('../../api/_lib/supabase.js', () => ({ supabaseAdmin: { from: (t) => db.from(t), rpc: (fn, args) => db.rpc(fn, args) } }))
 
 import { getRecordPage, getMemberPage } from '../../api/_lib/pages.js'
 import { _resetEtlMetaCache } from '../../api/_lib/etlMeta.js'
@@ -163,7 +163,7 @@ describe('record in 60 seconds: prerender kind, routing, sitemap', () => {
   it('lists a record card for every member with votes', async () => {
     db.responses.politicians = { data: [{ id: 'P000197', name: 'Nancy Pelosi' }, { id: 'Z000000', name: 'No Votes' }] }
     db.responses.member_stats = { data: [{ politician_id: 'P000197', total_votes: 676 }] }
-    db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T14:00:00Z' }] }
+    db.responses['rpc:member_last_vote_dates'] = { data: [{ politician_id: 'P000197', last_voted_at: '2026-09-03' }] }
     expect(await recordEntries()).toEqual([{ path: '/politician/P000197-nancy-pelosi/record', lastmod: '2026-09-03', changefreq: 'weekly' }])
     reset()
     db.responses.roll_calls = { data: [{ voted_at: '2026-09-03T00:00:00Z' }] }

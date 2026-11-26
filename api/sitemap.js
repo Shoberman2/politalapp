@@ -2,8 +2,11 @@
 //   /sitemap.xml           -> index pointing at the parts below
 //   /sitemap-pages.xml     -> the homepage, /members, /this-week, /developers and the static info pages, minus
 //                             the ones that need an account (shared/access.js)
-//   /sitemap-members.xml   -> every member with at least one recorded vote
-//   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members
+//   /sitemap-members.xml   -> every member with at least one recorded vote; each <lastmod> is that
+//                             member's latest recorded vote (member_last_vote_dates RPC)
+//   /sitemap-records.xml   -> the "record in 60 seconds" card for the same members, same <lastmod>
+//                             Above 50,000 URLs (or 45 MB) these split into members-1..N / records-1..N.
+//                             If the RPC fails, both parts are still served, without <lastmod>.
 //   /sitemap-votes.xml     -> every roll call with a sane, non-empty tally
 //   /sitemap-bills.xml     -> every bill with a recorded vote and a real title
 // Reads with the service role in pages of 1,000 (the PostgREST cap). Each
@@ -28,6 +31,8 @@ const PAGE = 1000
 const CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
 const MEMO_TTL_MS = 15 * 60 * 1000
 const PER_MINUTE = Number(process.env.SITEMAP_PER_MINUTE || 12)
+// Defensive: sitemaps.org caps a file at 50 MB uncompressed; stay well under it.
+const MAX_PART_BYTES = 45 * 1024 * 1024
 
 const memo = new Map()
 
@@ -68,27 +73,92 @@ export async function pageEntries() {
   ]
 }
 
-// Every politician with at least one recorded vote (the member pages' index gate).
+// Each member's latest recorded vote date (YYYY-MM-DD), computed in the
+// database (GROUP BY on votes) so the votes table never leaves Postgres.
+// Paged by 1,000 because PostgREST caps the rows per response.
+async function memberLastVoteDates() {
+  const out = new Map()
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabaseAdmin.rpc('member_last_vote_dates').order('politician_id').range(from, from + PAGE - 1)
+    if (error) throw new Error(`member_last_vote_dates: ${error.message}`)
+    for (const r of data || []) {
+      const d = toDateOnly(r.last_voted_at)
+      if (r.politician_id && d) out.set(r.politician_id, d)
+    }
+    if (!data || data.length < PAGE) break
+  }
+  return out
+}
+
+// Every politician with at least one recorded vote (the member pages' index
+// gate), plus a Map of politician_id -> latest vote date. <lastmod> is
+// optional, so a failed lookup degrades to an empty Map (no dates) rather
+// than failing the part; no other date is ever substituted.
 async function membersWithVotes() {
-  const [politicians, stats, lastmod] = await Promise.all([
+  let lastmodOk = true
+  const [politicians, stats, lastmodById] = await Promise.all([
     fetchAll('politicians', 'id, name'),
     fetchAll('member_stats', 'politician_id, total_votes', (q) => q.gt('total_votes', 0), 'politician_id'),
-    latestVoteDate(),
+    memberLastVoteDates().catch((err) => {
+      console.warn('[sitemap] member lastmod unavailable:', err.message)
+      lastmodOk = false
+      return new Map()
+    }),
   ])
   const withVotes = new Set(stats.map((s) => s.politician_id))
-  return { members: politicians.filter((p) => withVotes.has(p.id)), lastmod }
+  return { members: politicians.filter((p) => withVotes.has(p.id)), lastmodById, lastmodOk }
+}
+
+// One read per memo window, shared by the members part, the records part and the index.
+// The promise is memoized so the index's concurrent members/records reads share one fetch.
+let membersMemo = { promise: null, at: 0 }
+function membersWithVotesMemo() {
+  if (membersMemo.promise && Date.now() - membersMemo.at < MEMO_TTL_MS) return membersMemo.promise
+  const promise = membersWithVotes()
+  const memo = { promise, at: Date.now() }
+  membersMemo = memo
+  // A failed or degraded read is not kept, so the next build retries.
+  const drop = () => { if (membersMemo === memo) membersMemo = { promise: null, at: 0 } }
+  promise.then((v) => { if (!v.lastmodOk) drop() }, drop)
+  return promise
+}
+
+function memberLikeEntries({ members, lastmodById }, toPath) {
+  return members.map((p) => ({ path: toPath(p.id, p.name), lastmod: lastmodById.get(p.id) || null, changefreq: 'weekly' }))
 }
 
 // <loc> values are the slugged canonical URLs (/politician/P000197-nancy-pelosi).
 export async function memberEntries() {
-  const { members, lastmod } = await membersWithVotes()
-  return members.map((p) => ({ path: memberPath(p.id, p.name), lastmod, changefreq: 'weekly' }))
+  return memberLikeEntries(await membersWithVotesMemo(), memberPath)
 }
 
 // Same members and the same gate as the member pages (at least one vote).
 export async function recordEntries() {
-  const { members, lastmod } = await membersWithVotes()
-  return members.map((p) => ({ path: recordPath(p.id, p.name), lastmod, changefreq: 'weekly' }))
+  return memberLikeEntries(await membersWithVotesMemo(), recordPath)
+}
+
+// Chunks of at most SITEMAP_PART_SIZE URLs, halved further while a chunk's
+// XML would exceed maxBytes. Always at least one (possibly empty) chunk.
+export function splitUrlsetParts(entries, maxBytes = MAX_PART_BYTES) {
+  const out = []
+  const fit = (piece) => {
+    if (piece.length <= 1 || Buffer.byteLength(buildUrlset(SITE_ORIGIN, piece)) <= maxBytes) { out.push(piece); return }
+    const mid = Math.ceil(piece.length / 2)
+    fit(piece.slice(0, mid))
+    fit(piece.slice(mid))
+  }
+  for (const piece of entries.length ? chunk(entries, SITEMAP_PART_SIZE) : [[]]) fit(piece)
+  return out
+}
+
+async function memberLikeParts(kind) {
+  return splitUrlsetParts(kind === 'members' ? await memberEntries() : await recordEntries())
+}
+
+function maxLastmod(entries) {
+  let max = null
+  for (const e of entries) if (e.lastmod && (!max || e.lastmod > max)) max = e.lastmod
+  return max
 }
 
 export async function voteEntries() {
@@ -146,15 +216,25 @@ async function billPartCount() {
 
 export async function buildPart(part) {
   if (!part) {
-    const [lastmod, billParts] = await Promise.all([latestVoteDate(), billPartCount()])
-    const parts = [{ name: 'pages', lastmod }, { name: 'members', lastmod }, { name: 'records', lastmod }, { name: 'votes', lastmod }]
+    const [lastmod, billParts, memberParts, recordParts] = await Promise.all([
+      latestVoteDate(), billPartCount(), memberLikeParts('members'), memberLikeParts('records'),
+    ])
+    // Members and records are dated by the newest member lastmod (omitted if none has one).
+    const memberLastmod = maxLastmod(memberParts.flat())
+    const named = (name, pieces) => (pieces.length === 1 ? [{ name, lastmod: memberLastmod }] : pieces.map((_, i) => ({ name: `${name}-${i + 1}`, lastmod: memberLastmod })))
+    const parts = [{ name: 'pages', lastmod }, ...named('members', memberParts), ...named('records', recordParts), { name: 'votes', lastmod }]
     if (billParts === 1) parts.push({ name: 'bills', lastmod })
     else for (let i = 1; i <= billParts; i += 1) parts.push({ name: `bills-${i}`, lastmod })
     return buildSitemapIndex(SITE_ORIGIN, parts)
   }
   if (part === 'pages') return buildUrlset(SITE_ORIGIN, await pageEntries())
-  if (part === 'members') return buildUrlset(SITE_ORIGIN, await memberEntries())
-  if (part === 'records') return buildUrlset(SITE_ORIGIN, await recordEntries())
+  const memberLike = /^(members|records)(?:-(\d+))?$/.exec(part)
+  if (memberLike) {
+    const pieces = await memberLikeParts(memberLike[1])
+    const n = memberLike[2] ? Number(memberLike[2]) : 1
+    if (n < 1 || n > pieces.length) return null
+    return buildUrlset(SITE_ORIGIN, pieces[n - 1])
+  }
   if (part === 'votes') return buildUrlset(SITE_ORIGIN, await voteEntries())
   if (/^bills(-\d+)?$/.test(part)) {
     const n = part === 'bills' ? 1 : Number(part.split('-')[1])
@@ -168,6 +248,7 @@ export async function buildPart(part) {
 export function _resetSitemapMemo() {
   memo.clear()
   billsMemo = { entries: null, at: 0 }
+  membersMemo = { promise: null, at: 0 }
 }
 
 export default async function handler(req, res) {
