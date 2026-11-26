@@ -22,7 +22,7 @@ export const INSTRUCTIONS = `BallotWatch serves the U.S. congressional record: m
 export const SERVER_INFO = {
   name: 'ballotwatch',
   title: 'BallotWatch',
-  version: '1.1.0',
+  version: '1.1.1',
   websiteUrl: SITE_ORIGIN,
   icons: [
     { src: `${SITE_ORIGIN}/favicon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },
@@ -32,11 +32,14 @@ export const SERVER_INFO = {
 
 const MAX_BATCH_MESSAGES = 10
 
-const DATE = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
+// DATE and BIOGUIDE are factories: a Zod instance used twice in one tool is
+// emitted as a "$ref" to the first property, which leaves the second without
+// a description of its own. A fresh instance per property inlines it.
+const DATE = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD')
   .refine((s) => { const d = new Date(`${s}T00:00:00Z`); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s }, 'Not a real calendar date')
-const BIOGUIDE = z.string().max(7).describe('Bioguide ID, e.g. P000197')
-const CHAMBER = z.enum(['house', 'senate'])
-const POSITION = z.enum(['Yea', 'Nay', 'Present', 'Not Voting'])
+const BIOGUIDE = (description = 'Bioguide ID, e.g. P000197') => z.string().max(7).describe(description)
+const CHAMBER = z.enum(['house', 'senate']).describe('Chamber, lowercase: "house" or "senate"')
+const POSITION = z.enum(['Yea', 'Nay', 'Present', 'Not Voting']).describe('Vote position, exactly one of "Yea", "Nay", "Present" or "Not Voting" (case-sensitive)')
 const STATE = z.string().max(30).describe('State or territory, by name or two-letter code, e.g. "Ohio" or "OH"')
 const PARTY = z.string().max(20).describe('D, R or I (or Democrat, Republican, Independent)')
 
@@ -74,14 +77,14 @@ export const TOOLS = [
     name: 'get_member',
     title: 'Get member',
     description: 'A member of Congress by Bioguide ID: seat, party, whether they are serving now, terms, vote statistics, and their ten latest votes.',
-    inputSchema: { bioguide_id: BIOGUIDE },
+    inputSchema: { bioguide_id: BIOGUIDE() },
     run: tools.getMember,
   },
   {
     name: 'get_member_record',
     title: 'Get member record',
     description: 'A member\'s record in 60 seconds: seat, serving since, roll calls and votes cast / not voting this Congress, and the ten most recent votes with position and a link to each roll call. Use for a quick, neutral summary of how a member votes. Cite the record canonical URL and each vote\'s source_url.',
-    inputSchema: { bioguide_id: BIOGUIDE },
+    inputSchema: { bioguide_id: BIOGUIDE() },
     run: tools.getMemberRecord,
   },
   {
@@ -89,11 +92,11 @@ export const TOOLS = [
     title: 'Get member votes',
     description: 'Recorded votes for a member, newest first, with the question, bill, position, and official source. Pass bill to answer "how did this member vote on H.R. 1" (every roll call on that bill), position to list only their Nay or Not Voting votes, and since / until for a date range. Page with offset.',
     inputSchema: {
-      bioguide_id: BIOGUIDE,
+      bioguide_id: BIOGUIDE(),
       bill: z.string().max(40).optional().describe('Only votes on this bill: 119-hr-1 or "H.R. 1"'),
       position: POSITION.optional(),
-      since: DATE.optional().describe('YYYY-MM-DD, inclusive'),
-      until: DATE.optional().describe('YYYY-MM-DD, inclusive'),
+      since: DATE().optional().describe('YYYY-MM-DD, inclusive'),
+      until: DATE().optional().describe('YYYY-MM-DD, inclusive'),
       limit: z.number().int().min(1).max(100).optional().describe('Default 25'),
       offset: z.number().int().min(0).max(100000).optional().describe('Skip this many votes (for the next page)'),
     },
@@ -103,14 +106,14 @@ export const TOOLS = [
     name: 'get_member_bills',
     title: 'Get member bills',
     description: 'Bills a member sponsored (the newest 20) and cosponsored (the newest 10), with totals. The lists can be incomplete; each result links the member\'s full list on Congress.gov.',
-    inputSchema: { bioguide_id: BIOGUIDE },
+    inputSchema: { bioguide_id: BIOGUIDE() },
     run: tools.getMemberBills,
   },
   {
     name: 'compare_members',
     title: 'Compare two members',
     description: 'How often two members of the same chamber voted the same way this Congress: the roll calls both voted Yea or Nay on, how many matched, and their ten most recent differing votes. A plain count over the whole record, not a score.',
-    inputSchema: { bioguide_id_a: BIOGUIDE, bioguide_id_b: BIOGUIDE },
+    inputSchema: { bioguide_id_a: BIOGUIDE('Bioguide ID of the first member, e.g. P000197'), bioguide_id_b: BIOGUIDE('Bioguide ID of the second member, in the same chamber as bioguide_id_a, e.g. S000148') },
     run: tools.compareMembers,
   },
   {
@@ -119,8 +122,8 @@ export const TOOLS = [
     description: 'Roll-call votes, newest first, with the question, bill, tally and derived result. Use for "what did Congress vote on this week" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query "nomination", "appropriations"). A bill number in query ("H.R. 1") is treated as that bill.',
     inputSchema: {
       chamber: CHAMBER.optional(),
-      since: DATE.optional().describe('YYYY-MM-DD, inclusive'),
-      until: DATE.optional().describe('YYYY-MM-DD, inclusive'),
+      since: DATE().optional().describe('YYYY-MM-DD, inclusive'),
+      until: DATE().optional().describe('YYYY-MM-DD, inclusive'),
       bill: z.string().max(40).optional().describe('Only roll calls on this bill: 119-hr-1 or "H.R. 1"'),
       query: z.string().max(100).optional().describe('Words that must all appear in the question, description or bill title, and/or a bill number'),
       limit: z.number().int().min(1).max(50).optional().describe('Default 20'),
@@ -132,10 +135,10 @@ export const TOOLS = [
     title: 'Get roll call',
     description: 'One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format "full") to get one object per member, e.g. bioguide_ids to see how specific members voted or party "R" with position "Nay" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.',
     inputSchema: {
-      congress: z.number().int().min(1).max(200),
+      congress: z.number().int().min(1).max(200).describe('Congress number, 1 to 200, e.g. 119 for the 119th Congress (2025-2026)'),
       chamber: CHAMBER,
-      session: z.number().int().min(1).max(3),
-      roll: z.number().int().min(1).max(5000),
+      session: z.number().int().min(1).max(3).describe('Session of that Congress, 1 to 3: normally 1 (first year) or 2 (second year), e.g. 1 for 2025 in the 119th Congress'),
+      roll: z.number().int().min(1).max(5000).describe('Roll-call number within that chamber and session, 1 to 5000, e.g. 145. get_recent_votes lists them.'),
       state: STATE.optional(),
       party: PARTY.optional(),
       position: POSITION.optional(),
@@ -151,7 +154,7 @@ export const TOOLS = [
     inputSchema: {
       query: z.string().max(100).optional().describe('Title words or a bill number. Optional when another filter is given.'),
       congress: z.number().int().min(93).max(200).optional().describe('e.g. 119'),
-      stage: z.enum(tools.BILL_STAGES).optional(),
+      stage: z.enum(tools.BILL_STAGES).optional().describe(`Legislative stage, one of ${tools.BILL_STAGES.join(', ')} (passed_one: passed one chamber; passed_both: passed both), e.g. "enacted"`),
       sponsor: z.string().max(7).optional().describe('Bioguide ID of the sponsor'),
       has_vote: z.boolean().optional().describe('Only bills with a recorded floor vote'),
       limit: z.number().int().min(1).max(50).optional().describe('Default 20'),
@@ -169,14 +172,14 @@ export const TOOLS = [
     name: 'explain_bill',
     title: 'Explain bill',
     description: 'A plain-English explanation of a bill for readers with no background in government: a one-sentence summary, short paragraphs and key points, written by AI from the bill\'s official text (or the CRS summary when the text is not published). Says which text version it read. Nothing is inferred from the title; when Congress.gov has no text yet, plain_english is null.',
-    inputSchema: { id: z.string().max(40) },
+    inputSchema: { id: z.string().max(40).describe('Bill id such as 119-hr-1, or a bill number such as "H.R. 1"') },
     run: tools.explainBill,
   },
   {
     name: 'get_floor_schedule',
     title: 'Get House floor schedule',
     description: 'What the House may take up this week and next (or the week containing a given date), read live from the Majority Leader\'s schedule on docs.house.gov: each item\'s label, title, procedure, and bill page. Use for "what is Congress voting on this week". House only; the Senate publishes no equivalent. Cite each week\'s source_url.',
-    inputSchema: { week: DATE.optional().describe('YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.') },
+    inputSchema: { week: DATE().optional().describe('YYYY-MM-DD, any day of the week (normally the Monday). Omit for this week and next.') },
     live: true,
     run: tools.getFloorSchedule,
   },

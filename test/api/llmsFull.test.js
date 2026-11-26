@@ -29,6 +29,11 @@ describe('generated agent files are up to date', () => {
     })
     expect(listing.description.length).toBeLessThanOrEqual(100)
     expect(listing.packages).toBeUndefined()
+    expect(listing.icons).toEqual(SERVER_INFO.icons)
+    for (const icon of listing.icons) {
+      expect(icon.src).toMatch(/^https:\/\/www\.ballotwatch\.io\//)
+      for (const size of icon.sizes) expect(size).toMatch(/^(\d+x\d+|any)$/)
+    }
     expect(JSON.parse(read(SERVER_CARD)).name).toBe(listing.name)
   })
 

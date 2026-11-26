@@ -283,6 +283,8 @@ export async function build() {
     description: 'U.S. Congress record: who represents you, how members voted, bills, floor schedule. Cited.',
     version: serverInfo.version,
     websiteUrl: S,
+    // The same product logos the server advertises on initialize.
+    icons: serverInfo.icons,
     repository: card.repository,
     remotes: card.remotes,
   }

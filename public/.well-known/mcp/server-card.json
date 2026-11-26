@@ -1,7 +1,7 @@
 {
   "name": "io.ballotwatch/congress",
   "title": "BallotWatch",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The U.S. congressional record: members, roll-call votes, bills and the House weekly floor schedule, sourced from Congress.gov, the House Clerk and the Senate. Every result carries a canonical BallotWatch URL and an official source_url.",
   "websiteUrl": "https://www.ballotwatch.io",
   "repository": {
@@ -26,7 +26,7 @@
   "serverInfo": {
     "name": "ballotwatch",
     "title": "BallotWatch",
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "capabilities": {
     "tools": {
@@ -100,7 +100,8 @@
             "enum": [
               "house",
               "senate"
-            ]
+            ],
+            "description": "Chamber, lowercase: \"house\" or \"senate\""
           },
           "party": {
             "type": "string",
@@ -207,7 +208,8 @@
               "Nay",
               "Present",
               "Not Voting"
-            ]
+            ],
+            "description": "Vote position, exactly one of \"Yea\", \"Nay\", \"Present\" or \"Not Voting\" (case-sensitive)"
           },
           "since": {
             "type": "string",
@@ -215,7 +217,8 @@
             "description": "YYYY-MM-DD, inclusive"
           },
           "until": {
-            "$ref": "#/properties/since",
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
             "description": "YYYY-MM-DD, inclusive"
           },
           "limit": {
@@ -282,10 +285,12 @@
           "bioguide_id_a": {
             "type": "string",
             "maxLength": 7,
-            "description": "Bioguide ID, e.g. P000197"
+            "description": "Bioguide ID of the first member, e.g. P000197"
           },
           "bioguide_id_b": {
-            "$ref": "#/properties/bioguide_id_a"
+            "type": "string",
+            "maxLength": 7,
+            "description": "Bioguide ID of the second member, in the same chamber as bioguide_id_a, e.g. S000148"
           }
         },
         "required": [
@@ -315,7 +320,8 @@
             "enum": [
               "house",
               "senate"
-            ]
+            ],
+            "description": "Chamber, lowercase: \"house\" or \"senate\""
           },
           "since": {
             "type": "string",
@@ -323,7 +329,8 @@
             "description": "YYYY-MM-DD, inclusive"
           },
           "until": {
-            "$ref": "#/properties/since",
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
             "description": "YYYY-MM-DD, inclusive"
           },
           "bill": {
@@ -364,24 +371,28 @@
           "congress": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 200
+            "maximum": 200,
+            "description": "Congress number, 1 to 200, e.g. 119 for the 119th Congress (2025-2026)"
           },
           "chamber": {
             "type": "string",
             "enum": [
               "house",
               "senate"
-            ]
+            ],
+            "description": "Chamber, lowercase: \"house\" or \"senate\""
           },
           "session": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 3
+            "maximum": 3,
+            "description": "Session of that Congress, 1 to 3: normally 1 (first year) or 2 (second year), e.g. 1 for 2025 in the 119th Congress"
           },
           "roll": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 5000
+            "maximum": 5000,
+            "description": "Roll-call number within that chamber and session, 1 to 5000, e.g. 145. get_recent_votes lists them."
           },
           "state": {
             "type": "string",
@@ -400,7 +411,8 @@
               "Nay",
               "Present",
               "Not Voting"
-            ]
+            ],
+            "description": "Vote position, exactly one of \"Yea\", \"Nay\", \"Present\" or \"Not Voting\" (case-sensitive)"
           },
           "bioguide_ids": {
             "type": "array",
@@ -467,7 +479,8 @@
               "passed_both",
               "enacted",
               "dead"
-            ]
+            ],
+            "description": "Legislative stage, one of introduced, referred, subcommittee, committee, floor, passed_one, passed_both, enacted, dead (passed_one: passed one chamber; passed_both: passed both), e.g. \"enacted\""
           },
           "sponsor": {
             "type": "string",
@@ -532,7 +545,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "maxLength": 40
+            "maxLength": 40,
+            "description": "Bill id such as 119-hr-1, or a bill number such as \"H.R. 1\""
           }
         },
         "required": [
