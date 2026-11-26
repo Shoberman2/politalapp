@@ -327,7 +327,7 @@ List the open-data bulk files (latest snapshot manifest). The manifest of the la
 # 4. MCP server
 
 Endpoint: https://www.ballotwatch.io/mcp. Transport: Streamable HTTP, stateless, no auth (same per-IP limits as the API). POST JSON-RPC 2.0 with Content-Type: application/json and Accept: application/json, text/event-stream. A plain GET returns a JSON manifest.
-Server: ballotwatch 1.1.0. Server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json.
+Server: ballotwatch 1.1.1. Server card: https://www.ballotwatch.io/.well-known/mcp/server-card.json.
 Instructions the server sends: BallotWatch serves the U.S. congressional record: members, roll-call votes, bills, and the House weekly floor schedule, sourced from Congress.gov, the House Clerk, and the Senate. Every result includes a canonical BallotWatch URL and an official source_url; cite both. Results are the record as ingested (see data_updated_at), not analysis. Roll-call "result_derived" is computed from the tally and question. Bill ids look like 119-hr-1. Members are addressed by Bioguide ID (e.g. P000197): get one from a name with search_members, or from an address or ZIP code with find_representatives. Recorded votes cover the 119th Congress (January 2025 onward).
 
 ## find_representatives (Find representatives)
@@ -343,7 +343,7 @@ Find members of Congress by name, or list them by state, chamber or party. Use t
 Arguments:
   - query (string, optional, max length 100): Full or partial name, e.g. "Pelosi" or "Sen. Ted Cruz". Omit to list by the filters.
   - state (string, optional, max length 30): State or territory, by name or two-letter code, e.g. "Ohio" or "OH"
-  - chamber (one of house|senate, optional)
+  - chamber (one of house|senate, optional): Chamber, lowercase: "house" or "senate"
   - party (string, optional, max length 20): D, R or I (or Democrat, Republican, Independent)
   - include_former (boolean, optional): Also list members who left during this Congress when no name is given
   - limit (integer, optional, min 1, max 60): Default 20
@@ -366,9 +366,9 @@ Recorded votes for a member, newest first, with the question, bill, position, an
 Arguments:
   - bioguide_id (string, required, max length 7): Bioguide ID, e.g. P000197
   - bill (string, optional, max length 40): Only votes on this bill: 119-hr-1 or "H.R. 1"
-  - position (one of Yea|Nay|Present|Not Voting, optional)
+  - position (one of Yea|Nay|Present|Not Voting, optional): Vote position, exactly one of "Yea", "Nay", "Present" or "Not Voting" (case-sensitive)
   - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
-  - until (any, optional): YYYY-MM-DD, inclusive
+  - until (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
   - limit (integer, optional, min 1, max 100): Default 25
   - offset (integer, optional, min 0, max 100000): Skip this many votes (for the next page)
 
@@ -382,16 +382,16 @@ Arguments:
 
 How often two members of the same chamber voted the same way this Congress: the roll calls both voted Yea or Nay on, how many matched, and their ten most recent differing votes. A plain count over the whole record, not a score.
 Arguments:
-  - bioguide_id_a (string, required, max length 7): Bioguide ID, e.g. P000197
-  - bioguide_id_b (any, required)
+  - bioguide_id_a (string, required, max length 7): Bioguide ID of the first member, e.g. P000197
+  - bioguide_id_b (string, required, max length 7): Bioguide ID of the second member, in the same chamber as bioguide_id_a, e.g. S000148
 
 ## get_recent_votes (Get recent votes)
 
 Roll-call votes, newest first, with the question, bill, tally and derived result. Use for "what did Congress vote on this week" or to find a roll call before calling get_roll_call, which adds the party split and how each member voted. Filter by chamber, date range, bill, or words in the question, description or bill title (query "nomination", "appropriations"). A bill number in query ("H.R. 1") is treated as that bill.
 Arguments:
-  - chamber (one of house|senate, optional)
+  - chamber (one of house|senate, optional): Chamber, lowercase: "house" or "senate"
   - since (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
-  - until (any, optional): YYYY-MM-DD, inclusive
+  - until (string, optional, pattern ^\d{4}-\d{2}-\d{2}$): YYYY-MM-DD, inclusive
   - bill (string, optional, max length 40): Only roll calls on this bill: 119-hr-1 or "H.R. 1"
   - query (string, optional, max length 100): Words that must all appear in the question, description or bill title, and/or a bill number
   - limit (integer, optional, min 1, max 50): Default 20
@@ -400,13 +400,13 @@ Arguments:
 
 One roll-call vote: the question, bill, tally, party split, derived result, and how members voted. When more than 60 members match, they come back as short strings grouped by position; filter by state, party, position or bioguide_ids down to 60 or fewer (or pass format "full") to get one object per member, e.g. bioguide_ids to see how specific members voted or party "R" with position "Nay" for who broke ranks. result_derived is null when the record cannot decide it, such as a tied Senate vote the Vice President may have broken.
 Arguments:
-  - congress (integer, required, min 1, max 200)
-  - chamber (one of house|senate, required)
-  - session (integer, required, min 1, max 3)
-  - roll (integer, required, min 1, max 5000)
+  - congress (integer, required, min 1, max 200): Congress number, 1 to 200, e.g. 119 for the 119th Congress (2025-2026)
+  - chamber (one of house|senate, required): Chamber, lowercase: "house" or "senate"
+  - session (integer, required, min 1, max 3): Session of that Congress, 1 to 3: normally 1 (first year) or 2 (second year), e.g. 1 for 2025 in the 119th Congress
+  - roll (integer, required, min 1, max 5000): Roll-call number within that chamber and session, 1 to 5000, e.g. 145. get_recent_votes lists them.
   - state (string, optional, max length 30): State or territory, by name or two-letter code, e.g. "Ohio" or "OH"
   - party (string, optional, max length 20): D, R or I (or Democrat, Republican, Independent)
-  - position (one of Yea|Nay|Present|Not Voting, optional)
+  - position (one of Yea|Nay|Present|Not Voting, optional): Vote position, exactly one of "Yea", "Nay", "Present" or "Not Voting" (case-sensitive)
   - bioguide_ids (array, optional): Only these members
   - format (one of compact|full, optional): "full" forces one object per member; "compact" forces grouped strings. Default: full for 60 members or fewer.
 
@@ -416,7 +416,7 @@ Search bills by words in the title (every word must appear) or by bill number (e
 Arguments:
   - query (string, optional, max length 100): Title words or a bill number. Optional when another filter is given.
   - congress (integer, optional, min 93, max 200): e.g. 119
-  - stage (one of introduced|referred|subcommittee|committee|floor|passed_one|passed_both|enacted|dead, optional)
+  - stage (one of introduced|referred|subcommittee|committee|floor|passed_one|passed_both|enacted|dead, optional): Legislative stage, one of introduced, referred, subcommittee, committee, floor, passed_one, passed_both, enacted, dead (passed_one: passed one chamber; passed_both: passed both), e.g. "enacted"
   - sponsor (string, optional, max length 7): Bioguide ID of the sponsor
   - has_vote (boolean, optional): Only bills with a recorded floor vote
   - limit (integer, optional, min 1, max 50): Default 20
@@ -431,7 +431,7 @@ Arguments:
 
 A plain-English explanation of a bill for readers with no background in government: a one-sentence summary, short paragraphs and key points, written by AI from the bill's official text (or the CRS summary when the text is not published). Says which text version it read. Nothing is inferred from the title; when Congress.gov has no text yet, plain_english is null.
 Arguments:
-  - id (string, required, max length 40)
+  - id (string, required, max length 40): Bill id such as 119-hr-1, or a bill number such as "H.R. 1"
 
 ## get_floor_schedule (Get House floor schedule)
 

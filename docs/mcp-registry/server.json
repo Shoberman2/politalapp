@@ -3,8 +3,24 @@
   "name": "io.ballotwatch/congress",
   "title": "BallotWatch",
   "description": "U.S. Congress record: who represents you, how members voted, bills, floor schedule. Cited.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "websiteUrl": "https://www.ballotwatch.io",
+  "icons": [
+    {
+      "src": "https://www.ballotwatch.io/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    },
+    {
+      "src": "https://www.ballotwatch.io/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "180x180"
+      ]
+    }
+  ],
   "repository": {
     "url": "https://github.com/Shoberman2/politalapp",
     "source": "github"

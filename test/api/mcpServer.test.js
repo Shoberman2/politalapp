@@ -192,6 +192,25 @@ describe('MCP server', () => {
     expect(badDate.isError).toBe(true)
   })
 
+  it('describes every tool argument on the property itself, never only through a $ref', async () => {
+    const client = await connectedClient()
+    const { tools } = await client.listTools()
+    expect(tools).toHaveLength(TOOLS.length)
+    for (const t of tools) {
+      for (const [name, prop] of Object.entries(t.inputSchema.properties || {})) {
+        const where = `${t.name}.${name}`
+        expect(prop.$ref, where).toBeUndefined()
+        expect(typeof prop.description, where).toBe('string')
+        expect(prop.description.trim().length, where).toBeGreaterThan(0)
+      }
+    }
+    // The second of a repeated field validates the same as the first.
+    const badUntil = await client.callTool({ name: 'get_member_votes', arguments: { bioguide_id: 'P000197', until: '2026-02-30' } })
+    expect(badUntil.isError).toBe(true)
+    const badB = await client.callTool({ name: 'compare_members', arguments: { bioguide_id_a: 'P000197', bioguide_id_b: 'S0001480' } })
+    expect(badB.isError).toBe(true)
+  })
+
   it('rejects impossible calendar dates at the protocol boundary and documents the vote limit', async () => {
     const client = await connectedClient()
     const { tools } = await client.listTools()
