@@ -4,6 +4,8 @@
 // table. A table's response is one { data, error, count } object, an array
 // of them consumed in order (the last one repeats), or a function of the
 // recorded call ({ table, ops }) for tables read more than one way.
+// `rpc(fn, args)` works the same way, keyed as `rpc:<fn>` (its args are
+// recorded as the first op, ['rpc', fn, args]).
 export function makeSupabaseMock() {
   const responses = {}
   const calls = []
@@ -31,6 +33,12 @@ export function makeSupabaseMock() {
     return chain
   }
 
+  function rpc(fn, args) {
+    const chain = from(`rpc:${fn}`)
+    calls[calls.length - 1].ops.push(['rpc', fn, args])
+    return chain
+  }
+
   // Every recorded call of `name` against `table`, e.g. ops('bills', 'in').
   function ops(table, name) {
     return calls.filter((c) => c.table === table).flatMap((c) => c.ops.filter((o) => o[0] === name))
@@ -43,5 +51,5 @@ export function makeSupabaseMock() {
     calls.length = 0
   }
 
-  return { from, responses, calls, ops, tables, reset }
+  return { from, rpc, responses, calls, ops, tables, reset }
 }

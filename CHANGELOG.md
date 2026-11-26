@@ -3,6 +3,12 @@
 All notable changes to BallotWatch will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to a 4-digit version (`MAJOR.MINOR.PATCH.MICRO`) scheme.
 
+## [0.15.0.1] - 2026-11-25
+
+### Changed
+
+- Member and record sitemap lastmod is now each member's latest recorded vote.
+
 ## [0.15.0.0] - 2026-11-25
 
 ### Added
